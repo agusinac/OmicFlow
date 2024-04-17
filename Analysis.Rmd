@@ -1,0 +1,468 @@
+---
+title: "main"
+author: "A Gusinac"
+date: "2024-03-18"
+output: html_document
+---
+
+## Required Library's
+
+```{r, knitr::opts_chunk$set, include = FALSE, warning=FALSE}
+library("tidyverse")
+library("biomformat")
+library("phyloseq")
+library("ape")
+library("microViz")
+library("decontam")
+library("Biostrings")
+library("patchwork")
+library("vegan")
+library("ComplexHeatmap")
+```
+
+## Load functions
+
+```{r, include = FALSE, warning=FALSE}
+source("../../../../general_scripts/R/99_project-functions.R")
+
+# Utils
+sourceDir(path = "../../../../general_scripts/R/utils")
+
+```
+
+## Specify data paths
+
+```{r, eval=FALSE}
+biom_filename <- "..//data//BiotaViz//relative-table-with-taxonomy.biom"
+metadata_filename <- "..//data//metadata//metadata.tsv"
+taxonomy_filename <- "..//data//classifier//vsearch//taxonomy//biotaviz_taxonomy.tsv"
+tree_filename <- "..//data//phylogeny//phylogenetic_tree//tree.nwk"
+refseq_filename <- "..//data//denoise//representative_sequences//unfiltered//sequences.fasta"
+  
+```
+
+## Constructing physeq
+```{r, eval=FALSE}
+biom_data <- import_biom(BIOMfilename = biom_filename)
+metadata <- import_qiime_sample_data(metadata_filename)
+tree <- read_tree(tree_filename)
+refseq <- readDNAStringSet(refseq_filename)
+
+ps <- construct_ps(biom_data, metadata, tree, refseq)
+#saveRDS(ps, "..//data//RDS//radboudumc_relative_phyloseq.rds")
+
+```
+
+# Systematic comparison
+## Loading phyloseq objects
+
+```{r, include = FALSE, warning=FALSE}
+radboud_ps_abs <- readRDS("..//data//RDS//radboudumc_absolute_phyloseq.rds")
+
+```
+
+## Standard Data wrangling
+```{r}
+# data wrangling
+#------------------------------------------------------------------------------#
+radboud_ps_abs_bac <- radboud_ps_abs %>% 
+  subset_taxa(Domain == "Bacteria") 
+
+# normalize by bacterial domain
+radboud_ps_rel_bac_norm <- radboud_ps_abs_bac %>% 
+  transform_sample_counts(function(x) x / sum(x))
+
+```
+
+## Rankstat
+### Classified ASVs per taxonomic rank
+
+```{r, warning=FALSE}
+# subsetting only for positive samples
+radboud_ps_positive <- radboud_ps_abs %>% 
+  subset_samples(RANKSTAT_treatment != "control") %>% 
+  subset_taxa(Domain == "Bacteria")
+
+maastricht_proportion_classified <- plot_proportion_classified(maastricht_ps)
+radboud_proportion_classified <- plot_proportion_classified(radboud_ps_positive)
+
+(maastricht_proportion_classified + radboud_proportion_classified) + 
+  plot_annotation(title = "Maastricht versus Radboud FFPE samples",
+                  subtitle = "Percentage of the number of ASVs classified at each rank") +
+  plot_layout(guides = "collect",
+              axis_titles = "collect")
+
+```
+
+## Proportion of classified ASVs per taxonomic rank for each sample
+
+```{r, warning=FALSE, fig.width=10, fig.height=5}
+maastricht_norm_comp <- proportion_samples(maastricht_ps, sample_format=FALSE)
+radboud_norm_comp <- proportion_samples(radboud_ps_positive, sample_format=TRUE) +
+  theme(axis.text.y = element_blank())
+
+comb <- (maastricht_norm_comp + radboud_norm_comp) + 
+  plot_annotation(title = "Maastricht versus Radboud FFPE samples",
+       subtitle = "ASVs normalised per sample showing top 15 relative abundant taxa",
+       caption = paste("Spearman correlation between two phyloseqs is ")) +
+  theme(
+    text=element_text(size=20),
+    plot.title = element_text(size=25)
+  )
+
+ggsave(filename = "..//results//Proportion_classified_combination.png",
+       plot = comb,
+       width = 30,
+       height = 18,
+       limitsize = FALSE)
+
+```
+
+### Spearman correlation (non-paramatic test)
+
+```{r, warning=FALSE}
+# Spearman correlation
+sample_names(radboud_ps_positive) <- sample_names(radboud_ps_positive) %>%
+  str_extract("(^[^_]*_[^_]*_?\\d)|(C\\d?)")
+
+norm_maastricht <- transform_sample_counts(maastricht_ps, function(ASV) ASV / sum(ASV))
+norm_radboud <- transform_sample_counts(radboud_ps_positive, function(ASV) ASV / sum(ASV))
+
+
+top15_taxa_maastricht <- norm_maastricht %>% 
+  tax_fix(anon_unique = FALSE,
+          verbose = FALSE,
+          unknowns = c("uncultured")) %>% 
+  tax_glom(taxrank = "Genus", NArm = FALSE) %>% 
+  tax_top(n = 15)
+
+top15_taxa_radboud <- norm_radboud %>% 
+  tax_fix(anon_unique = FALSE,
+          verbose = FALSE,
+          unknowns = c("uncultured")) %>% 
+  tax_glom(taxrank = "Genus", NArm = FALSE) %>% 
+  tax_top(n = 15)
+
+maastricht_abun <- t(otu_table(norm_maastricht))[top15_taxa_maastricht, ] %>% 
+  as.matrix() %>% 
+  as.data.frame() %>% 
+  pivot_longer(cols = everything())
+
+radboud_abun <- otu_table(norm_radboud)[top15_taxa_radboud, ] %>% 
+  as.matrix() %>% 
+  as.data.frame() %>% 
+  pivot_longer(cols = everything())
+
+spearman_cor <- cor.test(maastricht_abun$value, radboud_abun$value, method = "spearman")
+kruskal_test <- kruskal.test(maastricht_abun$value ~ radboud_abun$value)
+
+```
+
+### Distribution of ASVs, relative and absolute in treatment groups
+
+```{r, warning=FALSE}
+# Subset by taxa: Change Subset_taxa by desired filter rank
+#------------------------------------------------------------------------------#
+ps <- radboud_ps_abs_bac %>% 
+  subset_taxa(Genus == "Pseudomonas")
+
+# Computes sum of ASVs per sample
+target_ps <- ps %>% 
+  ps_mutate(nASVs = sample_sums(ps))
+
+# Defines unique groups
+unique_groups <- unique(sample_data(target_ps)$RANKSTAT_treatment) 
+
+# Subsets by RANKSTAT_treatment into ASVs and Phyloseq objects
+ASVs_list <- list()
+ps_list <- list()
+
+for (variable in unique_groups) {
+  ps_subset <- subset_samples(target_ps, RANKSTAT_treatment == {{variable}}) %>% removeZeros()
+  ASV_subset <- ps_subset %>% removeZeros() %>% taxa_names()
+  
+  # store in list
+  ps_list[[variable]] <- ps_subset
+  ASVs_list[[variable]] <- ASV_subset
+}
+
+# Finds unique ASVs pairwise between treatment groups
+group_combi <- combn(x = unique_groups, m = 2)
+ASVs_diff_list <- list()
+for ( i in seq(ncol(group_combi))) {
+  pair <- group_combi[, i]
+  ASVs_diff <- setdiff(ASVs_list[[pair[2]]], ASVs_list[[pair[1]]])
+  ASVs_diff_list[[paste0(pair[2],"_vs_",pair[1])]] <- ASVs_diff
+}
+
+# Plots original relative abundance and absolute abundance side by side
+for (var in unique_groups) {
+  plt <- relative_and_absolute_plot(ps_list[[var]], tax_target = "Species", sample_format = TRUE)
+  
+  ggsave(filename = paste0("../results/Genus_", var, ".png"),
+       plot = plt,
+       width = 20,
+       height = 15,
+       limitsize = FALSE)
+}
+
+```
+### Correcting treatment groups by different ASVs
+```{r}
+ps_healthy_filt <- ASVs_filter(ps_healthy, ASVs_ht_vs_ct)
+ps_tumor_filt <- ASVs_filter(ps_tumor, ASVs_tu_vs_ct)
+
+ps_healthy_filt_stat <- ps_healthy_filt %>% 
+  ps_mutate(nASVs = sample_sums(ps_healthy_filt))
+
+ps_tumor_filt_stat <- ps_tumor_filt %>% 
+  ps_mutate(nASVs = sample_sums(ps_tumor_filt))
+
+relative_and_absolute_plot(ps_healthy_filt_stat, sample_format = TRUE)
+relative_and_absolute_plot(ps_tumor_filt_stat, sample_format = TRUE)
+
+
+```
+
+
+### Distribution of treatment groups in Phylum (neat)
+```{r}
+radboud_ps_abs %>% 
+  subset_taxa(Domain == "Bacteria") %>% 
+  tax_fix() %>% 
+  merge_samples(group = "RANKSTAT_treatment") %>% 
+  comp_barplot(
+    tax_level = "Phylum", n_taxa = 15,
+    sample_order = unique_groups,
+    bar_width = 0.8
+  ) +
+  coord_flip() + 
+  labs(x = NULL, y = NULL)
+```
+
+### Heatmap correlation plot
+
+```{r}
+cor_heatmap_plot(radboud_ps_abs, tax_target = "Genus")
+```
+
+
+## Alpha diversity 
+### Shannon index graph: data from nextflow run
+```{r}
+df_shannon <- read_csv(file = "../data/diversity_metrics/alpha_rarefaction/shannon.csv")
+
+df_shannon %>% 
+  pivot_longer(cols = starts_with("depth-"),
+               names_to = "iters",
+               values_to = "alpha_div") %>% 
+  ggplot(mapping = aes(x = RANKSTAT_treatment,
+                       y = alpha_div,
+                       fill = RANKSTAT_treatment)) +
+  geom_violin(width = 1.4) +
+  geom_boxplot(width = 0.1, 
+               color = "black",
+               alpha = 0.2) +
+  theme_bw() +
+  theme(legend.position = "none") +
+  labs(title = "Alpha diversity",
+       x = "sample groups",
+       y = "Shannon Index")
+
+```
+
+### Working from observed counts: data from nextflow run
+```{r}
+df_obs_features <- read_csv(file = "../data/diversity_metrics/alpha_rarefaction/observed_features.csv")
+
+# replace NAs by zero
+df_obs_clean <- df_obs_features %>% 
+  select(starts_with("depth")) %>% 
+  list() %>% 
+  replace_na(0) %>% 
+  as.data.frame() %>% 
+  as.matrix()
+
+
+df_total_clean <- df_obs_clean %>% 
+  rowwise(samples) %>% 
+  select(-samples) %>% 
+  mutate(total = sum(c_across(where(is.numeric)))) 
+
+shannon_vec <- vegan::diversity(x = df_obs_clean, 
+                 index = "shannon")
+
+df_samples <- data.frame(
+  samples = df_obs_features$`sample-id`,
+  groups = df_obs_features$RANKSTAT_treatment,
+  shannon = shannon_vec
+)
+
+df_samples %>% 
+  ggplot(mapping = aes(x = groups,
+                       y = shannon)) +
+  geom_violin(width = 1.4) +
+  geom_boxplot(width = 0.1, 
+               color = "black",
+               alpha = 0.2) +
+  theme_bw() +
+  theme(legend.position = "none") +
+  labs(title = "Alpha diversity",
+       x = "sample groups",
+       y = "Shannon-Wiener Index (H')")
+
+```
+
+## Species, Richness, Eveness statistics from biom format
+```{r}
+otu_tab <- ps2otu(ps = radboud_ps_abs_bac %>% 
+                    subset_samples(RANKSTAT_treatment != "control") %>% 
+                    removeZeros(), 
+                  tax_target = "Genus")
+
+# replace positives by 1
+otu_tab[otu_tab > 1] <- 1
+
+otu_tab <- otu_tab %>% t()
+group <- sample_data(radboud_ps_abs_bac)$RANKSTAT_treatment
+
+
+df_alpha <- data.frame(
+  samples = colnames(otu_tab),
+  groups = group[group != "control"],
+  species_n = vegan::specnumber(otu_tab, MARGIN = 2),
+  shannon = vegan::diversity(otu_tab, index = "shannon", MARGIN = 2),
+  simpson = vegan::diversity(otu_tab, index = "simpson", MARGIN = 2)
+)
+
+df_alpha %>% 
+  ggplot(mapping = aes(x = species_n)) +
+  geom_line(aes(y = shannon, color = "black")) +
+  geom_line(aes(y = simpson, color = "red")) +
+  scale_y_continuous(
+    sec.axis = sec_axis(~./2, name="Second Axis")
+  )
+```
+
+
+## Principal Coordinate Analysis with Unifrac
+```{r}
+# normalize by bacterial domain
+#------------------------------------------------------------------------------#
+radboud_ps_rel_bac_norm <- radboud_ps_abs_bac %>% 
+  transform_sample_counts(function(x) x / sum(x))
+
+comb_plot <- wunifrac_pcoa(radboud_ps_rel_bac_norm)
+ggsave("../results/test.png",
+       plot = comb_plot,
+       width = 10,
+       height = 10)
+
+```
+
+## Heatmap log transformed without Pseudomonas
+```{r}
+## TO DO: Rewrite function
+
+ps_fold_heatmap <- function(ps, threshold = 0.2, taxa_rank = "Genus", negative_ct="healthy", positive_ct="tumor") {
+  # Fetch otus and filter out less representative Genera
+  otu_tab <- ps2otu(ps, tax_target = taxa_rank) %>% t()
+  otu_tab.filt <- otu_tab[rowSums(otu_tab) > threshold, ]
+  
+  # log2 scale
+  otu_tab.trans <- otu_tab.filt %>%
+    as.matrix() %>% 
+    as("sparseMatrix") %>% 
+    log2() %>% 
+    as.matrix()
+  
+  # replace infinite by zero
+  otu_tab.trans[!is.finite(otu_tab.trans)] <- 0
+  
+  # Creates dataframe & orders taxa abundances
+  df <- as.data.frame(otu_tab.trans)
+  df$Taxa <- rownames(df) 
+  df$Total <- rowSums(df[, -ncol(df)])
+  df <- df[order(-df$Total, decreasing=TRUE), ]
+  
+  # Pivot longer table by specified id.vars
+  df_melt <- reshape2::melt(df, id.vars = c("Taxa", "Total"))
+  
+  # Removes uncultured genera, cleans sample names
+  df_final <- df_melt %>% 
+    filter(!grepl("uncultured", Genera)) %>% 
+    mutate(
+      # Specific for data, atm hardcoded but should be automated!
+      group = ifelse(base::grepl("T_", variable), "tumor",
+                     ifelse(base::grepl("H_", variable), "healthy", NA)),
+      sample.id = sub("(-?\\w{1}_\\d+)$", "" ,variable)
+    ) %>% 
+    group_by(sample.id) %>% 
+    filter(any(group == negative_ct) & any(group == positive_ct))
+  
+  # Computes log2(tumor) - log2(healthy)
+  df_diff <- df_final %>% 
+    group_by(sample.id, Genera) %>% 
+    summarise(diff = value[group == positive_ct] - value[group == negative_ct])
+  
+  # Generate heatmap plot with df_diff data
+  heatmap_plot <- df_final %>% 
+    left_join(df_diff, by = c("Taxa", "sample.id")) %>% 
+    ggplot(mapping = aes(x = as.factor(sample.id),
+                         y = Genera,
+                         fill = diff)) +
+    geom_tile() +
+    theme_bw() +
+    theme(axis.text.x = element_text(angle = 45, hjust = 1),
+          axis.title.y = element_blank(),
+          strip.background = element_rect(fill = "#EEEEEE", color = "#FFFFFF")) +
+    scale_fill_gradient2(name = "log2(tumor / healthy) fold",
+                        low = "blue",
+                        mid = "white",
+                        high = "red") +
+    scale_y_discrete(limits = rev(levels(as.factor(df_final$Genera)))) +
+    labs(x = "Samples", 
+         y = "Taxa")
+  
+  # Fetch otu table for boxplot and reshapes into long table
+  otu_tab.tumor <- as.data.frame(otu_tab.filt)
+  otu_tab.tumor$Genera <- rownames(otu_tab.filt)
+  otu_tab.tumor_ <- reshape2::melt(otu_tab.tumor, id.vars = c("Taxa"))
+  
+  rel_abun_plot <- otu_tab.tumor_ %>% 
+    ggplot(mapping = aes(x = value,
+                         y = Genera)) +
+    geom_boxplot() +
+    theme_bw() +
+    theme(axis.title.y = element_blank(),
+          axis.text.y = element_blank(),
+          axis.ticks.y = element_blank()) +
+    scale_x_continuous(breaks=seq(0, 1, 0.5)) +
+    scale_y_discrete(limits = rev(levels(as.factor(df_final$Genera)))) +
+    labs(x = "Relative Abundance")
+  
+  comb_plot <- (heatmap_plot + rel_abun_plot) +
+    plot_layout(guides = "collect",
+                axes = "collect",
+                widths = c(5,2)) +
+    plot_annotation(title = "Microbiome of Breast Carcinoma patients",
+                    subtitle = "")
+  
+  return(comb_plot)
+} 
+
+ps <- radboud_ps_abs_bac %>% 
+  subset_samples(RANKSTAT_treatment != "control") %>% 
+  subset_taxa(Genus != "Pseudomonas") %>% 
+  transform_sample_counts(function(x) x / sum(x)) %>% 
+  removeZeros()
+
+combined_plot <- ps_fold_heatmap(ps)
+
+# ggsave(filename = "../results/heatmap_2fold_change.png",
+#        plot = comb_plot,
+#        width = 10,
+#        height = 10,
+#        limitsize = FALSE)
+
+```
