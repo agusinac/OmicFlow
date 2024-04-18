@@ -1,5 +1,6 @@
 # Load phyloseq objects -------------------------------------------------------#
-ps_abs <- readRDS("../../Pathology/projects/FFPE_breast_microbiome/data/RDS/01_ps_abs_bac.rds")
+ps_abs <- readRDS("../data/RDS/01_ps_abs_bac.rds")
+ps_rel <- readRDS("../data/RDS/02_ps_rel_bac_norm.rds")
 
 
 ## Rankstat
@@ -12,7 +13,7 @@ rankstat_comb <- proportion_classified +
               axis_titles = "collect")
 
 ggsave(
-  filename = "03_rankstat.png",
+  filename = "../results/03_rankstat.png",
   plot = rankstat_comb,
   limitsize = FALSE
 )
@@ -33,7 +34,7 @@ group_by_rank <- ps_abs %>%
   labs(x = NULL, y = NULL)
 
 ggsave(
-  filename = "03_rankstat_by_rank.png",
+  filename = "../results/03_rankstat_by_rank.png",
   plot = group_by_rank,
   limitsize = FALSE
 )
@@ -42,11 +43,25 @@ ggsave(
 spearman_heatmap <- cor_heatmap_plot(ps_abs, tax_level = "Genus")
 
 # Saving heatmap --------------------------------------------------------------#
-png(filename = "03_spearman_heatmap.png", width = 7, height = 7, units = 'in', res = 600)
+png(filename = "../results/03_spearman_heatmap.png", width = 7, height = 7, units = 'in', res = 600)
 draw(spearman_heatmap)
 dev.off()
 
 #------------------------------------------------------------------------------#
-# TO DO: heatmap fold log2 change
+# For now hardcoded, should be later replaced
 
+ps <- ps_rel %>% 
+  subset_samples(RANKSTAT_treatment != "control") %>% 
+  subset_taxa(Genus != "Pseudomonas") %>% 
+  transform_sample_counts(function(x) x / sum(x)) %>% 
+  removeZeros()
 
+plt_heatmap <- ps_heatmap(ps)
+
+ggsave(
+  filename = "../results/03_heatmap_2fold.png",
+  plot = plt_heatmap,
+  limitsize = FALSE,
+  width = 10,
+  height = 10
+)

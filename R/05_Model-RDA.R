@@ -1,69 +1,82 @@
 # Parsing command line --------------------------------------------------------#
 script_parser <- function() {
   option_list <- list (optparse::make_option(c("--inomics"), 
-                                   action = "store",
-                                   default = "input.xlsx",
-                                   help="sample counts .xlsx file"),
+                                             action = "store",
+                                             default = NULL,
+                                             help="sample counts .xlsx file"),
                        optparse::make_option(c("--osheet"),
-                                   action = "store",
-                                   default = "genera",
-                                   help="excel sheet for omics"),
+                                             action = "store",
+                                             default = NULL,
+                                             help="excel sheet for omics"),
                        optparse::make_option(c("--inpheno"),
-                                   action = "store",
-                                   default = "input.xlsx",
-                                   help="taxonomical .xlsx file"),
+                                             action = "store",
+                                             default = NULL,
+                                             help="taxonomical .xlsx file"),
                        optparse::make_option(c("--psheet"),
-                                   action = "store",
-                                   default = "pheno",
-                                   help="excel sheet for taxonomical file"),
+                                             action = "store",
+                                             default = NULL,
+                                             help="excel sheet for taxonomical file"),
                        optparse::make_option(c("--contrast"),
-                                   action = "store",
-                                   default = "RANKSTAT_BBCBaCo",
-                                   help="Metadata column to be compared against sample counts"),
+                                             action = "store",
+                                             default = NULL,
+                                             help="Metadata column to be compared against sample counts"),
                        optparse::make_option(c("--log"),
-                                   action = "store",
-                                   default = 1,
-                                   help="Log transformation base"),
+                                             action = "store",
+                                             default = 1,
+                                             help="Log transformation base"),
                        optparse::make_option(c("--output"),
-                                   action = "store",
-                                   default = ".",
-                                   help="Output directory")
+                                             action = "store",
+                                             default = ".",
+                                             help="Output directory"),
+                       optparse::make_option(c("--pairwise"),
+                                             action = "store",
+                                             default = FALSE,
+                                             help = "Boolean operator, TRUE or FALSE, default = FALSE")
   )
   
   parser <- optparse::OptionParser(option_list = option_list)
   arguments <- optparse::parse_args(parser, positional_arguments=TRUE)
   
   opt <- arguments$options
-  
+  print(opt)
   # Import omics df
-  if (base::grepl(".xlsx$", opt$inomics) && opt$osheet != "") {
-    # imports as a Tibble, but these don't allow for row names [ https://cran.r-project.org/web/packages/tibble/vignettes/tibble.html ]
-    omics <- readxl::read_excel(opt$inomics, sheet = opt$osheet)
-    omics <- as.data.frame(omics)
-    base::rownames(omics) <- omics[,1]
-    omics[,1] <- NULL
+  if (!is.null(opt$inomics)) {
+    if (base::grepl(".xlsx$", opt$inomics) && opt$osheet != "") {
+      # imports as a Tibble, but these don't allow for row names [ https://cran.r-project.org/web/packages/tibble/vignettes/tibble.html ]
+      omics <- readxl::read_excel(opt$inomics, sheet = opt$osheet)
+      omics <- as.data.frame(omics)
+      base::rownames(omics) <- omics[,1]
+      omics[,1] <- NULL
+    }
   }
   
   # Import metadata df
-  if (base::grepl(".xlsx$", opt$inpheno) && opt$psheet != "") {
-    # imports as a Tibble, but these don't allow for row names [ https://cran.r-project.org/web/packages/tibble/vignettes/tibble.html ]
-    meta <- readxl::read_excel(opt$inpheno, sheet = opt$psheet)
-    meta <- as.data.frame(meta)
-    rownames(meta) <- meta[,1]
-    meta[,1] <- NULL
+  if (!is.null(opt$inpheno)) {
+    if (base::grepl(".xlsx$", opt$inpheno) && opt$psheet != "") {
+      # imports as a Tibble, but these don't allow for row names [ https://cran.r-project.org/web/packages/tibble/vignettes/tibble.html ]
+      meta <- readxl::read_excel(opt$inpheno, sheet = opt$psheet)
+      meta <- as.data.frame(meta)
+      rownames(meta) <- meta[,1]
+      meta[,1] <- NULL
+    }
   }
   
-  if (opt$contrast != "") {
+  if (!is.null(opt$contrast)) {
     contrast <- opt$contrast
   }
   
-  result <- list(
-    otu_tab = omics,
-    meta_tab = meta,
-    contrast = contrast,
-    log = opt$log,
-    outdir = opt$output
-  )
+  if (!is.null(opt$inomics) && !is.null(opt$inpheno)) {
+    result <- list(
+      otu_tab = omics,
+      meta_tab = meta,
+      contrast = contrast,
+      log = opt$log,
+      outdir = opt$output,
+      pairwise = opt$pairwise
+    )
+  } else {
+    result <- NULL
+  }
   return(result)
 }
 
@@ -76,50 +89,51 @@ logn <- function(otu_tab, scalar=1) {
   return(otu_tab.sc)
 }
 
-ps2otu <- function(ps, tax_target="Genus") {
-  ps_ref <- ps %>% 
-    phyloseq::tax_glom(taxrank = {{tax_target}})
-  df <- ps_ref %>% 
-    phyloseq::otu_table() %>% 
-    t() %>% 
-    as.data.frame()
-  colnames(df) <- as.data.frame(phyloseq::tax_table(ps_ref))[[ {{tax_target}} ]]
-  return(df)
-}
-
 # Main code -------------------------------------------------------------------#
-# If script is used interactive by user, then command-line parsing is used
-# Else, pipeline phyloseq will be loaded.
-if (interactive()) {
+# Checks if arguments are passed from 05_main.R
+if (grepl("05_Model-RDA.R", commandArgs()[4])) {
   data_05 <- script_parser()
   otu_tab <- data_05$otu_tab
   meta_tab <- data_05$meta_tab
   contrast <- data_05$contrast
   
-  # Loads required functions
-  source("R/utils/pairwise_triplot.R")
+  # Loads required functions/libraries
+  source("utils/pairwise_triplot.R")
   
   # Models RDA
-  otu_lab.log <- logn(otu_tab, scalar = data_05$log)
+  otu_tab.log <- logn(otu_tab, scalar = data_05$log)
   mod.rda <- vegan::rda(otu_tab.log ~ get(contrast, meta_tab) + Condition(NULL), 
                         data = meta_tab, 
                         scale = FALSE, 
                         na.action = na.fail, 
                         subset = NULL)
   
+  if (data_05$pairwise) {
+    mod.pca <- vegan::rda(otu_tab.log,
+                          scale = FALSE)
+    
+    pairwise_triplot(model = mod.pca,
+                     target_col = contrast,
+                     metadata = meta_tab,
+                     pairwise = data_05$pairwise,
+                     outdir = data_05$outdir)
+  }
+  
   # Saves plot
   pdf(file=paste0(data_05$outdir, "/", "RDA_triplot.pdf"))
   pairwise_triplot(model = mod.rda, 
                    target_col = contrast, 
-                   metadata = meta_tab)
+                   metadata = meta_tab,
+                   choice_dim = c("RDA1", "PC1"))
   pairwise_triplot(model = vegan::rda(otu_tab.log, scale=FALSE), 
                    target_col = contrast, 
                    metadata = meta_tab,
                    choice_dim = c("PC1", "PC2"))
   dev.off()
-  
-} else {
-  radboud_ps_rel_bac_norm <- readRDS("../../Pathology/projects/FFPE_breast_microbiome/data/RDS/02_ps_rel_bac_norm.rds")
+}
+# Checks if arguments are passed from 00_main.R
+if (grepl("00_main.R", commandArgs()[4])) {
+  radboud_ps_rel_bac_norm <- readRDS("../data/RDS/02_ps_rel_bac_norm.rds")
   otu_tab <- get_otu(ps = radboud_ps_rel_bac_norm)
   meta_tab <- get_meta(ps = radboud_ps_rel_bac_norm)
   
@@ -132,7 +146,7 @@ if (interactive()) {
   mod.cols <- mod.res["model.col"]
   
   # PCA model
-  mod.pca <- vegan::rda(otu_tab.log, 
+  mod.pca <- vegan::rda(otu_tab.log,
                         scale = FALSE)
   
   # Create empty plot list
@@ -141,12 +155,12 @@ if (interactive()) {
   # Creates triplot of different columns
   for (i in mod.cols) {
     # RDA model
-    mod.rda <- vegan::rda(otu_tab.log ~ get(i, meta_tab) + Condition(NULL), 
-                             data = meta_tab, 
-                             scale = FALSE, 
-                             na.action = na.fail, 
-                             subset = NULL)
-    n = n + 1 
+    mod.rda <- vegan::rda(otu_tab.log ~ get(i, meta_tab) + Condition(NULL),
+                          data = meta_tab,
+                          scale = FALSE,
+                          na.action = na.fail,
+                          subset = NULL)
+    n = n + 1
     triplot_rda <- function(){pairwise_triplot(model = mod.rda,
                                                target_col = i,
                                                metadata = meta_tab,
@@ -164,5 +178,4 @@ if (interactive()) {
     plot_list[[n]] <- triplot_pca
   }
   
-
 }

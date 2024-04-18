@@ -5,4 +5,4 @@ ps <- construct_phyloseq(biom_data = data_00$biomData,
                          tree_data = data_00$treeData, 
                          refseq_data = data_00$refseqData)
 
-saveRDS(ps, "../../Pathology/projects/FFPE_breast_microbiome/data/RDS/01_absolute_phyloseq.rds")
+saveRDS(ps, "../data/RDS/01_absolute_phyloseq.rds")
