@@ -93,13 +93,14 @@ plot_proportion_classified(ps_abs_bac_positive)
 ## Proportion of classified ASVs per taxonomic rank for each sample
 
 ```{r}
-proportion_samples(ps_abs_bac_positive)
+ps_composition(ps_abs_bac, tax_level = "Genus", col_name = "RANKSTAT_treatment", taxa_n = 15, col_order = "all")
 
-# ggsave(filename = "../results/Proportion_classified_combination.png",
-#        plot = comb,
-#        width = 30,
-#        height = 18,
-#        limitsize = FALSE)
+
+ggsave(filename = "results/Composition.png",
+       plot = comb_plot,
+       width = 30,
+       height = 18,
+       limitsize = FALSE)
 
 ```
 

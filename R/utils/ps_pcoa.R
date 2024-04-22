@@ -7,7 +7,7 @@
 # Plots a pairwise PCoA of different dimensions that sum to at least 80%.
 # Produces pairwise PERMANOVA statistics on RANKSTAT_treatment (to be modified).
 
-ps_pcoa <- function(ps, dist.metric, RANKSTAT_col, pairwise = FALSE, dist.explained=80, choice_dim=c(1,2), outdir="results") {
+ps_pcoa <- function(ps, dist.metric, col_name, pairwise = FALSE, dist.explained=80, choice_dim=c(1,2), outdir="results") {
   # General PCoA plot via ggplot
   pcoa_plot <- function(df_pcs_points, pcs, pair, dist.metric) {
     plot_title = paste0("PCoA - PC",pair[1] ," vs PC", pair[2])
@@ -43,7 +43,7 @@ ps_pcoa <- function(ps, dist.metric, RANKSTAT_col, pairwise = FALSE, dist.explai
   )
   
   # Fetch sample groups
-  group_names <- sample_data(ps)[[ {{RANKSTAT_col}} ]]
+  group_names <- sample_data(ps)[[ {{col_name}} ]]
   
   # PCoA via Singular Value Decomposition (SVD)
   pcs <- vegan::wcmdscale(
@@ -109,7 +109,7 @@ ps_pcoa <- function(ps, dist.metric, RANKSTAT_col, pairwise = FALSE, dist.explai
   
   # Permanova test
   permanova_results <- pairwise.adonis(as.matrix(dist_mat),
-                                       phyloseq::sample_data(ps)[[ {{ RANKSTAT_col }} ]])
+                                       phyloseq::sample_data(ps)[[ {{ col_name }} ]])
   
   # Creates permanova plot
   plot_list[[3]] <- permanova_results %>% 

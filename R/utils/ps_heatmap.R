@@ -1,4 +1,4 @@
-ps_heatmap <- function(ps, threshold = 0.2, taxa_rank = "Genus", RANKSTAT_col = "RANKSTAT_treatment", condition_A = "tumor", condition_B = "tumor") {
+ps_heatmap <- function(ps, threshold = 0.2, taxa_rank = "Genus", RANKSTAT_col = "RANKSTAT_treatment", condition_A = "Tumor", condition_B = "Healthy") {
   # Fetch otus and filter out less representative Genera
   otu_tab <- get_otu(ps, tax_target = taxa_rank) %>% t()
   meta_tab <- get_meta(ps)

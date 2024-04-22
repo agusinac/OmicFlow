@@ -123,7 +123,7 @@ pairwise_triplot <- function(model, target_col, metadata, pairwise = FALSE, outd
     subset.result <- subset_by_dimensions(model, pairwise_dims)
     
     # save pdf
-    pdf(paste0(outdir, "/test_pairwise.pdf"))
+    pdf(paste0(outdir, "/pairwise_PCA.pdf"))
     for (i in seq(ncol(subset.result$n_dim_pairs))) {
       pair <- subset.result$n_dim_pairs[, i]
       scores_species_explained <- subset_by_species(model, pc = pair[1])
