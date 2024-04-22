@@ -1,3 +1,4 @@
+
 # Takes in a phyloseq object and computes the weighted UniFrac.
 
 # - INPUT: Phyloseq object, must include phylo tree.
@@ -6,7 +7,7 @@
 # Plots a pairwise PCoA of different dimensions that sum to at least 80%.
 # Produces pairwise PERMANOVA statistics on RANKSTAT_treatment (to be modified).
 
-ps_pcoa <- function(ps, dist.metric, RANKSTAT_col, pairwise = FALSE, dist.explained=80, choice_dim=c(1,2)) {
+ps_pcoa <- function(ps, dist.metric, RANKSTAT_col, pairwise = FALSE, dist.explained=80, choice_dim=c(1,2), outdir="results") {
   # General PCoA plot via ggplot
   pcoa_plot <- function(df_pcs_points, pcs, pair, dist.metric) {
     plot_title = paste0("PCoA - PC",pair[1] ," vs PC", pair[2])
@@ -70,7 +71,7 @@ ps_pcoa <- function(ps, dist.metric, RANKSTAT_col, pairwise = FALSE, dist.explai
     # Finds number of dimensions that explain 80% of distances
     n_dimensions = 0
     sum_eig = 0
-    for (eig in norm_pcs) {
+    for (eig in pcs$eig_norm) {
       if (sum_eig < dist.explained) {
         sum_eig <- sum_eig + eig
         n_dimensions <- n_dimensions + 1
@@ -79,48 +80,55 @@ ps_pcoa <- function(ps, dist.metric, RANKSTAT_col, pairwise = FALSE, dist.explai
     
     # Creates paired combinations of dimensions into a list of plots
     n_dim_pairs <- utils::combn(seq(n_dimensions), 2)
-    pairwise_list <- list()
+    pdf(paste0(outdir, "/pairwise_PCoA.pdf"))
     for (i in seq(ncol(n_dim_pairs))) {
       pair <- n_dim_pairs[, i]
-      plt <- pcoa_plot(df_pcs_points, pcs, pair, dist.metric)
-      pairwise_list[[i]] <- plt
+      print(pcoa_plot(df_pcs_points, pcs, pair, dist.metric))
     }
-    # Stores pairwise plots into a single wrap plot
-    # TO DO: Find another way to display pairwise plots!
-    plot_list$pairwise_plot <- patchwork::wrap_plots(plotlist = pairwise_list) +
-      plot_layout(guides = "collect")
+    dev.off()
   }
   
+  # Scree plot of first 10 dimensions
+  plot_list[[1]] <- data.frame(
+    dims = seq(length(pcs$eig_norm[1:10])),
+    dims.explained = pcs$eig_norm[1:10]
+  ) %>% 
+    ggplot(mapping = aes(x = dims,
+                         y = dims.explained)) +
+    geom_col() +
+    theme_bw() +
+    scale_x_continuous(breaks=seq(1, 10, 1)) +
+    scale_y_continuous(breaks=seq(0, 100, 10)) +
+    labs(title = "Screeplot of first 10 PCs",
+         x = "Principal Components (PCs)",
+         y = "dissimilarity explained [%]")
+  
+  
   # PCoA plot according to user specified dimensions
-  plot_list[[1]] <- pcoa_plot(df_pcs_points, pcs, pair=choice_dim, dist.metric)
+  plot_list[[2]] <- pcoa_plot(df_pcs_points, pcs, pair=choice_dim, dist.metric)
   
   # Permanova test
   permanova_results <- pairwise.adonis(as.matrix(dist_mat),
                                        phyloseq::sample_data(ps)[[ {{ RANKSTAT_col }} ]])
   
   # Creates permanova plot
-  plot_list[[2]] <- permanova_results %>% 
+  plot_list[[3]] <- permanova_results %>% 
     ggplot(mapping=aes(x = pairs, 
                        y = F.Model,
                        label = p.adjusted)) +
     geom_bar(stat = "identity", 
              fill = "blue") +
-    geom_label(nudge_y = 7) +
+    geom_label(nudge_y = 0) +
     labs(title = "PERMANOVA Results", 
          subtitle = "P adjusted significant scores are shown above each bar",
          x = "groups", 
          y = "F test statistic") +
     theme_bw()
   
-  # Scree plot of eigenvalue proportions
-  # Re-do in ggplot format!
-  # plot_list[[3]] <- barplot (pcs$eig_norm[1:10], 
-  #                            names = paste ('PC', 1:10), 
-  #                            las = 3, 
-  #                            ylab = 'Dissimilarity Explained [%]',
-  #                            title = paste0("Screeplot of ", dist.metric, " metric"))
-  
-  comb_plot <- patchwork::wrap_plots(plotlist = plot_list) +
+  # Combines plots
+  comb_plot <- patchwork::wrap_plots(plotlist = plot_list,
+                                     ncol = 3,
+                                     nrow = 1) +
     plot_layout(guides = "collect")
   
   return(comb_plot)

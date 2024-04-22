@@ -247,13 +247,12 @@ for (var in unique_groups) {
 ## Principal Coordinate Analysis with Weighted Unifrac distances
 ```{r}
 # normalized by bacterial domain
-
 comb_plot <- ps_pcoa(ps = ps_rel_bac, dist.metric = "wunifrac", RANKSTAT_col = "RANKSTAT_treatment")
-comb_plot
-# ggsave("../results/test.png",
-#        plot = comb_plot,
-#        width = 10,
-#        height = 10)
+
+ggsave("results/pcoa_test.png",
+       plot = comb_plot,
+       width = 15,
+       height = 5)
 
 ```
 
