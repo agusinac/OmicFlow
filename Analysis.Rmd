@@ -268,13 +268,12 @@ ps <- ps_abs_bac %>%
   transform_sample_counts(function(x) x / sum(x)) %>% 
   removeZeros()
 
+fold_heatmap <- ps_heatmap(ps)
 
-ps_fold_heatmap(ps)
-
-# ggsave(filename = "../results/heatmap_2fold_change.png",
-#        plot = comb_plot,
-#        width = 10,
-#        height = 10,
-#        limitsize = FALSE)
+ggsave(filename = "results/heatmap_2fold_change.png",
+       plot = fold_heatmap,
+       width = 10,
+       height = 10,
+       limitsize = FALSE)
 
 ```
