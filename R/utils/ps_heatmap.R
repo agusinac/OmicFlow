@@ -1,4 +1,4 @@
-ps_heatmap <- function(ps, threshold = 0.2, taxa_rank = "Genus", RANKSTAT_col = "RANKSTAT_treatment", condition_A = "Tumor", condition_B = "Healthy") {
+ps_heatmap <- function(ps, threshold = 0.2, taxa_rank = "Genus", col_name = "RANKSTAT_treatment", condition_A = "Tumor", condition_B = "Healthy") {
   # Fetch otus and filter out less representative Genera
   otu_tab <- get_otu(ps, tax_target = taxa_rank) %>% t()
   meta_tab <- get_meta(ps)
@@ -29,7 +29,7 @@ ps_heatmap <- function(ps, threshold = 0.2, taxa_rank = "Genus", RANKSTAT_col = 
     rowwise() %>% 
     mutate(
       # Collects sample group names from metadata 
-      group = meta_tab[[ {{ RANKSTAT_col }} ]][str_detect(as.character(meta_tab$SAMPLE.ID), as.character(variable))],
+      group = meta_tab[[ {{ col_name }} ]][str_detect(as.character(meta_tab$SAMPLE.ID), as.character(variable))],
       # Metadata should have a column of identical sample names for paired samples!
       sample.id = sub("(-?\\w{1}_\\d+)$", "" ,variable)
     ) %>% 
@@ -61,13 +61,21 @@ ps_heatmap <- function(ps, threshold = 0.2, taxa_rank = "Genus", RANKSTAT_col = 
          y = "Taxa")
   
   # Fetch otu table for boxplot and reshapes into long table
-  otu_tab.tumor <- as.data.frame(otu_tab.filt)
-  otu_tab.tumor$Taxa <- rownames(otu_tab.filt)
-  otu_tab.tumor_ <- reshape2::melt(otu_tab.tumor, id.vars = c("Taxa"))
+  stats_tab <- as.data.frame(otu_tab.filt) %>% 
+    t() %>% 
+    as.data.frame() %>% 
+    pivot_longer(cols = everything(),
+                 names_to = "taxa",
+                 values_to = "rel_abun")
   
-  rel_abun_plot <- otu_tab.tumor_ %>% 
-    ggplot(mapping = aes(x = value,
-                         y = Taxa)) +
+  # Converts values to numeric and replaces NA by zero
+  stats_tab$rel_abun <- as.numeric(stats_tab$rel_abun)
+  stats_tab$rel_abun[is.na(stats_tab$rel_abun)] <- 0
+  
+  # Creates boxplot from relative abundances
+  rel_abun_plot <- stats_tab %>% 
+    ggplot(mapping = aes(x = rel_abun,
+                         y = taxa)) +
     geom_boxplot() +
     theme_bw() +
     theme(axis.title.y = element_blank(),
@@ -77,6 +85,7 @@ ps_heatmap <- function(ps, threshold = 0.2, taxa_rank = "Genus", RANKSTAT_col = 
     scale_y_discrete(limits = rev(levels(as.factor(df_diff$Taxa)))) +
     labs(x = "Rel. Abun.")
   
+  # Combines plots
   comb_plot <- (heatmap_plot + rel_abun_plot) +
     plot_layout(guides = "collect",
                 axes = "collect",
