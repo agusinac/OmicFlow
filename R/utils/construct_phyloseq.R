@@ -1,7 +1,7 @@
 # Creates a phyloseq S4 class object from different files
 
 construct_phyloseq <- function(biom_data, meta_data, tree_data, refseq_data) {
-  ps <- phyloseq::merge_phyloseq(biom_data, meta_data, tree_data, refseq_data)
+  ps <- phyloseq::merge_phyloseq(biom_data, meta_data, read_tree(tree_data), refseq_data)
   
   # Rename taxa ranks
   base::colnames(phyloseq::tax_table(ps)) <- c("Domain", "Phylum",

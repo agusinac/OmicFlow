@@ -6,7 +6,7 @@ ps_rel <- readRDS("../data/RDS/02_ps_rel_bac_norm.rds")
 ## Rankstat
 ### Classified ASVs per taxonomic rank
 #------------------------------------------------------------------------------#
-proportion_classified <- plot_proportion_classified(ps_abs)
+proportion_classified <- ps_rankstat(ps_abs)
 rankstat_comb <- proportion_classified +
   plot_annotation(title = "Percentage of the number of ASVs classified at each rank") +
   plot_layout(guides = "collect",
@@ -19,19 +19,19 @@ ggsave(
 )
 #------------------------------------------------------------------------------#
 # Collect unique treatment conditions
-unique_groups <- sample_data(ps_abs)$RANKSTAT_treatment %>% 
+unique_groups <- sample_data(ps_abs)[[ {{ data_00$col_name }} ]] %>% 
   unique()
   
 group_by_rank <- ps_abs %>% 
   tax_fix(unknowns = c("uncultured")) %>% 
-  merge_samples(group = "RANKSTAT_treatment") %>% 
+  merge_samples(group = {{ data_00$col_name }} ) %>% 
   comp_barplot(
     tax_level = "Genus", n_taxa = 15,
     sample_order = unique_groups,
     bar_width = 0.8
   ) +
   coord_flip() + 
-  labs(x = NULL, y = NULL)
+  labs(x = NULL, y = NULL, caption = paste0("metadata column selected: ", data_00$col_name))
 
 ggsave(
   filename = "../results/03_rankstat_by_rank.png",
@@ -40,7 +40,7 @@ ggsave(
 )
 
 # Spearman correlation heatmap ------------------------------------------------#
-spearman_heatmap <- cor_heatmap_plot(ps_abs, tax_level = "Genus")
+spearman_heatmap <- cor_heatmap_plot(ps_abs, col_name=data_00$col_name, tax_level = "Genus")
 
 # Saving heatmap --------------------------------------------------------------#
 png(filename = "../results/03_spearman_heatmap.png", width = 7, height = 7, units = 'in', res = 600)
@@ -51,12 +51,12 @@ dev.off()
 # For now hardcoded, should be later replaced
 
 ps <- ps_rel %>% 
-  subset_samples(RANKSTAT_treatment != "control") %>% 
+  subset_samples({{ data_00$col_name }} != "control") %>% 
   subset_taxa(Genus != "Pseudomonas") %>% 
   transform_sample_counts(function(x) x / sum(x)) %>% 
   removeZeros()
 
-plt_heatmap <- ps_heatmap(ps)
+plt_heatmap <- ps_heatmap(ps, col_name = data_00$col_name)
 
 ggsave(
   filename = "../results/03_heatmap_2fold.png",

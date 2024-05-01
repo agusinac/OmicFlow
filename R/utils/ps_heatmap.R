@@ -81,9 +81,9 @@ ps_heatmap <- function(ps, threshold = 0.2, taxa_rank = "Genus", col_name = "RAN
     theme(axis.title.y = element_blank(),
           axis.text.y = element_blank(),
           axis.ticks.y = element_blank()) +
-    scale_x_continuous(breaks=seq(0, 1, 0.5)) +
+    scale_x_continuous(trans = scales::log10_trans()) +
     scale_y_discrete(limits = rev(levels(as.factor(df_diff$Taxa)))) +
-    labs(x = "Rel. Abun.")
+    labs(x = "Log10( Rel. Abun. )")
   
   # Combines plots
   comb_plot <- (heatmap_plot + rel_abun_plot) +

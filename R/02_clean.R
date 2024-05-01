@@ -3,8 +3,6 @@ radboud_ps_abs <- readRDS("../data/RDS/01_absolute_phyloseq.rds")
 
 # Data wrangling --------------------------------------------------------------#
 # In paired samples, should contain an unique sample ID column, then str_extract should be removed!
-sample_names(radboud_ps_abs) <- sample_names(radboud_ps_abs) %>%
-  str_extract("(^[^_]*_[^_]*_?\\d)|(C\\d?)") 
 radboud_ps_abs_bac <- radboud_ps_abs %>% 
   subset_taxa(Domain == "Bacteria") %>% 
   removeZeros()

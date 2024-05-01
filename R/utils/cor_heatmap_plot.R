@@ -1,9 +1,9 @@
 # Creates a spearman correlation heatmap for the specified group.
 # Automatically transforms the phyloseq for k number of unique groups.
 
-cor_heatmap_plot <- function(ps, tax_level, tax_cor="spearman") {
+cor_heatmap_plot <- function(ps, tax_level, col_name, tax_cor="spearman") {
   # Define unique groups
-  unique_groups <- phyloseq::sample_data(ps)$RANKSTAT_treatment %>% 
+  unique_groups <- phyloseq::sample_data(ps)[[ {{ col_name }} ]] %>% 
     base::unique()
   
   # Tax fixes the phyloseq object
@@ -17,7 +17,7 @@ cor_heatmap_plot <- function(ps, tax_level, tax_cor="spearman") {
   for (variable in unique_groups) {
     psq <- psq %>% 
       microViz::ps_mutate(
-        !!variable := if_else(RANKSTAT_treatment == variable, true = 1, false = 0)
+        !!variable := if_else({{ col_name }} == variable, true = 1, false = 0)
       )
   }
   # performs a correlation heatmap plot

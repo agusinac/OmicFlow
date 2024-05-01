@@ -1,6 +1,6 @@
 # Plots the total number of ASVs found at different taxonomical levels from all samples
 
-ps_rankstat <- function(ps, title) {
+ps_rankstat <- function(ps) {
   nASVs <- phyloseq::ntaxa(ps)
   rank_stats <- ps_rank_stats(ps)
   

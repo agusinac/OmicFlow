@@ -35,11 +35,11 @@ sourceDir(path = "R/utils")
 ## Specify data paths
 
 ```{r, eval=FALSE}
-biom_filename <- "../data/BiotaViz/relative-table-with-taxonomy.biom"
-metadata_filename <- "../data/metadata/metadata.tsv"
-taxonomy_filename <- "../data/classifier/vsearch/taxonomy/biotaviz_taxonomy.tsv"
-tree_filename <- "../data/phylogeny/phylogenetic_tree/tree.nwk"
-refseq_filename <- "../data/denoise/representative_sequences/unfiltered/sequences.fasta"
+biom_filename <- "data/BiotaViz/relative-table-with-taxonomy.biom"
+metadata_filename <- "data/metadata/metadata.tsv"
+taxonomy_filename <- "data/classifier/vsearch/taxonomy/biotaviz_taxonomy.tsv"
+tree_filename <- "data/phylogeny/phylogenetic_tree/tree.nwk"
+refseq_filename <- "data/denoise/representative_sequences/unfiltered/sequences.fasta"
   
 ```
 
@@ -86,7 +86,7 @@ ps_abs_bac_positive <- ps_abs_bac %>%
   subset_samples(RANKSTAT_treatment != "control") %>% 
   removeZeros()
 
-plot_proportion_classified(ps_abs_bac_positive)
+ps_rankstat(ps_abs_bac_positive)
 
 ```
 
@@ -267,6 +267,8 @@ ps <- ps_abs_bac %>%
   subset_taxa(Genus != "Pseudomonas") %>% 
   transform_sample_counts(function(x) x / sum(x)) %>% 
   removeZeros()
+
+source("R/utils/ps_heatmap.R")
 
 fold_heatmap <- ps_heatmap(ps)
 
