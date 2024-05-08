@@ -1,5 +1,5 @@
 ps_composition <- function(ps, tax_level, metadata.columns, taxa_n=15, excel_path=FALSE) {
-  
+
   # Fetch OTU table and Metadata
   otu_tab <- get_otu(ps, tax_target = tax_level)
   meta_tab <- get_meta(ps)
@@ -34,14 +34,8 @@ ps_composition <- function(ps, tax_level, metadata.columns, taxa_n=15, excel_pat
       )
   }
   
-  # Change names: HARDCODED
-  #----------------------------------------------------------------------------#
-  df_melt$variable <- gsub("_\\d+", "", df_final$variable)
-  df_melt$RANKSTAT_treatment <- sub("Healthy", "Adjacent normal", df_melt$RANKSTAT_treatment)
-  #----------------------------------------------------------------------------#
-  
   # composition of absolute counts per sample
-  comp_abs <- sampleSums_plot(ps_abs)
+  #comp_abs <- sampleSums_plot(ps)
   
   # composition relative abundance
   comp_rel <- composition_plot(df_melt, tax_level)

@@ -13,7 +13,7 @@ knitr::opts_chunk$set(warning = FALSE, message = FALSE, echo = FALSE)
 
 ## ASVs found at different taxonomic ranks
 ```{r}
-rankstat_comb
+proportion_classified
 ```
 
 ## Genera found in different sample groups
@@ -29,7 +29,7 @@ spearman_heatmap
 ## Log2 fold change heatmap
 
 ```{r}
-
+comp_rel
 ```
 
 ## Principal Coordinate Analysis (PCoA) of Weighted UniFrac distances

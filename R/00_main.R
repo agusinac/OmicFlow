@@ -13,10 +13,11 @@ library("ComplexHeatmap")
 
 # Load Functions ---------------------------------------------------------------
 # Data wrangling functions
-source(file = "99_project-functions.R")
+dir = paste0(getwd(), "/automated-omics-analysis/R/")
+source(file = paste0(dir ,"99_project-functions.R"))
 
 # Utils
-sourceDir(path = "utils")
+sourceDir(path = paste0(dir, "utils"))
 
 # Parse command line
 data_00 <- parse_commandline()
