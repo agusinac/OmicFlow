@@ -1,5 +1,5 @@
 # Data load -------------------------------------------------------------------#
-radboud_ps_abs <- readRDS("../data/RDS/01_absolute_phyloseq.rds")
+radboud_ps_abs <- readRDS("data/RDS/01_absolute_phyloseq.rds")
 
 # Data wrangling --------------------------------------------------------------#
 # In paired samples, should contain an unique sample ID column, then str_extract should be removed!
@@ -13,5 +13,5 @@ radboud_ps_rel_bac_norm <- radboud_ps_abs_bac %>%
 
 
 # Save wrangled file ----------------------------------------------------------#
-saveRDS(radboud_ps_rel_bac_norm, "../data/RDS/02_ps_rel_bac_norm.rds")
-saveRDS(radboud_ps_abs_bac, "../data/RDS/01_ps_abs_bac.rds")
+saveRDS(radboud_ps_rel_bac_norm, "data/RDS/02_ps_rel_bac_norm.rds")
+saveRDS(radboud_ps_abs_bac, "data/RDS/01_ps_abs_bac.rds")

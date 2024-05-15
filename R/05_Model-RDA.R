@@ -133,7 +133,7 @@ if (grepl("05_Model-RDA.R", commandArgs()[4])) {
 }
 # Checks if arguments are passed from 00_main.R
 if (grepl("00_main.R", commandArgs()[4])) {
-  radboud_ps_rel_bac_norm <- readRDS("../data/RDS/02_ps_rel_bac_norm.rds")
+  radboud_ps_rel_bac_norm <- readRDS("data/RDS/02_ps_rel_bac_norm.rds")
   otu_tab <- get_otu(ps = radboud_ps_rel_bac_norm)
   meta_tab <- get_meta(ps = radboud_ps_rel_bac_norm)
   

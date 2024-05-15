@@ -1,6 +1,6 @@
 # Load phyloseq objects -------------------------------------------------------#
-ps_abs <- readRDS("../data/RDS/01_ps_abs_bac.rds")
-ps_rel <- readRDS(paste0(dir, "../data/RDS/02_ps_rel_bac_norm.rds"))
+ps_abs <- readRDS("data/RDS/01_ps_abs_bac.rds")
+ps_rel <- readRDS("data/RDS/02_ps_rel_bac_norm.rds")
 
 
 ## Rankstat
@@ -12,19 +12,21 @@ proportion_classified <- ps_rankstat(ps_abs) +
               axis_titles = "collect")
 
 ggsave(
-  filename = "../results/03_rankstat.png",
+  filename = "results/03_rankstat.png",
   plot = proportion_classified,
   limitsize = FALSE
 )
 #------------------------------------------------------------------------------#
-# Microbiome composition by all samples
 comp_rel <- ps_composition(ps = ps_rel,
                            tax_level = "Genus",
-                           metadata.columns = c(paste0(data_00$col_name)),
+                           metadata.columns = c("RANKSTAT_treatment", "treatment", "tumorrest"),
                            taxa_n = 10,
-                           excel_path = FALSE
+                           excel_path = "../results"
 ) +
+  facet_grid(. ~ treatment + tumorrest,
+             scales = "free", space = "free") +
   theme(
+    axis.title.y = element_text(hjust=-0.5),
     panel.spacing.x = unit(1, "lines"),
     strip.placement = "outside",
     strip.background = element_rect(color = "black",
@@ -34,21 +36,28 @@ comp_rel <- ps_composition(ps = ps_rel,
                                 color = "black",
                                 face = "bold"))
 
+# composition of absolute counts per sample
+comp_abs <- sampleSums_plot(ps_abs, tax_level = "Genus") + theme(axis.title.y = element_text(hjust=-0.5))
+
+comp_plot <- (comp_rel + plot_spacer() + comp_abs) +
+  plot_layout(guides = "collect",
+              widths = c(5, -0.12, 1.8))
+
 ggsave(
-  filename = paste0(dir, "../results/03_sample-compositon.png"),
+  filename = "results/03_sample-compositon.png",
   plot = comp_rel,
-  width = 10,
+  width = 15,
   height = 10,
   limitsize = FALSE
 )
 
 # Spearman correlation heatmap ------------------------------------------------#
-spearman_heatmap <- cor_heatmap_plot(ps_abs, col_name=data_00$col_name, tax_level = "Genus")
+#spearman_heatmap <- cor_heatmap_plot(ps_abs, col_name=paste0(data_00$col_name), tax_level = "Genus")
 
 # Saving heatmap --------------------------------------------------------------#
-png(filename = "../results/03_spearman_heatmap.png", width = 7, height = 7, units = 'in', res = 600)
-draw(spearman_heatmap)
-dev.off()
+# png(filename = "../results/03_spearman_heatmap.png", width = 7, height = 7, units = 'in', res = 600)
+# draw(spearman_heatmap)
+# dev.off()
 
 #------------------------------------------------------------------------------#
 
