@@ -26,7 +26,7 @@ pairwise_triplot <- function(model, target_col, metadata, pairwise = FALSE, outd
       x = model,
       type = "none",
       frame = FALSE,
-      main = paste0("Triplot RDA without scaling, ", pc1 , " vs ", pc2 ),
+      main = paste0("Triplot RDA, ", pc1 , " vs ", pc2 ),
       sub = paste0("Selected column: ", target_col),
       xlab = paste0(pc1, " (", perc_explained[ pc1 ], "%)"),
       ylab = paste0(pc2, " (", perc_explained[ pc2 ], "%)")
@@ -69,26 +69,17 @@ pairwise_triplot <- function(model, target_col, metadata, pairwise = FALSE, outd
       font = 1
     )
     
-    
-    if (grepl("RDA", pc1, fixed = TRUE) | grepl("RDA", pc1, fixed = TRUE)) {
-      subset_model <- model
-    } else {
-      # Subsets left (u) and right (v) ordination components
-      subset_model <- model
-      subset_model$CA$u <- model$CA$u[, c(pc1, pc2)]
-      subset_model$CA$v <- model$CA$v[, c(pc1, pc2)]
-    }
-
     # Add ordihull
-    vegan::ordihull(subset_model, 
+    vegan::ordihull(scores_sites[, c(pc1, pc2)], 
                     groups = mygroups,
                     show.group = mygroups,
                     col = mygroups.color,
+                    display = "sites",
                     draw = 'polygon',
                     alpha = 50)
     
     # Add labels of groups
-    vegan::ordispider(subset_model,
+    vegan::ordispider(scores_sites[, c(pc1, pc2)],
                       groups = mygroups,
                       show.group = mygroups.unique,
                       col = 'black', lty = 'blank',
@@ -106,7 +97,7 @@ pairwise_triplot <- function(model, target_col, metadata, pairwise = FALSE, outd
     return(results)
   }
   
-  subset_by_species <- function(model, pc) {
+  subset_by_species <- function(model, scores_species, pc) {
     species_explained <- utils::head(base::sort(round(100*scores_species[, pc]^2, 3), decreasing = TRUE))
     scores_species_explained <- scores_species[rownames(scores_species) %in% names(species_explained),]
     return(scores_species_explained) 
@@ -126,7 +117,7 @@ pairwise_triplot <- function(model, target_col, metadata, pairwise = FALSE, outd
     pdf(paste0(outdir, "/pairwise_PCA.pdf"))
     for (i in seq(ncol(subset.result$n_dim_pairs))) {
       pair <- subset.result$n_dim_pairs[, i]
-      scores_species_explained <- subset_by_species(model, pc = pair[1])
+      scores_species_explained <- subset_by_species(model, scores_species, pc = pair[1])
       
       triplot(model, target_col, metadata, subset.result$var_explained, scores_species, 
               scores_species_explained, scores_sites,
@@ -137,7 +128,7 @@ pairwise_triplot <- function(model, target_col, metadata, pairwise = FALSE, outd
     
   } else {
     # Subset species most fitted/captured by user defined dimensions
-    choice_dim.scores_species_explained <- subset_by_species(model, choice_dim[1])
+    choice_dim.scores_species_explained <- subset_by_species(model, scores_species, pc = choice_dim[1])
     choice_dim.explained <- subset_by_dimensions(model, choice_dim)$var_explained
     
     # Create custom plot by user specification
