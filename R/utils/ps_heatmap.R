@@ -52,7 +52,7 @@ ps_heatmap <- function(ps, threshold = 0.2, taxa_rank = "Genus", col_id = "Patie
     theme(axis.text.x = element_text(angle = 45, hjust = 1),
           axis.title.y = element_blank(),
           strip.background = element_rect(fill = "#EEEEEE", color = "#FFFFFF")) +
-    scale_fill_gradient2(name = "log2(tumor / healthy) fold",
+    scale_fill_gradient2(name = paste0("log2(", condition_A, " / ", condition_B, ") fold"),
                          low = "blue",
                          mid = "white",
                          high = "red") +
