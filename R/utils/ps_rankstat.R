@@ -1,23 +1,38 @@
-# Plots the total number of ASVs found at different taxonomical levels from all samples
-
 ps_rankstat <- function(ps) {
-  nASVs <- phyloseq::ntaxa(ps)
-  rank_stats <- ps_rank_stats(ps)
-  
-  plot <- rank_stats %>%
-    ggplot(aes(x = n_ASVs_classified_at_rank, y = rank)) +
-    geom_vline(xintercept = nASVs, colour = "grey15", linewidth = 0.25) +
-    geom_col(fill = "grey", colour = "grey15", linewidth = 0.25) +
-    geom_text(
-      mapping = aes(label = n_ASVs_classified_at_rank),
-      hjust = 1.5, nudge_x = nASVs / 100, fontface = "bold"
-    ) +
-    scale_x_continuous(
-      name = "Number of ASVs classified",
-      sec.axis = sec_axis(
-        trans = function(x) x / nASVs, labels = scales::label_percent()
+  # Collects rank names & taxonomy table from phyloseq object
+  ranks <- phyloseq::rank_names(ps)
+  taxtab <- as.data.frame(phyloseq::tax_table(ps))
+  # tmp is required to fill the first row
+  df_ranks <- data.frame(tmp = 0)
+  for (rank in ranks) {
+    df_ranks <- df_ranks %>% 
+      mutate(
+        !!rank := taxtab %>% select( {{ rank }} ) %>% drop_na() %>% nrow()
       )
-    ) +
-    theme_bw()
-  return(plot)
+  }
+  
+  # Pivots table longer, and factorizes order of ranks
+  df_ranks.long <- df_ranks %>% 
+    pivot_longer(cols = ranks,
+                 names_to = "variable",
+                 values_to = "counts")
+  df_ranks.long$variable <- factor(df_ranks.long$variable, levels = base::rev(ranks))
+  
+  # Creates simple barplot
+  plt <- df_ranks.long %>% 
+    ggplot(mapping = aes(x = variable,
+                         y = counts)) +
+    geom_col(fill = "grey", 
+             colour = "grey15", 
+             linewidth = 0.25) +
+    coord_flip() +
+    geom_text(mapping = aes(label = counts),
+              hjust = -0.1, 
+              fontface = "bold") +
+    ylim(0, max(df_ranks)*1.10) +
+    theme_bw() +
+    labs(x = "Rank",
+         y = "Number of ASVs classified")
+  
+  return(plt)  
 }
