@@ -133,9 +133,8 @@ if (grepl("05_Model-RDA.R", commandArgs()[4])) {
 }
 # Checks if arguments are passed from 00_main.R
 if (grepl("00_main.R", commandArgs()[4])) {
-  radboud_ps_rel_bac_norm <- readRDS("data/RDS/02_ps_rel_bac_norm.rds")
-  otu_tab <- get_otu(ps = radboud_ps_rel_bac_norm)
-  meta_tab <- get_meta(ps = radboud_ps_rel_bac_norm)
+  otu_tab <- get_otu(ps = ps_rel)
+  meta_tab <- get_meta(ps = ps_rel)
   
   # Natural log transformation + scaling
   otu_tab.log <- logn(otu_tab, scalar = 10)
@@ -145,14 +144,8 @@ if (grepl("00_main.R", commandArgs()[4])) {
   # Fetch significant columns
   mod.cols <- mod.res["model.col"]
   
-  # PCA model
-  mod.pca <- vegan::rda(otu_tab.log,
-                        scale = FALSE)
-  
-  # Create empty plot list
-  plot_list <- list()
-  n = 0
   # Creates triplot of different columns
+  pdf("05_RDA_analysis.pdf")
   for (i in mod.cols) {
     # RDA model
     mod.rda <- vegan::rda(otu_tab.log ~ get(i, meta_tab) + Condition(NULL),
@@ -160,22 +153,20 @@ if (grepl("00_main.R", commandArgs()[4])) {
                           scale = FALSE,
                           na.action = na.fail,
                           subset = NULL)
-    n = n + 1
-    triplot_rda <- function(){pairwise_triplot(model = mod.rda,
-                                               target_col = i,
-                                               metadata = meta_tab,
-                                               pairwise = FALSE,
-                                               choice_dim = c("RDA1", "PC1"))
-    }
-    plot_list[[n]] <- triplot_rda
-    n = n + 1
-    triplot_pca <- function(){pairwise_triplot(model = mod.pca,
-                                               target_col = i,
-                                               metadata = meta_tab,
-                                               pairwise = FALSE,
-                                               choice_dim = c("PC1", "PC2"))
-    }
-    plot_list[[n]] <- triplot_pca
+    
+    pairwise_triplot(model = mod.rda,
+                     target_col = i,
+                     metadata = meta_tab,
+                     pairwise = FALSE,
+                     choice_dim = c("RDA1", "PC1"))
+    
+    pairwise_triplot(model = mod.rda,
+                     target_col = i,
+                     metadata = meta_tab,
+                     pairwise = FALSE,
+                     choice_dim = c("PC1", "PC2"))
+    
   }
+  dev.off()
   
 }
