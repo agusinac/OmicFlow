@@ -25,7 +25,7 @@ ps_composition <- function(ps, tax_level, metadata.columns, Brewer.palID = "RdYl
   df_final$Taxa <- rownames(df_final)
   
   # Creates palette
-  taxa_colors_ordered <- stats::setNames(c(RColorBrewer::brewer.pal(taxa_n, Brewer.palID), "lightgrey"), df_final$Taxa)
+  taxa_colors_ordered <- stats::setNames(c(RColorBrewer::brewer.pal(length(df_final$Taxa)-1, Brewer.palID), "lightgrey"), df_final$Taxa)
   
   # Save as excel file
   if (excel_path != FALSE) {
@@ -48,6 +48,10 @@ ps_composition <- function(ps, tax_level, metadata.columns, Brewer.palID = "RdYl
   # Important for scale_fill_manual taxa order
   df_melt$Taxa <- factor(df_melt$Taxa, levels = df_final$Taxa)
   # composition relative abundance
-  comp_rel <- composition_plot(df_melt, taxa_colors_ordered, tax_level)
-  return(comp_rel)
+  result <- list(
+    df = df_melt,
+    palette = taxa_colors_ordered,
+    tax_rank = tax_level
+  )
+  return(result)
 }

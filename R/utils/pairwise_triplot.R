@@ -2,7 +2,7 @@ pairwise_triplot <- function(model, target_col, metadata, pairwise = FALSE, outd
   # Nested function #1: Find dimensions for 80% variance explained
   eigen_80 <- function(eig_explained) {
     sum_variance = 0
-    counter = 0
+    counter = 1
     for (i in 1:length(eig_explained)) {
       sum_variance <- sum_variance + eig_explained[i]
       counter <- counter + 1
@@ -88,7 +88,7 @@ pairwise_triplot <- function(model, target_col, metadata, pairwise = FALSE, outd
   
   subset_by_dimensions <- function(model, dimensions) {
     perc_explained <- round(100*(summary(model)$cont$importance[2, dimensions]),2)
-    n_dim_pairs <- utils::combn(dimensions[1:eigen_80(perc_explained)], 2)
+    n_dim_pairs <- dimensions[1:eigen_80(perc_explained)]
     
     results <- list(
       var_explained = perc_explained,
