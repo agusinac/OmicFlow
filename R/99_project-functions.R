@@ -3,9 +3,9 @@ format_metadata <- function(metadata_file) {
   if (base::grepl(".csv", metadata_file, fixed = TRUE)){
     tsv_metadata_file <- stringr::str_replace(metadata_file, ".csv", ".tsv")
     utils::write.table(x = readr::read_csv(metadata_file),
-                file = tsv_metadata_file,
-                row.names = FALSE,
-                sep = "\t")
+                       file = tsv_metadata_file,
+                       row.names = FALSE,
+                       sep = "\t")
     return(tsv_metadata_file)
   } 
   else
@@ -100,7 +100,7 @@ add_metadata <- function(df, meta_tab, meta_col.id, meta_col.add) {
     df <- df %>% 
       rowwise() %>% 
       mutate(
-        !!variable := meta_tab[[ {{ variable }} ]][str_detect(as.character(meta_tab[[ {{ meta_col.id }} ]]), as.character(variable))]
+        !!variable := meta_tab[[ {{ variable }} ]][stringr::str_detect(as.character(meta_tab[[ {{ meta_col.id }} ]]), as.character(variable))]
       )
   }
   return(df)
