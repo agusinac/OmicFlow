@@ -104,7 +104,7 @@ pairwise_triplot <- function(model, target_col, metadata, pairwise = FALSE, outd
   }
   
   # Subset species and sites scores
-  scores_species <- vegan::scores(x = model, display = "species", choices = c(1:15))
+  scores_species <- vegan::scores(x = model, display = "species", choices = c(1:15), scaling=0)
   scores_sites <- vegan::scores(x = model, display = "sites", choices = c(1:15))
   
   # Main pairwise code
@@ -134,6 +134,7 @@ pairwise_triplot <- function(model, target_col, metadata, pairwise = FALSE, outd
     # Create custom plot by user specification
     triplot(model, target_col, metadata, choice_dim.explained, scores_species, 
             choice_dim.scores_species_explained, scores_sites, choice_dim[1], choice_dim[2])
+    return(choice_dim.scores_species_explained)
   }
   
 }
