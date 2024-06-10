@@ -2,6 +2,7 @@
 library("dplyr")
 library("ggplot2")
 library("tidyr")
+library("dplyr")
 library("biomformat")
 library("phyloseq")
 library("ape")
@@ -23,6 +24,9 @@ sourceDir(path = paste0(current_path, "utils"))
 
 # Parse command line
 data_00 <- parse_commandline()
+
+# Taxa to be visualized:
+taxa_names <- c("Phylum", "Family", "Genus")
 
 # Run all scripts --------------------------------------------------------------
 source(file = paste0(current_path, "01_load.R"))
