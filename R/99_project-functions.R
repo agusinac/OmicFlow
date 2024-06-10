@@ -50,15 +50,25 @@ logn <- function(otu_tab, scalar=1) {
 
 # Transform any taxa rank into a otu_table;
 # with rows as samples and cols as taxa (rank to be specified)
-get_otu <- function(ps, tax_target="Genus") {
+get_otu <- function(ps, tax_target="Genus", top_n=50) {
   ps_ref <- ps %>% 
     phyloseq::tax_glom(taxrank = tax_target)
   df <- ps_ref %>% 
     phyloseq::otu_table() %>% 
     t() %>% 
     as.data.frame()
+  
   colnames(df) <- as.data.frame(phyloseq::tax_table(ps_ref))[[ tax_target ]]
-  return(df)
+  
+  # Fetch top taxa
+  if (length(colnames(df)) <= top_n) {
+    return(df)
+  } else {
+    top_taxa_names <- colSums(df) %>% 
+      sort(decreasing = TRUE) %>% 
+      head(top_n)
+    filt_taxaSums <- df[, colnames(df) %in% names(top_taxa_names)]
+  }
 }
 
 get_meta <- function(ps) {
@@ -71,11 +81,10 @@ get_meta <- function(ps) {
 
 top_taxa <- function(asv.tab, n) {
   # Top Taxa req
-  taxaSum_df <- rowSums(asv.tab) %>% 
-    as.data.frame() %>% 
-    arrange(desc(.)) %>% 
+  top_taxa_names <- rowSums(asv.tab) %>% 
+    sort(decreasing=TRUE) %>% 
     head(n)
-  filt_taxaSums <- asv.tab[rownames(asv.tab) %in% rownames(taxaSum_df),]
+  filt_taxaSums <- asv.tab[rownames(asv.tab) %in% names(top_taxa_names),]
   return(filt_taxaSums)
 }
 
