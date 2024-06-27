@@ -7,7 +7,7 @@ ps_rankstat <- function(ps) {
   for (rank in ranks) {
     df_ranks <- df_ranks %>% 
       mutate(
-        !!rank := taxtab %>% select( {{ rank }} ) %>% drop_na() %>% nrow()
+        !!rank := taxtab %>% select( all_of ({{ rank }}) ) %>% drop_na() %>% nrow()
       )
   }
   

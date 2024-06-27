@@ -1,15 +1,15 @@
 ps_composition <- function(ps, tax_level, metadata.columns, Brewer.palID = "RdYlBu",taxa_n=15, excel_path=FALSE) {
   
   # Fetch OTU table and Metadata
-  otu_tab <- get_otu(ps, tax_target = tax_level)
+  otu_tab <- get_otu(ps, tax_target = tax_level, top_n = FALSE, filter_taxa = FALSE)
   meta_tab <- get_meta(ps)
   
   df <- as.data.frame(t(otu_tab))
   df$Taxa <- rownames(df)
-  
+
   # Select top taxa
   df_clean <- df %>% 
-    filter(!grepl("uncultured", Taxa), !grepl("metagenome", Taxa)) %>% 
+    filter(!grepl("uncultured|metagenome", Taxa)) %>% 
     select(-Taxa)
   df_topTaxa <- df_clean %>% 
     top_taxa(n = taxa_n)
@@ -25,7 +25,17 @@ ps_composition <- function(ps, tax_level, metadata.columns, Brewer.palID = "RdYl
   df_final$Taxa <- rownames(df_final)
   
   # Creates palette
-  taxa_colors_ordered <- stats::setNames(c(RColorBrewer::brewer.pal(length(df_final$Taxa)-1, Brewer.palID), "lightgrey"), df_final$Taxa)
+  df_taxa_len <- length(df_final$Taxa)
+  if (Brewer.palID == FALSE) {
+    chosen_palette <- viridis::viridis(df_taxa_len - 1)
+  } else if (df_taxa_len-1 <= 15) {
+    chosen_palette <- c("#000000","#004949","#009292","#ff6db6","#ffb6db",
+                        "#490092","#006ddb","#b66dff","#6db6ff","#b6dbff",
+                        "#920000","#924900","#db6d00","#24ff24","#ffff6d")[1:df_taxa_len-1]
+  } else {
+    chosen_palette <- RColorBrewer::brewer.pal(df_taxa_len-1, Brewer.palID)
+  }
+  taxa_colors_ordered <- stats::setNames(c(chosen_palette, "lightgrey"), df_final$Taxa)
   
   # Save as excel file
   if (excel_path != FALSE) {
@@ -38,7 +48,13 @@ ps_composition <- function(ps, tax_level, metadata.columns, Brewer.palID = "RdYl
   df_melt <- reshape2::melt(df_final, id.vars = c("Taxa"))
   
   # Includes metadata content by user-specification
-  df_melt <- add_metadata(df_melt, meta_tab, meta_col.id = "SAMPLE.ID", meta_col.add = metadata.columns)
+  for (variable in metadata.columns) {
+    df_melt <- df_melt %>% 
+      rowwise() %>% 
+      mutate(
+        !!variable := meta_tab[[ {{ variable }} ]][stringr::str_detect(as.character(meta_tab[["SAMPLE.ID"]]), as.character(variable))]
+      )
+  }
 
   # Change names: HARDCODED
   #----------------------------------------------------------------------------#

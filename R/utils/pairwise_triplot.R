@@ -26,8 +26,8 @@ pairwise_triplot <- function(model, target_col, metadata, pairwise = FALSE, outd
       x = model,
       type = "none",
       frame = FALSE,
-      main = paste0("Triplot RDA, ", pc1 , " vs ", pc2 ),
-      sub = paste0("Selected column: ", target_col),
+      # main = paste0("Triplot RDA, ", pc1 , " vs ", pc2 ),
+      # sub = paste0("Selected column: ", target_col),
       xlab = paste0(pc1, " (", perc_explained[ pc1 ], "%)"),
       ylab = paste0(pc2, " (", perc_explained[ pc2 ], "%)")
     ) 
@@ -50,7 +50,7 @@ pairwise_triplot <- function(model, target_col, metadata, pairwise = FALSE, outd
       cex = 1.2
     )
     # Add arrows based on species scores explained
-    arrows(
+    graphics::arrows(
       x0 = 0,
       y0 = 0,
       x1 = scores_species_explained[, pc1],
@@ -60,7 +60,7 @@ pairwise_triplot <- function(model, target_col, metadata, pairwise = FALSE, outd
     )
     
     # Add text for top explained species scores
-    text(
+    graphics::text(
       x = scores_species_explained[, pc1] + 0.2,
       y = scores_species_explained[, pc2] - 0.05,
       labels = base::rownames(scores_species_explained),
@@ -89,23 +89,25 @@ pairwise_triplot <- function(model, target_col, metadata, pairwise = FALSE, outd
   subset_by_dimensions <- function(model, dimensions) {
     perc_explained <- round(100*(summary(model)$cont$importance[2, dimensions]),2)
     n_dim_pairs <- dimensions[1:eigen_80(perc_explained)]
-    
-    results <- list(
-      var_explained = perc_explained,
-      n_dim_pairs = n_dim_pairs
-    )
-    return(results)
+    return(perc_explained)
   }
   
   subset_by_species <- function(model, scores_species, pc) {
     species_explained <- utils::head(base::sort(round(100*scores_species[, pc]^2, 3), decreasing = TRUE))
     scores_species_explained <- scores_species[rownames(scores_species) %in% names(species_explained),]
-    return(scores_species_explained) 
+    
+    result <- list(
+      scores = scores_species_explained,
+      explained_PC1 = species_explained
+    )
+    
+    return(result) 
   }
   
   # Subset species and sites scores
-  scores_species <- vegan::scores(x = model, display = "species", choices = c(1:15), scaling=0)
-  scores_sites <- vegan::scores(x = model, display = "sites", choices = c(1:15))
+  model.dims <- dim(model$CCA$u)[2] + dim(model$CA$u)[2]
+  scores_species <- vegan::scores(x = model, display = "species", choices = c(1:model.dims), scaling=0)
+  scores_sites <- vegan::scores(x = model, display = "sites", choices = c(1:model.dims))
   
   # Main pairwise code
   if (pairwise == TRUE) {
@@ -129,12 +131,18 @@ pairwise_triplot <- function(model, target_col, metadata, pairwise = FALSE, outd
   } else {
     # Subset species most fitted/captured by user defined dimensions
     choice_dim.scores_species_explained <- subset_by_species(model, scores_species, pc = choice_dim[1])
-    choice_dim.explained <- subset_by_dimensions(model, choice_dim)$var_explained
+    choice_dim.explained <- subset_by_dimensions(model, choice_dim)
     
     # Create custom plot by user specification
-    triplot(model, target_col, metadata, choice_dim.explained, scores_species, 
-            choice_dim.scores_species_explained, scores_sites, choice_dim[1], choice_dim[2])
-    return(choice_dim.scores_species_explained)
+    triplot(model, 
+           target_col, 
+           metadata, 
+           choice_dim.explained, 
+           scores_species, 
+           choice_dim.scores_species_explained$scores, 
+           scores_sites, 
+           choice_dim[1], choice_dim[2])
+    
+    return(choice_dim.scores_species_explained$explained_PC1)
   }
-  
 }

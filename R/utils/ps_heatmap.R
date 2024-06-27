@@ -1,11 +1,16 @@
-ps_heatmap <- function(ps, threshold = 0.2, taxa_rank = "Genus", col_id = "Patient_number", col_group = "RANKSTAT_treatment", condition_A, condition_B) {
+# Creates 2-fold heatmap from phyloseq object
+# 
+# Requires: paired patient data
+# TO DO: add non-paired option
+# 
+# 
+ps_heatmap <- function(ps, taxa_n = 20, taxa_rank = "Genus", col_id = "PATIENT.ID", col_group = "RANKSTAT_treatment", condition_A, condition_B) {
   # Fetch otus and filter out less representative Genera
-  otu_tab <- get_otu(ps, tax_target = taxa_rank) %>% t()
+  otu_tab <- get_otu(ps, tax_target = taxa_rank, top_n = taxa_n) %>% t()
   meta_tab <- get_meta(ps)
-  otu_tab.filt <- otu_tab[rowSums(otu_tab) > threshold, ]
   
   # log2 scale
-  otu_tab.trans <- otu_tab.filt %>%
+  otu_tab.trans <- otu_tab %>%
     as.matrix() %>% 
     as("sparseMatrix") %>% 
     log2() %>% 
@@ -22,16 +27,15 @@ ps_heatmap <- function(ps, threshold = 0.2, taxa_rank = "Genus", col_id = "Patie
   
   # Pivot longer table by specified id.vars
   df_melt <- reshape2::melt(df, id.vars = c("Taxa", "Total"))
-  
+ 
   # Removes uncultured genera, cleans sample names
   df_final <- df_melt %>% 
-    filter(!grepl("uncultured", Taxa)) %>% 
     rowwise() %>% 
     mutate(
       # Collects sample group names from metadata 
-      group = meta_tab[[ {{ col_group }} ]][str_detect(as.character(meta_tab$SAMPLE.ID), as.character(variable))],
+      group = meta_tab[[ {{ col_group }} ]][stringr::str_detect(as.character(meta_tab$SAMPLE.ID), as.character(variable))],
       # Metadata should have a column of identical sample names for paired samples!
-      sample.id = meta_tab[[ {{ col_id }} ]][str_detect(as.character(meta_tab$SAMPLE.ID), as.character(variable))]
+      sample.id = meta_tab[[ {{ col_id }} ]][stringr::str_detect(as.character(meta_tab$SAMPLE.ID), as.character(variable))]
     ) %>% 
     group_by(sample.id) %>% 
     filter(any(group %in% {{condition_A}}) & any(group %in% {{condition_B}}))
@@ -39,7 +43,6 @@ ps_heatmap <- function(ps, threshold = 0.2, taxa_rank = "Genus", col_id = "Patie
   # Computes log2(A) - log2(B)
   # Supports multiple inputs for A and B.
   # For example A = T1, T2 and B = H1, H2
-  result_list <- list()
   for (i in 1:length(condition_A)) {
     name <- paste0("diff_",i)
     df_diff <- df_final %>% 
@@ -49,7 +52,7 @@ ps_heatmap <- function(ps, threshold = 0.2, taxa_rank = "Genus", col_id = "Patie
     df_final <- df_final %>% 
       left_join(df_diff, by = c("Taxa", "sample.id"))
   }
-  # Checks number of diff_ columns created
+  # Collects diff_ columns
   diff_columns <- sum(grepl("^diff_", names(df_final)))
   
   # Generate heatmap plot with df_diff data
@@ -78,20 +81,25 @@ ps_heatmap <- function(ps, threshold = 0.2, taxa_rank = "Genus", col_id = "Patie
   # Finishes heatmap plot
   heatmap_plot <- heatmap_plot +
     theme_bw() +
-    theme(axis.text.x = element_text(angle = 45, hjust = 1),
+    theme(axis.text.x = element_text(angle = 45, hjust = 1, size=12),
+          axis.text.y = element_text(size=12),
+          axis.text = element_text(size=12),
+          text = element_text(size=12),
+          legend.text = element_text(size=12),
+          legend.title = element_text(size=14),
           axis.title.y = element_blank(),
           strip.background = element_rect(fill = "#EEEEEE", color = "#FFFFFF")) +
-    scale_fill_gradient2(name = paste0("log2( A / B ) fold"),
+    scale_fill_gradient2(name = paste0("log2( A / B )"),
                          low = "blue",
                          mid = "white",
                          high = "red",
                          na.value = "grey80") +
-    scale_y_discrete(limits = rev(levels(as.factor(aligned_df$Taxa)))) +
+    scale_y_discrete(limits = rev(levels(as.factor(df_final$Taxa)))) +
     labs(x = "Samples", 
          y = "Taxa")
   
   # Fetch otu table for boxplot and reshapes into long table
-  stats_tab <- as.data.frame(otu_tab.filt)
+  stats_tab <- as.data.frame(otu_tab)
   stats_tab$Taxa = rownames(stats_tab)
   
   # Pivot longer
@@ -102,21 +110,21 @@ ps_heatmap <- function(ps, threshold = 0.2, taxa_rank = "Genus", col_id = "Patie
   stats_melt$value[is.na(stats_melt$value)] <- 0
   
   stats_final <- stats_melt %>% 
-    filter(!grepl("uncultured", Taxa)) %>% 
     rowwise() %>% 
     mutate(
       # Collects sample group names from metadata 
-      group = meta_tab[[ {{ col_group }} ]][str_detect(as.character(meta_tab$SAMPLE.ID), as.character(variable))]
+      sample.id = meta_tab[[ {{ col_id }} ]][stringr::str_detect(as.character(meta_tab$SAMPLE.ID), as.character(variable))],
+      group = meta_tab[[ {{ col_group }} ]][stringr::str_detect(as.character(meta_tab$SAMPLE.ID), as.character(variable))]
     ) %>% 
-    filter(group %in% c(condition_A, condition_B))
-  
+  group_by(sample.id) %>% 
+  filter(any(group %in% {{condition_A}}) & any(group %in% {{condition_B}}))
   
   # Creates boxplot from relative abundances
   rel_abun_plot <- stats_final %>% 
     ggplot(mapping = aes(x = value,
                          y = Taxa)) +
     geom_boxplot() +
-    facet_wrap(~group) +
+    facet_wrap(~group, ncol = length(condition_A) + length(condition_B)) +
     theme_bw() +
     theme(text=element_text(size=12),
           axis.text.x = element_text(angle = 45, hjust = 1),
@@ -124,8 +132,8 @@ ps_heatmap <- function(ps, threshold = 0.2, taxa_rank = "Genus", col_id = "Patie
           axis.text.y = element_blank(),
           axis.ticks.y = element_blank(),
           panel.spacing.x = unit(1, "lines")) +
-    scale_x_continuous(trans = scales::log10_trans()) +
-    scale_y_discrete(limits = rev(levels(as.factor(aligned_df$Taxa)))) +
+    # scale_x_continuous(trans = scales::log_trans()) +
+    scale_y_discrete(limits = rev(levels(as.factor(df_final$Taxa)))) +
     labs(x = "Log10( Rel. Abun. )")
   
   # Combines plots
