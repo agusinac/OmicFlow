@@ -1,7 +1,6 @@
-ps_shannon <- function(ps, shannon_file, sample_order=NULL, metadata.columns = c("RANKSTAT_treatment"), Brewer.palID="Set2") {
+ps_shannon <- function(ps, df_shannon, sample_order=NULL, col_name = "RANKSTAT_treatment", Brewer.palID="Set2") {
   # Fetch Shannon file and metadata
-  df_shannon <- read_csv(file = shannon_file)
-  meta_tab <- get_meta(ps_abs_bac)
+  meta_tab <- get_meta(ps)
   
   # Pivots into long table
   df_shannon_long <- df_shannon %>% 
@@ -13,22 +12,22 @@ ps_shannon <- function(ps, shannon_file, sample_order=NULL, metadata.columns = c
   df_shannon_final <- add_metadata(df_long = df_shannon_long,
                                    meta_tab = meta_tab,
                                    meta_col.id = "SAMPLE.ID",
-                                   meta_col.add = metadata.columns
+                                   meta_col.add = c(col_name)
   )
   
   # Creating a color palette
-  unique_groups <- unique(meta_tab$RANKSTAT_treatment)
+  unique_groups <- unique(meta_tab[[col_name]])
   chosen_palette <- RColorBrewer::brewer.pal(length(unique_groups), Brewer.palID)
   colors <- stats::setNames(chosen_palette, unique_groups)
   
   if (!is.null(sample_order)) {
-    df_shannon_final$RANKSTAT_treatment <- factor(df_shannon_final$RANKSTAT_treatment, levels=sample_order)
+    df_shannon_final[[col_name]] <- factor(df_shannon_final[[col_name]], levels=sample_order)
   }
   # Creates shannon plot
   shannon_plot <- df_shannon_final %>%
-    ggplot(mapping = aes(x = RANKSTAT_treatment,
+    ggplot(mapping = aes(x = base::get(col_name, df_shannon_final),
                          y = alpha_div)) +
-    geom_violin(width = 1.4, aes(fill = RANKSTAT_treatment)) +
+    geom_violin(width = 1.4, aes(fill = base::get(col_name, df_shannon_final))) +
     geom_boxplot(width = 0.1) +
     theme_bw() +
     theme(legend.position = "none",
@@ -36,6 +35,7 @@ ps_shannon <- function(ps, shannon_file, sample_order=NULL, metadata.columns = c
     scale_fill_manual(name = "", 
                       values = colors) +
     labs(title = NULL,
+         subtitle = paste0("selected column: ", col_name),
          x = "sample groups",
          y = "Shannon Index")
   

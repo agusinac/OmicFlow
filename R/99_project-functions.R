@@ -1,17 +1,3 @@
-# Data wrangling functions -----------------------------------------------------#
-format_metadata <- function(metadata_file) {
-  if (base::grepl(".csv", metadata_file, fixed = TRUE)){
-    tsv_metadata_file <- stringr::str_replace(metadata_file, ".csv", ".tsv")
-    utils::write.table(x = readr::read_csv(metadata_file),
-                       file = tsv_metadata_file,
-                       row.names = FALSE,
-                       sep = "\t")
-    return(tsv_metadata_file)
-  } 
-  else
-    return(metadata_file)
-}
-
 # Remove zero's from a phyloseq object
 removeZeros <- function(x) {
   if (is(x, "phyloseq")) {
@@ -19,14 +5,6 @@ removeZeros <- function(x) {
     x <- phyloseq::prune_samples(phyloseq::sample_sums(x) > 0, x)
     return(x)
   }
-}
-
-ASVs_filter <- function(ps, ASVs) {
-  # Replace phyloseq objects by matching ASVs
-  phyloseq::otu_table(ps) <- phyloseq::otu_table(ps)[ASVs, ]
-  phyloseq::tax_table(ps) <- phyloseq::tax_table(ps)[ASVs, ]
-  ps <- removeZeros(ps)
-  return(ps)
 }
 
 # Collects all functions from a directory
@@ -46,37 +24,6 @@ logn <- function(otu_tab, scalar=1) {
   otu_tab.log <- log( otu_tab.log ) 
   otu_tab.sc <- scale(otu_tab.log, center = TRUE, scale = FALSE)
   return(otu_tab.sc)
-}
-
-# Transform any taxa rank into a otu_table;
-# with rows as samples and cols as taxa (rank to be specified)
-get_otu <- function(ps, tax_target="Genus", top_n=50) {
-  ps_ref <- ps %>% 
-    phyloseq::tax_glom(taxrank = tax_target)
-  df <- ps_ref %>% 
-    phyloseq::otu_table() %>% 
-    t() %>% 
-    as.data.frame()
-  
-  colnames(df) <- as.data.frame(phyloseq::tax_table(ps_ref))[[ tax_target ]]
-  
-  # Fetch top taxa
-  if (length(colnames(df)) <= top_n) {
-    return(df)
-  } else {
-    top_taxa_names <- colSums(df) %>% 
-      sort(decreasing = TRUE) %>% 
-      head(top_n)
-    filt_taxaSums <- df[, colnames(df) %in% names(top_taxa_names)]
-  }
-}
-
-get_meta <- function(ps) {
-  # Fetches meta table in right dataframe format
-  meta_tab <- ps %>% 
-    phyloseq::sample_data() %>% unclass() %>% as.data.frame()
-  
-  return(meta_tab)
 }
 
 top_taxa <- function(asv.tab, n) {
@@ -104,13 +51,28 @@ phyloseq_from_txt <- function(otu_file, tax_file) {
   return(ps)
 }
 
-add_metadata <- function(df, meta_tab, meta_col.id, meta_col.add) {
+add_metadata <- function(df_long, meta_tab, meta_col.id, meta_col.add) {
   for (variable in meta_col.add) {
-    df <- df %>% 
+    df_long <- df_long %>% 
       rowwise() %>% 
       mutate(
-        !!variable := meta_tab[[ {{ variable }} ]][stringr::str_detect(as.character(meta_tab[[ {{ meta_col.id }} ]]), as.character(variable))]
+        !!variable := meta_tab[[ {{ variable }} ]][stringr::str_detect(as.character(meta_tab[[ {{ meta_col.id }} ]]), as.character(`sample-id`))]
       )
   }
-  return(df)
+  return(df_long)
+}
+
+removeDepends <- function(pkg, recursive = FALSE){
+  d <- package_dependencies(,installed.packages(), recursive = recursive)
+  depends <- if(!is.null(d[[pkg]])) d[[pkg]] else character()
+  needed <- unique(unlist(d[!names(d) %in% c(pkg,depends)]))
+  toRemove <- depends[!depends %in% needed]
+  if(length(toRemove)){
+    toRemove <- select.list(c(pkg,sort(toRemove)), multiple = TRUE,
+                            title = "Select packages to remove")
+    remove.packages(toRemove)
+    return(toRemove)
+  } else {
+    invisible(character())
+  }
 }

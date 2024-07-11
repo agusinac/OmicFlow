@@ -1,38 +1,140 @@
 ---
 title: "Data analysis report"
+date: "`r Sys.Date()`"
 author: "Alem Gusinac"
 
-date: '10-04-2024'
-output: html_document
+output:
+  html_document:
+    toc: true
+    toc_float: true
 ---
 
+<!--- Changes the report based on the browser changes-->
+<!-- css formatting for text -->
+<style type="text/css">
+.main-container {
+  width: 100%;
+  max-width: 100%;
+  min-width: 100%;
+  margin-left: auto;
+  margin-right: auto;
+}
+</style>
+<!-- css formatting for figures -->
+<style>
+  img {
+    max-width: 100%;
+    height: auto;
+  }
+</style>
+<!-- css formatting for tabulars -->
+<style>
+table {
+  width: 100%;
+  border-collapse: collapse;
+}
+</style>
 
 ```{r setup, include=FALSE} 
-knitr::opts_chunk$set(warning = FALSE, message = FALSE, echo = FALSE) 
+knitr::opts_chunk$set(warning = FALSE, 
+                      message = FALSE, 
+                      echo = FALSE, 
+                      results = "asis",
+                      fig.width = 10,
+                      fig.height = 7
+                      ) 
 ```
 
-## ASVs found at different taxonomic ranks
+
 ```{r}
-proportion_classified
+plot_tabs <- function(plots, method) {
+  if (method == "matrix") {
+    for(i in 1:nrow(plots)) {
+      for(j in 1:ncol(plots)) {
+        cat(paste0("\n\n### Plot ", i, ".", j, "\n"))
+        print(plots[[i,j]])
+        cat("\n")
+      }
+    }
+  }
+  if (method == "vector") {
+    for (i in 1:length(plots)) {
+      cat(paste0("\n\n### Plot ", i, "\n"))
+      print(plots[[i]])
+      cat("\n")
+    }
+  }
+}
+
 ```
 
-## Log2 fold change heatmap
+# Preprocessing step
+Refer to published paper regarding pipeline\n
 
 ```{r}
-comp_rel
+preprocess_stats %>% 
+  kableExtra::kbl(caption = "Table 1: Stats from cutadapt and DADA2 denoising") %>%
+  kableExtra::kable_classic(full_width = F, html_font = "Calibri")
+
 ```
 
-## Principal Coordinate Analysis (PCoA) of Weighted UniFrac distances
+# Automated Analysis
+
+## Rank stats
 ```{r}
-comb_plot
+rankstat_plot
 ```
 
-## Redundancy Analysis (RDA)
+
+## Alpha diversity {.tabset}
 ```{r}
-plot_list[[1]]()
+plot_tabs(shannon_plots, method = "vector")
 ```
 
-## Principal Component Analysis (PCA)
+## Beta Diversity: Principal Coordinate Analysis (PCoA) of Weighted UniFrac distances {.tabset}
 ```{r}
-plot_list[[2]]()
+plot_tabs(pcoa_plots, method = "matrix")
 ```
+
+## Beta Diversity: NMDS {.tabset}
+```{r}
+plot_tabs(nmds_plots, method = "matrix")
+```
+
+
+## Composition {.tabset}
+```{r}
+plot_tabs(composition_plots, method = "matrix")
+```
+
+## Correlations {.tabset}
+```{r}
+plot_tabs(correlation_heatmap_plt, method = "vector")
+```
+
+## 2-fold heatmap {.tabset}
+```{r}
+# Unnaming the plot list and saving as a new list
+final_plots <- list()
+fold_headers <- c("boxplot", "barplot", "tile_plot", "rel_abun")
+for (i in 2:length(heatmap_plots[[1]])) {
+  final_plots[[i-1]] <- unname(heatmap_plots[[1]][fold_headers[i-1]])
+}
+
+# Separate function due to `[[1]]` being printed to stdout
+for (i in 1:length(final_plots)) {
+  cat(paste0("\n\n### Plot ", i, "\n"))
+  print(final_plots[[i]][[1]])
+  cat("\n")
+}
+```
+<!-- ## Redundancy Analysis (RDA) {.tabset} -->
+<!-- ```{r, fig.width=10, fig.height=10} -->
+<!-- # par(mfrow=c(RANKSTAT_ncol, 2)) -->
+<!-- # for (i in 1:RANKSTAT_ncol) { -->
+<!-- #   RDA_plots[[i, 1]]() -->
+<!-- #   RDA_plots[[i, 2]]() -->
+<!-- # } -->
+
+<!-- ``` -->
+<!-- ## {-} -->

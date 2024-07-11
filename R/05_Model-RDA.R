@@ -133,40 +133,46 @@ if (grepl("05_Model-RDA.R", commandArgs()[4])) {
 }
 # Checks if arguments are passed from 00_main.R
 if (grepl("00_main.R", commandArgs()[4])) {
-  otu_tab <- get_otu(ps = ps_rel)
-  meta_tab <- get_meta(ps = ps_rel)
-  
-  # Natural log transformation + scaling
-  otu_tab.log <- logn(otu_tab, scalar = 10)
-  # Model selection: Outputs significant columns
-  mod.res <- rda_select(otu_tab.log, meta_table = meta_tab)
-  
-  # Fetch significant columns
-  mod.cols <- mod.res["model.col"]
-  
-  # Creates triplot of different columns
-  pdf("05_RDA_analysis.pdf")
-  for (i in mod.cols) {
-    # RDA model
-    mod.rda <- vegan::rda(otu_tab.log ~ get(i, meta_tab) + Condition(NULL),
-                          data = meta_tab,
-                          scale = FALSE,
-                          na.action = na.fail,
-                          subset = NULL)
+  if (RANKSTAT_ncol > 0) {
+    # Fetch otu and meta tables
+    otu_tab <- get_otu(ps = ps_rel, top_n = FALSE)
+    meta_tab <- get_meta(ps = ps_rel)
     
-    pairwise_triplot(model = mod.rda,
-                     target_col = i,
-                     metadata = meta_tab,
-                     pairwise = FALSE,
-                     choice_dim = c("RDA1", "PC1"))
+    # Natural log transformation + scaling
+    otu_tab.log <- logn(otu_tab, scalar = 10)
     
-    pairwise_triplot(model = mod.rda,
-                     target_col = i,
-                     metadata = meta_tab,
-                     pairwise = FALSE,
-                     choice_dim = c("PC1", "PC2"))
+    RDA_plots <- matrix(list(), RANKSTAT_ncol, 2)
     
+    for (i in 1:RANKSTAT_ncol) {
+      # Fetch column
+      col_name <- colnames(RANKSTAT_data)[i]
+      
+      # Construct RDA model
+      mod.rda <- vegan::rda(otu_tab.log ~ get(col_name, meta_tab) + Condition(NULL),
+                            data = meta_tab,
+                            scale = FALSE,
+                            na.action = na.fail,
+                            subset = NULL)
+      
+      # Create RDA1 vs PC1 triplot
+      RDA_plots[[1, 1]] <- function() {
+        pairwise_triplot(model = mod.rda,
+                        target_col = col_name,
+                        metadata = meta_tab,
+                        pairwise = FALSE,
+                        choice_dim = c("RDA1", "PC1"))
+        }
+      
+      # Create PC1 vs PC2 triplot
+      RDA_plots[[i, 2]] <- function() {
+        pairwise_triplot(model = mod.rda,
+                        target_col = col_name,
+                        metadata = meta_tab,
+                        pairwise = FALSE,
+                        choice_dim = c("PC1", "PC2"))
+        }
+      
+      
+    }
   }
-  dev.off()
-  
 }

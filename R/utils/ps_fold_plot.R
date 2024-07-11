@@ -10,7 +10,7 @@
 #   - Relative abundance distribution of paired samples
 #
 #
-ps_fold_plot <- function(ps, taxa_n = 20, taxa_rank = "Genus", col_id = "PATIENT.ID", col_group = "RANKSTAT_treatment", condition_A, condition_B, method = "paired") {
+ps_fold_plot <- function(ps, taxa_n = 20, taxa_rank = "Genus", col_id = "PATIENT.ID", col_group = "RANKSTAT_treatment", condition_A, condition_B, method = "paired", stat_test = FALSE) {
   
   # Final output
   plot_list <- list(
@@ -59,7 +59,6 @@ ps_fold_plot <- function(ps, taxa_n = 20, taxa_rank = "Genus", col_id = "PATIENT
       # Perform the join and subtraction
       dt_diff <- dt_A_i[dt_B_i, on = .(Taxa), allow.cartesian=TRUE]
       dt_diff[, (name) := value - i.value]
-      dt_diff[, (paste0("p.value_diff_", i)) := wilcox.test(value - i.value, correct = TRUE)$p.value]
       
       # Store the result in the list
       result_list[[i]] <- dt_diff
@@ -75,7 +74,7 @@ ps_fold_plot <- function(ps, taxa_n = 20, taxa_rank = "Genus", col_id = "PATIENT
     return(result)
   }
   
-  fold_plot <- function(df, X, title, method, taxa_labels = FALSE) {
+  fold_plot <- function(df, X, title, method, taxa_labels = FALSE, pvalues = NULL, pvalues.col) {
     if (method == "barplot") {
       plt <- df %>% 
         aggregate(formula(paste(X, " ~ Taxa")), sum) %>% 
@@ -83,6 +82,13 @@ ps_fold_plot <- function(ps, taxa_n = 20, taxa_rank = "Genus", col_id = "PATIENT
                              y = Taxa,
                              fill = base::get(X))) +
         geom_bar(stat = "identity")
+      if (!is.null(pvalues)) {
+        plt <- plt +
+          geom_text(aes(label = ifelse(!is.na(pvalues[, pvalues.col]) & pvalues[, pvalues.col] < 0.05, "*", "")),
+                    fontface = "bold",
+                    position = position_dodge(width = 1),
+                    size = 6)
+      }
     } else if (method == "boxplot") {
       plt <- df %>% 
         ggplot(mapping = aes(x = base::get(X),
@@ -90,7 +96,8 @@ ps_fold_plot <- function(ps, taxa_n = 20, taxa_rank = "Genus", col_id = "PATIENT
         geom_boxplot()
     }
     
-    plt <- plt + theme_bw() +
+    plt <- plt +
+      theme_bw() +
       theme(axis.text.x = element_text(angle = 45, hjust = 1, size=12),
             axis.text.y = element_text(size=12),
             axis.text = element_text(size=12),
@@ -182,6 +189,31 @@ ps_fold_plot <- function(ps, taxa_n = 20, taxa_rank = "Genus", col_id = "PATIENT
   # To be used for paired or unpaired
   df_final <- method_data$df %>% as.data.frame()
   n_diff_columns <- method_data$diff_n
+  
+  if (stat_test) {
+    # Compute wilcox significance between taxa for each condition_A
+    taxa_groups <- unique(df_final$Taxa)
+    taxa_pvalues <- matrix(list(), ncol = length(condition_A), nrow = length(taxa_groups))
+    
+    for (i in 1:length(condition_A)) {
+      for (j in 1:length(taxa_groups)) {
+        sub.df <- filter(df_final, Taxa == taxa_groups[j] & group == condition_A[i])
+        taxa_pvalues[j, i] <- stats::wilcox.test(sub.df$value, sub.df$i.value, correct = TRUE)$p.value
+      }
+    }
+    # Data wrangling and merging to df_final
+    rownames(taxa_pvalues) <- taxa_groups
+    
+    if (ncol(taxa_pvalues) == 1) {
+      taxa_pvalues.df <- t(as.data.frame(taxa_pvalues[sort(rownames(taxa_pvalues)), ]))
+    } else {
+      taxa_pvalues.df <- as.data.frame(taxa_pvalues[sort(rownames(taxa_pvalues)), ])
+    }
+    colnames(taxa_pvalues.df) <- condition_A
+    df_final <- base::merge(df_final, taxa_pvalues,
+                            by.x = "Taxa", by.y = "row.names", all.x = TRUE)
+    df_final[, c("V1", "V2")]
+  }
   
   # Save data
   plot_list$data <- df_final
@@ -291,11 +323,12 @@ ps_fold_plot <- function(ps, taxa_n = 20, taxa_rank = "Genus", col_id = "PATIENT
                                      X = paste0("diff_", i), 
                                      title = paste0("Log2 ( ", condition_A[i], " / ", condition_B[i], " )"), 
                                      method = k, 
-                                     taxa_labels = i == 1)),
+                                     taxa_labels = i == 1, 
+                                     pvalues = taxa_pvalues.df,
+                                     pvalues.col = condition_A[i])),
         ncol = n_diff_columns,
         nrow = 1)
     }
-    
   }
   return(plot_list) 
 }

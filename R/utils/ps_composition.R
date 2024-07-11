@@ -28,7 +28,7 @@ ps_composition <- function(ps, tax_level, metadata.columns, Brewer.palID = "RdYl
   df_taxa_len <- length(df_final$Taxa)
   if (Brewer.palID == FALSE) {
     chosen_palette <- viridis::viridis(df_taxa_len - 1)
-  } else if (df_taxa_len-1 <= 15) {
+  } else if (df_taxa_len-1 <= 15 & df_taxa_len-1 > 10) {
     chosen_palette <- c("#000000","#004949","#009292","#ff6db6","#ffb6db",
                         "#490092","#006ddb","#b66dff","#6db6ff","#b6dbff",
                         "#920000","#924900","#db6d00","#24ff24","#ffff6d")[1:df_taxa_len-1]

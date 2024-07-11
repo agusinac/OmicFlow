@@ -135,9 +135,9 @@ ps_ordination <- function(ps, dist.metric, ordination_method, col_name, pairwise
   }
   
   # Creates a list of plots
-  plot_list <- list(scree_plot <- NULL,
-                    anova_plot <- NULL,
-                    scores_plot <- NULL)
+  plot_list <- list(scree_plot = NULL,
+                    anova_plot = NULL,
+                    scores_plot = NULL)
   if (ordination_method == "pcoa") {
     # Scree plot of first 10 dimensions
     plot_list$scree_plot <- data.frame(

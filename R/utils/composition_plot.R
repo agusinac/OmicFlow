@@ -1,12 +1,10 @@
 composition_plot <- function(df, palette, tax_level = "Genus", title_name = "", group_by = FALSE) {
   # Generates a stacked barplot as base with custome palette
-  
   if (group_by != FALSE) {
-  
-  plt <- df %>% 
-    ggplot(mapping = aes(y = value,
-                         x = get(group_by, df),
-                         fill = Taxa))
+    plt <- df %>% 
+      ggplot(mapping = aes(y = value,
+                           x = get(group_by, df),
+                           fill = Taxa))
   } else {
     plt <- df %>% 
       ggplot(mapping = aes(y = value,
@@ -25,7 +23,6 @@ composition_plot <- function(df, palette, tax_level = "Genus", title_name = "", 
   plt <- plt +
     theme_bw() +
     theme(
-      legend.position = "right",
       plot.title = element_text(size = 14, face = "bold"),
       plot.subtitle = element_text(size = 13),
       axis.text.x = element_text(angle = 90, size = 12,
@@ -36,7 +33,7 @@ composition_plot <- function(df, palette, tax_level = "Genus", title_name = "", 
       legend.title = element_text(size = 14, face = "bold"),
       legend.text = element_text(size = 12, colour = "black"),
       axis.text.y = element_text(colour = "black", size = 12)
-    ) +
+    )
   
   if (group_by == FALSE) {
     plt <- plt +

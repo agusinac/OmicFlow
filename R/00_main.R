@@ -13,10 +13,11 @@ library("vegan")
 library("optparse")
 
 # Load Functions ---------------------------------------------------------------
-# Data wrangling functions
+# Fetch current Rscript path
 Rscript <- sub("--file=", "", commandArgs()[4])
 current_path <- sub(basename(Rscript), "", normalizePath(Rscript))
 
+# Data wrangling functions
 source(file = paste0(current_path, "99_project-functions.R"))
 
 # Utils
