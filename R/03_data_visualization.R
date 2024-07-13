@@ -1,3 +1,12 @@
+# Place holders
+rankstat_plot <- NULL
+shannon_plots <- NULL
+pcoa_plots <- NULL
+nmds_plots <- NULL
+composition_plots <- NULL
+correlation_heatmap_plt <- NULL
+heatmap_plots <- NULL
+
 ################
 ### RANKSTAT ###
 ################

@@ -1,13 +1,19 @@
 ---
 title: "Data analysis report"
 date: "`r Sys.Date()`"
-author: "Alem Gusinac"
+author: "RTC Bioinformatics"
 
 output:
   html_document:
     toc: true
     toc_float: true
+    css: styles.css
 ---
+
+# New class for icon, see styles.css
+<div class="icon-container">
+  <img src="path/to/your/icon.png" alt="Icon" class="icon">
+</div>
 
 <!--- Changes the report based on the browser changes-->
 <!-- css formatting for text -->
@@ -48,20 +54,22 @@ knitr::opts_chunk$set(warning = FALSE,
 
 ```{r}
 plot_tabs <- function(plots, method) {
-  if (method == "matrix") {
-    for(i in 1:nrow(plots)) {
-      for(j in 1:ncol(plots)) {
-        cat(paste0("\n\n### Plot ", i, ".", j, "\n"))
-        print(plots[[i,j]])
-        cat("\n")
+  if (!is.null(plots)) {
+    if (method == "matrix") {
+      for(i in 1:nrow(plots)) {
+        for(j in 1:ncol(plots)) {
+          cat(paste0("\n\n### Plot ", i, ".", j, "\n"))
+          print(plots[[i,j]])
+          cat("\n")
+        }
       }
     }
-  }
-  if (method == "vector") {
-    for (i in 1:length(plots)) {
-      cat(paste0("\n\n### Plot ", i, "\n"))
-      print(plots[[i]])
-      cat("\n")
+    if (method == "vector") {
+      for (i in 1:length(plots)) {
+        cat(paste0("\n\n### Plot ", i, "\n"))
+        print(plots[[i]])
+        cat("\n")
+      }
     }
   }
 }
@@ -128,6 +136,76 @@ for (i in 1:length(final_plots)) {
   cat("\n")
 }
 ```
+
+```{r}
+flatten <- function(plot_list,data_list) {
+  for (obj in data_list) {
+    
+    current_len <- length(plot_list)
+    
+    # Append from list
+    if (is.list(obj)) {
+      for (i in seq_along(obj)) {
+        plot_list[[current_len + i]] <- obj[[i]]
+      } 
+    }
+    
+    # Append from matrix
+    if (is.matrix(obj)) {
+      for (i in seq_along(obj)) {
+        plot_list[[current_len + i]] <- obj[[i]]
+      }
+    }
+  }
+  return(plot_list)
+}
+
+# Combine all plot data structures into a single list, e.g.:
+current_plots <- list(rankstat_plot, shannon_plots)
+add_plots <- list(pcoa_plots, nmds_plots, composition_plots, correlation_heatmap_plt, final_plots)
+content <- flatten(current_plots, add_plots)
+
+
+# To be modified into dynamic generated code
+overview <- data.frame(
+  Name = c("mtcars", "Plot 1", "Plot 2"),
+  data_type = c("dataframe", "plot", "plot")
+)
+
+overview[["Download"]] <- vapply(1:nrow(overview), function(i) {
+  data_type <- overview$data_type[i]
+  extension <- ifelse(data_type == "dataframe", ".csv", ".png")
+  
+  as.character(
+    downloadthis::download_this(
+      .data = content[[i]],
+      output_name = overview$Name[i],
+      output_extension = extension,
+      button_label = "Download",
+      button_type = "primary",
+      icon = "fa fa-save",
+      csv2 = FALSE,
+      self_contained = TRUE
+    )
+  )
+}, character(1L))
+
+
+DT::datatable(
+  overview,
+  escape = FALSE,
+  options = list(
+    columnDefs = list(
+      list(targets = ncol(overview), orderable = FALSE),
+      list(targets = "_all", className = "dt-center")
+    )
+  )
+)
+
+```
+
+
+
 <!-- ## Redundancy Analysis (RDA) {.tabset} -->
 <!-- ```{r, fig.width=10, fig.height=10} -->
 <!-- # par(mfrow=c(RANKSTAT_ncol, 2)) -->
