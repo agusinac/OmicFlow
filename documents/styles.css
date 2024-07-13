@@ -1,0 +1,52 @@
+/*
+CSS file for some formatting options in the main report.Rmd file
+Author: Alem Gusinac
+*/
+
+
+/* 
+Changes the report based on the browser changes
+css formatting for text 
+ */ 
+
+.main-container {
+  width: 100%;
+  max-width: 100%;
+  min-width: 100%;
+  margin-left: auto;
+  margin-right: auto;
+}
+
+/* ss formatting for figures */
+
+img {
+    max-width: 100%;
+    height: auto;
+}
+
+/* css formatting for tabulars */
+
+table {
+  width: 100%;
+  border-collapse: collapse;
+}
+
+/* Adds background image, RTC bioinformatics icon */
+/*
+body {
+  background-image: url("path/to/your/image.jpg");
+  background-size: cover;
+}
+
+.icon-container {
+  position: fixed;
+  bottom: 0;
+  left: 0;
+  padding: 10px;
+}
+
+.icon {
+  width: 30px;
+  height: 30px;
+}
+*/
