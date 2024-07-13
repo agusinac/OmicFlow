@@ -190,7 +190,7 @@ overview[["Download"]] <- vapply(1:nrow(overview), function(i) {
   )
 }, character(1L))
 
-
+# Creates interactive table
 DT::datatable(
   overview,
   escape = FALSE,
