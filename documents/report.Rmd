@@ -10,36 +10,11 @@ output:
     css: styles.css
 ---
 
-# New class for icon, see styles.css
+<!-- New class for icon, see styles.css -->
 <div class="icon-container">
-  <img src="path/to/your/icon.png" alt="Icon" class="icon">
+  <img src="radboud_logo.png" alt="Icon" class="icon">
 </div>
 
-<!--- Changes the report based on the browser changes-->
-<!-- css formatting for text -->
-<style type="text/css">
-.main-container {
-  width: 100%;
-  max-width: 100%;
-  min-width: 100%;
-  margin-left: auto;
-  margin-right: auto;
-}
-</style>
-<!-- css formatting for figures -->
-<style>
-  img {
-    max-width: 100%;
-    height: auto;
-  }
-</style>
-<!-- css formatting for tabulars -->
-<style>
-table {
-  width: 100%;
-  border-collapse: collapse;
-}
-</style>
 
 ```{r setup, include=FALSE} 
 knitr::opts_chunk$set(warning = FALSE, 
@@ -47,29 +22,28 @@ knitr::opts_chunk$set(warning = FALSE,
                       echo = FALSE, 
                       results = "asis",
                       fig.width = 10,
-                      fig.height = 7
+                      fig.height = 5,
+                      fig.alin = "left"
                       ) 
 ```
 
 
 ```{r}
-plot_tabs <- function(plots, method) {
-  if (!is.null(plots)) {
-    if (method == "matrix") {
-      for(i in 1:nrow(plots)) {
-        for(j in 1:ncol(plots)) {
-          cat(paste0("\n\n### Plot ", i, ".", j, "\n"))
-          print(plots[[i,j]])
-          cat("\n")
-        }
-      }
-    }
-    if (method == "vector") {
-      for (i in 1:length(plots)) {
-        cat(paste0("\n\n### Plot ", i, "\n"))
-        print(plots[[i]])
+plot_tabs <- function(plots, method, label_col, label_row) {
+  if (method == "matrix") {
+    for(i in 1:nrow(plots)) {
+      for(j in 1:ncol(plots)) {
+        cat(paste0("\n\n### Plot: ", label_col[i], "-", label_row[j], "\n"))
+        print(plots[[i,j]])
         cat("\n")
       }
+    }
+  }
+  if (method == "vector") {
+    for (i in 1:length(plots)) {
+      cat(paste0("\n\n### Plot: ", label_col[i], "\n"))
+      print(plots[[i]])
+      cat("\n")
     }
   }
 }
@@ -82,60 +56,99 @@ Refer to published paper regarding pipeline\n
 ```{r}
 preprocess_stats %>% 
   kableExtra::kbl(caption = "Table 1: Stats from cutadapt and DADA2 denoising") %>%
-  kableExtra::kable_classic(full_width = F, html_font = "Calibri")
+  kableExtra::kable_classic(full_width = TRUE, html_font = "Calibri")
 
 ```
 
 # Automated Analysis
 
-## Rank stats
+
 ```{r}
-rankstat_plot
+if (!is.null(rankstat_plot)) {
+  cat("## Rank stats \n")
+  rankstat_plot
+}
 ```
 
 
-## Alpha diversity {.tabset}
 ```{r}
-plot_tabs(shannon_plots, method = "vector")
-```
+if (!is.null(shannon_plots)) {
+  cat("## Alpha diversity {.tabset} \n")
+  plot_tabs(shannon_plots, method = "vector", label_col = colnames(RANKSTAT_data))
+}
 
-## Beta Diversity: Principal Coordinate Analysis (PCoA) of Weighted UniFrac distances {.tabset}
-```{r}
-plot_tabs(pcoa_plots, method = "matrix")
-```
-
-## Beta Diversity: NMDS {.tabset}
-```{r}
-plot_tabs(nmds_plots, method = "matrix")
 ```
 
 
-## Composition {.tabset}
 ```{r}
-plot_tabs(composition_plots, method = "matrix")
+if (!is.null(pcoa_plots)) {
+  cat("## Beta Diversity: Principal Coordinate Analysis (PCoA) {.tabset}")
+  plot_tabs(pcoa_plots, 
+            method = "matrix", 
+            label_col = colnames(RANKSTAT_data),
+            label_row = metrics)
+}
+
 ```
 
-## Correlations {.tabset}
+
 ```{r}
-plot_tabs(correlation_heatmap_plt, method = "vector")
+if (!is.null(nmds_plots)) {
+  cat("## Beta Diversity: NMDS {.tabset} \n")
+  plot_tabs(nmds_plots, 
+            method = "matrix",
+            label_col = colnames(RANKSTAT_data),
+            label_row = metrics)
+}
 ```
 
-## 2-fold heatmap {.tabset}
+
+
+```{r}
+if (!is.null(composition_plots)) {
+  cat("## Composition {.tabset} \n")
+  plot_tabs(composition_plots, 
+            method = "matrix", 
+            label_col = colnames(RANKSTAT_data), 
+            label_row = taxa_names)
+}
+
+```
+
+
+```{r}
+if (!is.null(correlation_heatmap_plt)) {
+  cat("## Correlations {.tabset} \n")
+  plot_tabs(correlation_heatmap_plt, 
+            method = "vector",
+            label_col = colnames(CORRELATION_data))
+}
+
+```
+
+
 ```{r}
 # Unnaming the plot list and saving as a new list
-final_plots <- list()
-fold_headers <- c("boxplot", "barplot", "tile_plot", "rel_abun")
-for (i in 2:length(heatmap_plots[[1]])) {
-  final_plots[[i-1]] <- unname(heatmap_plots[[1]][fold_headers[i-1]])
+if (!is.null(heatmap_plots)) {
+  cat("## 2-fold heatmap {.tabset} \n")
+  
+  final_plots <- list()
+  fold_headers <- c("boxplot", "barplot", "tile_plot", "rel_abun")
+  for (i in 2:length(heatmap_plots[[1]])) {
+    final_plots[[i-1]] <- unname(heatmap_plots[[1]][fold_headers[i-1]])
+  }
+  
+  # Separate function due to `[[1]]` being printed to stdout
+  for (i in 1:length(final_plots)) {
+    cat(paste0("\n\n### Plot ", fold_headers[i], "\n"))
+    print(final_plots[[i]][[1]])
+    cat("\n")
+  }
 }
 
-# Separate function due to `[[1]]` being printed to stdout
-for (i in 1:length(final_plots)) {
-  cat(paste0("\n\n### Plot ", i, "\n"))
-  print(final_plots[[i]][[1]])
-  cat("\n")
-}
 ```
+
+## Downloadable content
 
 ```{r}
 flatten <- function(plot_list,data_list) {
@@ -160,22 +173,75 @@ flatten <- function(plot_list,data_list) {
   return(plot_list)
 }
 
-# Combine all plot data structures into a single list, e.g.:
-current_plots <- list(rankstat_plot, shannon_plots)
-add_plots <- list(pcoa_plots, nmds_plots, composition_plots, correlation_heatmap_plt, final_plots)
-content <- flatten(current_plots, add_plots)
+# # Combine all plot data structures into a single list, e.g.:
+# current_plots <- list(rankstat_plot, shannon_plots)
+# add_plots <- list(pcoa_plots, nmds_plots, composition_plots, correlation_heatmap_plt, final_plots)
+# content <- flatten(current_plots, add_plots)
 
 
-# To be modified into dynamic generated code
+# Currently only dataframes and static content available
+# TO DO: Implement graph sharing, possibly convert it into an interactive shiny document
+
+# Dynamically fetches files/folders for downloadthis
+path_files <- list.files(
+  path = paste0(getwd(), "/../data"),
+  full.names = TRUE
+)
+# File/folder absolute paths
+files <- path_files[grepl("\\.\\w+", path_files)]
+folder <- base::setdiff(path_files, files)
+files.filt <- files[grep("\\.(tsv|csv|txt)$", files)]
+
+# Data as content to be used for downloadthis
+content <- c(ps, files.filt, folder)
+
+# Dataframe to be viewed
 overview <- data.frame(
-  Name = c("mtcars", "Plot 1", "Plot 2"),
-  data_type = c("dataframe", "plot", "plot")
+  Name = c("phyloseq",
+           tools::file_path_sans_ext(base::basename(files.filt)), 
+           base::basename(folder)),
+  data_type = c("RDS",
+                base::rep("dataframe", length(files.filt)), 
+                base::rep("dir", length(folder)))
 )
 
 overview[["Download"]] <- vapply(1:nrow(overview), function(i) {
   data_type <- overview$data_type[i]
-  extension <- ifelse(data_type == "dataframe", ".csv", ".png")
   
+  extension <- switch(
+    data_type,
+    "dataframe" = ".xlsx",
+    "RDS" = ".rds",
+    "plot" = ".png"
+  )
+  
+  if (data_type == "dir") {
+    as.character(
+      downloadthis::download_dir(
+        path = content[[i]],
+        output_name = overview$Name[i],
+        button_label = "Download",
+        button_type = "success",
+        has_icon = TRUE,
+        icon = "fa fa-save",
+        self_contained = FALSE
+      )
+    )
+    
+  } else if (data_type == "dataframe") {
+    as.character(
+      downloadthis::download_file(
+        path = content[[i]],
+        output_name = overview$Name[i],
+        button_label = "Download",
+        button_type = "danger",
+        has_icon = TRUE,
+        icon = "fa fa-save",
+        self_contained = FALSE
+      )
+    )
+      
+  } else {
   as.character(
     downloadthis::download_this(
       .data = content[[i]],
@@ -188,6 +254,8 @@ overview[["Download"]] <- vapply(1:nrow(overview), function(i) {
       self_contained = TRUE
     )
   )
+  }
+
 }, character(1L))
 
 # Creates interactive table

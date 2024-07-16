@@ -1,5 +1,4 @@
 # Place holders
-rankstat_plot <- NULL
 shannon_plots <- NULL
 pcoa_plots <- NULL
 nmds_plots <- NULL
@@ -20,11 +19,11 @@ rankstat_plot <- ps_rankstat(ps_abs) +
   plot_layout(guides = "collect",
               axis_titles = "collect")
 
-ggsave(
-  filename = "automated-omics-analysis/results/03_rankstat.png",
-  plot = proportion_classified,
-  limitsize = FALSE
-)
+# ggsave(
+#   filename = "automated-omics-analysis/results/03_rankstat.png",
+#   plot = proportion_classified,
+#   limitsize = FALSE
+# )
 
 #------------------------------------------------------------------------------#
 # Microbiome composition by all samples
@@ -42,8 +41,8 @@ if (RANKSTAT_ncol > 0) {
     
     # Alpha diversity: Shannon index
     shannon_plots[[i]] <- ps_shannon(ps = ps_abs,
-                                     df_shannon = shannon_file,
-                                     col_name = col_name)
+                                            df_shannon = shannon_file,
+                                            col_name = col_name)
 
     # Microbiome composition by all samples
     for (j in 1:nrow) {
@@ -55,9 +54,9 @@ if (RANKSTAT_ncol > 0) {
       
       # Creates composition ggplot as list
       composition_plots[[i, j]] <- composition_plot(df = res$df,
-                                                    palette = res$palette,
-                                                    tax_level = res$tax_rank,
-                                                    title_name = col_name)
+                                                               palette = res$palette,
+                                                               tax_level = res$tax_rank,
+                                                               title_name = col_name)
       
 
     }

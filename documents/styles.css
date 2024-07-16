@@ -10,9 +10,10 @@ css formatting for text
  */ 
 
 .main-container {
-  width: 100%;
-  max-width: 100%;
-  min-width: 100%;
+  width: auto%;
+  height: auto;
+  max-width: 80%;
+  min-width: 80%;
   margin-left: auto;
   margin-right: auto;
 }
@@ -20,33 +21,18 @@ css formatting for text
 /* ss formatting for figures */
 
 img {
-    max-width: 100%;
+    width: auto;
     height: auto;
 }
 
 /* css formatting for tabulars */
 
-table {
-  width: 100%;
-  border-collapse: collapse;
+.table {
+  width: auto;
+  height: auto;
 }
 
-/* Adds background image, RTC bioinformatics icon */
-/*
-body {
-  background-image: url("path/to/your/image.jpg");
-  background-size: cover;
+.tabset .figure {
+  width: auto;
+  height: auto;
 }
-
-.icon-container {
-  position: fixed;
-  bottom: 0;
-  left: 0;
-  padding: 10px;
-}
-
-.icon {
-  width: 30px;
-  height: 30px;
-}
-*/

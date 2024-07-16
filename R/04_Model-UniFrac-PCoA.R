@@ -38,17 +38,14 @@ if (RANKSTAT_ncol > 0) {
   }
 }
     
-ggsave(
-  filename = "automated-omics-analysis/results/04_pcoa_permanova.png",
-  plot = patchwork::wrap_plots(pcoa_plots,
-                               ncol = RANKSTAT_ncol,
-                               nrow = nrow),
-  width = 30,
-  height = 10,
-  limitsize = FALSE,
-  dpi = 300,
-  scaling = 1
-)
-
-rmarkdown::render(input = paste0(getwd(), "/automated-omics-analysis/documents/report.Rmd"),
-                  output_file = paste0("trial_report.html"))
+# ggsave(
+#   filename = "automated-omics-analysis/results/04_pcoa_permanova.png",
+#   plot = patchwork::wrap_plots(pcoa_plots,
+#                                ncol = RANKSTAT_ncol,
+#                                nrow = nrow),
+#   width = 30,
+#   height = 10,
+#   limitsize = FALSE,
+#   dpi = 300,
+#   scaling = 1
+# )
