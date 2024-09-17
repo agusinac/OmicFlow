@@ -41,7 +41,7 @@ get_otu <- function(ps, tax_target="Genus", top_n=FALSE, filter_taxa = FALSE) {
 
 get_tree <- function(ps, tax_target) {
   # Prune tree by otu genera
-  ps_ref <- ps_rel_bac.filt %>% 
+  ps_ref <- ps %>% 
     phyloseq::tax_glom(taxrank = tax_target)
   
   # Retrieve Tree
@@ -60,7 +60,7 @@ get_tree <- function(ps, tax_target) {
   # Rewrite tree tip with tax_target labels
   tree$tip.label <- tip.labels
   # Cleans up tip labels
-  tree.filt <- drop.tip(tree, tree$tip.label[grep("uncultured", tree$tip.label)])
+  tree.filt <- drop.tip(tree, tree$tip.label[grep("uncultured|unidentified", tree$tip.label)])
   
   return(tree.filt)
 }

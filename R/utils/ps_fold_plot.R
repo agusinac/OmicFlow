@@ -131,7 +131,7 @@ ps_fold_plot <- function(ps, taxa_n = 20, taxa_rank = "Genus", col_id = "PATIENT
   #############
   
   # Fetch otus and filter out less representative Genera
-  otu_tab <- get_otu(ps, tax_target = taxa_rank, top_n = taxa_n, filter_taxa = TRUE) %>% t()
+  otu_tab <- get_otu(ps, tax_target = taxa_rank, top_n = taxa_n, filter_taxa = FALSE) %>% t()
   meta_tab <- get_meta(ps)
   
   # log2 scale

@@ -1,23 +1,23 @@
-composition_plot <- function(df, palette, tax_level = "Genus", title_name = "", group_by = FALSE) {
+composition_plot <- function(data, palette, feature_rank = "Genus", title_name = "", group_by = FALSE) {
   # Generates a stacked barplot as base with custome palette
   if (group_by != FALSE) {
-    plt <- df %>% 
+    plt <- data %>% 
       ggplot(mapping = aes(y = value,
-                           x = get(group_by, df),
+                           x = base::get(group_by, data),
                            fill = Taxa))
   } else {
-    plt <- df %>% 
+    plt <- data %>% 
       ggplot(mapping = aes(y = value,
                            x = variable,
                            fill = Taxa))
   }
   # Required for stacked barplot
   plt <- plt +
-      geom_bar(position = "fill",
-               stat = "identity")
+    geom_bar(position = "fill",
+             stat = "identity")
   
   if (group_by == FALSE) {
-  plt <- plt +
+    plt <- plt +
       coord_flip()
   }
   plt <- plt +
@@ -37,10 +37,10 @@ composition_plot <- function(df, palette, tax_level = "Genus", title_name = "", 
   
   if (group_by == FALSE) {
     plt <- plt +
-      scale_x_discrete(limits = rev(levels(as.factor(df$variable))))
+      scale_x_discrete(limits = rev(levels(as.factor(data$variable))))
   }
   plt <- plt +
-    scale_fill_manual(values = palette, name = tax_level) +
+    scale_fill_manual(values = palette, name = feature_rank) +
     labs(y = "Rel. Abun.",
          x = NULL) +
     ggtitle(title_name)

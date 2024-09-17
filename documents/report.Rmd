@@ -50,13 +50,14 @@ plot_tabs <- function(plots, method, label_col, label_row) {
 
 ```
 
-# Preprocessing step
-Refer to published paper regarding pipeline\n
-
 ```{r}
-preprocess_stats %>% 
-  kableExtra::kbl(caption = "Table 1: Stats from cutadapt and DADA2 denoising") %>%
-  kableExtra::kable_classic(full_width = TRUE, html_font = "Calibri")
+if (!is.null(preprocess_stats)) {
+  cat("# Preprocessing step \n")
+  cat("Refer to published paper regarding pipeline\n")
+  preprocess_stats %>% 
+    kableExtra::kbl(caption = "Table 1: Stats from cutadapt and DADA2 denoising") %>%
+    kableExtra::kable_classic(full_width = TRUE, html_font = "Calibri")
+}
 
 ```
 
@@ -121,7 +122,7 @@ if (!is.null(correlation_heatmap_plt)) {
   cat("## Correlations {.tabset} \n")
   plot_tabs(correlation_heatmap_plt, 
             method = "vector",
-            label_col = colnames(CORRELATION_data))
+            label_col = taxa_names)
 }
 
 ```
@@ -183,51 +184,52 @@ flatten <- function(plot_list,data_list) {
 # TO DO: Implement graph sharing, possibly convert it into an interactive shiny document
 
 # Dynamically fetches files/folders for downloadthis
-path_files <- list.files(
-  path = paste0(getwd(), "/../data"),
-  full.names = TRUE
-)
+# path_files <- list.files(
+#   path = outfile_path,
+#   full.names = TRUE
+# )
+
 # File/folder absolute paths
-files <- path_files[grepl("\\.\\w+", path_files)]
-folder <- base::setdiff(path_files, files)
-files.filt <- files[grep("\\.(tsv|csv|txt)$", files)]
+# files <- path_files[grepl("\\.\\w+", path_files)]
+# folder <- base::setdiff(path_files, files)
+# files.filt <- files[grep("\\.(tsv|csv|txt)$", files)]
 
 # Data as content to be used for downloadthis
-content <- c(ps, files.filt, folder)
+content <- c(ps)
 
 # Dataframe to be viewed
 overview <- data.frame(
-  Name = c("phyloseq",
-           tools::file_path_sans_ext(base::basename(files.filt)), 
-           base::basename(folder)),
-  data_type = c("RDS",
-                base::rep("dataframe", length(files.filt)), 
-                base::rep("dir", length(folder)))
+  Name = "phyloseq",
+           #tools::file_path_sans_ext(base::basename(files.filt)),
+           #base::basename(folder)),
+  data_type = "RDS"
+                #base::rep("dataframe", length(files.filt)),
+                #base::rep("dir", length(folder)))
 )
 
 overview[["Download"]] <- vapply(1:nrow(overview), function(i) {
   data_type <- overview$data_type[i]
-  
+
   extension <- switch(
     data_type,
     "dataframe" = ".xlsx",
     "RDS" = ".rds",
     "plot" = ".png"
   )
-  
+
   if (data_type == "dir") {
     as.character(
       downloadthis::download_dir(
         path = content[[i]],
         output_name = overview$Name[i],
         button_label = "Download",
-        button_type = "success",
+        button_type = "primary",
         has_icon = TRUE,
         icon = "fa fa-save",
         self_contained = FALSE
       )
     )
-    
+
   } else if (data_type == "dataframe") {
     as.character(
       downloadthis::download_file(

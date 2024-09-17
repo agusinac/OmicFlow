@@ -1,8 +1,7 @@
 # Construct phyloseq -----------------------------------------------------------
 ps <- phyloseq_from_biom(biom_data = data_00$biomData, 
                          meta_data = data_00$metaData, 
-                         tree_data = data_00$treeData, 
-                         refseq_data = data_00$refseqData)
+                         tree_data = data_00$treeData)
 
 
 # Fetch headers ----------------------------------------------------------------
@@ -15,5 +14,6 @@ CORRELATION_data <- select(meta_tab, meta_tab.colnames[grepl("CORRELATION_", met
 PAIREDGROUPBY_data <- select(meta_tab, meta_tab.colnames[grepl("PAIREDGROUPBY_", meta_tab.colnames)])
 
 # Fetch additional files from preprocessing pipeline ---------------------------
-preprocess_stats <- readr::read_delim("automated-omics-analysis/data/read_stats.txt")
-shannon_file <- readr::read_csv(file = "automated-omics-analysis/data/shannon.csv")
+print(data_00$outDir)
+preprocess_stats <- readr::read_delim(paste0(outfile_path, "/read_stats.txt"))
+shannon_file <- readr::read_csv(file = paste0(outfile_path, "/alpha_rarefaction/shannon.csv"))

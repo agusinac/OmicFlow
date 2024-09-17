@@ -25,6 +25,7 @@ sourceDir(path = paste0(current_path, "utils"))
 
 # Parse command line
 data_00 <- parse_commandline()
+outfile_path <- normalizePath(data_00$outDir)
 
 # Taxa to be visualized:
 taxa_names <- c("Phylum", "Family", "Genus")
@@ -35,5 +36,5 @@ source(file = paste0(current_path, "02_clean.R"))
 source(file = paste0(current_path, "03_data_visualization.R"))
 source(file = paste0(current_path, "04_Model-UniFrac-PCoA.R"))
 source(file = paste0(current_path, "05_Model-RDA.R"))
-rmarkdown::render(input = paste0(current_path, "../documents/report.Rmd"),
-                  output_file = paste0(data_00$outDir, "trial_report.html"))
+rmarkdown::render(input = paste0(getwd(), "/automated-omics-analysis/documents/report.Rmd"),
+                  output_file = paste0("report.html"))
