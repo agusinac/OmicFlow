@@ -4,12 +4,12 @@ composition_plot <- function(data, palette, feature_rank = "Genus", title_name =
     plt <- data %>% 
       ggplot(mapping = aes(y = value,
                            x = base::get(group_by, data),
-                           fill = Taxa))
+                           fill = base::get(feature_rank, data)))
   } else {
     plt <- data %>% 
       ggplot(mapping = aes(y = value,
-                           x = variable,
-                           fill = Taxa))
+                           x = `SAMPLE-ID`,
+                           fill = base::get(feature_rank, data)))
   }
   # Required for stacked barplot
   plt <- plt +
@@ -37,7 +37,7 @@ composition_plot <- function(data, palette, feature_rank = "Genus", title_name =
   
   if (group_by == FALSE) {
     plt <- plt +
-      scale_x_discrete(limits = rev(levels(as.factor(data$variable))))
+      scale_x_discrete(limits = rev(levels(as.factor(data$`SAMPLE-ID`))))
   }
   plt <- plt +
     scale_fill_manual(values = palette, name = feature_rank) +

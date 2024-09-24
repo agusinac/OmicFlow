@@ -8,10 +8,10 @@ phyloseq_from_biom <- function(biom_data, meta_data, tree_data) {
                                                "Class", "Order", "Family", 
                                                "Genus", "Species")
   # Rename taxa names
-  df <- data.frame(base::lapply(data.frame(tax_table(ps)),
+  df <- data.frame(base::lapply(data.frame(phyloseq::tax_table(ps)),
                                 function(x) gsub("^[dpcofgs]_{2}", "", x)),
                    stringsAsFactors = FALSE)
-  row.names(df) <- row.names(tax_table(ps))
+  row.names(df) <- row.names(phyloseq::tax_table(ps))
   phyloseq::tax_table(ps) <- phyloseq::tax_table(as.matrix(df))
   
   return(ps)
