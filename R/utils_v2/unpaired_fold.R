@@ -3,29 +3,49 @@ unpaired_fold <- function(dt, sample.id, condition_A, condition_B, condition_lab
   feature_labels <- dt[[ feature_rank ]]
   dt <- dt[, .SD, .SDcols = !c(feature_rank)]
   
-  
+  # Create data.tables for results
   unpaired_dt <- data.table::data.table(feature_rank = feature_labels)
+  colnames(pvalues_dt) <- feature_rank
+  
+  pvalues_dt <- data.table::data.table(feature_rank = feature_labels)
   colnames(unpaired_dt) <- feature_rank
   
   for (i in seq_along(condition_A)) {
     # Subset by condition_A value
-    dt_A <- dt[, .SD, .SDcols = colnames(dt)[grepl(condition_A[1], condition.labels)]]
-    dt_B <- dt[, .SD, .SDcols = colnames(dt)[grepl(condition_B[1], condition.labels)]]
+    dt_A <- dt[, .SD, .SDcols = colnames(dt)[grepl(condition_A[i], condition.labels)]]
+    dt_B <- dt[, .SD, .SDcols = colnames(dt)[grepl(condition_B[i], condition.labels)]]
     
-    # Perform subtraction
-    dt_diff <- dt_A - dt_B
+    # Improve with foreach and parallelize it!
+    # Create cross-wise combinations
+    combinations <- data.table::data.table(expand.grid(colnames(dt_A), colnames(dt_B)))
+    
+    # Perform subtraction cross wise
+    for (j in seq_along(combinations$Var1)) {
+      col_A <- combinations$Var1[j]
+      col_B <- combinations$Var2[j]
+      
+      unpaired_dt <- cbind(unpaired_dt, dt_A[, ..col_A] - dt_B[, ..col_B])
+    }
+    
+    # Compute pvalues with wilcox test
+    mat_A <- as.matrix(dt_A)
+    mat_B <- as.matrix(dt_B)
+    for (k in seq_along(feature_labels)) {
+      pvalues_dt[k, "pvalue" := stats::wilcox.test(mat_A[k, ], mat_B[k, ], correct = TRUE)$p.value] 
+    }
+    
     
     # Melt into a single column
-    dt_diff[, (feature_rank) := feature_labels]
-    unpaired_dt <- base::merge(unpaired_dt,
-                               data.table::melt(dt_diff,
-                                                measure.vars = colnames(dt_diff)[!grepl(feature_rank, colnames(dt_diff))],
-                                                variable.name = sample.id, 
-                                                value.name = paste0("diff_", i)),
-                               by = feature_rank,
-                               all.x = TRUE)
-    
+    final_dt <- data.table::melt(unpaired_dt,
+                                 id.vars = feature_rank,
+                                 variable.name = sample.id, 
+                                 value.name = paste0("diff_", i))
     
   }
-  return(unpaired_dt)
+  result <- list(
+    data = final_dt,
+    pvalues = pvalues_dt
+  )
+  
+  return(result)
 }
