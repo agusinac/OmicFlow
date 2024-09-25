@@ -21,14 +21,15 @@ volcano_plot <- function(dt, feature_rank, pvalue.threshold = 0.05, logfold.thre
             legend.text = element_text(size=12),
             legend.title = element_text(size=14),
             strip.background = element_rect(fill = "#EEEEEE", color = "#FFFFFF")) +
-      ggrepel::geom_label_repel() +
-      geom_point(shape = 16, alpha = 0.5) +
-      geom_vline(xintercept = c(-0.6, 0.6), col = "gray", linetype = 'dashed') +
-      geom_hline(yintercept = -log10(0.05), col = "gray", linetype = 'dashed') + 
+      ggrepel::geom_label_repel(show.legend = FALSE) +
+      geom_point(shape = 16, alpha = 1) +
+      geom_vline(xintercept = c(-logfold.threshold, logfold.threshold), col = "gray", linetype = 'dashed') +
+      geom_hline(yintercept = -log10(pvalue.threshold), col = "gray", linetype = 'dashed') + 
       scale_colour_manual(values = c("Downregulated" = "blue", 
                                      "non-significant" = "black", 
-                                     "Upregulated" = "red")) +
-      labs(x = "Fold change (log2)",
-           y = "P-value")
+                                     "Upregulated" = "red"),
+                          name = "") +
+      labs(x = "Fold Change log2(response / non-responders)",
+           y = "-log10(Adjusted P-value)")
   )
 }

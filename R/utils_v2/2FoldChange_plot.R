@@ -1,16 +1,22 @@
-fold_plot <- function(dt, X, Y, method, title = NULL, taxa_labels = FALSE, pvalues = NULL, pvalue.col = "pvalue") {
+fold_plot <- function(dt, X, Y, method, title = NULL, taxa_labels = FALSE, pvalues = NULL, pvalue.col = "pvalue", pvalue.threshold = 0.01) {
   if (method == "barplot") {
-    plt <- dt %>% 
-      aggregate(formula(paste(X, " ~ ", Y)), sum) %>% 
+    new_dt <- dt %>% 
+      stats::aggregate(formula(paste(X, " ~ ", Y)), sum)
+    if (!is.null(pvalues)) {
+      new_dt <- base::merge(new_dt, pvalues, by = Y, all.x = TRUE)
+    }
+    
+    plt <- new_dt %>% 
       ggplot(mapping = aes(x = .data[[ X ]],
                            y = .data[[ Y ]],
                            fill = .data[[ X ]])) +
       geom_bar(stat = "identity")
+    
     if (!is.null(pvalues)) {
       plt <- plt +
-        geom_text(aes(label = ifelse(!is.na(pvalues[[pvalue.col]]) & pvalues[[pvalue.col]] < 0.01, "*", "")),
+        geom_text(aes(label = ifelse(!is.na(new_dt[[pvalue.col]]) & new_dt[[pvalue.col]] < pvalue.threshold, "*  ", "")),
                   fontface = "bold",
-                  position = position_dodge(width = 1),
+                  position = position_dodge(width = 0.2),
                   size = 6)
     }
   } else if (method == "boxplot") {

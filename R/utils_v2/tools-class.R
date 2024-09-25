@@ -153,8 +153,13 @@ tools <- R6::R6Class(
             geom_boxplot(width = 0.1) +
             theme_bw() +
             theme(legend.position = "none",
-                  text = element_text(size = 12, color = "black")) + 
-            scale_fill_manual(name = "", 
+                  text=element_text(size=14),
+                  legend.text = element_text(size=12),
+                  legend.title = element_text(size=14),
+                  axis.text = element_text(size=12),
+                  axis.text.y = element_text(size=12),
+                  axis.text.x = element_text(size=12)) + 
+            scale_fill_manual(name = "groups", 
                               values = colors) +
             labs(title = NULL,
                  subtitle = paste0("selected column: ", col_name),
