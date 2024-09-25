@@ -84,7 +84,7 @@ ps_fold_plot <- function(ps, taxa_n = 20, taxa_rank = "Genus", col_id = "PATIENT
         geom_bar(stat = "identity")
       if (!is.null(pvalues)) {
         plt <- plt +
-          geom_text(aes(label = ifelse(!is.na(pvalues[, pvalues.col]) & pvalues[, pvalues.col] < 0.05, "*", "")),
+          geom_text(aes(label = ifelse(!is.na(pvalues[, pvalues.col]) & pvalues[, pvalues.col] < 0.001, "*", "")),
                     fontface = "bold",
                     position = position_dodge(width = 1),
                     size = 6)
@@ -212,7 +212,7 @@ ps_fold_plot <- function(ps, taxa_n = 20, taxa_rank = "Genus", col_id = "PATIENT
     colnames(taxa_pvalues.df) <- condition_A
     df_final <- base::merge(df_final, taxa_pvalues,
                             by.x = "Taxa", by.y = "row.names", all.x = TRUE)
-    df_final[, c("V1", "V2")]
+    # df_final[, c("V1", "V2")]
   }
   
   # Save data
