@@ -371,8 +371,191 @@ tools <- R6::R6Class(
       }
       return(plot_list)
     },
-    differential_feature_expression = function() {
-      # place holder
+    differential_feature_expression = function(feature_rank, sample.id, paired, paired.id, 
+                                               condition.group, condition_A, condition_B, 
+                                               feature_filter = NA, feature_top = 20, normalize = TRUE) {
+      # Final output
+      plot_list <- list(
+        data = NULL,
+        boxplot = NULL,
+        barplot = NULL,
+        tile_plot = NULL,
+        rel_abun = NULL,
+        volcano_plot = NULL,
+        pvalues = NULL,
+        volcano = NULL
+      )
+      
+      #------#
+      # Main #
+      #------#
+      
+      # Subset samples by conditions
+      # self$sample_subset(self$metaData[[condition.group]] %in% c(condition_A, condition_B))
+      
+      if (normalize) {
+        self$transform(function(x) x / sum(x))
+      }
+      
+      # Agglomerate taxa by feature rank and filter unwanted taxa
+      self$feature_glom(feature_rank = feature_rank, feature_filter = feature_filter)
+      
+      # Creates long table of relative abundance
+      dt <- self$countData[, (feature_rank) := self$featureData[[feature_rank]]]
+      stats_dt <- base::merge(data.table::melt(dt,
+                                               measure.vars = colnames(dt)[!grepl(feature_rank, colnames(dt))],
+                                               variable.name = sample.id, 
+                                               value.name = "values"),
+                              self$metaData[, .SD, .SDcols = c(sample.id, condition.group)],
+                              by = sample.id)
+      
+      # Create row_sums
+      dt[, row_sum := rowSums(.SD), .SDcols = !c(feature_rank)]
+      
+      # Check how many features to select (depended if volcano is desired)
+      if (!is.na(feature_top)) {
+        feature_top <- feature_top
+      } else {
+        feature_top <- nrow(self$featureData)
+      }
+      
+      # Orders by row_sum in descending order
+      self$countData <- data.table::setorder(dt, -row_sum)[1:feature_top, .SD, .SDcols = !c("row_sum")]
+      features <- self$countData[[ feature_rank ]]
+      self$countData <- self$countData[, .SD, .SDcols = !c(feature_rank)]
+      
+      # Log2 transform taxa
+      self$transform(log2)
+      
+      # Subset by top features
+      stats_dt <- stats_dt[stats_dt[[feature_rank]] %in% features]
+      dt <- self$countData[, (feature_rank) := features]
+      
+      # Compute 2-fold expression based on (un)paired samples
+      # Computes on equation oflog2(A) - log2(B)
+      # Supports multiple inputs for A and B.
+      # For example A = T1, T2 and B = H1, H2
+      if (paired == TRUE) {
+        # sorting of metadata
+        condition.labels <- data.table::setorderv(self$metaData, 
+                                                  cols = c(sample.id, paired.id, condition.group))[[ condition.group ]]
+        # paired samples
+        DFE <- paired_fold(dt = dt,
+                           sample.id = sample.id,
+                           paired.id = paired.id,
+                           condition_A = condition_A,
+                           condition_B = condition_B,
+                           unique.id = unique(self$metaData[[ paired.id ]]),
+                           condition_labels = condition.labels,
+                           feature_rank = feature_rank)
+        # Save data
+        plot_list$data <- DFE
+        
+      } else if (paired == FALSE) {
+        # sorting of metadata
+        condition.labels <- data.table::setorderv(self$metaData,
+                                                  cols = c(sample.id, condition.group))[[ condition.group ]]
+        # unpaired samples
+        DFE <- unpaired_fold(dt = dt,
+                             sample.id = sample.id,
+                             condition_A = condition_A,
+                             condition_B = condition_B,
+                             condition_labels = condition.labels,
+                             feature_rank = feature_rank)
+        # Save data
+        plot_list$data <- DFE$data
+        
+      } else {
+        stop("paired can only be TRUE or FALSE, check your input.")
+      }
+      
+      # Generate heatmap plot with df_diff data
+      if (paired == TRUE) {
+        # Generating heatmap plot based on paired boolean
+        n_diff_columns <-  sum(grepl("^diff_", colnames(DFE)))
+        
+        # Generate heatmap plot with df_diff data
+        heatmap_plot <- DFE %>% 
+          ggplot(mapping = aes(x = base::get(sample.id, DFE),
+                               y = base::get(feature_rank, DFE)))
+        
+        # If there is only one column uses default settings
+        if (n_diff_columns == 1) {
+          heatmap_plot <- heatmap_plot +
+            geom_tile(aes(fill = diff_1))
+        } else {
+          # Adds geom_tile for number of diff_columns
+          for (i in 1:n_diff_columns) {
+            if (i == 1) {
+              heatmap_plot <- heatmap_plot +
+                geom_tile(aes(fill = !!sym(paste0("diff_", i))), width = 0.45)
+            } else {
+              heatmap_plot <- heatmap_plot +
+                geom_tile(aes(fill = !!sym(paste0("diff_", i))), width = 0.45,
+                          position = position_nudge(x = 0.5))
+            }
+            
+          }
+        }
+        # Finishes heatmap plot
+        plot_list$tile_plot <- heatmap_plot +
+          theme_bw() +
+          theme(axis.text.x = element_text(angle = 45, hjust = 1, size=12),
+                axis.text.y = element_text(size=12),
+                axis.text = element_text(size=12),
+                text = element_text(size=12),
+                legend.text = element_text(size=12),
+                legend.title = element_text(size=14),
+                axis.title.y = element_blank(),
+                strip.background = element_rect(fill = "#EEEEEE", color = "#FFFFFF")) +
+          scale_fill_gradient2(name = paste0("log2( A / B )"),
+                               low = "blue",
+                               mid = "white",
+                               high = "red",
+                               na.value = "grey80") +
+          scale_y_discrete(limits = rev(levels(as.factor(DFE[[ feature_rank ]])))) +
+          labs(x = NULL, 
+               y = "Features")  
+        
+        
+        # Creates boxplot from relative abundances
+        plot_list$rel_abun <- stats_dt %>% 
+          ggplot(mapping = aes(x = values,
+                               y = .data[[ feature_rank ]])) +
+          facet_wrap(~.data[[condition.group]], ncol = length(condition_A) + length(condition_B)) +
+          geom_boxplot() +
+          theme_bw() +
+          theme(text=element_text(size=12),
+                axis.text.x = element_text(angle = 45, hjust = 1),
+                axis.title.y = element_blank(),
+                axis.text.y = element_blank(),
+                axis.ticks.y = element_blank(),
+                panel.spacing.x = unit(1, "lines")) +
+          scale_x_continuous(trans = scales::log_trans()) +
+          labs(x = "Log10( Rel. Abun. )")
+      } else {
+        # Store pvalues and volcano dt
+        plot_list$volcano <- DFE$volcano
+        plot_list$pvalues <- DFE$pvalues
+        # Generating heatmap plot based on paired boolean
+        n_diff_columns <-  sum(grepl("^diff_", colnames(DFE$data)))
+        # Creates boxplot and barplot for unpaired samples
+        for (k in c("boxplot", "barplot")) {
+          plot_list[[k]] <- patchwork::wrap_plots(
+            lapply(1:n_diff_columns,
+                   function(i) fold_plot(dt = DFE$data, 
+                                         X = paste0("diff_", i), 
+                                         Y = feature_rank,
+                                         title = paste0("Log2 ( ", condition_A[i], " / ", condition_B[i], " )"), 
+                                         method = k, 
+                                         taxa_labels = i == 1, 
+                                         pvalues = DFE$pvalues)),
+            ncol = n_diff_columns,
+            nrow = 1)
+        }
+      }
+      
+      return(plot_list)
     },
     correlation = function() {
       # place holder
