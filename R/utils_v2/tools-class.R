@@ -52,9 +52,9 @@ tools <- R6::R6Class(
     },
     feature_glom = function(feature_rank, feature_filter = NA) {
       # creates a subset of unique feature rank, hashes combined for each unique rank
-      id_list <- self$featureData[, ID]
-      counts <- self$countData[, ID := id_list]
-      features <- self$featureData
+      id_list <- data.table::copy(self$featureData[, ID])
+      counts <- data.table::copy(self$countData[, ID := id_list])
+      features <- data.table::copy(self$featureData)
       
       # set keys
       data.table::setkey(counts, ID)
@@ -93,8 +93,11 @@ tools <- R6::R6Class(
     # Methods for visualization #
     #---------------------------#
     rankstat = function() {
+      # Copies object to prevent modification of tools class components
+      features <- data.table::copy(self$featureData)
+      
       # Counts number of ASVs without empty values
-      values <- self$featureData[, lapply(.SD, function(x) sum(x != "")), .SDcols = !c("ID")]
+      values <- features[, lapply(.SD, function(x) sum(x != "")), .SDcols = !c("ID")]
       
       # Pivot into long table
       long_values <- data.table::melt(data = values, 
@@ -119,6 +122,9 @@ tools <- R6::R6Class(
                     y = "Number of ASVs classified"))
     },
     shannon = function(df_shannon, col_name, Brewer.palID="Set2") {
+      # Copies object to prevent modification of tools class components
+      metadata <- data.table::copy(self$metaData)
+      
       if (!is(df_shannon, "data.table")) {
         stop("shannon_df needs to be a data.table")
       } else {
@@ -132,7 +138,7 @@ tools <- R6::R6Class(
         colnames(shannon_long) <- c("SAMPLE-ID", "iters", "alpha_div")
         # Adds new column
         shannon_final <- base::merge(shannon_long, 
-                                     self$metaData[, .SD, .SDcols = c("SAMPLE-ID", col_name)], 
+                                     metadata[, .SD, .SDcols = c("SAMPLE-ID", col_name)], 
                                      by = "SAMPLE-ID", 
                                      all.x = TRUE)
         
@@ -169,6 +175,11 @@ tools <- R6::R6Class(
       }
     },
     composition = function(feature_rank, feature_filter = NA, col_name = NA, feature_top = 10, Brewer.palID = "RdYlBu") {
+      # Copies object to prevent modification of tools class components
+      counts <- data.table::copy(self$countData)
+      metadata <- data.table::copy(self$metaData)
+      features <- data.table::copy(self$featureData)
+      
       # Agglomerate by feature_rank
       self$feature_glom(feature_rank = feature_rank, feature_filter = feature_filter)
       
@@ -227,6 +238,11 @@ tools <- R6::R6Class(
       # Important for scale_fill_manual taxa order
       composition_final[[feature_rank]] <- factor(composition_final[[feature_rank]], levels = final_dt[[feature_rank]])
       
+      # Restores tools class components
+      self$countData <- counts
+      self$featureData <- features
+      self$metaData <- metadata
+      
       # returns results as list
       return(
         list(
@@ -237,6 +253,12 @@ tools <- R6::R6Class(
     },
     ordination = function(metric, method, group_by, distmat = NULL, weighted = FALSE, normalize = TRUE, parallel = FALSE, 
                           pca.pairwise = FALSE, pca.max.explained = 80, pca.dim = c(1,2), outdir=".", cpus = 8) {
+      
+      # Copies object to prevent modification of tools class components
+      counts <- data.table::copy(self$countData)
+      metadata <- data.table::copy(self$metaData)
+      features <- data.table::copy(self$featureData)
+      tree <- data.table::copy(self$treeData)
       
       if (parallel == TRUE) {
         # Uses available CPUs for %dopar%
@@ -259,7 +281,7 @@ tools <- R6::R6Class(
           distmat <- rbiom::beta.div(biom = counts,
                                      method = metric, 
                                      weighted = weighted,
-                                     tree = self$treeData)
+                                     tree = tree)
         } else {
           distmat <- rbiom::beta.div(biom = counts,
                                      method = metric, 
@@ -374,6 +396,13 @@ tools <- R6::R6Class(
                                                  metric, 
                                                  group_by)
       }
+      
+      # Restores tools class components
+      self$countData <- counts
+      self$featureData <- features
+      self$metaData <- metadata
+      self$treeData <- tree
+      
       return(plot_list)
     },
     differential_feature_expression = function(feature_rank, sample.id, paired, paired.id, 
@@ -390,6 +419,11 @@ tools <- R6::R6Class(
         pvalues = NULL,
         volcano = NULL
       )
+      
+      # Copies object to prevent modification of tools class components
+      counts <- data.table::copy(self$countData)
+      metadata <- data.table::copy(self$metaData)
+      features <- data.table::copy(self$featureData)
       
       #------#
       # Main #
@@ -559,6 +593,11 @@ tools <- R6::R6Class(
             nrow = 1)
         }
       }
+      
+      # Restores tools class components
+      self$countData <- counts
+      self$featureData <- features
+      self$metaData <- metadata
       
       return(plot_list)
     },
