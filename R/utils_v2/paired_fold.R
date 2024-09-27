@@ -1,5 +1,8 @@
 paired_fold <- function(dt, paired.id, sample.id, condition_A, condition_B, unique.id, feature_rank, condition_labels) {
-  feature_labels <- dt[[ feature_rank ]]
+  # tmp data.table
+  tmp_dt <- data.table::copy(dt)
+  
+  feature_labels <- tmp_dt[[ feature_rank ]]
   paired_dt <- data.table::data.table(feature_rank = feature_labels)
   colnames(paired_dt) <- feature_rank
   
@@ -7,7 +10,7 @@ paired_fold <- function(dt, paired.id, sample.id, condition_A, condition_B, uniq
     # extract samples, takes only matching pairs
     pair <- colnames(dt)[grepl(unique.id[id], colnames(dt))]
     if (length(pair) == 2) {
-      sample_pair <- dt[, .SD, .SDcols = pair]
+      sample_pair <- tmp_dt[, .SD, .SDcols = pair]
     } else {
       sample_pair <- NULL
     }
@@ -30,5 +33,8 @@ paired_fold <- function(dt, paired.id, sample.id, condition_A, condition_B, uniq
       paired_dt <- na.omit(rbind(paired_dt, dt_diff, fill = TRUE))
     }
   }
+  # removes tmp data table
+  base::gc(tmp_dt)
+  
   return(paired_dt)
 }

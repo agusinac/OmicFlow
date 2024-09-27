@@ -1,7 +1,10 @@
 unpaired_fold <- function(dt, sample.id, condition_A, condition_B, condition_labels, feature_rank) {
+  # Creates tmp data table
+  tmp_dt <- data.table::copy(dt)
+  
   # subset feature labels before removing them
-  feature_labels <- dt[[ feature_rank ]]
-  dt <- dt[, .SD, .SDcols = !c(feature_rank)]
+  feature_labels <- tmp_dt[[ feature_rank ]]
+  tmp_dt <- tmp_dt[, .SD, .SDcols = !c(feature_rank)]
   
   # Create data.tables for results
   unpaired_dt <- data.table::data.table(feature_rank = feature_labels)
@@ -16,8 +19,8 @@ unpaired_fold <- function(dt, sample.id, condition_A, condition_B, condition_lab
   # Computing for multiple conditions
   for (i in seq_along(condition_A)) {
     # Subset by condition_A value
-    dt_A <- dt[, .SD, .SDcols = colnames(dt)[grepl(condition_A[i], condition_labels)]]
-    dt_B <- dt[, .SD, .SDcols = colnames(dt)[grepl(condition_B[i], condition_labels)]]
+    dt_A <- tmp_dt[, .SD, .SDcols = colnames(dt)[grepl(condition_A[i], condition_labels)]]
+    dt_B <- tmp_dt[, .SD, .SDcols = colnames(dt)[grepl(condition_B[i], condition_labels)]]
     
     # Improve with foreach and parallelize it!
     # Create cross-wise combinations
@@ -57,6 +60,9 @@ unpaired_fold <- function(dt, sample.id, condition_A, condition_B, condition_lab
     pvalues = pvalues_dt,
     volcano = volcano_dt
   )
+  
+  # removes tmp
+  base::gc(tmp_dt)
   
   return(result)
 }
