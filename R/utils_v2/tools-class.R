@@ -93,11 +93,8 @@ tools <- R6::R6Class(
     # Methods for visualization #
     #---------------------------#
     rankstat = function() {
-      # Copies object to prevent modification of tools class components
-      features <- data.table::copy(self$featureData)
-      
       # Counts number of ASVs without empty values
-      values <- features[, lapply(.SD, function(x) sum(x != "")), .SDcols = !c("ID")]
+      values <- self$featureData[, lapply(.SD, function(x) sum(x != "")), .SDcols = !c("ID")]
       
       # Pivot into long table
       long_values <- data.table::melt(data = values, 
@@ -122,8 +119,12 @@ tools <- R6::R6Class(
                     y = "Number of ASVs classified"))
     },
     shannon = function(df_shannon, col_name, Brewer.palID="Set2") {
-      # Copies object to prevent modification of tools class components
-      metadata <- data.table::copy(self$metaData)
+      private$tmp_link(
+        .countData = self$countData,
+        .featureData = self$featureData,
+        .metaData = self$metaData
+      )
+      
       
       if (!is(df_shannon, "data.table")) {
         stop("shannon_df needs to be a data.table")
@@ -138,7 +139,7 @@ tools <- R6::R6Class(
         colnames(shannon_long) <- c("SAMPLE-ID", "iters", "alpha_div")
         # Adds new column
         shannon_final <- base::merge(shannon_long, 
-                                     metadata[, .SD, .SDcols = c("SAMPLE-ID", col_name)], 
+                                     self$metaData[, .SD, .SDcols = c("SAMPLE-ID", col_name)], 
                                      by = "SAMPLE-ID", 
                                      all.x = TRUE)
         
@@ -149,6 +150,9 @@ tools <- R6::R6Class(
         unique_groups <- unique(self$metaData[[col_name]])
         chosen_palette <- RColorBrewer::brewer.pal(length(unique_groups), Brewer.palID)
         colors <- stats::setNames(chosen_palette, unique_groups)
+        
+        # Restores tools class components
+        private$tmp_restore()
         
         # Creating shannon plot
         return(
@@ -176,10 +180,12 @@ tools <- R6::R6Class(
     },
     composition = function(feature_rank, feature_filter = NA, col_name = NA, feature_top = 10, Brewer.palID = "RdYlBu") {
       # Copies object to prevent modification of tools class components
-      counts <- data.table::copy(self$countData)
-      metadata <- data.table::copy(self$metaData)
-      features <- data.table::copy(self$featureData)
-      
+      private$tmp_link(
+        .countData = self$countData,
+        .featureData = self$featureData,
+        .metaData = self$metaData
+      )
+
       # Agglomerate by feature_rank
       self$feature_glom(feature_rank = feature_rank, feature_filter = feature_filter)
       
@@ -239,9 +245,7 @@ tools <- R6::R6Class(
       composition_final[[feature_rank]] <- factor(composition_final[[feature_rank]], levels = final_dt[[feature_rank]])
       
       # Restores tools class components
-      self$countData <- counts
-      self$featureData <- features
-      self$metaData <- metadata
+      private$tmp_restore()
       
       # returns results as list
       return(
@@ -255,10 +259,12 @@ tools <- R6::R6Class(
                           pca.pairwise = FALSE, pca.max.explained = 80, pca.dim = c(1,2), outdir=".", cpus = 8) {
       
       # Copies object to prevent modification of tools class components
-      counts <- data.table::copy(self$countData)
-      metadata <- data.table::copy(self$metaData)
-      features <- data.table::copy(self$featureData)
-      tree <- data.table::copy(self$treeData)
+      private$tmp_link(
+        .countData = self$countData,
+        .featureData = self$featureData,
+        .metaData = self$metaData,
+        .treeData = self$treeData
+      )
       
       if (parallel == TRUE) {
         # Uses available CPUs for %dopar%
@@ -379,8 +385,7 @@ tools <- R6::R6Class(
         plot_list$scores_plot <- ordination_plot(df_pcs_points, 
                                                  pcs, 
                                                  pair=c("PC1", "PC2"), 
-                                                 metric, 
-                                                 group_by)
+                                                 metric)
         
       } else if (method == "nmds") {
         plot_list$anova_plot <- stats_plot(stats_results, 
@@ -398,16 +403,13 @@ tools <- R6::R6Class(
       }
       
       # Restores tools class components
-      self$countData <- counts
-      self$featureData <- features
-      self$metaData <- metadata
-      self$treeData <- tree
+      private$tmp_restore()
       
       return(plot_list)
     },
     differential_feature_expression = function(feature_rank, sample.id, paired, paired.id, 
                                                condition.group, condition_A, condition_B, 
-                                               feature_filter = NA, feature_top = 20, normalize = TRUE) {
+                                               feature_filter = NA, feature_top = 20, normalize = TRUE, cpus = 8) {
       # Final output
       plot_list <- list(
         data = NULL,
@@ -486,7 +488,8 @@ tools <- R6::R6Class(
                            condition_B = condition_B,
                            unique.id = unique(self$metaData[[ paired.id ]]),
                            condition_labels = condition.labels,
-                           feature_rank = feature_rank)
+                           feature_rank = feature_rank,
+                           cpus = cpus)
         # Save data
         plot_list$data <- DFE
         
@@ -500,13 +503,64 @@ tools <- R6::R6Class(
                              condition_A = condition_A,
                              condition_B = condition_B,
                              condition_labels = condition.labels,
-                             feature_rank = feature_rank)
+                             feature_rank = feature_rank,
+                             cpus = cpus)
         # Save data
         plot_list$data <- DFE$data
         
       } else {
         stop("paired can only be TRUE or FALSE, check your input.")
       }
+      
+      # First merge 
+      add_columns <- unique(taxa$metaData[, .(sample.id, paired.id)])
+      
+      merged_data <- base::merge(
+        stats_dt,
+        add_columns,
+        by = sample.id,
+        all.x = TRUE
+      )
+      
+      # Subset merged data
+      subset_merged <- merged_data[, .(patient.id, feature_rank, values)]
+      colnames(subset_merged) <- c("SAMPLE-ID", "Genus", "values")
+      
+      # Second merge
+      final_merge <- base::merge(
+        x = DFE,
+        y = subset_merged,
+        by = c("SAMPLE-ID", "Genus"),
+        all.x = TRUE
+      )
+      
+      grouped_dt <- final_merge %>% 
+        dplyr::group_by(`SAMPLE-ID`, Genus) %>% 
+        dplyr::summarise(mean_values = mean(values, na.rum = TRUE),
+                         diff_1 = mean(diff_1, na.rm = TRUE)) %>% 
+        dplyr::ungroup()
+      
+      test_heatmap <- grouped_dt %>% 
+        ggplot(mapping = aes(x = `SAMPLE-ID`,
+                             y = Genus)) +
+        geom_point(aes(size = mean_values, fill = diff_1), shape = 21) +
+        theme_bw() +
+        theme(axis.text.x = element_text(angle = 45, hjust = 1, size=12),
+              axis.text.y = element_text(size=12),
+              axis.text = element_text(size=12),
+              text = element_text(size=12),
+              legend.text = element_text(size=12),
+              legend.title = element_text(size=14),
+              strip.background = element_rect(fill = "#EEEEEE", color = "#FFFFFF")) +
+        scale_y_discrete(limits = rev(levels(as.factor(grouped_dt[["Genus"]])))) +
+        scale_fill_gradient2(name = paste0("log2( C5 / C1 )"),
+                             low = "blue",
+                             mid = "white",
+                             high = "red",
+                             na.value = "grey80") +
+        scale_size_continuous(name = "Mean Rel. Abun. (%)", labels = scales::label_number(accuracy = 0.01)) +
+        labs(x = NULL, 
+             y = NULL)
       
       # Generate heatmap plot with df_diff data
       if (paired == TRUE) {
@@ -601,8 +655,59 @@ tools <- R6::R6Class(
       
       return(plot_list)
     },
+    triplot = function() {
+      # place holder for general triplot function, takes any type of model
+    },
     correlation = function() {
       # place holder
+    }
+  ),
+  private = list(
+    # Creates a temporary save of self components
+    tmp_store = NULL,
+    tmp_link = function(.countData = NULL, .featureData = NULL, .metaData = NULL, .treeData = NULL) {
+      private$tmp_store <<- list(
+                            .countData = .countData,
+                            .metaData = .metaData,
+                            .featureData = .featureData,
+                            .treeData = .treeData
+                            )
+    },
+    tmp_restore = function() {
+      # Restores self components if applicable!
+      if (!is.null(private$tmp_store$.countData)) self$countData <- private$tmp_store$.countData
+      if (!is.null(private$tmp_store$.metaData)) self$metaData <- private$tmp_store$.metaData
+      if (!is.null(private$tmp_store$.featureData)) self$featureData <- private$tmp_store$.featureData
+      if (!is.null(private$tmp_store$.treeData)) self$treeData <- private$tmp_store$.treeData
+      return(invisible(self))
+    },
+    eigen_80 = function(eig_explained) {
+      sum_variance = 0
+      counter = 1
+      for (i in 1:length(eig_explained)) {
+        sum_variance <- sum_variance + eig_explained[i]
+        counter <- counter + 1
+        if (sum_variance >= 80) break
+      }
+      
+      return(counter)
+    },
+    subset_by_dimensions = function(model, dimensions) {
+      perc_explained <- round(100*(summary(model)$cont$importance[2, dimensions]),2)
+      n_dim_pairs <- dimensions[1:eigen_80(perc_explained)]
+      return(perc_explained)
+    },
+    
+    subset_by_species = function(model, scores_species, pc) {
+      species_explained <- utils::head(base::sort(round(100*scores_species[, pc]^2, 3), decreasing = TRUE))
+      scores_species_explained <- scores_species[rownames(scores_species) %in% names(species_explained),]
+      
+      result <- list(
+        scores = scores_species_explained,
+        explained_PC1 = species_explained
+      )
+      
+      return(result) 
     }
   )
 )

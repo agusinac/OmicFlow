@@ -36,7 +36,6 @@ metataxonomics <- R6::R6Class(
       self$print()
       
       # saves data for reset function
-      # check countData !
       private$original_data = list(
         counts = self$countData,
         features = self$featureData,
