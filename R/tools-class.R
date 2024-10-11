@@ -660,6 +660,95 @@ tools <- R6::R6Class(
     },
     correlation = function() {
       # place holder
+    },
+    autoFlow = function(feature_ranks = c("Phylum", "Family", "Genus", "Species"), distance_metrics = c("unifrac","bray"), output = NA, shannon_table, distance_matrix) {
+      # Plot results as list
+      plots <- list(
+        rankstat_plot = NULL,
+        shannon_plots = NULL,
+        pcoa_plots = NULL,
+        nmds_plots = NULL,
+        composition_plots = NULL,
+        correlation_heatmap_plt = NULL,
+        heatmap_plots = NULL,
+        RDA_plots = NULL
+      )
+      
+      # Collect columns
+      metacols <- colnames(self$metaData)
+      
+      RANKSTAT_data <- self$metaData[, .SD, .SDcols = grepl("RANKSTAT_", metacols)]
+      CORRELATION_data <- self$metaData[, .SD, .SDcols = grepl("CORRELATION_", metacols)]
+      PAIREDGROUPBY_data <- self$metaData[, .SD, .SDcols = grepl("PAIREDGROUPBY_", metacols)]
+
+      # Standard rank stats
+      plots$rankstat_plot <- self$rankstat()
+      #
+      #---------------------------------------------#
+      # Perform standard visualizations             #
+      #---------------------------------------------#
+      #
+      # RANKSTAT 
+      #
+      feature_nrow <- length(feature_ranks)
+      RANKSTAT_ncol <- length(RANKSTAT_data)
+      #
+      # Object manipulation
+      #
+      self$feature_subset(Domain == "Bacteria")
+      self$transform(function(x) x / sum(x))
+      
+      # Main loop
+      if (RANKSTAT_ncol > 0) {
+      
+        composition_plots <- matrix(list(), RANKSTAT_ncol, feature_nrow)
+        shannon_plots <- list()
+        metrics_nrow <- length(metrics)
+        pcoa_plots <- matrix(list(), RANKSTAT_ncol, nrow)
+        nmds_plots <- matrix(list(), RANKSTAT_ncol, nrow)
+        
+        for (i in 1:RANKSTAT_ncol) {
+          col_name <- colnames(RANKSTAT_data)[i]
+          
+          # Alpha diversity: Shannon index
+          shannon_plots[[i]] <- self$shannon(df_shannon = data.table::data.table(shannon_table), 
+                                             col_name = col_name)
+      
+          # Microbiome composition by all samples
+          for (j in 1:feature_nrow) {
+            # Creates composition long table
+            res <- self$composition(feature_rank = feature_ranks[j], 
+                                    feature_filter = c("uncultured"))
+            
+            # Creates composition ggplot as list
+            composition_plots[[i, j]] <- composition_plot(data = res$data,
+                                                          palette = res$palette,
+                                                          feature_rank = feature_ranks[j])
+          }
+          for (j in 1:metrics_nrow) {
+            pcoa_plots[[i, j]] <- patchwork::wrap_plots(self$ordination(metric = metrics[j],
+                                                                        method = "pcoa",
+                                                                        weighted = TRUE),
+                                                        nrow = 1) +
+              plot_layout(widths = c(5, 5, 5),
+                          guides = "collect")
+            
+            nmds_plots[[i, j]] <- patchwork::wrap_plots(self$ordination(metric = metrics[j],
+                                                                        method = "nmds",
+                                                                        weighted = TRUE),
+                                                        nrow = 1) +
+              plot_layout(widths = c(5, 5, 5),
+                          guides = "collect")
+          }
+        }
+        plots$shannon_plots <- shannon_plots
+        plots$composition_plots <- composition_plots
+        plots$pcoa_plots <- pcoa_plots
+        plots$nmds_plots <- nmds_plots
+      }
+      
+      
+      return(plots)
     }
   ),
   private = list(

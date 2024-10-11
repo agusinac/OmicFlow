@@ -1,7 +1,7 @@
 autoFlow <- R6::R6Class(
   classname = "autoFlow",
   cloneable = FALSE,
-  inherit = tools,
+  inherit = metataxonomics,
   public = list(),
   private = list()
 )
