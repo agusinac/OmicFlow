@@ -2,14 +2,8 @@
 library("dplyr")
 library("ggplot2")
 library("tidyr")
-library("dplyr")
-library("biomformat")
-library("phyloseq")
-library("ape")
-library("microViz")
-library("Biostrings")
+library("foreach")
 library("patchwork")
-library("vegan")
 library("optparse")
 
 # Load Functions ---------------------------------------------------------------

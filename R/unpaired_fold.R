@@ -45,14 +45,11 @@ unpaired_fold <- function(dt, sample.id, condition_A, condition_B, condition_lab
     mat_B <- as.matrix(dt_B)
     for (k in seq_along(feature_labels)) {
       # save p-values in data.table
-      pvalues_dt[k, "pvalue" := stats::wilcox.test(mat_A[k, ], mat_B[k, ], correct = TRUE)$p.value]
-      
-      # save results in volcano data.table
-      volcano_dt[k, "pvalue" := pvalues_dt[k, "pvalue"]]
+      volcano_dt[k, !!sym(paste0("pvalue_", i)) := stats::wilcox.test(mat_A[k, ], mat_B[k, ], correct = TRUE)$p.value]
     }
     
     # Compute row means for each taxa
-    volcano_dt$foldchange <- rowMeans(unpaired_dt[, .SD, .SDcols = !c(feature_rank)])
+    volcano_dt[, !!sym(paste0("foldchange_", i)) := rowMeans(unpaired_dt[, .SD, .SDcols = !c(feature_rank)])]
     
     # Melt into a single column
     final_dt <- data.table::melt(unpaired_dt,
@@ -65,12 +62,7 @@ unpaired_fold <- function(dt, sample.id, condition_A, condition_B, condition_lab
   
   result <- list(
     data = final_dt,
-    pvalues = pvalues_dt,
     volcano = volcano_dt
   )
-  
-  # removes tmp
-  base::gc(tmp_dt)
-  
   return(result)
 }
