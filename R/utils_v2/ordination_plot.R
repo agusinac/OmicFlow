@@ -1,4 +1,4 @@
-ordination_plot <- function(df_pcs, pcs, pair, dist.metric, col_name) {
+ordination_plot <- function(df_pcs, pcs, pair, dist.metric) {
   # Creates labels
   plot_title = paste0("Distance metric used: ", dist.metric)
   if (!is.null(pcs$eig_norm)) {
@@ -11,8 +11,8 @@ ordination_plot <- function(df_pcs, pcs, pair, dist.metric, col_name) {
   
   return(
     df_pcs %>% 
-      ggplot(mapping = aes(x = base::get(pair[1], df_pcs),
-                           y = base::get(pair[2], df_pcs),
+      ggplot(mapping = aes(x = .data[[ pair[1] ]],
+                           y = .data[[ pair[2] ]],
                            color = groups,
                            linetype = groups)) +
       geom_point(alpha = 5) +

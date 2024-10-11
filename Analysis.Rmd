@@ -1,6 +1,6 @@
 ---
-title: "Omics Analysis"
-author: "A Gusinac"
+title: "Data Analysis"
+author: "RTC Bioinformatics"
 date: "2024-03-18"
 output: pdf_document
 ---
@@ -11,244 +11,82 @@ knitr::opts_chunk$set(warning = FALSE, message = FALSE, echo = FALSE)
 
 ## Required Library's
 
-```{r}
-library("tidyverse")
-library("biomformat")
-library("phyloseq")
-library("ape")
-library("microViz")
-library("Biostrings")
-library("patchwork")
-library("vegan")
+```{r, warning=FALSE}
+library("foreach")
+library("tidyr")
+library("ggplot2")
+library("magrittr")
+library("Matrix")
 ```
 
 ## Load functions
 
-```{r, include = FALSE}
-source("R/99_project-functions.R")
+```{r, warning = FALSE}
+source("C:/Users/Z289224/Documents/general_scripts/R/OmicFlow/R/99_project-functions.R")
 
 # Utils
-sourceDir(path = "R/utils")
+sourceDir(path = "C:/Users/Z289224/Documents/general_scripts/R/OmicFlow/R/utils_v2")
 
 ```
-
 ## Specify data paths
 
+## Constructing metataxonomics class
 ```{r, eval=FALSE}
-biom_filename <- "data/BiotaViz/relative-table-with-taxonomy.biom"
-metadata_filename <- "data/metadata/metadata.tsv"
-taxonomy_filename <- "data/classifier/vsearch/taxonomy/biotaviz_taxonomy.tsv"
-tree_filename <- "data/phylogeny/phylogenetic_tree/tree.nwk"
-refseq_filename <- "data/denoise/representative_sequences/unfiltered/sequences.fasta"
-  
-```
-
-## Constructing physeq
-```{r, eval=FALSE}
-biom_data <- import_biom(BIOMfilename = biom_filename)
-metadata <- import_qiime_sample_data(metadata_filename)
-tree <- read_tree(tree_filename)
-refseq <- readDNAStringSet(refseq_filename)
-
-ps <- construct_ps(biom_data, metadata, tree, refseq)
-#saveRDS(ps, "../data/RDS/radboudumc_relative_phyloseq.rds")
+current_path <- getwd()
+taxa_class <- metataxonomics$new(metaData = paste0(current_path, "/data/metadata.tsv"),
+                           biomData = paste0(current_path, "/data/biom_with_taxonomy.biom"),
+                           treeData = paste0(current_path, "/data/rooted_tree.newick"))
 
 ```
 
 # General analysis flow
-## Loading phyloseq objects
-
-```{r, , echo = TRUE}
-ps_abs <- readRDS("data/RDS/01_absolute_phyloseq.rds")
-
-```
-
-## Standard Data wrangling
-```{r, echo = TRUE}
-# data wrangling
-#------------------------------------------------------------------------------#
-ps_abs_bac <- ps_abs %>% 
-  subset_taxa(Domain == "Bacteria") %>% 
-  removeZeros()
-
-# normalize by bacterial domain
-ps_rel_bac <- ps_abs_bac %>% 
-  transform_sample_counts(function(x) x / sum(x))
-
-```
-
 ## Rankstat
 ### Classified ASVs per taxonomic rank
 
 ```{r}
-# subsetting only for positive samples
-ps_abs_bac_positive <- ps_abs_bac %>% 
-  subset_samples(RANKSTAT_treatment != "control") %>% 
-  removeZeros()
-
-ps_rankstat(ps_abs_bac_positive)
+rankstat_plot <- taxa_class$rankstat()
 
 ```
 
 ## Proportion of classified ASVs per taxonomic rank for each sample
 
 ```{r}
-ps_composition(ps_abs_bac, tax_level = "Genus", col_name = "RANKSTAT_treatment", taxa_n = 15, col_order = "all")
+taxa_class$feature_subset(Domain == "Bacteria")
+result <- taxa_class$composition(feature_rank = "Genus",
+                                 feature_filter = c("uncultured"),
+                                 feature_top = 10)
+taxa_class$reset()
 
-
-ggsave(filename = "results/Composition.png",
-       plot = comb_plot,
-       width = 30,
-       height = 18,
-       limitsize = FALSE)
-
-```
-
-### Spearman correlation (non-paramatic test)
-
-```{r}
-# Spearman correlation
-
-top15_taxa <- ps_rel_bac %>% 
-  tax_fix(anon_unique = FALSE,
-          verbose = FALSE,
-          unknowns = c("uncultured")) %>% 
-  tax_glom(taxrank = "Genus", NArm = FALSE) %>% 
-  tax_top(n = 15)
-
-abun_tab <- otu_table(ps_rel_bac)[top15_taxa, ] %>% 
-  as.matrix() %>% 
-  as.data.frame() %>% 
-  pivot_longer(cols = everything())
-
-spearman_cor <- cor.test(maastricht_abun$value, radboud_abun$value, method = "spearman")
-kruskal_test <- kruskal.test(maastricht_abun$value ~ radboud_abun$value)
-
-spearman_cor
-kruskal_test
+composition_plot(data = result$data,
+                 palette = result$palette,
+                 feature_rank = "Genus")
 
 ```
-# Analysis of samples generated from metataxonomics workflow
 
 ## Alpha diversity 
 ### Shannon index graph: data from nextflow run
 ```{r}
-df_shannon <- read_csv(file = "data/diversity_metrics/alpha_rarefaction/shannon.csv")
+df_shannon <- data.table::fread(paste0(current_path, "/data/shannon.csv"))
 
-alpha_div_plot <- df_shannon %>% 
-  pivot_longer(cols = starts_with("depth-"),
-               names_to = "iters",
-               values_to = "alpha_div") %>% 
-  ggplot(mapping = aes(x = RANKSTAT_treatment,
-                       y = alpha_div,
-                       fill = RANKSTAT_treatment)) +
-  geom_violin(width = 1.4) +
-  geom_boxplot(width = 0.1, 
-               color = "black",
-               alpha = 0.2) +
-  theme_bw() +
-  theme(legend.position = "none") +
-  labs(title = "Alpha diversity",
-       x = "sample groups",
-       y = "Shannon Index")
-
-ggsave(filename = "results/Shannon_index.png",
-       plot = alpha_div_plot,
-       width = 5,
-       height = 5,
-       limitsize = FALSE)
-```
-
-
-## Distribution of Genera among sample groups (neat)
-```{r}
-unique_groups <- unique(sample_data(ps_rel_bac)$RANKSTAT_treatment) 
-
-Rel_abun_Genera <- ps_abs_bac %>% 
-  tax_fix(unknowns = c("uncultured")) %>% 
-  merge_samples(group = "RANKSTAT_treatment") %>% 
-  comp_barplot(
-    tax_level = "Genus", n_taxa = 15,
-    sample_order = unique_groups,
-    bar_width = 0.8
-  ) +
-  coord_flip() + 
-  labs(y = "Relative Abundance", y = NULL)
-
-ggsave(filename = "results/rel_abun_Genera.png",
-       plot = Rel_abun_Genera,
-       width = 10,
-       height = 5,
-       limitsize = FALSE)
-
-
-```
-## Heatmap of spearman correlation between categorical vs continuous data
-
-```{r}
-
-png("results/spearman_cor_heatmap.png", width=7,height=7,units="in",res=1200)
-cor_heatmap_plot(ps_rel_bac, tax_level = "Genus")
-dev.off()
+taxa_class$feature_subset(Domain == "Bacteria")
+shannon_plot <- taxa_class$shannon(df_shannon = df_shannon,
+                                   col_name = "RANKSTAT_treatment")
+taxa_class$reset()
 
 ```
 
-
-## Distribution of Pseudomonas ASVs, relative and absolute in treatment groups
-
-```{r}
-# Subset by taxa: Change Subset_taxa by desired filter rank
-#------------------------------------------------------------------------------#
-ps <- ps_abs_bac %>% 
-  subset_taxa(Genus == "Pseudomonas") %>% 
-  removeZeros()
-
-# Computes sum of ASVs per sample
-target_ps <- ps %>% 
-  ps_mutate(nASVs = sample_sums(ps))
-
-# Defines unique groups
-unique_groups <- unique(sample_data(target_ps)$RANKSTAT_treatment) 
-
-# Subsets by RANKSTAT_treatment into ASVs and Phyloseq objects
-ASVs_list <- list()
-ps_list <- list()
-
-for (variable in unique_groups) {
-  ps_subset <- subset_samples(target_ps, RANKSTAT_treatment == {{variable}}) %>% removeZeros()
-  ASV_subset <- ps_subset %>% removeZeros() %>% taxa_names()
-  
-  # store in list
-  ps_list[[variable]] <- ps_subset
-  ASVs_list[[variable]] <- ASV_subset
-}
-
-# Finds unique ASVs pairwise between treatment groups
-group_combi <- combn(x = unique_groups, m = 2)
-ASVs_diff_list <- list()
-for ( i in seq(ncol(group_combi))) {
-  pair <- group_combi[, i]
-  ASVs_diff <- setdiff(ASVs_list[[pair[2]]], ASVs_list[[pair[1]]])
-  ASVs_diff_list[[paste0(pair[2],"_vs_",pair[1])]] <- ASVs_diff
-}
-
-# Plots original relative abundance and absolute abundance side by side
-for (var in unique_groups) {
-  plt <- relative_vs_absolute_plot(ps_list[[var]], tax_target = "Species", sample_format = TRUE)
-
-  ggsave(filename = paste0("../results/Genus_", var, ".png"),
-       plot = plt,
-       width = 20,
-       height = 15,
-       limitsize = FALSE)
-}
-
-```
 
 ## Principal Coordinate Analysis with Weighted Unifrac distances
 ```{r}
 # normalized by bacterial domain
-comb_plot <- ps_pcoa(ps = ps_rel_bac, dist.metric = "wunifrac", RANKSTAT_col = "RANKSTAT_treatment")
+taxa_class$feature_subset(Domain == "Bacteria")
+pcoa_plots <- taxa_class$ordination(metric = "unifrac",
+                                    method = "pcoa",
+                                    group_by = "RANKSTAT_treatment", 
+                                    weighted = TRUE,
+                                    parallel = TRUE,
+                                    normalize = TRUE)
+taxa_class$reset()
 
 ggsave("results/pcoa_test.png",
        plot = comb_plot,
@@ -257,25 +95,320 @@ ggsave("results/pcoa_test.png",
 
 ```
 
-## Heatmap log transformed without Pseudomonas
 ```{r}
-sample_names(ps_abs_bac) <- sample_names(ps_abs_bac) %>%
-  str_extract("(^[^_]*_[^_]*_?\\d)|(C\\d?)")
+# Create Linear regressin (incl. RDA, CCA etc.)
+# Nested function #1: Find dimensions for 80% variance explained
 
-ps <- ps_abs_bac %>% 
-  subset_samples(RANKSTAT_treatment != "control") %>% 
-  subset_taxa(Genus != "Pseudomonas") %>% 
-  transform_sample_counts(function(x) x / sum(x)) %>% 
-  removeZeros()
+  
 
-source("R/utils/ps_heatmap.R")
 
-fold_heatmap <- ps_heatmap(ps)
+library("ggplot2")
+library("magrittr")
+library("vegan")
 
-ggsave(filename = "results/heatmap_2fold_change.png",
-       plot = fold_heatmap,
-       width = 10,
-       height = 10,
-       limitsize = FALSE)
+data("dune")
+data("dune.env")
+
+
+triplot(counts = dune,
+        metadata = dune.env,
+        metadata.col = "Management")
+
+
+```
+
+## Heatmap log2 fold change [IMPROVING VISUALIZATION]
+```{r}
+  # Required parameters
+  feature_rank <- "Genus"
+  sample.id <- "SAMPLE-ID"
+  paired <- FALSE
+  paired.id <- "patient"
+  feature_filter <- c("uncultured")
+  feature_top <- NA
+  condition.group <- "response"
+  condition_A <- c("response")
+  condition_B <- c("non-responders")
+  normalize <- TRUE
+  pvalue.threshold <- 0.05
+  foldchange.threshold <- 0.6
+  
+  taxa$reset()
+  taxa$feature_subset(Domain == "Bacteria")
+  
+  # Final output
+  plot_list <- list(
+        data = NULL,
+        box_plot = NULL,
+        volcano_plot = NULL,
+        tile_plot = NULL,
+        rel_abun = NULL,
+        pvalues = NULL,
+        volcano = NULL
+      )
+      
+      # Copies object to prevent modification of tools class components
+      counts <- data.table::copy(self$countData)
+      metadata <- data.table::copy(self$metaData)
+      features <- data.table::copy(self$featureData)
+      
+      #------#
+      # Main #
+      #------#
+      
+      # Subset samples by conditions
+      # self$sample_subset(self$metaData[[condition.group]] %in% c(condition_A, condition_B))
+      
+      if (normalize) {
+        taxa$transform(function(x) x / sum(x))
+      }
+      
+      # Agglomerate taxa by feature rank and filter unwanted taxa
+      taxa$feature_glom(feature_rank = feature_rank, feature_filter = feature_filter)
+      
+      # Check how many features to select (depended if volcano is desired)
+      if (!is.na(feature_top)) {
+        feature_top <- feature_top
+      } else {
+        feature_top <- nrow(taxa$featureData)
+      }
+      
+      # Extract relative abundance
+      rel_abun <- rowMeans(taxa$countData[1:feature_top, .SD, .SDcols = colnames(taxa$countData)])
+      
+      # Creates long table of relative abundance
+      dt <- taxa$countData[, (feature_rank) := taxa$featureData[[feature_rank]]]
+      stats_dt <- base::merge(data.table::melt(dt,
+                                               measure.vars = colnames(dt)[!grepl(feature_rank, colnames(dt))],
+                                               variable.name = sample.id, 
+                                               value.name = "values"),
+                              taxa$metaData[, .SD, .SDcols = c(sample.id, condition.group)],
+                              by = sample.id)
+      
+      # Create row_sums
+      dt[, row_sum := rowSums(.SD), .SDcols = !c(feature_rank)]
+      
+      # Orders by row_sum in descending order
+      taxa$countData <- data.table::setorder(dt, -row_sum)[1:feature_top, .SD, .SDcols = !c("row_sum")]
+      features <- taxa$countData[[ feature_rank ]]
+      taxa$countData <- taxa$countData[, .SD, .SDcols = !c(feature_rank)]
+      
+      # Log2 transform taxa
+      taxa$transform(log2)
+      
+      # Subset by top features
+      stats_dt <- stats_dt[stats_dt[[feature_rank]] %in% features]
+      dt <- taxa$countData[, (feature_rank) := features]
+      
+      # Compute 2-fold expression based on (un)paired samples
+      # Computes on equation oflog2(A) - log2(B)
+      # Supports multiple inputs for A and B.
+      # For example A = T1, T2 and B = H1, H2
+      if (paired == TRUE) {
+        # sorting of metadata
+        condition.labels <- data.table::setorderv(taxa$metaData, 
+                                                  cols = c(sample.id, paired.id, condition.group))[[ condition.group ]]
+        # paired samples
+        DFE <- paired_fold(dt = dt,
+                           sample.id = sample.id,
+                           paired.id = paired.id,
+                           condition_A = condition_A,
+                           condition_B = condition_B,
+                           unique.id = unique(taxa$metaData[[ paired.id ]]),
+                           condition_labels = condition.labels,
+                           feature_rank = feature_rank,
+                           cpus = cpus)
+        # Save data
+        plot_list$data <- DFE
+        
+      } else if (paired == FALSE) {
+        # sorting of metadata
+        condition.labels <- data.table::setorderv(taxa$metaData,
+                                                  cols = c(sample.id, condition.group))[[ condition.group ]]
+        # unpaired samples
+        DFE <- unpaired_fold(dt = dt,
+                             sample.id = sample.id,
+                             condition_A = condition_A,
+                             condition_B = condition_B,
+                             condition_labels = condition.labels,
+                             feature_rank = feature_rank,
+                             cpus = cpus)
+        # Save data
+        plot_list$data <- DFE$data
+        
+      } else {
+        stop("paired can only be TRUE or FALSE, check your input.")
+      }
+      
+      # Generate heatmap plot with df_diff data
+      if (paired == TRUE) {
+        # Adds size to paired heatmap 
+        add_columns <- unique(taxa$metaData[, .SD, .SDcols = c(sample.id, paired.id)])
+        
+        merged_data <- base::merge(
+          stats_dt,
+          add_columns,
+          by = sample.id,
+          all.x = TRUE
+        )
+        
+        # Subset merged data
+        subset_merged <- merged_data[, .SD, .SDcols = c(paired.id, feature_rank, "values")]
+        colnames(subset_merged) <- c("SAMPLE-ID", feature_rank, "values")
+        
+        # Second merge
+        final_merge <- base::merge(
+          x = DFE,
+          y = subset_merged,
+          by = c("SAMPLE-ID", "Genus"),
+          all.x = TRUE
+        )
+      
+        # Check if multiple diff_ are present 
+        grouped_dt <- final_merge %>% 
+          dplyr::group_by(`SAMPLE-ID`, Genus) %>% 
+          dplyr::summarise(mean_values = mean(values, na.rum = TRUE),
+                           diff_1 = mean(diff_1, na.rm = TRUE)) %>% 
+          dplyr::ungroup()
+        
+        
+        # Generating heatmap plot based on paired boolean
+        n_diff_columns <-  sum(grepl("^diff_", colnames(DFE)))
+    
+        # Generate heatmap plot with df_diff data
+        heatmap_plot <- grouped_dt %>% 
+          ggplot(mapping = aes(x = base::get(sample.id, DFE),
+                               y = base::get(feature_rank, DFE)))
+        
+        # If there is only one column uses default settings
+        if (n_diff_columns == 1) {
+          heatmap_plot <- heatmap_plot +
+            geom_point(aes(size = mean_values, fill = diff_1), shape = 21)
+        } else {
+          # Adds geom_tile for number of diff_columns
+          for (i in 1:n_diff_columns) {
+            if (i == 1) {
+              heatmap_plot <- heatmap_plot +
+                geom_point(aes(size = mean_values, fill = !!sym(paste0("diff_", i))), shape = 21)
+            } else {
+              heatmap_plot <- heatmap_plot +
+                geom_point(aes(size = mean_values, fill = !!sym(paste0("diff_", i))), 
+                           shape = 21,
+                           position = position_nudge(x = 0.5))
+            }
+            
+          }
+        }
+        # Finishes heatmap plot
+        plot_list$tile_plot <- heatmap_plot +
+          theme_bw() +
+        theme(axis.text.x = element_text(angle = 45, hjust = 1, size=12),
+              axis.text.y = element_text(size=12),
+              axis.text = element_text(size=12),
+              text = element_text(size=12),
+              legend.text = element_text(size=12),
+              legend.title = element_text(size=14),
+              strip.background = element_rect(fill = "#EEEEEE", color = "#FFFFFF")) +
+        scale_y_discrete(limits = rev(levels(as.factor(grouped_dt[["Genus"]])))) +
+        scale_fill_gradient2(name = paste0("log2( A / B )"),
+                             low = "blue",
+                             mid = "white",
+                             high = "red",
+                             na.value = "grey80") +
+        scale_size_continuous(name = "Mean Rel. Abun. (%)", labels = scales::label_number(accuracy = 0.01)) +
+        labs(x = NULL, 
+             y = NULL)  
+        
+        
+        # Creates boxplot from relative abundances
+        plot_list$rel_abun <- stats_dt %>% 
+          ggplot(mapping = aes(x = values,
+                               y = .data[[ feature_rank ]])) +
+          facet_wrap(~.data[[condition.group]], ncol = length(condition_A) + length(condition_B)) +
+          geom_boxplot() +
+          theme_bw() +
+          theme(text=element_text(size=12),
+                axis.text.x = element_text(angle = 45, hjust = 1),
+                axis.title.y = element_blank(),
+                axis.text.y = element_blank(),
+                axis.ticks.y = element_blank(),
+                panel.spacing.x = unit(1, "lines")) +
+          scale_x_continuous(trans = scales::log_trans()) +
+          labs(x = "Log10( Rel. Abun. )")
+      } else {
+        # Store pvalues and volcano dt
+        plot_list$volcano <- DFE$volcano
+        plot_list$pvalues <- DFE$pvalues
+        
+        #----------------------#
+        # Volcano plot         #
+        #----------------------#
+        # Create merged dt for volcano with mean foldchange and rel. abundance
+        volcano_merged <- DFE$volcano[, "rel_abun" := rel_abun]
+        
+        # Create & save volcano plot
+        plot_list$volcano_plot <- volcano_plot(dt = volcano_merged, 
+                                               feature_rank = feature_rank,
+                                               pvalue.threshold = pvalue.threshold,
+                                               logfold.threshold = foldchange.threshold)
+        
+        # Subset significant groups
+        significant_subset <- volcano_merged[volcano_merged[, pvalue < pvalue.threshold & (foldchange > foldchange.threshold | foldchange < -foldchange.threshold)], ]
+        significant_final <- DFE$data[DFE$data[[feature_rank]] %in% significant_subset[[feature_rank]], ]
+        
+        # Use significant values to create boxplot
+        plt <- significant_final %>% 
+          ggplot(aes(y = .data[[ "diff_1" ]],
+                     x = .data[[feature_rank]],
+                     color = .data[["diff_1"]])) +
+          gghalves::geom_half_boxplot() +
+          gghalves::geom_half_point() +
+          coord_flip() +
+          theme_bw() +
+          theme(axis.text.x = element_text(angle = 45, hjust = 1, size=12),
+                axis.text.y = element_text(size=12),
+                axis.text = element_text(size=12),
+                text = element_text(size=12),
+                legend.text = element_text(size=12),
+                legend.title = element_text(size=14),
+                legend.position = "none",
+                axis.title.y = element_blank(),
+                strip.background = element_rect(fill = "#EEEEEE", color = "#FFFFFF")) +
+          scale_color_gradient2(name = paste0("log2( A / B )"),
+                               low = "blue",
+                               mid = "white",
+                               high = "red",
+                               na.value = "grey80") +
+          scale_x_discrete(limits = rev(levels(as.factor(significant_final[[ feature_rank ]])))) +
+          labs(x = NULL,
+               y = NULL)
+          
+          
+ggsave("test_gghalves.png", plot = plt) 
+        
+        # Use significant values to create rel abun plot
+        
+                # Generating heatmap plot based on paired boolean
+        n_diff_columns <-  sum(grepl("^diff_", colnames(DFE$data)))
+        # Creates boxplot and barplot for unpaired samples
+        for (k in c("boxplot")) {
+          plot_list[[k]] <- patchwork::wrap_plots(
+            lapply(1:n_diff_columns,
+                   function(i) fold_plot(dt = DFE$data, 
+                                         X = paste0("diff_", i), 
+                                         Y = feature_rank,
+                                         title = paste0("Log2 ( ", condition_A[i], " / ", condition_B[i], " )"), 
+                                         method = k, 
+                                         taxa_labels = i == 1, 
+                                         pvalues = DFE$pvalues)),
+            ncol = n_diff_columns,
+            nrow = 1)
+        }
+      }
+      
+      # Restores tools class components
+      self$countData <- counts
+      self$featureData <- features
+      self$metaData <- metadata
 
 ```

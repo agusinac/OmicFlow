@@ -1,4 +1,4 @@
-paired_fold <- function(dt, paired.id, sample.id, condition_A, condition_B, unique.id, feature_rank, condition_labels) {
+paired_fold <- function(dt, paired.id, sample.id, condition_A, condition_B, unique.id, feature_rank, condition_labels, cpus = 8) {
   # tmp data.table
   tmp_dt <- data.table::copy(dt)
   
@@ -6,7 +6,11 @@ paired_fold <- function(dt, paired.id, sample.id, condition_A, condition_B, uniq
   paired_dt <- data.table::data.table(feature_rank = feature_labels)
   colnames(paired_dt) <- feature_rank
   
-  for (id in seq_along(unique.id)) {
+  # Register Parallel backend
+  cl <- parallel::makeCluster(cpus)
+  doParallel::registerDoParallel(cl)
+  
+  results <- foreach(id = seq_along(unique.id), .combine = rbind, .packages = 'data.table') %dopar% {
     # extract samples, takes only matching pairs
     pair <- colnames(dt)[grepl(unique.id[id], colnames(dt))]
     if (length(pair) == 2) {
@@ -30,10 +34,11 @@ paired_fold <- function(dt, paired.id, sample.id, condition_A, condition_B, uniq
         dt_diff[, (feature_rank) := feature_labels]
       }
       dt_diff[, (sample.id) := unique.id[id]]
-      paired_dt <- na.omit(rbind(paired_dt, dt_diff, fill = TRUE))
     }
   }
-  # removes tmp data table
+  # Wraps and ends Parallel backend
+  parallel::stopCluster(cl)
+  paired_dt <- na.omit(rbind(paired_dt, results, fill = TRUE))
   base::gc(tmp_dt)
   
   return(paired_dt)
