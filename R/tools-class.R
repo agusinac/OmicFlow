@@ -118,65 +118,68 @@ tools <- R6::R6Class(
                labs(x = "Rank",
                     y = "Number of ASVs classified"))
     },
-    shannon = function(df_shannon, col_name, Brewer.palID="Set2") {
+    alpha_diversity = function(custom_div = NA, col_name, method = c("shannon", "invsimpson", "simpson"), Brewer.palID="Set2", evenness = FALSE) {
+      # TO DO:
+        # - Add ggpubr significance
+        # - Add hillR::hill_func_parti_pairwise(comm = counts, traits = metadata, q = 2)
+        # - Find way to summarize hill results
+      
+      # OUTPUT: Plot list
+      plot_list <- list(
+        diversity = NULL,
+        fisher_alpha = NULL
+      )
+      
+      # Save tools class components
       private$tmp_link(
         .countData = self$countData,
         .featureData = self$featureData,
         .metaData = self$metaData
       )
       
-      
-      if (!is(df_shannon, "data.table")) {
-        stop("shannon_df needs to be a data.table")
-      } else {
-        # Pivot into long table
-        shannon_long <- data.table::melt(data = df_shannon,
-                                         measure.vars = colnames(df_shannon)[grepl("depth-", colnames(df_shannon))], 
-                                         variable.name = "iters",
-                                         variable.factor = FALSE,
-                                         value.name = "alpha_div")
-        # Corrects colnames
-        colnames(shannon_long) <- c("SAMPLE-ID", "iters", "alpha_div")
-        # Adds new column
-        shannon_final <- base::merge(shannon_long, 
-                                     self$metaData[, .SD, .SDcols = c("SAMPLE-ID", col_name)], 
-                                     by = "SAMPLE-ID", 
-                                     all.x = TRUE)
+      # Compute diversity and other metrics if custom_div is empty
+      if (is.na(custom_div)) {
+        # Alpha diversity based on 'method'
+        div <- data.table::data.table(vegan::diversity(self$counData, index=method))
+        div[, (paste(col_name)) := self$metaData[, .SD, .SDcols = c(col_name)]]
+        # Adjusts for evenness
+        if (evenness) div$V1 <- div$V1 / log(vegan::specnumber(div$V1)) 
         
-        # NAs may appear since metadata and shannon file do not have the same IDs after subsetting
-        shannon_final <- na.omit(shannon_final)
+        # Fisher alpha based on 'method'
+        fish <- data.table::data.table(vegan::fisher.alpha(self$counData, index=method))
+        fish[, (paste(col_name)) := self$metaData[, .SD, .SDcols = c(col_name)]]
+        # Adjusts for evenness
+        if (evenness) fish$V1 <- fish$V1 / log(vegan::specnumber(fish$V1)) 
         
-        # Creating color palette
-        unique_groups <- unique(self$metaData[[col_name]])
-        chosen_palette <- RColorBrewer::brewer.pal(length(unique_groups), Brewer.palID)
-        colors <- stats::setNames(chosen_palette, unique_groups)
+        # get colors
+        colors <- fetch_palette(metadata, col_name, Brewer.palID)
+        
+        # Create and saves plots
+        plot_list$diversity <- diversity_plot(dt = div,
+                                              values = "V1",
+                                              col_name = col_name,
+                                              palette = colors,
+                                              method = method)
+        plot_list$fisher_alpha <- diversity_plot(dt = fish,
+                                                 values = "V1",
+                                                 col_name = col_name,
+                                                 palette = colors,
+                                                 method = method)
         
         # Restores tools class components
         private$tmp_restore()
         
-        # Creating shannon plot
-        return(
-          shannon_final %>%
-            ggplot(mapping = aes(x = base::get(col_name, shannon_final),
-                                 y = alpha_div)) +
-            geom_violin(width = 1.4, aes(fill = base::get(col_name, shannon_final))) +
-            geom_boxplot(width = 0.1) +
-            theme_bw() +
-            theme(legend.position = "none",
-                  text=element_text(size=14),
-                  legend.text = element_text(size=12),
-                  legend.title = element_text(size=14),
-                  axis.text = element_text(size=12),
-                  axis.text.y = element_text(size=12),
-                  axis.text.x = element_text(size=12)) + 
-            scale_fill_manual(name = "groups", 
-                              values = colors) +
-            labs(title = NULL,
-                 subtitle = paste0("selected column: ", col_name),
-                 x = "sample groups",
-                 y = "Shannon Index")
-        )
-      }
+        return(plot_list)
+        
+      } else {
+        # Custom dataframes is used for plotting
+        div <- data.table::data.table(custom_div)
+        return(diversity_plot(dt = div,
+                              values = div$V1,
+                              col_name = div[[col_name]],
+                              palette = fetch_palette(self$metaData, col_name, Brewer.palID),
+                              method = method))
+      } 
     },
     composition = function(feature_rank, feature_filter = NA, col_name = NA, feature_top = 10, Brewer.palID = "RdYlBu") {
       # Copies object to prevent modification of tools class components
@@ -671,7 +674,7 @@ tools <- R6::R6Class(
         composition_plots = NULL,
         correlation_heatmap_plt = NULL,
         heatmap_plots = NULL,
-        RDA_plots = NULL
+        RDA_plots = NULLs
       )
       
       # Collect columns
