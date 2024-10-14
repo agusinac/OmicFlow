@@ -120,7 +120,6 @@ tools <- R6::R6Class(
     },
     alpha_diversity = function(custom_div = NA, col_name, method = c("shannon", "invsimpson", "simpson"), Brewer.palID="Set2", evenness = FALSE) {
       # TO DO:
-        # - Add ggpubr significance
         # - Add hillR::hill_func_parti_pairwise(comm = counts, traits = metadata, q = 2)
         # - Find way to summarize hill results
       
@@ -139,20 +138,23 @@ tools <- R6::R6Class(
       
       # Compute diversity and other metrics if custom_div is empty
       if (is.na(custom_div)) {
+        # Get matrix
+        mat <- as.matrix(self$countData)
+        
         # Alpha diversity based on 'method'
-        div <- data.table::data.table(vegan::diversity(self$counData, index=method))
+        div <- data.table::data.table(vegan::diversity(t(mat), index=method))
         div[, (paste(col_name)) := self$metaData[, .SD, .SDcols = c(col_name)]]
         # Adjusts for evenness
         if (evenness) div$V1 <- div$V1 / log(vegan::specnumber(div$V1)) 
         
         # Fisher alpha based on 'method'
-        fish <- data.table::data.table(vegan::fisher.alpha(self$counData, index=method))
+        fish <- data.table::data.table(vegan::fisher.alpha(t(mat), index=method))
         fish[, (paste(col_name)) := self$metaData[, .SD, .SDcols = c(col_name)]]
         # Adjusts for evenness
         if (evenness) fish$V1 <- fish$V1 / log(vegan::specnumber(fish$V1)) 
         
         # get colors
-        colors <- fetch_palette(metadata, col_name, Brewer.palID)
+        colors <- fetch_palette(self$metaData, col_name, Brewer.palID)
         
         # Create and saves plots
         plot_list$diversity <- diversity_plot(dt = div,
