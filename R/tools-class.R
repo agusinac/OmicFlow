@@ -412,39 +412,45 @@ tools <- R6::R6Class(
       
       return(plot_list)
     },
-    differential_feature_expression = function(feature_rank, sample.id, paired, paired.id, 
-                                               condition.group, condition_A, condition_B, 
-                                               feature_filter = NA, feature_top = 20, normalize = TRUE, cpus = 8) {
+    differential_feature_expression = function(feature_rank, sample.id, paired=FALSE, paired.id, 
+                                               condition.group, condition_A, condition_B, pvalue.threshold=0.05, foldchange.threshold=0.06,  
+                                               feature_filter = NA, feature_top = NA, normalize = TRUE, cpus = 8) {
       # Final output
       plot_list <- list(
         data = NULL,
-        boxplot = NULL,
-        barplot = NULL,
-        tile_plot = NULL,
-        rel_abun = NULL,
         volcano_plot = NULL,
-        pvalues = NULL,
+        tile_plot = NULL,
         volcano = NULL
       )
-      
       # Copies object to prevent modification of tools class components
-      counts <- data.table::copy(self$countData)
-      metadata <- data.table::copy(self$metaData)
-      features <- data.table::copy(self$featureData)
+      private$tmp_link(
+        .countData = self$countData,
+        .featureData = self$featureData,
+        .metaData = self$metaData,
+        .treeData = self$treeData
+      )
       
       #------#
       # Main #
       #------#
       
-      # Subset samples by conditions
-      # self$sample_subset(self$metaData[[condition.group]] %in% c(condition_A, condition_B))
-      
+      # normalization if applicable
       if (normalize) {
         self$transform(function(x) x / sum(x))
       }
       
       # Agglomerate taxa by feature rank and filter unwanted taxa
       self$feature_glom(feature_rank = feature_rank, feature_filter = feature_filter)
+      
+      # Check how many features to select (depended if volcano is desired)
+      if (!is.na(feature_top)) {
+        feature_top <- feature_top
+      } else {
+        feature_top <- nrow(self$featureData)
+      }
+      
+      # Extract relative abundance
+      rel_abun <- rowMeans(self$countData[1:feature_top, .SD, .SDcols = colnames(self$countData)])
       
       # Creates long table of relative abundance
       dt <- self$countData[, (feature_rank) := self$featureData[[feature_rank]]]
@@ -457,13 +463,6 @@ tools <- R6::R6Class(
       
       # Create row_sums
       dt[, row_sum := rowSums(.SD), .SDcols = !c(feature_rank)]
-      
-      # Check how many features to select (depended if volcano is desired)
-      if (!is.na(feature_top)) {
-        feature_top <- feature_top
-      } else {
-        feature_top <- nrow(self$featureData)
-      }
       
       # Orders by row_sum in descending order
       self$countData <- data.table::setorder(dt, -row_sum)[1:feature_top, .SD, .SDcols = !c("row_sum")]
@@ -517,80 +516,61 @@ tools <- R6::R6Class(
         stop("paired can only be TRUE or FALSE, check your input.")
       }
       
-      # First merge 
-      add_columns <- unique(taxa$metaData[, .(sample.id, paired.id)])
-      
-      merged_data <- base::merge(
-        stats_dt,
-        add_columns,
-        by = sample.id,
-        all.x = TRUE
-      )
-      
-      # Subset merged data
-      subset_merged <- merged_data[, .(patient.id, feature_rank, values)]
-      colnames(subset_merged) <- c("SAMPLE-ID", "Genus", "values")
-      
-      # Second merge
-      final_merge <- base::merge(
-        x = DFE,
-        y = subset_merged,
-        by = c("SAMPLE-ID", "Genus"),
-        all.x = TRUE
-      )
-      
-      grouped_dt <- final_merge %>% 
-        dplyr::group_by(`SAMPLE-ID`, Genus) %>% 
-        dplyr::summarise(mean_values = mean(values, na.rum = TRUE),
-                         diff_1 = mean(diff_1, na.rm = TRUE)) %>% 
-        dplyr::ungroup()
-      
-      test_heatmap <- grouped_dt %>% 
-        ggplot(mapping = aes(x = `SAMPLE-ID`,
-                             y = Genus)) +
-        geom_point(aes(size = mean_values, fill = diff_1), shape = 21) +
-        theme_bw() +
-        theme(axis.text.x = element_text(angle = 45, hjust = 1, size=12),
-              axis.text.y = element_text(size=12),
-              axis.text = element_text(size=12),
-              text = element_text(size=12),
-              legend.text = element_text(size=12),
-              legend.title = element_text(size=14),
-              strip.background = element_rect(fill = "#EEEEEE", color = "#FFFFFF")) +
-        scale_y_discrete(limits = rev(levels(as.factor(grouped_dt[["Genus"]])))) +
-        scale_fill_gradient2(name = paste0("log2( C5 / C1 )"),
-                             low = "blue",
-                             mid = "white",
-                             high = "red",
-                             na.value = "grey80") +
-        scale_size_continuous(name = "Mean Rel. Abun. (%)", labels = scales::label_number(accuracy = 0.01)) +
-        labs(x = NULL, 
-             y = NULL)
-      
       # Generate heatmap plot with df_diff data
       if (paired == TRUE) {
+        # Adds size to paired heatmap 
+        add_columns <- unique(self$metaData[, .SD, .SDcols = c(sample.id, paired.id)])
+        
+        merged_data <- base::merge(
+          stats_dt,
+          add_columns,
+          by = sample.id,
+          all.x = TRUE
+        )
+        
+        # Subset merged data
+        subset_merged <- merged_data[, .SD, .SDcols = c(paired.id, feature_rank, "values")]
+        colnames(subset_merged) <- c("SAMPLE-ID", feature_rank, "values")
+        
+        # Second merge
+        final_merge <- base::merge(
+          x = DFE,
+          y = subset_merged,
+          by = c("SAMPLE-ID", "Genus"),
+          all.x = TRUE
+        )
+        
+        # Check if multiple diff_ are present 
+        grouped_dt <- final_merge %>% 
+          dplyr::group_by(`SAMPLE-ID`, Genus) %>% 
+          dplyr::summarise(mean_values = mean(values, na.rum = TRUE),
+                           diff_1 = mean(diff_1, na.rm = TRUE)) %>% 
+          dplyr::ungroup()
+        
+        
         # Generating heatmap plot based on paired boolean
         n_diff_columns <-  sum(grepl("^diff_", colnames(DFE)))
         
         # Generate heatmap plot with df_diff data
-        heatmap_plot <- DFE %>% 
+        heatmap_plot <- grouped_dt %>% 
           ggplot(mapping = aes(x = base::get(sample.id, DFE),
                                y = base::get(feature_rank, DFE)))
         
         # If there is only one column uses default settings
         if (n_diff_columns == 1) {
           heatmap_plot <- heatmap_plot +
-            geom_tile(aes(fill = diff_1))
+            geom_point(aes(size = mean_values, fill = diff_1), shape = 21)
         } else {
           # Adds geom_tile for number of diff_columns
           for (i in 1:n_diff_columns) {
             if (i == 1) {
               heatmap_plot <- heatmap_plot +
-                geom_tile(aes(fill = !!sym(paste0("diff_", i))), width = 0.45)
+                geom_point(aes(size = mean_values, fill = !!sym(paste0("diff_", i))), shape = 21)
             } else {
               heatmap_plot <- heatmap_plot +
-                geom_tile(aes(fill = !!sym(paste0("diff_", i))), width = 0.45,
-                          position = position_nudge(x = 0.5))
+                geom_point(aes(size = mean_values, fill = !!sym(paste0("diff_", i))), 
+                           shape = 21,
+                           position = position_nudge(x = 0.5))
             }
             
           }
@@ -604,59 +584,53 @@ tools <- R6::R6Class(
                 text = element_text(size=12),
                 legend.text = element_text(size=12),
                 legend.title = element_text(size=14),
-                axis.title.y = element_blank(),
                 strip.background = element_rect(fill = "#EEEEEE", color = "#FFFFFF")) +
+          scale_y_discrete(limits = rev(levels(as.factor(grouped_dt[["Genus"]])))) +
           scale_fill_gradient2(name = paste0("log2( A / B )"),
                                low = "blue",
                                mid = "white",
                                high = "red",
                                na.value = "grey80") +
-          scale_y_discrete(limits = rev(levels(as.factor(DFE[[ feature_rank ]])))) +
+          scale_size_continuous(name = "Mean Rel. Abun. (%)", labels = scales::label_number(accuracy = 0.01)) +
           labs(x = NULL, 
-               y = "Features")  
-        
-        
-        # Creates boxplot from relative abundances
-        plot_list$rel_abun <- stats_dt %>% 
-          ggplot(mapping = aes(x = values,
-                               y = .data[[ feature_rank ]])) +
-          facet_wrap(~.data[[condition.group]], ncol = length(condition_A) + length(condition_B)) +
-          geom_boxplot() +
-          theme_bw() +
-          theme(text=element_text(size=12),
-                axis.text.x = element_text(angle = 45, hjust = 1),
-                axis.title.y = element_blank(),
-                axis.text.y = element_blank(),
-                axis.ticks.y = element_blank(),
-                panel.spacing.x = unit(1, "lines")) +
-          scale_x_continuous(trans = scales::log_trans()) +
-          labs(x = "Log10( Rel. Abun. )")
+               y = NULL)  
       } else {
         # Store pvalues and volcano dt
         plot_list$volcano <- DFE$volcano
-        plot_list$pvalues <- DFE$pvalues
-        # Generating heatmap plot based on paired boolean
-        n_diff_columns <-  sum(grepl("^diff_", colnames(DFE$data)))
-        # Creates boxplot and barplot for unpaired samples
-        for (k in c("boxplot", "barplot")) {
-          plot_list[[k]] <- patchwork::wrap_plots(
-            lapply(1:n_diff_columns,
-                   function(i) fold_plot(dt = DFE$data, 
-                                         X = paste0("diff_", i), 
-                                         Y = feature_rank,
-                                         title = paste0("Log2 ( ", condition_A[i], " / ", condition_B[i], " )"), 
-                                         method = k, 
-                                         taxa_labels = i == 1, 
-                                         pvalues = DFE$pvalues)),
-            ncol = n_diff_columns,
-            nrow = 1)
-        }
+        
+        #----------------------#
+        # Volcano plot         #
+        #----------------------#
+        
+        # Create merged dt for volcano with mean foldchange and rel. abundance
+        DFE$volcano <- DFE$volcano[, "rel_abun" := rel_abun]
+
+        # Create & save volcano plot
+        n_diff_columns <- sum(grepl("^diff_", colnames(DFE$data)))
+        plot_list$volcano_plot <- patchwork::wrap_plots(
+          lapply(1:n_diff_columns, function(i) {
+            plt1 <- volcano_plot(dt = DFE$volcano,
+                                 X = paste0("foldchange_", i),
+                                 Y = paste0("pvalue_", i),
+                                 feature_rank = feature_rank,
+                                 pvalue.threshold = pvalue.threshold,
+                                 logfold.threshold = foldchange.threshold)
+            plt2 <- ViolinBoxPlot(dt = DFE,
+                                  X = paste0("foldchange_", i),
+                                  Y = paste0("pvalue_", i),
+                                  diff = paste0("diff_", i),
+                                  feature_rank = feature_rank,
+                                  pvalue.threshold = pvalue.threshold,
+                                  logfold.threshold = foldchange.threshold)
+            (plt1 + plt2)
+          }),
+          ncol = 1,
+          nrow = n_diff_columns)
+        
+        
       }
-      
       # Restores tools class components
-      self$countData <- counts
-      self$featureData <- features
-      self$metaData <- metadata
+      private$tmp_restore()
       
       return(plot_list)
     },

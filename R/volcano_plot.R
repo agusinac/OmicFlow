@@ -1,22 +1,22 @@
 # Creates volcano plot
-volcano_plot <- function(dt, feature_rank, pvalue.threshold = 0.05, logfold.threshold = 0.6) {
+volcano_plot <- function(dt, X, Y, feature_rank, pvalue.threshold = 0.05, logfold.threshold = 0.6) {
   # copies data.table
-  tmp_dt <- data.table::copy(dt)
+  tmpdt <- data.table::copy(dt)
   
   # Creates labels for significant and non-significant differential expression
-  tmp_dt[, pvalue := -log10(dt$pvalue)]
-  tmp_dt[, diffexpressed := ifelse(foldchange > logfold.threshold & pvalue > -log10(pvalue.threshold), "Upregulated",
-                                   ifelse(foldchange < -logfold.threshold & pvalue > -log10(pvalue.threshold), "Downregulated", "non-significant"))]
-  tmp_dt[, diffexpressed_labels := ifelse(diffexpressed != "non-significant", base::get(feature_rank), "")]
+  tmpdt[, (Y) := -log10(base::get(Y))]
+  tmpdt[, diffexpressed := ifelse(base::get(X) > logfold.threshold & base::get(Y) > -log10(pvalue.threshold), "Upregulated",
+                                   ifelse(base::get(X) < -logfold.threshold & base::get(Y) > -log10(pvalue.threshold), "Downregulated", "non-significant"))]
+  tmpdt[, diffexpressed_labels := ifelse(diffexpressed != "non-significant", base::get(feature_rank), "")]
   
-  max_pvalue <- max(tmp_dt$pvalue)  
+  max_pvalue <- max(tmpdt[[ Y ]])  
   
   return(
-    tmp_dt %>% 
-      ggplot(mapping = aes(x = foldchange,
-                           y = pvalue,
+    tmpdt %>% 
+      ggplot(mapping = aes(x = .data [[ X ]],
+                           y = .data [[ Y ]],
                            label = diffexpressed_labels,
-                           color = foldchange)) +
+                           color = .data [[ X ]])) +
       theme_bw() +
       theme(axis.text.x = element_text(angle = 45, hjust = 1, size=12),
             axis.text.y = element_text(size=12),
@@ -56,6 +56,4 @@ volcano_plot <- function(dt, feature_rank, pvalue.threshold = 0.05, logfold.thre
            y = "-log10( P-value )") +
       ylim(0, max_pvalue + 1.5)
   )
-  # removes tmp 
-  base::gc(tmp_dt)
 }

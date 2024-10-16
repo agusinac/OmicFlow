@@ -39,7 +39,6 @@ paired_fold <- function(dt, paired.id, sample.id, condition_A, condition_B, uniq
   # Wraps and ends Parallel backend
   parallel::stopCluster(cl)
   paired_dt <- na.omit(rbind(paired_dt, results, fill = TRUE))
-  base::gc(tmp_dt)
   
   return(paired_dt)
 }

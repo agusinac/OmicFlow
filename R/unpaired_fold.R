@@ -10,12 +10,9 @@ unpaired_fold <- function(dt, sample.id, condition_A, condition_B, condition_lab
   unpaired_dt <- data.table::data.table(feature_rank = feature_labels)
   colnames(unpaired_dt) <- feature_rank
   
-  pvalues_dt <- data.table::data.table(feature_rank = feature_labels)
-  colnames(pvalues_dt) <- feature_rank
-  
   volcano_dt <- data.table::data.table(feature_rank = feature_labels)
   colnames(volcano_dt) <- feature_rank
-
+  
   # Register Parallel backend
   cl <- parallel::makeCluster(cpus)
   doParallel::registerDoParallel(cl)
@@ -45,11 +42,11 @@ unpaired_fold <- function(dt, sample.id, condition_A, condition_B, condition_lab
     mat_B <- as.matrix(dt_B)
     for (k in seq_along(feature_labels)) {
       # save p-values in data.table
-      volcano_dt[k, !!sym(paste0("pvalue_", i)) := stats::wilcox.test(mat_A[k, ], mat_B[k, ], correct = TRUE)$p.value]
+      volcano_dt[k, (paste0("pvalue_", i)) := stats::wilcox.test(mat_A[k, ], mat_B[k, ], correct = TRUE)$p.value]
     }
     
     # Compute row means for each taxa
-    volcano_dt[, !!sym(paste0("foldchange_", i)) := rowMeans(unpaired_dt[, .SD, .SDcols = !c(feature_rank)])]
+    volcano_dt[, (paste0("foldchange_", i)) := rowMeans(unpaired_dt[, .SD, .SDcols = !c(feature_rank)])]
     
     # Melt into a single column
     final_dt <- data.table::melt(unpaired_dt,
