@@ -1,4 +1,18 @@
-stats_plot <- function(data, X, Y, Label, Y_title, plot.title) {
+#' Stats plot with ggplot2
+#'
+#' @description Creates a Stats plot of \link[OmicFlow]{pairwise_adonis} or \link[OmicFlow]{pairwise_anosim} results. This function is built into the \code{ordination} method from the abstract class \link[OmicFlow]{tools} and inherited by other omics classes, such as;
+#' \link[OmicFlow]{metataxonomics}, transcriptomics, metabolomics and proteomics.
+#'
+#' @param data A \code{data.frame} or \code{data.table}.
+#' @param Y A column name of a continuous variable.
+#' @param X A column name of a categorical variable.
+#' @param Label A column name of a categorical variable to label the bars.
+#' @param plot.title A character variable to name the plot title, default is \code{NULL}.
+#' @return A \link[ggplot2]{ggplot2} object to be further modified
+#'
+#' @export
+
+stats_plot <- function(data, X, Y, Label, Y_title, plot.title=NULL) {
   return(
     data %>%
       ggplot(mapping=aes(x = base::get(X, data),

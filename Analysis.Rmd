@@ -12,11 +12,7 @@ knitr::opts_chunk$set(warning = FALSE, message = FALSE, echo = FALSE)
 ## Required Library's
 
 ```{r, warning=FALSE}
-library("foreach")
-library("tidyr")
-library("ggplot2")
-library("magrittr")
-library("Matrix")
+library("OmicFlow")
 ```
 
 ## Load functions
@@ -33,9 +29,18 @@ sourceDir(path = "C:/Users/Z289224/Documents/general_scripts/R/OmicFlow/R/utils_
 ## Constructing metataxonomics class
 ```{r, eval=FALSE}
 current_path <- getwd()
-taxa_class <- metataxonomics$new(metaData = paste0(current_path, "/data/metadata.tsv"),
+taxa <- metataxonomics$new(metaData = paste0(current_path, "/data/metadata.tsv"),
                            biomData = paste0(current_path, "/data/biom_with_taxonomy.biom"),
                            treeData = paste0(current_path, "/data/rooted_tree.newick"))
+
+taxa_class$feature_subset(Domain == "Bacteria")
+result <- taxa_class$composition(feature_rank = "Genus",
+                                 feature_filter = c("uncultured"),
+                                 feature_top = 10)
+
+composition_plot(data = result$data,
+                 palette = result$palette,
+                 feature_rank = "Genus")
 
 ```
 
@@ -68,6 +73,22 @@ composition_plot(data = result$data,
 ```{r}
 df_shannon <- data.table::fread(paste0(current_path, "/data/shannon.csv"))
 
+# Pivot into long table
+shannon_long <- data.table::melt(data = df_shannon,
+                                 measure.vars = colnames(df_shannon)[grepl("depth-", colnames(df_shannon))], 
+                                 variable.name = "iters",
+                                 variable.factor = FALSE,
+                                 value.name = "alpha_div")
+# Corrects colnames
+colnames(shannon_long) <- c("SAMPLE-ID", "iters", "alpha_div")
+# Adds new column
+shannon_final <- base::merge(shannon_long, 
+                             taxa$metaData[, .SD, .SDcols = c("SAMPLE-ID", col_name)], 
+                             by = "SAMPLE-ID", 
+                             all.x = TRUE)
+
+taxa$shannon(custom_div = shannon_final)
+
 taxa_class$feature_subset(Domain == "Bacteria")
 shannon_plot <- taxa_class$shannon(df_shannon = df_shannon,
                                    col_name = "RANKSTAT_treatment")
@@ -95,320 +116,52 @@ ggsave("results/pcoa_test.png",
 
 ```
 
+## TREE with extra layers [IMPROVING VISUALIZATION]
 ```{r}
-# Create Linear regressin (incl. RDA, CCA etc.)
-# Nested function #1: Find dimensions for 80% variance explained
+library(ggplot2)
+library(ggtree)
 
+x <- rtree(20)
+df <- data.frame(row.names = x$tip.label,
+                 cor = rnorm(20, mean = 0, sd = 0.5),
+                 rel = rnorm(20, mean = 0.5, sd = 0.5),
+                 fold = rnorm(20, mean = 0, sd = 2))
+tree <- dplyr::full_join(x, df, by = "label")
+
+p <- x %>% 
+  ggtree(layout = "circular", branch.length = "none") +
+  geom_tiplab(size = 2.5)
+
+gheatmap(p, df[, "cor", drop=FALSE], 
+         offset = 0.1, 
+         width = 0.2, 
+         colnames_position = "top",
+         colnames_angle = 90,
+         hjust =0,
+         font.size = 2.5,
+         low = "blue", high = "red", color="black")
+  new_scale_fill()
+  gheatmap(p, df[, "rel", drop=FALSE], 
+         offset = 2, 
+         width = 0.2, 
+         colnames_position = "top",
+         colnames_angle = 90,
+         hjust =0,
+         font.size = 2.5,
+         color = "gray30") +
+  new_scale_fill()
   
 
 
-library("ggplot2")
-library("magrittr")
-library("vegan")
+ggsave("test.png", p2)
+p2
 
-data("dune")
-data("dune.env")
+```
 
+# Clustering methods
+```{r}
 
-triplot(counts = dune,
-        metadata = dune.env,
-        metadata.col = "Management")
 
 
 ```
 
-## Heatmap log2 fold change [IMPROVING VISUALIZATION]
-```{r}
-  # Required parameters
-  feature_rank <- "Genus"
-  sample.id <- "SAMPLE-ID"
-  paired <- FALSE
-  paired.id <- "patient"
-  feature_filter <- c("uncultured")
-  feature_top <- NA
-  condition.group <- "response"
-  condition_A <- c("response")
-  condition_B <- c("non-responders")
-  normalize <- TRUE
-  pvalue.threshold <- 0.05
-  foldchange.threshold <- 0.6
-  
-  taxa$reset()
-  taxa$feature_subset(Domain == "Bacteria")
-  
-  # Final output
-  plot_list <- list(
-        data = NULL,
-        box_plot = NULL,
-        volcano_plot = NULL,
-        tile_plot = NULL,
-        rel_abun = NULL,
-        pvalues = NULL,
-        volcano = NULL
-      )
-      
-      # Copies object to prevent modification of tools class components
-      counts <- data.table::copy(self$countData)
-      metadata <- data.table::copy(self$metaData)
-      features <- data.table::copy(self$featureData)
-      
-      #------#
-      # Main #
-      #------#
-      
-      # Subset samples by conditions
-      # self$sample_subset(self$metaData[[condition.group]] %in% c(condition_A, condition_B))
-      
-      if (normalize) {
-        taxa$transform(function(x) x / sum(x))
-      }
-      
-      # Agglomerate taxa by feature rank and filter unwanted taxa
-      taxa$feature_glom(feature_rank = feature_rank, feature_filter = feature_filter)
-      
-      # Check how many features to select (depended if volcano is desired)
-      if (!is.na(feature_top)) {
-        feature_top <- feature_top
-      } else {
-        feature_top <- nrow(taxa$featureData)
-      }
-      
-      # Extract relative abundance
-      rel_abun <- rowMeans(taxa$countData[1:feature_top, .SD, .SDcols = colnames(taxa$countData)])
-      
-      # Creates long table of relative abundance
-      dt <- taxa$countData[, (feature_rank) := taxa$featureData[[feature_rank]]]
-      stats_dt <- base::merge(data.table::melt(dt,
-                                               measure.vars = colnames(dt)[!grepl(feature_rank, colnames(dt))],
-                                               variable.name = sample.id, 
-                                               value.name = "values"),
-                              taxa$metaData[, .SD, .SDcols = c(sample.id, condition.group)],
-                              by = sample.id)
-      
-      # Create row_sums
-      dt[, row_sum := rowSums(.SD), .SDcols = !c(feature_rank)]
-      
-      # Orders by row_sum in descending order
-      taxa$countData <- data.table::setorder(dt, -row_sum)[1:feature_top, .SD, .SDcols = !c("row_sum")]
-      features <- taxa$countData[[ feature_rank ]]
-      taxa$countData <- taxa$countData[, .SD, .SDcols = !c(feature_rank)]
-      
-      # Log2 transform taxa
-      taxa$transform(log2)
-      
-      # Subset by top features
-      stats_dt <- stats_dt[stats_dt[[feature_rank]] %in% features]
-      dt <- taxa$countData[, (feature_rank) := features]
-      
-      # Compute 2-fold expression based on (un)paired samples
-      # Computes on equation oflog2(A) - log2(B)
-      # Supports multiple inputs for A and B.
-      # For example A = T1, T2 and B = H1, H2
-      if (paired == TRUE) {
-        # sorting of metadata
-        condition.labels <- data.table::setorderv(taxa$metaData, 
-                                                  cols = c(sample.id, paired.id, condition.group))[[ condition.group ]]
-        # paired samples
-        DFE <- paired_fold(dt = dt,
-                           sample.id = sample.id,
-                           paired.id = paired.id,
-                           condition_A = condition_A,
-                           condition_B = condition_B,
-                           unique.id = unique(taxa$metaData[[ paired.id ]]),
-                           condition_labels = condition.labels,
-                           feature_rank = feature_rank,
-                           cpus = cpus)
-        # Save data
-        plot_list$data <- DFE
-        
-      } else if (paired == FALSE) {
-        # sorting of metadata
-        condition.labels <- data.table::setorderv(taxa$metaData,
-                                                  cols = c(sample.id, condition.group))[[ condition.group ]]
-        # unpaired samples
-        DFE <- unpaired_fold(dt = dt,
-                             sample.id = sample.id,
-                             condition_A = condition_A,
-                             condition_B = condition_B,
-                             condition_labels = condition.labels,
-                             feature_rank = feature_rank,
-                             cpus = cpus)
-        # Save data
-        plot_list$data <- DFE$data
-        
-      } else {
-        stop("paired can only be TRUE or FALSE, check your input.")
-      }
-      
-      # Generate heatmap plot with df_diff data
-      if (paired == TRUE) {
-        # Adds size to paired heatmap 
-        add_columns <- unique(taxa$metaData[, .SD, .SDcols = c(sample.id, paired.id)])
-        
-        merged_data <- base::merge(
-          stats_dt,
-          add_columns,
-          by = sample.id,
-          all.x = TRUE
-        )
-        
-        # Subset merged data
-        subset_merged <- merged_data[, .SD, .SDcols = c(paired.id, feature_rank, "values")]
-        colnames(subset_merged) <- c("SAMPLE-ID", feature_rank, "values")
-        
-        # Second merge
-        final_merge <- base::merge(
-          x = DFE,
-          y = subset_merged,
-          by = c("SAMPLE-ID", "Genus"),
-          all.x = TRUE
-        )
-      
-        # Check if multiple diff_ are present 
-        grouped_dt <- final_merge %>% 
-          dplyr::group_by(`SAMPLE-ID`, Genus) %>% 
-          dplyr::summarise(mean_values = mean(values, na.rum = TRUE),
-                           diff_1 = mean(diff_1, na.rm = TRUE)) %>% 
-          dplyr::ungroup()
-        
-        
-        # Generating heatmap plot based on paired boolean
-        n_diff_columns <-  sum(grepl("^diff_", colnames(DFE)))
-    
-        # Generate heatmap plot with df_diff data
-        heatmap_plot <- grouped_dt %>% 
-          ggplot(mapping = aes(x = base::get(sample.id, DFE),
-                               y = base::get(feature_rank, DFE)))
-        
-        # If there is only one column uses default settings
-        if (n_diff_columns == 1) {
-          heatmap_plot <- heatmap_plot +
-            geom_point(aes(size = mean_values, fill = diff_1), shape = 21)
-        } else {
-          # Adds geom_tile for number of diff_columns
-          for (i in 1:n_diff_columns) {
-            if (i == 1) {
-              heatmap_plot <- heatmap_plot +
-                geom_point(aes(size = mean_values, fill = !!sym(paste0("diff_", i))), shape = 21)
-            } else {
-              heatmap_plot <- heatmap_plot +
-                geom_point(aes(size = mean_values, fill = !!sym(paste0("diff_", i))), 
-                           shape = 21,
-                           position = position_nudge(x = 0.5))
-            }
-            
-          }
-        }
-        # Finishes heatmap plot
-        plot_list$tile_plot <- heatmap_plot +
-          theme_bw() +
-        theme(axis.text.x = element_text(angle = 45, hjust = 1, size=12),
-              axis.text.y = element_text(size=12),
-              axis.text = element_text(size=12),
-              text = element_text(size=12),
-              legend.text = element_text(size=12),
-              legend.title = element_text(size=14),
-              strip.background = element_rect(fill = "#EEEEEE", color = "#FFFFFF")) +
-        scale_y_discrete(limits = rev(levels(as.factor(grouped_dt[["Genus"]])))) +
-        scale_fill_gradient2(name = paste0("log2( A / B )"),
-                             low = "blue",
-                             mid = "white",
-                             high = "red",
-                             na.value = "grey80") +
-        scale_size_continuous(name = "Mean Rel. Abun. (%)", labels = scales::label_number(accuracy = 0.01)) +
-        labs(x = NULL, 
-             y = NULL)  
-        
-        
-        # Creates boxplot from relative abundances
-        plot_list$rel_abun <- stats_dt %>% 
-          ggplot(mapping = aes(x = values,
-                               y = .data[[ feature_rank ]])) +
-          facet_wrap(~.data[[condition.group]], ncol = length(condition_A) + length(condition_B)) +
-          geom_boxplot() +
-          theme_bw() +
-          theme(text=element_text(size=12),
-                axis.text.x = element_text(angle = 45, hjust = 1),
-                axis.title.y = element_blank(),
-                axis.text.y = element_blank(),
-                axis.ticks.y = element_blank(),
-                panel.spacing.x = unit(1, "lines")) +
-          scale_x_continuous(trans = scales::log_trans()) +
-          labs(x = "Log10( Rel. Abun. )")
-      } else {
-        # Store pvalues and volcano dt
-        plot_list$volcano <- DFE$volcano
-        plot_list$pvalues <- DFE$pvalues
-        
-        #----------------------#
-        # Volcano plot         #
-        #----------------------#
-        # Create merged dt for volcano with mean foldchange and rel. abundance
-        volcano_merged <- DFE$volcano[, "rel_abun" := rel_abun]
-        
-        # Create & save volcano plot
-        plot_list$volcano_plot <- volcano_plot(dt = volcano_merged, 
-                                               feature_rank = feature_rank,
-                                               pvalue.threshold = pvalue.threshold,
-                                               logfold.threshold = foldchange.threshold)
-        
-        # Subset significant groups
-        significant_subset <- volcano_merged[volcano_merged[, pvalue < pvalue.threshold & (foldchange > foldchange.threshold | foldchange < -foldchange.threshold)], ]
-        significant_final <- DFE$data[DFE$data[[feature_rank]] %in% significant_subset[[feature_rank]], ]
-        
-        # Use significant values to create boxplot
-        plt <- significant_final %>% 
-          ggplot(aes(y = .data[[ "diff_1" ]],
-                     x = .data[[feature_rank]],
-                     color = .data[["diff_1"]])) +
-          gghalves::geom_half_boxplot() +
-          gghalves::geom_half_point() +
-          coord_flip() +
-          theme_bw() +
-          theme(axis.text.x = element_text(angle = 45, hjust = 1, size=12),
-                axis.text.y = element_text(size=12),
-                axis.text = element_text(size=12),
-                text = element_text(size=12),
-                legend.text = element_text(size=12),
-                legend.title = element_text(size=14),
-                legend.position = "none",
-                axis.title.y = element_blank(),
-                strip.background = element_rect(fill = "#EEEEEE", color = "#FFFFFF")) +
-          scale_color_gradient2(name = paste0("log2( A / B )"),
-                               low = "blue",
-                               mid = "white",
-                               high = "red",
-                               na.value = "grey80") +
-          scale_x_discrete(limits = rev(levels(as.factor(significant_final[[ feature_rank ]])))) +
-          labs(x = NULL,
-               y = NULL)
-          
-          
-ggsave("test_gghalves.png", plot = plt) 
-        
-        # Use significant values to create rel abun plot
-        
-                # Generating heatmap plot based on paired boolean
-        n_diff_columns <-  sum(grepl("^diff_", colnames(DFE$data)))
-        # Creates boxplot and barplot for unpaired samples
-        for (k in c("boxplot")) {
-          plot_list[[k]] <- patchwork::wrap_plots(
-            lapply(1:n_diff_columns,
-                   function(i) fold_plot(dt = DFE$data, 
-                                         X = paste0("diff_", i), 
-                                         Y = feature_rank,
-                                         title = paste0("Log2 ( ", condition_A[i], " / ", condition_B[i], " )"), 
-                                         method = k, 
-                                         taxa_labels = i == 1, 
-                                         pvalues = DFE$pvalues)),
-            ncol = n_diff_columns,
-            nrow = 1)
-        }
-      }
-      
-      # Restores tools class components
-      self$countData <- counts
-      self$featureData <- features
-      self$metaData <- metadata
-
-```

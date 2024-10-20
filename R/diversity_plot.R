@@ -1,3 +1,17 @@
+#' Diversity plot with ggplot2
+#'
+#' @description Creates an Alpha diversity plot. This function is built into the \code{alpha_diversity} method from the abstract class \link[OmicFlow]{tools} and inherited by other omics classes, such as;
+#' \link[OmicFlow]{metataxonomics}, transcriptomics, metabolomics and proteomics.
+#'
+#' @param dt A \code{data.frame} or \code{data.table} computed from \link[vegan]{diversity}.
+#' @param values A column name of a continuous variable.
+#' @param col_name A column name of a categorical variable.
+#' @param palette An object with names and hexcode or color names, see \link{fetch_palette} or \link[stats]{setNames}.
+#' @param method A character variable indicating what method is used to compute the diversity.
+#' @return A \link[ggplot2]{ggplot2} object to be further modified
+#'
+#' @export
+
 diversity_plot <- function(dt, values, col_name, palette, method) {
   return(dt %>%
     ggplot(mapping = aes(x = .data[[ col_name ]],
@@ -11,8 +25,8 @@ diversity_plot <- function(dt, values, col_name, palette, method) {
             legend.title = element_text(size=14),
             axis.text = element_text(size=12),
             axis.text.y = element_text(size=12),
-            axis.text.x = element_text(size=12)) + 
-      scale_colour_manual(name = "groups", 
+            axis.text.x = element_text(size=12)) +
+      scale_colour_manual(name = "groups",
                           values = palette) +
       ggpubr::stat_compare_means(comparisons = utils::combn(unique(dt[[col_name]]), 2, simplify=FALSE),
                                  label = "p.signif",
