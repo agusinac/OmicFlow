@@ -34,7 +34,7 @@ taxa$reset()
 
 ## Automatic data analysis
 Finally, the automation of data analysis happens via a medata template, that can be filled in by the user and handled by OmicFlow. Here we need the report folder and autoFlow.R script. This can be easily called from the command-line or wrapped as a autoFlow.nf (nextflow) script. In the docker folder you can find a docker file to build your docker.
-```r
+```bash
 Rscript autoFlow.R \
   --metadata "metadata.tsv" \
   --biom "table.biom" \
