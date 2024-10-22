@@ -437,7 +437,7 @@ tools <- R6::R6Class(
           distmat <- rbiom::beta.div(biom = counts,
                                      method = metric,
                                      weighted = weighted,
-                                     tree = tree)
+                                     tree = self$treeData)
         } else {
           distmat <- rbiom::beta.div(biom = counts,
                                      method = metric,
@@ -528,7 +528,7 @@ tools <- R6::R6Class(
         plot_list$anova_plot <- stats_plot(stats_results,
                                            X = "pairs",
                                            Y = "F.Model",
-                                           Label = "p.adjusted",
+                                           Label = "p.adj",
                                            Y_title = "Pseudo F test statistic",
                                            plot.title = "PERMANOVA")
         # Loading score plot

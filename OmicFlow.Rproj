@@ -18,5 +18,6 @@ LineEndingConversion: Posix
 
 BuildType: Package
 PackageUseDevtools: Yes
+PackagePath: C:/Users/Z289224/Documents/general_scripts/R/OmicFlow
 PackageInstallArgs: --no-multiarch --with-keep.source
 PackageRoxygenize: rd,collate,namespace

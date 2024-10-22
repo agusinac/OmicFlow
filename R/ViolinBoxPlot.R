@@ -1,6 +1,6 @@
 #' Volin & Box plot with ggplot2
 #'
-#' @description Creates a \link[gghalves] half-violin half-box plot. This function is built into the \code{differential_feature_expression} method from the abstract class \link[OmicFlow]{tools} and inherited by other omics classes, such as;
+#' @description Creates a \link[gghalves]{geom_half_violin} and \link[gghalves]{geom_half_boxplot} plot. This function is built into the \code{differential_feature_expression} method from the abstract class \link[OmicFlow]{tools} and inherited by other omics classes, such as;
 #' \link[OmicFlow]{metataxonomics}, transcriptomics, metabolomics and proteomics.
 #'
 #' @param dt A \code{data.frame} or \code{data.table}.

@@ -12,35 +12,31 @@ knitr::opts_chunk$set(warning = FALSE, message = FALSE, echo = FALSE)
 ## Required Library's
 
 ```{r, warning=FALSE}
+library("Matrix")
+library("ggplot2")
 library("OmicFlow")
 ```
 
-## Load functions
-
-```{r, warning = FALSE}
-source("C:/Users/Z289224/Documents/general_scripts/R/OmicFlow/R/99_project-functions.R")
-
-# Utils
-sourceDir(path = "C:/Users/Z289224/Documents/general_scripts/R/OmicFlow/R/utils_v2")
-
-```
 ## Specify data paths
 
 ## Constructing metataxonomics class
 ```{r, eval=FALSE}
-current_path <- getwd()
-taxa <- metataxonomics$new(metaData = paste0(current_path, "/data/metadata.tsv"),
-                           biomData = paste0(current_path, "/data/biom_with_taxonomy.biom"),
-                           treeData = paste0(current_path, "/data/rooted_tree.newick"))
+taxa <- metataxonomics$new(metaData = "./tests/testthat/metataxonomics/input/metadata.tsv",
+                           biomData = "./tests/testthat/metataxonomics/input/biom_with_taxonomy.biom",
+                           treeData = "./tests/testthat/metataxonomics/input/rooted_tree.newick")
 
-taxa_class$feature_subset(Domain == "Bacteria")
-result <- taxa_class$composition(feature_rank = "Genus",
+taxa$feature_subset(Domain == "Bacteria")
+taxa$transform(log2)
+
+
+result <- taxa$composition(feature_rank = "Genus",
                                  feature_filter = c("uncultured"),
                                  feature_top = 10)
 
 composition_plot(data = result$data,
                  palette = result$palette,
                  feature_rank = "Genus")
+
 
 ```
 
@@ -49,7 +45,7 @@ composition_plot(data = result$data,
 ### Classified ASVs per taxonomic rank
 
 ```{r}
-rankstat_plot <- taxa_class$rankstat()
+rankstat_plot <- taxa$rankstat()
 
 ```
 
@@ -90,7 +86,7 @@ shannon_final <- base::merge(shannon_long,
 taxa$shannon(custom_div = shannon_final)
 
 taxa_class$feature_subset(Domain == "Bacteria")
-shannon_plot <- taxa_class$shannon(df_shannon = df_shannon,
+shannon_plot <- taxa$shannon(df_shannon = df_shannon,
                                    col_name = "RANKSTAT_treatment")
 taxa_class$reset()
 
@@ -101,9 +97,9 @@ taxa_class$reset()
 ```{r}
 # normalized by bacterial domain
 taxa_class$feature_subset(Domain == "Bacteria")
-pcoa_plots <- taxa_class$ordination(metric = "unifrac",
+pcoa_plots <- taxa$ordination(metric = "unifrac",
                                     method = "pcoa",
-                                    group_by = "RANKSTAT_treatment", 
+                                    group_by = "SAMPLE-ID", 
                                     weighted = TRUE,
                                     parallel = TRUE,
                                     normalize = TRUE)
@@ -126,35 +122,48 @@ df <- data.frame(row.names = x$tip.label,
                  cor = rnorm(20, mean = 0, sd = 0.5),
                  rel = rnorm(20, mean = 0.5, sd = 0.5),
                  fold = rnorm(20, mean = 0, sd = 2))
-tree <- dplyr::full_join(x, df, by = "label")
 
 p <- x %>% 
   ggtree(layout = "circular", branch.length = "none") +
   geom_tiplab(size = 2.5)
 
-gheatmap(p, df[, "cor", drop=FALSE], 
-         offset = 0.1, 
+col_list = c("cor", "rel", "fold")
+
+
+original_offset = 0.1
+for (col in seq_along(col_list)) {
+  p <- gheatmap(p, df[, "cor", drop=FALSE], 
+         offset = original_offset, 
          width = 0.2, 
          colnames_position = "top",
          colnames_angle = 90,
          hjust =0,
          font.size = 2.5,
-         low = "blue", high = "red", color="black")
-  new_scale_fill()
-  gheatmap(p, df[, "rel", drop=FALSE], 
-         offset = 2, 
-         width = 0.2, 
-         colnames_position = "top",
-         colnames_angle = 90,
-         hjust =0,
-         font.size = 2.5,
-         color = "gray30") +
-  new_scale_fill()
+         low = "blue", high = "red", color="black") +
+    ggnewscale::new_scale_fill()
+  original_offset = original_offset + 2
+}
+
+relabel_phylo = function(feature_rank, feature_filter) {
+  # Create data tables to match hash and tax_target labels
+  tip.labels <- self$treeData$tip.label
   
+  # Creates look up vectors
+  ref_labels <- rownames(self$featureData)
+  label_to_be_used <- self$featureData[[ feature_rank ]]
+  
+  # Replace hash code by genus name
+  for (i in 1:length(tip.labels)) {
+    if (tip.labels[i] %in% rownames(ref_df)) {
+      tip.labels[i] <- ref_df[tip.labels[i], tax_target]
+    }
+  }
+  tree.filt <- drop.tip(tree, tree$tip.label[grep("uncultured|unidentified", tree$tip.label)])
+  
+  return(tree.filt)
+}
 
 
-ggsave("test.png", p2)
-p2
 
 ```
 

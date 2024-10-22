@@ -12,7 +12,7 @@
 #'
 #' @export
 
-stats_plot <- function(data, X, Y, Label, Y_title, plot.title=NULL) {
+stats_plot <- function(data, X, Y, Label, Y_title=NULL, plot.title=NULL) {
   return(
     data %>%
       ggplot(mapping=aes(x = base::get(X, data),
@@ -22,7 +22,7 @@ stats_plot <- function(data, X, Y, Label, Y_title, plot.title=NULL) {
                fill = "blue") +
       geom_label(nudge_y = 0) +
       labs(title = plot.title,
-           subtitle = "P adjusted significant scores are shown above each bar",
+           subtitle = "Above each bar: P-adjusted Values",
            x = "groups",
            y = Y_title) +
       theme_bw()

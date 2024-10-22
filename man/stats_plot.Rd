@@ -4,7 +4,7 @@
 \alias{stats_plot}
 \title{Stats plot with ggplot2}
 \usage{
-stats_plot(data, X, Y, Label, Y_title, plot.title = NULL)
+stats_plot(data, X, Y, Label, Y_title = NULL, plot.title = NULL)
 }
 \arguments{
 \item{data}{A \code{data.frame} or \code{data.table}.}
