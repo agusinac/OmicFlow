@@ -4,9 +4,9 @@ Inspired by Phyloseq only made to handle large datasets, uses triplet format dat
 ## Installation [unavailable]
 ``install.packages("OmicFlow")``
 
-## Example usage
+## Usage
 Unlike most R packages, the OmicFlow encapsulates a lot of the methods and keeps them in the abstract class; 'tools'. This approach makes it possible to create a more generalized environment for the manipulation and loading of various omics-related data and keeps the naming of functions identical among omics classes. It is easily explandable to add new omics classes, while inheriting from the abstract class.
-```
+```r
 library("Matrix")
 library("ggplot2")
 library("OmicFlow")
@@ -34,11 +34,14 @@ taxa$reset()
 
 ## Automatic data analysis
 Finally, the automation of data analysis happens via a medata template, that can be filled in by the user and handled by OmicFlow. Here we need the report folder and autoFlow.R script. This can be easily called from the command-line or wrapped as a autoFlow.nf (nextflow) script. In the docker folder you can find a docker file to build your docker.
-```
+```r
 Rscript autoFlow.R \
   --metadata "metadata.tsv" \
   --biom "table.biom" \
   --tree "rooted_tree.newick"
 ```
 ## metadata template example
+
+## License
+[MIT]
 
