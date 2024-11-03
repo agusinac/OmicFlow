@@ -174,6 +174,39 @@ relabel_phylo = function(feature_rank, feature_filter) {
 
 ```
 
+# (stepwise) Regression models
+```{r}
+both_model <- lm(mpg ~ ., data=mtcars)
+
+final_model <- step(both_model, 
+                    direction="both", 
+                    trace = 0)
+
+# computing AIC and BIC for a model using:
+stats::AIC()
+stats::BIC()
+
+# models
+lm # linear regression
+glm # logistic regression
+
+# Detect multicollinearity factorrs with:
+regclass:VIF()
+
+null_model = lm(Fuel ~ 1, data=fuel2001_4)
+full_model = lm(Fuel ~ Tax + Dlic + Income_2 + log_Miles + Tax:Dlic + Tax:Income_2 + Tax:log_Miles + Dlic:Income_2 + Dlic:log_Miles + Income_2:log_Miles + I(Tax^2) + I(Tax^3) + I(Tax^4) + I(Dlic^2) + I(Dlic^3) + I(Dlic^4) + I(Income_2^2) + I(Income_2^3) + I(Income_2^4) + I(log_Miles^2) + I(log_Miles^3) + I(log_Miles^4), data=fuel2001_4)
+
+# step function
+model_step = step(model, 
+                  scope = list(lower=null_model, upper=full_model),
+                  direction = "both", k= 2) 
+                  # direction = c("both", "backward", "forward")
+                  # k=2 for AIC; k=log(nrow(train_data)) for BIC
+
+
+```
+
+
 # Creating transcriptomics class
 ```{r}
 #' Sub-class metataxonomics
