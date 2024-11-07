@@ -1,5 +1,5 @@
-SAMPLE-ID	FILENAME_fw	FILENAME_rev	DESCRIPTION
-S100	S100_R1_.fastq.gz	S100_R2_.fastq.gz	
-S103	S103_R1_.fastq.gz	S103_R2_.fastq.gz	
-S115	S115_R1_.fastq.gz	S115_R2_.fastq.gz	
-S120	S120_R1_.fastq.gz	S120_R2_.fastq.gz	
+SAMPLE-ID	FILENAME_fw	FILENAME_rev	DESCRIPTION	BMI	Weight
+S100	S100_R1_.fastq.gz	S100_R2_.fastq.gz		22	77
+S103	S103_R1_.fastq.gz	S103_R2_.fastq.gz		23	71
+S115	S115_R1_.fastq.gz	S115_R2_.fastq.gz		30	69
+S120	S120_R1_.fastq.gz	S120_R2_.fastq.gz		22	80

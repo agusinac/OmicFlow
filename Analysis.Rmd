@@ -15,6 +15,7 @@ knitr::opts_chunk$set(warning = FALSE, message = FALSE, echo = FALSE)
 library("Matrix")
 library("ggplot2")
 library("OmicFlow")
+library("ggtree")
 ```
 
 ## Specify data paths
@@ -39,6 +40,30 @@ composition_plot(data = result$data,
 
 
 ```
+# test lowlands
+```{r}
+LL <- metataxonomics$new(metaData = "../../../RTC/projects/lowlands_16s/results/metadata.tsv",
+                         biomData = "../../../RTC/projects/lowlands_16s/results/biom_with_taxonomy.biom",
+                         treeData = "../../../RTC/projects/lowlands_16s/results/rooted_tree.newick")
+
+LL$feature_subset(Domain == "Bacteria")
+LL$sample_subset(RANKSTAT_attraction_score %in% c("1", "0"))
+res <- LL$differential_feature_expression(feature_rank = "Genus",
+                                          sample.id = "SAMPLE-ID",
+                                          paired = FALSE,
+                                          condition.group = "RANKSTAT_attraction_score",
+                                          condition_A = c("0"),
+                                          condition_B = c("1"))
+res$volcano[res$volcano[, pvalue_1 < 0.05], ]
+
+ggsave("../../../RTC/projects/lowlands_16s/results/volcano_high_vs_low.png",
+       plot = res$volcano_plot,
+       height = 10,
+       width = 30,
+       dpi = 400)
+```
+
+
 
 # General analysis flow
 ## Rankstat
@@ -114,54 +139,55 @@ ggsave("results/pcoa_test.png",
 
 ## TREE with extra layers [IMPROVING VISUALIZATION]
 ```{r}
-library(ggplot2)
-library(ggtree)
 
-x <- rtree(20)
-df <- data.frame(row.names = x$tip.label,
-                 cor = rnorm(20, mean = 0, sd = 0.5),
-                 rel = rnorm(20, mean = 0.5, sd = 0.5),
-                 fold = rnorm(20, mean = 0, sd = 2))
+feature_rank = "Genus"
+feature_filter = c("uncultured")
 
-p <- x %>% 
-  ggtree(layout = "circular", branch.length = "none") +
-  geom_tiplab(size = 2.5)
+taxa$feature_glom(feature_rank = feature_rank)
 
-col_list = c("cor", "rel", "fold")
+label_phylo = function(feature_rank, feature_filter = NA) {
+  # Create tmp tree copy
+  tmp_tree <- taxa$treeData
 
+  # starts with empty tip labels order
+  tip_dt <- data.table::data.table("tips" = tmp_tree$tip.label)
 
-original_offset = 0.1
-for (col in seq_along(col_list)) {
-  p <- gheatmap(p, df[, "cor", drop=FALSE], 
-         offset = original_offset, 
+  # Create lookup-table
+  lookup_dt <- data.table::data.table("id" = taxa$featureData[[ "ID" ]],
+                                      feature_rank = taxa$featureData[[ feature_rank ]])
+  colnames(lookup_dt) <- c("id", feature_rank)
+
+  # join tables
+  final_dt <- base::merge(tip_dt, lookup_dt, by.x="tips", by.y="id", all.x = TRUE)
+  # Re-name tips and perform filtering if applicable.
+  tmp_tree$tip.label <- final_dt[[ feature_rank ]]
+  return(tmp_tree)
+}
+
+# User-specified
+cor_method = "spearman"
+cor_columns = c("BMI", "Weight")
+correlation_data = taxa$metaData[, .SD, .SDcols = cor_columns]
+
+# Compute correlations for taxa
+cor_mat <- as.data.frame(cor(t(as.matrix(taxa$countData)), correlation_data, method = cor_method))
+rownames(cor_mat) <- tmp_tree$tip.label
+
+# Create tree
+p <- ggtree(tmp_tree, branch.length = "none") + 
+  geom_tiplab(size = 2, offset = 5) +
+  theme_tree()
+  
+
+# Combine tree with correlation data
+gheatmap(p, cor_mat,
+         offset = -1,
          width = 0.2, 
          colnames_position = "top",
          colnames_angle = 90,
-         hjust =0,
+         hjust = 0,
          font.size = 2.5,
-         low = "blue", high = "red", color="black") +
-    ggnewscale::new_scale_fill()
-  original_offset = original_offset + 2
-}
-
-relabel_phylo = function(feature_rank, feature_filter) {
-  # Create data tables to match hash and tax_target labels
-  tip.labels <- self$treeData$tip.label
-  
-  # Creates look up vectors
-  ref_labels <- rownames(self$featureData)
-  label_to_be_used <- self$featureData[[ feature_rank ]]
-  
-  # Replace hash code by genus name
-  for (i in 1:length(tip.labels)) {
-    if (tip.labels[i] %in% rownames(ref_df)) {
-      tip.labels[i] <- ref_df[tip.labels[i], tax_target]
-    }
-  }
-  tree.filt <- drop.tip(tree, tree$tip.label[grep("uncultured|unidentified", tree$tip.label)])
-  
-  return(tree.filt)
-}
+         low="blue", high="red", color="grey40")
 
 
 

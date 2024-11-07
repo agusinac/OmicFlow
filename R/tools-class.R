@@ -47,13 +47,11 @@ tools <- R6::R6Class(
     #' obj$removeZeros()
     removeZeros = function() {
       # Remove empty samples (columns)
-      keep_cols <- self$countData[, lapply(.SD, sum) > 0,
-                                  .SDcols = colnames(self$countData)]
+      keep_cols <- base::colSums(self$countData) > 0
 
       # Remove empty species (rows)
-      keep_rows <- self$countData[, self$countData[, sum(.SD) > 0,
-                                                   .SDcols = colnames(self$countData),
-                                                   by = .I]$V1]
+      keep_rows <- base::rowSums(self$countData) > 0
+
       # Creates new countData instance
       self$countData <- self$countData[keep_rows, .SD, .SDcols = keep_cols]
       self$featureData <- self$featureData[keep_rows]
@@ -179,9 +177,13 @@ tools <- R6::R6Class(
                                       variable.name = "variable",
                                       value.name = "counts")
 
+      # Sets order level of taxonomic ranks
+      long_values[, variable := factor(variable, levels = c("Species", "Genus", "Family", "Order", "Class", "Phylum", "Domain"))]
+
+
       # Returns rankstat plot
       return(long_values %>%
-               ggplot(mapping = aes(x = base::rev(variable),
+               ggplot(mapping = aes(x = variable,
                                     y = counts)) +
                geom_col(fill = "grey",
                         colour = "grey15",
@@ -827,6 +829,27 @@ tools <- R6::R6Class(
     #' Computation and visualization of correlation models
     correlation = function() {
       # place holder for correlation analysis, should also extend to network-analysis
+    },
+    #' @description
+    #' Relabelling phylogenetic tree by featureData
+    label_phylo = function(feature_rank, feature_filter = NA) {
+      # Create tmp tree copy
+      tmp_tree <- self$treeData
+
+      # starts with empty tip labels order
+      tip_dt <- data.table::data.table("tips" = tmp_tree$tip.label)
+
+      # Create lookup-table
+      lookup_dt <- data.table::data.table("id" = self$featureData[[ "ID" ]],
+                                          feature_rank = self$featureData[[ feature_rank ]])
+      colnames(lookup_dt) <- c("id", feature_rank)
+
+      # join tables
+      final_dt <- base::merge(tip_dt, lookup_dt, by.x="tips", by.y="id", all.x = TRUE)
+      # Re-name tips and perform filtering if applicable.
+      tmp_tree$tip.label <- final_dt[[ feature_rank ]]
+
+      return(tmp_tree)
     },
     #' @description
     #' Automated Omics Analysis based on metadata template.
