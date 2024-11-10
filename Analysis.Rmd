@@ -22,9 +22,11 @@ library("ggtree")
 
 ## Constructing metataxonomics class
 ```{r, eval=FALSE}
-taxa <- metataxonomics$new(metaData = "./tests/testthat/metataxonomics/input/metadata.tsv",
-                           biomData = "./tests/testthat/metataxonomics/input/biom_with_taxonomy.biom",
-                           treeData = "./tests/testthat/metataxonomics/input/rooted_tree.newick")
+taxa <- metataxonomics$new(metaData = "tests/testthat/input/metataxonomics/metadata.tsv",
+                           biomData = "tests/testthat/input/metataxonomics/biom_with_taxonomy.biom",
+                           treeData = "tests/testthat/input/metataxonomics/rooted_tree.newick")
+
+
 
 taxa$feature_subset(Domain == "Bacteria")
 taxa$transform(function(x) x / sum(x))
@@ -137,59 +139,18 @@ ggsave("results/pcoa_test.png",
 
 ```
 
-## TREE with extra layers [IMPROVING VISUALIZATION]
+## TREE with extra layers
 ```{r}
 
 feature_rank = "Genus"
 feature_filter = c("uncultured")
 
-taxa$feature_glom(feature_rank = feature_rank)
-
-label_phylo = function(feature_rank, feature_filter = NA) {
-  # Create tmp tree copy
-  tmp_tree <- taxa$treeData
-
-  # starts with empty tip labels order
-  tip_dt <- data.table::data.table("tips" = tmp_tree$tip.label)
-
-  # Create lookup-table
-  lookup_dt <- data.table::data.table("id" = taxa$featureData[[ "ID" ]],
-                                      feature_rank = taxa$featureData[[ feature_rank ]])
-  colnames(lookup_dt) <- c("id", feature_rank)
-
-  # join tables
-  final_dt <- base::merge(tip_dt, lookup_dt, by.x="tips", by.y="id", all.x = TRUE)
-  # Re-name tips and perform filtering if applicable.
-  tmp_tree$tip.label <- final_dt[[ feature_rank ]]
-  return(tmp_tree)
-}
-
-# User-specified
-cor_method = "spearman"
 cor_columns = c("BMI", "Weight")
-correlation_data = taxa$metaData[, .SD, .SDcols = cor_columns]
 
-# Compute correlations for taxa
-cor_mat <- as.data.frame(cor(t(as.matrix(taxa$countData)), correlation_data, method = cor_method))
-rownames(cor_mat) <- tmp_tree$tip.label
-
-# Create tree
-p <- ggtree(tmp_tree, branch.length = "none") + 
-  geom_tiplab(size = 2, offset = 5) +
-  theme_tree()
-  
-
-# Combine tree with correlation data
-gheatmap(p, cor_mat,
-         offset = -1,
-         width = 0.2, 
-         colnames_position = "top",
-         colnames_angle = 90,
-         hjust = 0,
-         font.size = 2.5,
-         low="blue", high="red", color="grey40")
-
-
+taxa$correlation(feature_rank = "Genus",
+                 feature_filter = c("uncultured"),
+                 cor_method = "spearman",
+                 cor_columns = c("BMI", "Weight"))
 
 ```
 

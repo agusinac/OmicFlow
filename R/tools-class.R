@@ -827,12 +827,77 @@ tools <- R6::R6Class(
     },
     #' @description
     #' Computation and visualization of correlation models
-    correlation = function() {
-      # place holder for correlation analysis, should also extend to network-analysis
+    correlation = function(feature_rank, feature_filter = NA,
+                           cor_method = "spearman", cor_columns = c("BMI", "Weight"), cor_threshold = 0.6,
+                           label_offset = 10, normalize = TRUE) {
+      # Copies object to prevent modification of tools class components
+      private$tmp_link(
+        .countData = self$countData,
+        .featureData = self$featureData,
+        .metaData = self$metaData,
+        .treeData = self$treeData
+      )
+      if (isTRUE(normalize)) {
+        self$transform(function(x) x / sum(x))
+      }
+      # Sum identical taxas
+      self$feature_glom(feature_rank = feature_rank,
+                        feature_filter = feature_filter)
+
+      # Fetch labelled tree by featureData
+      tree <- self$label_phylo(feature_rank = feature_rank)
+
+      # Subset data by correlation columns
+      correlation_data = self$metaData[, .SD, .SDcols = cor_columns]
+
+      # Compute correlations for taxa
+      cor_mat <- as.data.frame(cor(t(as.matrix(self$countData)), correlation_data, method = cor_method))
+      rownames(cor_mat) <- tree$tip.label
+
+      # Creating first base tree
+      p <- ggtree(tree, branch.length = "none") +
+        geom_tiplab(size = 3,
+                    offset = label_offset) +
+        geom_tippoint() +
+        geom_treescale() +
+        theme_tree()
+
+      # Add taxa labels of where correlation is above threshold
+      rows_to_keep <- apply(cor_mat > cor_threshold | cor_mat < -cor_threshold, 1, any)
+      feature_tippoints <- rownames(cor_mat[rows_to_keep ,])
+      tip_labels <- p$data[p$data$label %in% feature_tippoints, ]
+
+      # Adding labelling layer to base tree
+      p1 <- p +
+        geom_tippoint(data = tip_labels,
+                      mapping = aes(x = x,
+                                    y = y,
+                                    label = label),
+                      color = "red") +
+        scale_color_manual(labels = c("black" = "weak",
+                                      "red" = "strong"),
+                           name = "Correlation strength") +
+        xlim(0, max(p$data$x) + label_offset * 4)
+
+      # Restores tools class components
+      private$tmp_restore()
+
+      # Adding heatmap to final tree
+      return(
+        gheatmap(p1, cor_mat,
+                 offset = 0.1,
+                 width = 0.3,
+                 colnames_position = "top",
+                 hjust = 0.5,
+                 font.size = 2.5) +
+          scale_fill_viridis_c(option = "E",
+                               name = cor_method,
+                               na.value = "white")
+      )
     },
     #' @description
     #' Relabelling phylogenetic tree by featureData
-    label_phylo = function(feature_rank, feature_filter = NA) {
+    label_phylo = function(feature_rank) {
       # Create tmp tree copy
       tmp_tree <- self$treeData
 
