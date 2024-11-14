@@ -47,13 +47,13 @@ tools <- R6::R6Class(
     #' obj$removeZeros()
     removeZeros = function() {
       # Remove empty samples (columns)
-      keep_cols <- base::colSums(self$countData) > 0
+      keep_cols <- Matrix::colSums(self$countData) > 0
 
       # Remove empty species (rows)
-      keep_rows <- base::rowSums(self$countData) > 0
+      keep_rows <- Matrix::rowSums(self$countData) > 0
 
       # Creates new countData instance
-      self$countData <- self$countData[keep_rows, .SD, .SDcols = keep_cols]
+      self$countData <- self$countData[keep_rows, keep_cols]
       self$featureData <- self$featureData[keep_rows]
       invisible(self)
     },
@@ -86,11 +86,11 @@ tools <- R6::R6Class(
     #' obj$sample_subset(cycle %in% c("t1", "t5"))
     sample_subset = function(...) {
       # set order of columns
-      data.table::setcolorder(self$countData, self$metaData$`SAMPLE-ID`)
+      self$countData <- self$countData[, self$metaData[["SAMPLE-ID"]], drop = FALSE]
       # subset columns and rows
       rows_to_keep <- self$metaData[, ...]
       self$metaData <- self$metaData[rows_to_keep, ]
-      self$countData <- self$countData[, .SD, .SDcols = rows_to_keep]
+      self$countData <- self$countData[, rows_to_keep]
       self$removeZeros()
       invisible(self)
     },
@@ -106,24 +106,36 @@ tools <- R6::R6Class(
     #' obj$feature_glom(feature_rank = "Genus", feature_filter = c("uncultured", "metagenome"))
     feature_glom = function(feature_rank, feature_filter = NA) {
       # creates a subset of unique feature rank, hashes combined for each unique rank
-      id_list <- data.table::copy(self$featureData[, ID])
-      counts <- data.table::copy(self$countData[, ID := id_list])
+      counts <- data.table::data.table("ID" = rownames(self$countData))
       features <- data.table::copy(self$featureData)
 
       # set keys
       data.table::setkey(counts, ID)
       data.table::setkey(features, ID)
 
+      # Create groups by ID
       grouped_ids <- features[, .(IDs = list(ID)), by = feature_rank]
-      list_counts <- lapply(grouped_ids$ID, function(id) {
-        counts[id, colSums(.SD), .SDcols = !c("ID"), on = "ID"]
-      })
-      self$countData <- data.table::data.table(do.call("rbind", list_counts))
+      counts_glom <- Matrix::Matrix(0,
+                                    nrow = nrow(grouped_ids),
+                                    ncol = ncol(self$countData),
+                                    dimnames = list(NULL, colnames(self$countData)),
+                                    sparse = TRUE)
 
-      # subset feature data
+      # Populate sparse matrix by colsums of identical taxa
+      for (i in 1:nrow(grouped_ids)) {
+        ids <- grouped_ids$IDs[[i]]
+        if (length(ids) == 1) {
+          counts_glom[i, ] <- self$countData[grouped_ids$IDs[[i]],]
+        } else {
+          counts_glom[i, ] <- Matrix::colSums(self$countData[grouped_ids$IDs[[i]],])
+        }
+      }
+
+      # Prepare final self-components
       self$featureData <- base::unique(self$featureData, by = feature_rank)
+      self$countData <- counts_glom
 
-      # Remove empty strings
+      # Clean up featureData
       empty_strings <- self$featureData[[feature_rank]] != ""
       self$featureData <- self$featureData[empty_strings, ]
       self$countData <- self$countData[empty_strings, ]
@@ -134,6 +146,7 @@ tools <- R6::R6Class(
         self$featureData <- self$featureData[user_filter, ]
         self$countData <- self$countData[user_filter, ]
       }
+
       self$removeZeros()
       invisible(self)
     },
@@ -147,10 +160,12 @@ tools <- R6::R6Class(
     #'                  metaData = "metadata.tsv"
     #' obj$transform(log2)
     #' obj$transform(function(x) x / sum(x))
-    transform = function(fun, ...) {
-      tmp_trans <- apply(as(as.matrix(self$countData), "TsparseMatrix"), 2, fun, ...)
-      tmp_trans[!is.finite(tmp_trans)] <- 0
-      self$countData <- data.table::data.table(tmp_trans)
+    transform = function(fun) {
+      self$countData <- fun(self$countData@x)
+      invisible(self)
+    },
+    normalize = function() {
+      self$countData@x <- self$countData@x / rep(Matrix::colSums(self$countData), base::diff(self$countData@p))
       invisible(self)
     },
     #---------------------------#
@@ -229,22 +244,21 @@ tools <- R6::R6Class(
       private$tmp_link(
         .countData = self$countData,
         .featureData = self$featureData,
-        .metaData = self$metaData
+        .metaData = self$metaData,
+        .treeData = self$treeData
       )
 
       # Compute diversity and other metrics if custom_div is empty
       if (is.na(custom_div)) {
-        # Get matrix
-        mat <- as.matrix(self$countData)
-
         # Alpha diversity based on 'method'
-        div <- data.table::data.table(vegan::diversity(t(mat), index=method))
+        t.sparse <- t(self$countData)
+        div <- data.table::data.table(vegan::diversity(t.sparse, index=method))
         div[, (paste(col_name)) := self$metaData[, .SD, .SDcols = c(col_name)]]
         # Adjusts for evenness
         if (evenness) div$V1 <- div$V1 / log(vegan::specnumber(div$V1))
 
         # Fisher alpha based on 'method'
-        fish <- data.table::data.table(vegan::fisher.alpha(t(mat), index=method))
+        fish <- data.table::data.table(vegan::fisher.alpha(t.sparse, index=method))
         fish[, (paste(col_name)) := self$metaData[, .SD, .SDcols = c(col_name)]]
         # Adjusts for evenness
         if (evenness) fish$V1 <- fish$V1 / log(vegan::specnumber(fish$V1))
@@ -306,17 +320,21 @@ tools <- R6::R6Class(
       private$tmp_link(
         .countData = self$countData,
         .featureData = self$featureData,
-        .metaData = self$metaData
+        .metaData = self$metaData,
+        .treeData = self$treeData
       )
 
       # Agglomerate by feature_rank
       self$feature_glom(feature_rank = feature_rank, feature_filter = feature_filter)
 
       # Normalizes sample counts
-      self$transform(function(x) x / sum(x))
+      self$normalize()
+
+      # Convert sparse matrix to data.table (safe since feature_glom shrinks the sparse matrix)
+      counts <- data.table::data.table(as.matrix(self$countData))
 
       # Fetch unfiltered and filtered features
-      dt <- self$countData[, (feature_rank) := self$featureData[[feature_rank]]]
+      dt <- counts[, (feature_rank) := self$featureData[[feature_rank]]]
 
       # Create row_sums
       dt[, row_sum := rowSums(.SD), .SDcols = !c(feature_rank)]
@@ -425,14 +443,13 @@ tools <- R6::R6Class(
 
       # Normalizes counts
       if (normalize == TRUE) {
-        self$transform(function(x) x / sum(x))
+        self$normalize()
       }
 
       # computes distance matrix without sample rarefying
       if (is.null(distmat)) {
         # Requires rownames to contain same labels as tree
-        counts <- self$countData
-        counts <- as.matrix(counts)
+        counts <- slam::as.simple_triplet_matrix(self$countData)
         rownames(counts) <- self$featureData$ID
 
         if (metric == "unifrac") {
@@ -550,8 +567,7 @@ tools <- R6::R6Class(
         plot_list$scores_plot <- ordination_plot(df_pcs_points,
                                                  pcs,
                                                  pair=c("MDS1", "MDS2"),
-                                                 metric,
-                                                 group_by)
+                                                 metric)
       }
 
       # Restores tools class components

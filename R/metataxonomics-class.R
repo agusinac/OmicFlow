@@ -42,8 +42,18 @@ metataxonomics <- R6::R6Class(
         # Loads metadata
         self$metaData <- data.table::fread(metaData)
 
-        # initializes count table
-        private$generate_matrix()
+        # initializes count matrix
+        indptr <- as.numeric(self$biomData$observation$matrix$indptr)
+
+        self$countData <- Matrix::sparseMatrix(
+          i        = unlist(sapply(1:(length(indptr)-1), function (i) rep(i, diff(indptr[c(i,i+1)])))),
+          j        = as.numeric(self$biomData$observation$matrix$indices) + 1,
+          x        = as.numeric(self$biomData$observation$matrix$data),
+          dims     = c(length(self$biomData$observation$ids), length(self$biomData$sample$ids)),
+          dimnames = list(
+            as.character(self$biomData$observation$ids),
+            as.character(self$biomData$sample$ids)
+          ))
 
         # initializes taxonomy table
         self$featureData <- data.table::data.table(t(self$biomData$observation$metadata$taxonomy))
@@ -133,23 +143,6 @@ metataxonomics <- R6::R6Class(
     }
   ),
   private = list(
-    original_data = list(),
-    generate_matrix = function() {
-      indptr = self$biomData$sample$matrix$indptr+1
-      indices = self$biomData$sample$matrix$indices+1
-      data = self$biomData$sample$matrix$data
-      nr = length(self$biomData$observation$ids)
-
-      # Fill non-zeros among zeros
-      counts = sapply(2:length(indptr), function(i) {
-        x = rep(0,nr)
-        seq = indptr[i-1]:(indptr[i]-1)
-        x[indices[seq]] = data[seq]
-        x
-      })
-      # save as sparse matrix
-      self$countData <- data.table::data.table(counts)
-      colnames(self$countData) <- self$biomData$sample$ids
-    }
-  )
+    original_data = list()
+    )
 )

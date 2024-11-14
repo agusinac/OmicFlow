@@ -16,6 +16,98 @@ library("Matrix")
 library("ggplot2")
 library("OmicFlow")
 library("ggtree")
+library("patchwork")
+```
+
+# Investigating HBS and BaCo on contamination
+```{r}
+taxa <- metataxonomics$new(metaData = "../../../Pathology/projects/HEREDITARY/data/metadata.tsv",
+                               biomData = "../../../Pathology/projects/HEREDITARY/data/biom_with_taxonomy.biom",
+                               treeData = "../../../Pathology/projects/HEREDITARY/data/rooted_tree.newick")
+taxa$reset()
+
+taxa$feature_subset(Domain == "Bacteria")
+taxa$feature_glom(feature_rank = "Species")
+
+pcoa <- taxa$ordination(metric = "bray", 
+                method = "pcoa", 
+                group_by = "study_group", 
+                weighted = TRUE, 
+                normalize = TRUE,
+                parallel = TRUE,
+                cpus = 4)
+
+
+ggsave(filename = "../../../Pathology/projects/HEREDITARY/results/nmds_genus.png",
+       plot = patchwork::wrap_plots(nmds$anova_plot, nmds$scores_plot),
+       units = "cm",
+       width = 20,
+       height = 10,
+       limitsize = FALSE,
+       dpi = 400,
+       scaling = 0.5)
+
+nmds
+
+```
+## PANEL
+```{r}
+main_panel_1 <- (wrap_elements(plt_1) + 
+                   wrap_elements(plt_2) +
+                   plot_layout(widths = c(5, 6))) +
+  plot_annotation(tag_levels = "A") &
+  theme(plot.tag = element_text(face = 'bold', size = 15))
+
+ggsave(filename = "../../../Pathology/projects/HEREDITARY/results/studygroups_composition.png",
+       plot = main_panel_1,
+       units = "cm",
+       width = 20,
+       height = 10,
+       limitsize = FALSE,
+       dpi = 400,
+       scaling = 0.5)
+
+```
+
+# Improving countData with TsparseMatrix
+```{r}
+# TO DO:
+  # Replace tools basic fread to sparse matrix load
+  # Change methods accordingly:
+    # rankstat [DONE]
+    # alpha_diversity
+      # - NOTE: vegan converts sparse to matrix, this will explode in computation time, find an alternative package
+    # composition [DONE]
+    # ordination [DONE] 
+      # - NOTE: 137k features seems to be a limit
+    # differential_feature_expression
+    # correlation
+
+
+large_dd <- metataxonomics$new(metaData = "../../../Pathology/projects/HEREDITARY/data/metadata.tsv",
+                           biomData = "../../../Pathology/projects/HEREDITARY/data/biom_with_taxonomy.biom",
+                           treeData = "../../../Pathology/projects/HEREDITARY/data/rooted_tree.newick")
+
+large_dd$feature_subset(Domain == "Bacteria")
+
+
+result <- large_dd$composition(feature_rank = "Genus",
+                                 feature_filter = c("uncultured"),
+                                 feature_top = 10)
+
+composition_plot(data = result$data,
+                 palette = result$palette,
+                 feature_rank = "Genus")
+
+large_dd$feature_glom(feature_rank = "Genus")
+
+pcoa_plots <- large_dd$ordination(metric = "unifrac",
+                                    method = "pcoa",
+                                    group_by = "SAMPLE-ID", 
+                                    weighted = TRUE,
+                                    parallel = TRUE,
+                                    normalize = TRUE)
+
 ```
 
 ## Specify data paths
@@ -27,9 +119,12 @@ taxa <- metataxonomics$new(metaData = "tests/testthat/input/metataxonomics/metad
                            treeData = "tests/testthat/input/metataxonomics/rooted_tree.newick")
 
 
-
 taxa$feature_subset(Domain == "Bacteria")
-taxa$transform(function(x) x / sum(x))
+taxa$normalize()
+taxa$transform(log2)
+
+shannon <- taxa$alpha_diversity(col_name = "BMI", method = "shannon")
+
 
 
 result <- taxa$composition(feature_rank = "Genus",
@@ -42,30 +137,6 @@ composition_plot(data = result$data,
 
 
 ```
-# test lowlands
-```{r}
-LL <- metataxonomics$new(metaData = "../../../RTC/projects/lowlands_16s/results/metadata.tsv",
-                         biomData = "../../../RTC/projects/lowlands_16s/results/biom_with_taxonomy.biom",
-                         treeData = "../../../RTC/projects/lowlands_16s/results/rooted_tree.newick")
-
-LL$feature_subset(Domain == "Bacteria")
-LL$sample_subset(RANKSTAT_attraction_score %in% c("1", "0"))
-res <- LL$differential_feature_expression(feature_rank = "Genus",
-                                          sample.id = "SAMPLE-ID",
-                                          paired = FALSE,
-                                          condition.group = "RANKSTAT_attraction_score",
-                                          condition_A = c("0"),
-                                          condition_B = c("1"))
-res$volcano[res$volcano[, pvalue_1 < 0.05], ]
-
-ggsave("../../../RTC/projects/lowlands_16s/results/volcano_high_vs_low.png",
-       plot = res$volcano_plot,
-       height = 10,
-       width = 30,
-       dpi = 400)
-```
-
-
 
 # General analysis flow
 ## Rankstat
