@@ -47,7 +47,7 @@ ggsave(filename = "../../../Pathology/projects/HEREDITARY/results/nmds_genus.png
        dpi = 400,
        scaling = 0.5)
 
-nmds
+taxa$alpha_diversity(col_name = "study_group", method = "shannon")
 
 ```
 ## PANEL
@@ -109,6 +109,7 @@ pcoa_plots <- large_dd$ordination(metric = "unifrac",
                                     normalize = TRUE)
 
 ```
+
 
 ## Specify data paths
 

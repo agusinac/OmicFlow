@@ -236,8 +236,7 @@ tools <- R6::R6Class(
 
       # OUTPUT: Plot list
       plot_list <- list(
-        diversity = NULL,
-        fisher_alpha = NULL
+        diversity = NULL
       )
 
       # Save tools class components
@@ -251,17 +250,10 @@ tools <- R6::R6Class(
       # Compute diversity and other metrics if custom_div is empty
       if (is.na(custom_div)) {
         # Alpha diversity based on 'method'
-        t.sparse <- t(self$countData)
-        div <- data.table::data.table(vegan::diversity(t.sparse, index=method))
+        div <- data.table::data.table(diversity(x = self$countData, index=method))
         div[, (paste(col_name)) := self$metaData[, .SD, .SDcols = c(col_name)]]
         # Adjusts for evenness
         if (evenness) div$V1 <- div$V1 / log(vegan::specnumber(div$V1))
-
-        # Fisher alpha based on 'method'
-        fish <- data.table::data.table(vegan::fisher.alpha(t.sparse, index=method))
-        fish[, (paste(col_name)) := self$metaData[, .SD, .SDcols = c(col_name)]]
-        # Adjusts for evenness
-        if (evenness) fish$V1 <- fish$V1 / log(vegan::specnumber(fish$V1))
 
         # get colors
         colors <- fetch_palette(self$metaData, col_name, Brewer.palID)
@@ -272,11 +264,6 @@ tools <- R6::R6Class(
                                               col_name = col_name,
                                               palette = colors,
                                               method = method)
-        plot_list$fisher_alpha <- diversity_plot(dt = fish,
-                                                 values = "V1",
-                                                 col_name = col_name,
-                                                 palette = colors,
-                                                 method = method)
 
         # Restores tools class components
         private$tmp_restore()
