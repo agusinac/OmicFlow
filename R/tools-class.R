@@ -825,12 +825,14 @@ tools <- R6::R6Class(
         .metaData = self$metaData,
         .treeData = self$treeData
       )
-      if (isTRUE(normalize)) {
-        self$transform(function(x) x / sum(x))
-      }
-      # Sum identical taxas
+
+      # Agglomerate taxa by feature rank and filter unwanted taxa
       self$feature_glom(feature_rank = feature_rank,
                         feature_filter = feature_filter)
+
+      if (normalize) {
+        self$normalize()
+      }
 
       # Fetch labelled tree by featureData
       tree <- self$label_phylo(feature_rank = feature_rank)
@@ -839,7 +841,7 @@ tools <- R6::R6Class(
       correlation_data = self$metaData[, .SD, .SDcols = cor_columns]
 
       # Compute correlations for taxa
-      cor_mat <- as.data.frame(cor(t(as.matrix(self$countData)), correlation_data, method = cor_method))
+      cor_mat <- as.data.frame(cor(t(as.matrix(taxa$countData)), correlation_data, method = cor_method))
       rownames(cor_mat) <- tree$tip.label
 
       # Creating first base tree
