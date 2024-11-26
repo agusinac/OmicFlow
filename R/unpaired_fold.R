@@ -28,9 +28,6 @@ unpaired_fold <- function(dt, sample.id, condition_A, condition_B, condition_lab
   unpaired_dt <- data.table::data.table(feature_rank = feature_labels)
   colnames(unpaired_dt) <- feature_rank
 
-  volcano_dt <- data.table::data.table(feature_rank = feature_labels)
-  colnames(volcano_dt) <- feature_rank
-
   # Register Parallel backend
   cl <- parallel::makeCluster(cpus)
   doParallel::registerDoParallel(cl)
@@ -43,41 +40,30 @@ unpaired_fold <- function(dt, sample.id, condition_A, condition_B, condition_lab
 
     # Improve with foreach and parallelize it!
     # Create cross-wise combinations
-    combinations <- data.table::data.table(expand.grid(colnames(dt_A), colnames(dt_B)))
+    # combinations <- data.table::data.table(expand.grid(colnames(dt_A), colnames(dt_B)))
 
     # Perform subtraction cross wise
-    results <- foreach(j = seq_along(combinations$Var1), .combine = cbind, .packages = 'data.table') %dopar% {
-      col_A <- combinations$Var1[j]
-      col_B <- combinations$Var2[j]
+    # results <- foreach(j = seq_along(combinations$Var1), .combine = cbind, .packages = 'data.table') %dopar% {
+    #   col_A <- combinations$Var1[j]
+    #   col_B <- combinations$Var2[j]
+    #
+    #   dt_A[, ..col_A] - dt_B[, ..col_B]
+    # }
+    result <- base::rowMeans(dt_A) - base::rowMeans(dt_B)
 
-      dt_A[, ..col_A] - dt_B[, ..col_B]
-    }
-
-    unpaired_dt <- cbind(unpaired_dt, results)
+    unpaired_dt <- cbind(unpaired_dt, result)
+    colnames(unpaired_dt) <- c(feature_rank, paste0("Log2FC_", i))
 
     # Compute pvalues with wilcox test
     mat_A <- as.matrix(dt_A)
     mat_B <- as.matrix(dt_B)
     for (k in seq_along(feature_labels)) {
       # save p-values in data.table
-      volcano_dt[k, (paste0("pvalue_", i)) := stats::wilcox.test(mat_A[k, ], mat_B[k, ], correct = TRUE)$p.value]
+      unpaired_dt[k, (paste0("pvalue_", i)) := stats::wilcox.test(mat_A[k, ], mat_B[k, ], correct = TRUE)$p.value]
     }
-
-    # Compute row means for each taxa
-    volcano_dt[, (paste0("foldchange_", i)) := rowMeans(unpaired_dt[, .SD, .SDcols = !c(feature_rank)])]
-
-    # Melt into a single column
-    final_dt <- data.table::melt(unpaired_dt,
-                                 id.vars = feature_rank,
-                                 variable.name = sample.id,
-                                 value.name = paste0("diff_", i))
   }
   # Stop the cluster
   parallel::stopCluster(cl)
 
-  result <- list(
-    data = final_dt,
-    volcano = volcano_dt
-  )
-  return(result)
+  return(unpaired_dt)
 }

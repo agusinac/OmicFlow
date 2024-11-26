@@ -45,12 +45,12 @@ volcano_plot <- function(dt, X, Y, feature_rank, pvalue.threshold = 0.05, logfol
       geom_rect(aes(xmin = logfold.threshold, xmax = Inf,
                     ymin = -log10(pvalue.threshold), ymax = Inf),
                 fill = "#FFF1F3", alpha = 0.1, color = NA) +
-      annotate("text", x = -logfold.threshold*4 , y = max_pvalue+1.5,
-               label = "Significant\ndecrease",
-               vjust = 2, size = 5, color = "black") +
-      annotate("text", x = logfold.threshold*4 , y = max_pvalue+1.5,
-               label = "Significant\nincrease",
-               vjust = 2, size = 5, color = "black") +
+      # annotate("text", x = -logfold.threshold*4 , y = max_pvalue+1.5,
+      #          label = "Significant\ndecrease",
+      #          vjust = 2, size = 5, color = "black") +
+      # annotate("text", x = logfold.threshold*4 , y = max_pvalue+1.5,
+      #          label = "Significant\nincrease",
+      #          vjust = 2, size = 5, color = "black") +
       geom_vline(xintercept = c(-logfold.threshold, logfold.threshold),
                  col = "black", linetype = 'dashed') +
       geom_hline(yintercept = -log10(pvalue.threshold),

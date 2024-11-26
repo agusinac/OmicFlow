@@ -161,7 +161,7 @@ tools <- R6::R6Class(
     #' obj$transform(log2)
     #' obj$transform(function(x) x / sum(x))
     transform = function(fun) {
-      self$countData <- fun(self$countData@x)
+      self$countData@x <- fun(self$countData@x)
       invisible(self)
     },
     normalize = function() {
@@ -236,7 +236,8 @@ tools <- R6::R6Class(
 
       # OUTPUT: Plot list
       plot_list <- list(
-        diversity = NULL
+        diversity = NULL,
+        hillsPlot = NULL
       )
 
       # Save tools class components
@@ -607,9 +608,8 @@ tools <- R6::R6Class(
       # Final output
       plot_list <- list(
         data = NULL,
-        volcano_plot = NULL,
         tile_plot = NULL,
-        volcano = NULL
+        volcano_plot = NULL
       )
       # Copies object to prevent modification of tools class components
       private$tmp_link(
@@ -623,13 +623,13 @@ tools <- R6::R6Class(
       # Main #
       #------#
 
-      # normalization if applicable
-      if (normalize) {
-        self$transform(function(x) x / sum(x))
-      }
-
       # Agglomerate taxa by feature rank and filter unwanted taxa
       self$feature_glom(feature_rank = feature_rank, feature_filter = feature_filter)
+
+      # normalization if applicable
+      if (normalize) {
+        self$normalize()
+      }
 
       # Check how many features to select (depended if volcano is desired)
       if (!is.na(feature_top)) {
@@ -639,10 +639,10 @@ tools <- R6::R6Class(
       }
 
       # Extract relative abundance
-      rel_abun <- rowMeans(self$countData[1:feature_top, .SD, .SDcols = colnames(self$countData)])
+      rel_abun <- Matrix::rowMeans(self$countData[1:feature_top,])
 
       # Creates long table of relative abundance
-      dt <- self$countData[, (feature_rank) := self$featureData[[feature_rank]]]
+      dt <- sparse_to_dtable(self$countData)[, (feature_rank) := self$featureData[[feature_rank]]]
       stats_dt <- base::merge(data.table::melt(dt,
                                                measure.vars = colnames(dt)[!grepl(feature_rank, colnames(dt))],
                                                variable.name = sample.id,
@@ -654,16 +654,16 @@ tools <- R6::R6Class(
       dt[, row_sum := rowSums(.SD), .SDcols = !c(feature_rank)]
 
       # Orders by row_sum in descending order
-      self$countData <- data.table::setorder(dt, -row_sum)[1:feature_top, .SD, .SDcols = !c("row_sum")]
-      features <- self$countData[[ feature_rank ]]
-      self$countData <- self$countData[, .SD, .SDcols = !c(feature_rank)]
+      countTable <- data.table::setorder(dt, -row_sum)[1:feature_top, .SD, .SDcols = !c("row_sum")]
+      features <- countTable[[ feature_rank ]]
+      self$countData <- as(as.matrix(countTable[, .SD, .SDcols = !c(feature_rank)]), "sparseMatrix")
 
       # Log2 transform taxa
       self$transform(log2)
 
       # Subset by top features
       stats_dt <- stats_dt[stats_dt[[feature_rank]] %in% features]
-      dt <- self$countData[, (feature_rank) := features]
+      dt <- sparse_to_dtable(self$countData)[, (feature_rank) := features]
 
       # Compute 2-fold expression based on (un)paired samples
       # Computes on equation oflog2(A) - log2(B)
@@ -698,8 +698,6 @@ tools <- R6::R6Class(
                              condition_labels = condition.labels,
                              feature_rank = feature_rank,
                              cpus = cpus)
-        # Save data
-        plot_list$data <- DFE$data
 
       } else {
         stop("paired can only be TRUE or FALSE, check your input.")
@@ -784,38 +782,25 @@ tools <- R6::R6Class(
           labs(x = NULL,
                y = NULL)
       } else {
-        # Store pvalues and volcano dt
-        plot_list$volcano <- DFE$volcano
-
         #----------------------#
-        # Volcano plot         #
+        # Visualization        #
         #----------------------#
 
-        # Create merged dt for volcano with mean foldchange and rel. abundance
-        DFE$volcano <- DFE$volcano[, "rel_abun" := rel_abun]
+        # Add relative abundance, and save data as output list
+        DFE <- DFE[, "rel_abun" := rel_abun]
+        plot_list$data <- DFE
 
         # Create & save volcano plot
-        n_diff_columns <- sum(grepl("^diff_", colnames(DFE$data)))
-        plot_list$volcano_plot <- patchwork::wrap_plots(
-          lapply(1:n_diff_columns, function(i) {
-            plt1 <- volcano_plot(dt = DFE$volcano,
-                                 X = paste0("foldchange_", i),
-                                 Y = paste0("pvalue_", i),
-                                 feature_rank = feature_rank,
-                                 pvalue.threshold = pvalue.threshold,
-                                 logfold.threshold = foldchange.threshold)
-            plt2 <- ViolinBoxPlot(dt = DFE,
-                                  X = paste0("foldchange_", i),
-                                  Y = paste0("pvalue_", i),
-                                  diff = paste0("diff_", i),
-                                  feature_rank = feature_rank,
-                                  pvalue.threshold = pvalue.threshold,
-                                  logfold.threshold = foldchange.threshold)
-            (plt1 + plt2)
-          }),
-          ncol = 1,
-          nrow = n_diff_columns)
+        n_diff_columns <- sum(grepl("^Log2FC_", colnames(DFE)))
 
+        plot_list$volcano_plot <- lapply(1:n_diff_columns, function(i) {
+                volcano_plot(dt = DFE,
+                              X = paste0("Log2FC_", i),
+                              Y = paste0("pvalue_", i),
+                              feature_rank = feature_rank,
+                              pvalue.threshold = pvalue.threshold,
+                              logfold.threshold = foldchange.threshold)
+          })
 
       }
       # Restores tools class components

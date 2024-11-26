@@ -15,8 +15,8 @@
 
 ViolinBoxPlot <- function(dt, X, Y, diff, feature_rank, logfold.threshold = 0.6, pvalue.threshold = 0.05) {
   # Subset significant groups
-  significant_subset <- dt$volcano[dt$volcano[, base::get(Y) < pvalue.threshold & (base::get(X) > logfold.threshold  | base::get(X) < -logfold.threshold)], ]
-  significant_final <- dt$data[dt$data[[feature_rank]] %in% significant_subset[[feature_rank]], ]
+  significant_subset <- dt[dt[, base::get(Y) < pvalue.threshold & (base::get(X) > logfold.threshold  | base::get(X) < -logfold.threshold)], ]
+  significant_final <- dt[dt[[feature_rank]] %in% significant_subset[[feature_rank]], ]
 
   # Use significant values to create half box & violin plot
   return(
