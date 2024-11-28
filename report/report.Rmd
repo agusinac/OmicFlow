@@ -51,13 +51,13 @@ plot_tabs <- function(plots, method, label_col, label_row) {
 ```
 
 ```{r}
-if (!is.null(preprocess_stats)) {
-  cat("# Preprocessing step \n")
-  cat("Refer to published paper regarding pipeline\n")
-  preprocess_stats %>% 
-    kableExtra::kbl(caption = "Table 1: Stats from cutadapt and DADA2 denoising") %>%
-    kableExtra::kable_classic(full_width = TRUE, html_font = "Calibri")
-}
+# if (!is.null(preprocess_stats)) {
+#   cat("# Preprocessing step \n")
+#   cat("Refer to published paper regarding pipeline\n")
+#   preprocess_stats %>% 
+#     kableExtra::kbl(caption = "Table 1: Stats from cutadapt and DADA2 denoising") %>%
+#     kableExtra::kable_classic(full_width = TRUE, html_font = "Calibri")
+# }
 
 ```
 
@@ -65,64 +65,75 @@ if (!is.null(preprocess_stats)) {
 
 
 ```{r}
-if (!is.null(rankstat_plot)) {
+if (!is.null(plots$rankstat_plot)) {
   cat("## Rank stats \n")
-  rankstat_plot
+  plots$rankstat_plot
 }
 ```
 
 
 ```{r}
-if (!is.null(shannon_plots)) {
+if (!is.null(plots$alpha_div_plots)) {
   cat("## Alpha diversity {.tabset} \n")
-  plot_tabs(shannon_plots, method = "vector", label_col = colnames(RANKSTAT_data))
+  plot_tabs(plots$alpha_div, 
+            method = "vector", 
+            label_col = rankstat_labels)
 }
 
 ```
 
 
 ```{r}
-if (!is.null(pcoa_plots)) {
+if (!is.null(plots$pcoa_plots)) {
   cat("## Beta Diversity: Principal Coordinate Analysis (PCoA) {.tabset}")
-  plot_tabs(pcoa_plots, 
+  plot_tabs(plots$pcoa_plots, 
             method = "matrix", 
-            label_col = colnames(RANKSTAT_data),
-            label_row = metrics)
+            label_col = rankstat_labels,
+            label_row = distance_metrics)
 }
 
 ```
 
 
 ```{r}
-if (!is.null(nmds_plots)) {
+if (!is.null(plots$nmds_plots)) {
   cat("## Beta Diversity: NMDS {.tabset} \n")
-  plot_tabs(nmds_plots, 
+  plot_tabs(plots$nmds_plots, 
             method = "matrix",
-            label_col = colnames(RANKSTAT_data),
-            label_row = metrics)
+            label_col = rankstat_labels,
+            label_row = distance_metrics)
 }
 ```
 
+```{r}
+if (!is.null(plots$rda_plots)) {
+  cat("## Redundancy Analysis (RDA) {.tabset} \n")
+  plot_tabs(plots$rda_plots,
+            method = "matrix",
+            label_col = rankstat_labels,
+            label_row = c("RDA", "PCA"))
+}
 
+```
 
 ```{r}
-if (!is.null(composition_plots)) {
+if (!is.null(plots$composition_plots)) {
   cat("## Composition {.tabset} \n")
-  plot_tabs(composition_plots, 
+  plot_tabs(plots$composition_plots, 
             method = "matrix", 
-            label_col = colnames(RANKSTAT_data), 
-            label_row = taxa_names)
+            label_col = rankstat_labels, 
+            label_row = feature_ranks)
 }
 
 ```
 
 
 ```{r}
-if (!is.null(correlation_heatmap_plt)) {
+if (!is.null(plots$correlation_plots)) {
   cat("## Correlations {.tabset} \n")
-  plot_tabs(correlation_heatmap_plt, 
+  plot_tabs(plots$correlation_plots, 
             method = "vector",
-            label_col = taxa_names)
+            label_col = feature_ranks)
 }
 
 ```
@@ -130,21 +141,12 @@ if (!is.null(correlation_heatmap_plt)) {
 
 ```{r}
 # Unnaming the plot list and saving as a new list
-if (!is.null(heatmap_plots)) {
-  cat("## 2-fold heatmap {.tabset} \n")
-  
-  final_plots <- list()
-  fold_headers <- c("boxplot", "barplot", "tile_plot", "rel_abun")
-  for (i in 2:length(heatmap_plots[[1]])) {
-    final_plots[[i-1]] <- unname(heatmap_plots[[1]][fold_headers[i-1]])
-  }
-  
-  # Separate function due to `[[1]]` being printed to stdout
-  for (i in 1:length(final_plots)) {
-    cat(paste0("\n\n### Plot ", fold_headers[i], "\n"))
-    print(final_plots[[i]][[1]])
-    cat("\n")
-  }
+if (!is.null(plots$Log2FC_plots)) {
+  cat("## Log2 Fold-Change {.tabset} \n")
+  plot_tabs(plots$Log2FC_plots, 
+            method = "matrix", 
+            label_col = rankstat_labels, 
+            label_row = feature_ranks)
 }
 
 ```
@@ -152,113 +154,44 @@ if (!is.null(heatmap_plots)) {
 ## Downloadable content
 
 ```{r}
-flatten <- function(plot_list,data_list) {
-  for (obj in data_list) {
-    
-    current_len <- length(plot_list)
-    
-    # Append from list
-    if (is.list(obj)) {
-      for (i in seq_along(obj)) {
-        plot_list[[current_len + i]] <- obj[[i]]
-      } 
-    }
-    
-    # Append from matrix
-    if (is.matrix(obj)) {
-      for (i in seq_along(obj)) {
-        plot_list[[current_len + i]] <- obj[[i]]
-      }
-    }
+# Function to save content to a temporary file and return the path
+save_content <- function(data, extension) {
+  temp_file <- tempfile(fileext = extension)
+  if (extension == ".mtx") {
+    Matrix::writeMM(data, temp_file)
+  } else if (extension == ".tsv") {
+    data.table::fwrite(data, temp_file, sep = "\t")
+  } else if (extension == ".newick") {
+    ape::write.tree(data, temp_file)
   }
-  return(plot_list)
+  return(temp_file)
 }
 
-# # Combine all plot data structures into a single list, e.g.:
-# current_plots <- list(rankstat_plot, shannon_plots)
-# add_plots <- list(pcoa_plots, nmds_plots, composition_plots, correlation_heatmap_plt, final_plots)
-# content <- flatten(current_plots, add_plots)
-
-
-# Currently only dataframes and static content available
-# TO DO: Implement graph sharing, possibly convert it into an interactive shiny document
-
-# Dynamically fetches files/folders for downloadthis
-# path_files <- list.files(
-#   path = outfile_path,
-#   full.names = TRUE
-# )
-
-# File/folder absolute paths
-# files <- path_files[grepl("\\.\\w+", path_files)]
-# folder <- base::setdiff(path_files, files)
-# files.filt <- files[grep("\\.(tsv|csv|txt)$", files)]
-
 # Data as content to be used for downloadthis
-content <- c(ps)
+content <- list(counts = omics$countData,
+                metadata = omics$metaData, 
+                features = omics$featureData, 
+                tree = omics$treeData)
 
 # Dataframe to be viewed
 overview <- data.frame(
-  Name = "phyloseq",
-           #tools::file_path_sans_ext(base::basename(files.filt)),
-           #base::basename(folder)),
-  data_type = "RDS"
-                #base::rep("dataframe", length(files.filt)),
-                #base::rep("dir", length(folder)))
+  Name = c("counts", "metadata", "features", "tree"),
+  data_type = c(".mtx", ".tsv", ".tsv", ".newick")
 )
 
 overview[["Download"]] <- vapply(1:nrow(overview), function(i) {
-  data_type <- overview$data_type[i]
-
-  extension <- switch(
-    data_type,
-    "dataframe" = ".xlsx",
-    "RDS" = ".rds",
-    "plot" = ".png"
-  )
-
-  if (data_type == "dir") {
-    as.character(
-      downloadthis::download_dir(
-        path = content[[i]],
-        output_name = overview$Name[i],
-        button_label = "Download",
-        button_type = "primary",
-        has_icon = TRUE,
-        icon = "fa fa-save",
-        self_contained = FALSE
-      )
-    )
-
-  } else if (data_type == "dataframe") {
-    as.character(
-      downloadthis::download_file(
-        path = content[[i]],
-        output_name = overview$Name[i],
-        button_label = "Download",
-        button_type = "danger",
-        has_icon = TRUE,
-        icon = "fa fa-save",
-        self_contained = FALSE
-      )
-    )
-      
-  } else {
+  file_path <- save_content(content[[i]], overview$data_type[i])
   as.character(
-    downloadthis::download_this(
-      .data = content[[i]],
-      output_name = overview$Name[i],
-      output_extension = extension,
+    downloadthis::download_file(
+      path = file_path,
+      output_name = paste0(overview$Name[[i]], overview$data_type[[i]]),
       button_label = "Download",
       button_type = "primary",
-      icon = "fa fa-save",
-      csv2 = FALSE,
-      self_contained = TRUE
+      has_icon = TRUE,
+      icon = "fa fa-save")
     )
-  )
-  }
-
-}, character(1L))
+  }, character(1L)
+)
 
 # Creates interactive table
 DT::datatable(
@@ -272,17 +205,5 @@ DT::datatable(
   )
 )
 
+
 ```
-
-
-
-<!-- ## Redundancy Analysis (RDA) {.tabset} -->
-<!-- ```{r, fig.width=10, fig.height=10} -->
-<!-- # par(mfrow=c(RANKSTAT_ncol, 2)) -->
-<!-- # for (i in 1:RANKSTAT_ncol) { -->
-<!-- #   RDA_plots[[i, 1]]() -->
-<!-- #   RDA_plots[[i, 2]]() -->
-<!-- # } -->
-
-<!-- ``` -->
-<!-- ## {-} -->

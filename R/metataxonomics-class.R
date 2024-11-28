@@ -55,6 +55,9 @@ metataxonomics <- R6::R6Class(
             as.character(self$biomData$sample$ids)
           ))
 
+        # Set column order
+        self$countData <- self$countData[, self$metaData[["SAMPLE-ID"]], drop = FALSE]
+
         # initializes taxonomy table
         self$featureData <- data.table::data.table(t(self$biomData$observation$metadata$taxonomy))
         self$featureData <- self$featureData[, ID := self$biomData$observation$ids]

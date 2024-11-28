@@ -13,7 +13,7 @@
 #'
 #' @export
 
-volcano_plot <- function(dt, X, Y, feature_rank, pvalue.threshold = 0.05, logfold.threshold = 0.6) {
+volcano_plot <- function(dt, X, Y, feature_rank, pvalue.threshold = 0.05, logfold.threshold = 0.6, label_A = "A", label_B = "B") {
   # copies data.table
   tmpdt <- data.table::copy(dt)
 
@@ -39,12 +39,12 @@ volcano_plot <- function(dt, X, Y, feature_rank, pvalue.threshold = 0.05, logfol
             legend.text = element_text(size=12),
             legend.title = element_text(size=14),
             strip.background = element_rect(fill = "#EEEEEE", color = "#FFFFFF")) +
-      geom_rect(aes(xmin = -logfold.threshold, xmax = -Inf,
-                    ymin = -log10(pvalue.threshold), ymax = Inf),
-                fill = "#C8E7F1", alpha = 0.1, color = NA) +
-      geom_rect(aes(xmin = logfold.threshold, xmax = Inf,
-                    ymin = -log10(pvalue.threshold), ymax = Inf),
-                fill = "#FFF1F3", alpha = 0.1, color = NA) +
+      # geom_rect(aes(xmin = -logfold.threshold, xmax = -Inf,
+      #               ymin = -log10(pvalue.threshold), ymax = Inf),
+      #           fill = "#C8E7F1", alpha = 0.1, color = NA) +
+      # geom_rect(aes(xmin = logfold.threshold, xmax = Inf,
+      #               ymin = -log10(pvalue.threshold), ymax = Inf),
+      #           fill = "#FFF1F3", alpha = 0.1, color = NA) +
       # annotate("text", x = -logfold.threshold*4 , y = max_pvalue+1.5,
       #          label = "Significant\ndecrease",
       #          vjust = 2, size = 5, color = "black") +
@@ -66,8 +66,9 @@ volcano_plot <- function(dt, X, Y, feature_rank, pvalue.threshold = 0.05, logfol
       geom_point(aes(size = ifelse(diffexpressed != "non-significant", rel_abun, 0)),
                  shape = 16, alpha = 0.5) +
       scale_size_continuous(name = "Mean Rel. Abun.") +
-      labs(x = "Fold Change log2( A / B )",
-           y = "-log10( P-value )") +
-      ylim(0, max_pvalue + 1.5)
+      labs(x = paste0("Fold Change log2( ",label_A," / ",label_B," )"),
+           y = "-log10( P-value )")
+    # +
+    #   ylim(0, max_pvalue + 1.5)
   )
 }

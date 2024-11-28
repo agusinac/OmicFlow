@@ -37,6 +37,9 @@ tools <- R6::R6Class(
 
       # metadata
       self$metaData <- data.table::fread(metaData)
+
+      # Set column order
+      self$countData <- self$countData[, self$metaData[["SAMPLE-ID"]], drop = FALSE]
     },
     #' @description
     #' Removes empty (zero) values by row and column.
@@ -229,16 +232,10 @@ tools <- R6::R6Class(
     #'                            col_name = "treatment")
     #' @return A \link[ggplot2]{ggplot} object.
     #' @seealso \link[OmicFlow]{diversity_plot}
-    alpha_diversity = function(custom_div = NA, col_name, method = c("shannon", "invsimpson", "simpson"), Brewer.palID="Set2", evenness = FALSE) {
-      # TO DO:
-        # - Add hillR::hill_func_parti_pairwise(comm = counts, traits = metadata, q = 2)
-        # - Find way to summarize hill results
+    alpha_diversity = function(col_name, method = c("shannon", "invsimpson", "simpson"), Brewer.palID="Set2", evenness = FALSE) {
 
       # OUTPUT: Plot list
-      plot_list <- list(
-        diversity = NULL,
-        hillsPlot = NULL
-      )
+      plot_list <- list()
 
       # Save tools class components
       private$tmp_link(
@@ -248,38 +245,26 @@ tools <- R6::R6Class(
         .treeData = self$treeData
       )
 
-      # Compute diversity and other metrics if custom_div is empty
-      if (is.na(custom_div)) {
-        # Alpha diversity based on 'method'
-        div <- data.table::data.table(diversity(x = self$countData, index=method))
-        div[, (paste(col_name)) := self$metaData[, .SD, .SDcols = c(col_name)]]
-        # Adjusts for evenness
-        if (evenness) div$V1 <- div$V1 / log(vegan::specnumber(div$V1))
+      # Alpha diversity based on 'method'
+      div <- data.table::data.table(diversity(x = self$countData, index=method))
+      div[, (paste(col_name)) := self$metaData[, .SD, .SDcols = c(col_name)]]
+      # Adjusts for evenness
+      if (evenness) div$V1 <- div$V1 / log(vegan::specnumber(div$V1))
 
-        # get colors
-        colors <- fetch_palette(self$metaData, col_name, Brewer.palID)
+      # get colors
+      colors <- fetch_palette(self$metaData, col_name, Brewer.palID)
 
-        # Create and saves plots
-        plot_list$diversity <- diversity_plot(dt = div,
-                                              values = "V1",
-                                              col_name = col_name,
-                                              palette = colors,
-                                              method = method)
+      # Create and saves plots
+      plot_list$diversity <- diversity_plot(dt = div,
+                                            values = "V1",
+                                            col_name = col_name,
+                                            palette = colors,
+                                            method = method)
 
-        # Restores tools class components
-        private$tmp_restore()
+      # Restores tools class components
+      private$tmp_restore()
 
-        return(plot_list)
-
-      } else {
-        # Custom dataframes is used for plotting
-        div <- data.table::data.table(custom_div)
-        return(diversity_plot(dt = div,
-                              values = div$V1,
-                              col_name = div[[col_name]],
-                              palette = fetch_palette(self$metaData, col_name, Brewer.palID),
-                              method = method))
-      }
+      return(plot_list)
     },
     #' @description
     #' Visualization of compositional data.
@@ -424,6 +409,9 @@ tools <- R6::R6Class(
         .treeData = self$treeData
       )
 
+      # Creates a list of plots
+      plot_list <- list()
+
       if (parallel == TRUE) {
         # Uses available CPUs for %dopar%
         RcppParallel::setThreadOptions(numThreads = cpus)
@@ -509,11 +497,6 @@ tools <- R6::R6Class(
         }
         dev.off()
       }
-
-      # Creates a list of plots
-      plot_list <- list(scree_plot = NULL,
-                        anova_plot = NULL,
-                        scores_plot = NULL)
 
       if (method == "pcoa") {
         # Scree plot of first 10 dimensions
@@ -606,11 +589,8 @@ tools <- R6::R6Class(
                                                condition.group, condition_A, condition_B, pvalue.threshold=0.05, foldchange.threshold=0.06,
                                                feature_filter = NA, feature_top = NA, normalize = TRUE, cpus = 1) {
       # Final output
-      plot_list <- list(
-        data = NULL,
-        tile_plot = NULL,
-        volcano_plot = NULL
-      )
+      plot_list <- list()
+
       # Copies object to prevent modification of tools class components
       private$tmp_link(
         .countData = self$countData,
@@ -795,11 +775,13 @@ tools <- R6::R6Class(
 
         plot_list$volcano_plot <- lapply(1:n_diff_columns, function(i) {
                 volcano_plot(dt = DFE,
-                              X = paste0("Log2FC_", i),
-                              Y = paste0("pvalue_", i),
-                              feature_rank = feature_rank,
-                              pvalue.threshold = pvalue.threshold,
-                              logfold.threshold = foldchange.threshold)
+                             X = paste0("Log2FC_", i),
+                             Y = paste0("pvalue_", i),
+                             feature_rank = feature_rank,
+                             pvalue.threshold = pvalue.threshold,
+                             logfold.threshold = foldchange.threshold,
+                             label_A = condition_A,
+                             label_B = condition_B)
           })
 
       }
@@ -810,8 +792,188 @@ tools <- R6::R6Class(
     },
     #' @description
     #' Computation and visualization of regression models
-    regression = function() {
-      # Place holder for regression, should include RDA as well
+    #' Thus far it contains triplot for RDA, should be modified
+    triplot = function(feature_rank, feature_filter = NA, metadata.col = NA, choice_dim = c("RDA1", "PC1"), pairwise = FALSE, Brewer.palID = "Set2", counts.scalar = 1) {
+      # Copies object to prevent modification of tools class components
+      private$tmp_link(
+        .countData = self$countData,
+        .featureData = self$featureData,
+        .metaData = self$metaData,
+        .treeData = self$treeData
+      )
+
+      # Nested functions, later to be combined within tools-class
+      logn <- function(otu_tab, scalar=1) {
+        # log-transform, center
+        # Y' = log ( A * Y + 1 ) ; where A is the 'strength' of the log transformation : 1, 10, 100, 1000, etc., default = 1
+        otu_tab.log <- ( scalar * otu_tab ) + 1
+        otu_tab.log <- log( otu_tab.log )
+        otu_tab.sc <- scale(otu_tab.log, center = TRUE, scale = FALSE)
+        return(otu_tab.sc)
+      }
+
+      eigen_80 <- function(eig_explained) {
+        sum_variance = 0
+        counter = 1
+        for (i in 1:length(eig_explained)) {
+          sum_variance <- sum_variance + eig_explained[i]
+          counter <- counter + 1
+          if (sum_variance >= 80) break
+        }
+
+        return(counter)
+      }
+
+      subset_by_dimensions <- function(model, dimensions) {
+        perc_explained <- round(100*(summary(model)$cont$importance[2, dimensions]),2)
+        n_dim_pairs <- dimensions[1:eigen_80(perc_explained)]
+        return(perc_explained)
+      }
+
+      subset_by_species <- function(model, scores_species, pc) {
+        species_explained <- utils::head(base::sort(round(100*scores_species[, pc]^2, 3), decreasing = TRUE))
+        scores_species_explained <- scores_species[rownames(scores_species) %in% names(species_explained),]
+
+        result <- list(
+          scores = scores_species_explained,
+          explained_PC1 = species_explained
+        )
+
+        return(result)
+      }
+
+      # Main pairwise code
+      if (pairwise == TRUE) {
+        # Creates a vector of 10 dimensions (PC1 - PC10)
+        pairwise_dims <- sprintf("PC%d", seq(1:11))
+        subset.result <- subset_by_dimensions(model, pairwise_dims)
+
+        # save pdf
+        pdf(paste0(outdir, "/pairwise_PCA.pdf"))
+        for (i in seq(ncol(subset.result$n_dim_pairs))) {
+          pair <- subset.result$n_dim_pairs[, i]
+          scores_species_explained <- subset_by_species(model, scores_species, pc = pair[1])
+
+          triplot(model, target_col, self$metaData, subset.result$var_explained, scores_species,
+                  scores_species_explained, scores_sites,
+                  pc1 = pair[1],
+                  pc2 = pair[2])
+        }
+        dev.off()
+      }
+
+      # Agglomerate taxa by feature rank and filter unwanted taxa
+      self$feature_glom(feature_rank = feature_rank, feature_filter = feature_filter)
+      self$normalize()
+
+      counts <- t(as.matrix(self$countData))
+
+      # Subsets user specified dimensions
+      pc1 <- choice_dim[1]
+      pc2 <- choice_dim[2]
+
+      # Transformation of counts and modelling to RDA
+      counts.log <- logn(counts, scalar = counts.scalar)
+      model <- vegan::rda(counts.log ~ get(metadata.col, self$metaData) + Condition(NULL),
+                          data = self$metaData,
+                          scale = FALSE,
+                          na.action = na.fail,
+                          subset = NULL)
+
+      # MAIN code
+      # Subset species and sites scores
+      model.dims <- dim(model$CCA$u)[2] + dim(model$CA$u)[2]
+      scores_species <- vegan::scores(x = model, display = "species", choices = c(1:model.dims), scaling=0)
+      scores_sites <- vegan::scores(x = model, display = "sites", choices = c(1:model.dims))
+
+      # Subset species most fitted/captured by user defined dimensions
+      choice_dim.scores_species_explained <- subset_by_species(model, scores_species, pc = choice_dim[1])
+      choice_dim.explained <- subset_by_dimensions(model, choice_dim)
+
+      # Include relative abundance and significant groups in scores_sites
+      rel_abun <- colSums(counts)
+      Explained_species <- rownames(choice_dim.scores_species_explained$scores)
+      scores_species_merged <- data.table::data.table(cbind(scores_species, rel_abun))
+      scores_species_merged$taxa <- rownames(scores_species)
+
+      # Creating color palette
+      chosen_palette <- RColorBrewer::brewer.pal(length(Explained_species), Brewer.palID)
+      colors <- stats::setNames(chosen_palette, Explained_species)
+
+      # include groups for labelling and size
+      scores_species_merged[, explained_species_label := ifelse(taxa %in% Explained_species, taxa, "")]
+      scores_species_merged[, explained_species_size := ifelse(taxa %in% Explained_species, rel_abun, 0)]
+
+      #Fetch groups
+      mygroups <- get(metadata.col, self$metaData)
+
+      # to be named: scores_sites
+      dt <- data.table::data.table(data.frame(pc1 = scores_sites[, pc1],
+                                              pc2 = scores_sites[, pc2],
+                                              group = mygroups))
+
+      # Get centroid centers for annotation
+      df_mean.ord <- stats::aggregate(dt, by=list(dt$group),mean)
+      colnames(df_mean.ord) <- c("Group", "x", "y")
+      df_mean.ord <- df_mean.ord[df_mean.ord$Group %in% mygroups, ]
+
+      rslt.hull <- vegan::ordihull(scores_sites[, c(pc1, pc2)],
+                                   groups = mygroups,
+                                   show.group = mygroups,
+                                   draw = 'none')
+
+      # Initialize an empty data.table
+      df_hull <- data.table::data.table(Group = character(), x = numeric(), y = numeric())
+
+      # Loop through groups and bind data
+      for (g in mygroups) {
+        x <- rslt.hull[[g]][ , 1]
+        y <- rslt.hull[[g]][ , 2]
+        Group <- rep(g, length(x))
+        df_temp <- data.table::data.table(Group = Group, x = x, y = y)
+        df_hull <- rbind(df_hull, df_temp, use.names = TRUE, fill = TRUE)
+      }
+
+      # Convert to data.table
+      data.table::setDT(df_hull)
+
+      # Restores tools class components
+      private$tmp_restore()
+
+      # Returns plot
+      return(
+        ggplot() +
+          geom_point(data = scores_sites, aes(x = .data[[pc1]],
+                                              y = .data[[pc2]]),
+                     shape = 21,
+                     fill = "steelblue",
+                     col = "black") +
+          geom_point(data = scores_species_merged, aes(x = .data[[pc1]],
+                                                       y = .data[[pc2]],
+                                                       size = .data[["explained_species_size"]],
+                                                       col = .data[["explained_species_label"]]),
+                     show.legend = TRUE,
+                     stroke = ifelse(scores_species_merged$explained_species_label != "", 1.5, 0.5),
+                     shape = 22) +
+          geom_polygon(data=df_hull, aes(x=x, y=y, fill=Group),
+                       alpha = 0.2, color = "gray40", show.legend = FALSE) +
+          geom_text(data=df_mean.ord, aes(x=x, y=y, label=Group),
+                    color = "black", show.legend = FALSE) +
+          theme_bw() +
+          theme(axis.text.x = element_text(angle = 45, hjust = 1, size=12),
+                axis.text.y = element_text(size=12),
+                axis.text = element_text(size=12),
+                text = element_text(size=12),
+                legend.text = element_text(size=12),
+                legend.title = element_text(size=14),
+                strip.background = element_rect(fill = "#EEEEEE", color = "#FFFFFF")) +
+          scale_size_continuous(name = "rel. Abun.") +
+          scale_color_manual(name = paste0(pc1, " explained species"),
+                             values = colors) +
+          labs(x = paste0(pc1, " (", choice_dim.explained[ pc1 ], "%)"),
+               y = paste0(pc2, " (", choice_dim.explained[ pc2 ], "%)")) +
+          guides(fill = "none", colour = guide_legend(override.aes = list(stroke = 1.5)))
+      )
     },
     #' @description
     #' Computation and visualization of correlation models
@@ -841,7 +1003,7 @@ tools <- R6::R6Class(
       correlation_data = self$metaData[, .SD, .SDcols = cor_columns]
 
       # Compute correlations for taxa
-      cor_mat <- as.data.frame(cor(t(as.matrix(taxa$countData)), correlation_data, method = cor_method))
+      cor_mat <- as.data.frame(cor(t(as.matrix(self$countData)), correlation_data, method = cor_method))
       rownames(cor_mat) <- tree$tip.label
 
       # Creating first base tree
@@ -915,25 +1077,19 @@ tools <- R6::R6Class(
     #' @param distance_matrix A path to pre-computed distance matrix
     #'
     #' @return A nested list of \link[ggplot2]{ggplot} objects.
-    autoFlow = function(feature_ranks = c("Phylum", "Family", "Genus", "Species"), distance_metrics = c("unifrac","bray"), output = NA, shannon_table, distance_matrix) {
+    autoFlow = function(feature_ranks = c("Phylum", "Family", "Genus", "Species"),
+                        feature_filter = c("uncultured"),
+                        distance_metrics = c("unifrac","bray"),
+                        output = NA, alpha_div_table, dist_matrix,
+                        cpus = 1) {
       # Plot results as list
-      plots <- list(
-        rankstat_plot = NULL,
-        shannon_plots = NULL,
-        pcoa_plots = NULL,
-        nmds_plots = NULL,
-        composition_plots = NULL,
-        correlation_heatmap_plt = NULL,
-        heatmap_plots = NULL,
-        RDA_plots = NULLs
-      )
+      plots <- list()
 
       # Collect columns
       metacols <- colnames(self$metaData)
 
       RANKSTAT_data <- self$metaData[, .SD, .SDcols = grepl("RANKSTAT_", metacols)]
       CORRELATION_data <- self$metaData[, .SD, .SDcols = grepl("CORRELATION_", metacols)]
-      PAIREDGROUPBY_data <- self$metaData[, .SD, .SDcols = grepl("PAIREDGROUPBY_", metacols)]
 
       # Standard rank stats
       plots$rankstat_plot <- self$rankstat()
@@ -950,57 +1106,111 @@ tools <- R6::R6Class(
       # Object manipulation
       #
       self$feature_subset(Domain == "Bacteria")
-      self$transform(function(x) x / sum(x))
 
       # Main loop
       if (RANKSTAT_ncol > 0) {
 
         composition_plots <- matrix(list(), RANKSTAT_ncol, feature_nrow)
-        shannon_plots <- list()
-        metrics_nrow <- length(metrics)
-        pcoa_plots <- matrix(list(), RANKSTAT_ncol, nrow)
-        nmds_plots <- matrix(list(), RANKSTAT_ncol, nrow)
+        correlation_plots <- list()
+        Log2FC_plots <- matrix(list(), RANKSTAT_ncol, feature_nrow)
+        alpha_div_plots <- list()
+        metrics_nrow <- length(distance_metrics)
+        pcoa_plots <- matrix(list(), RANKSTAT_ncol, metrics_nrow)
+        nmds_plots <- matrix(list(), RANKSTAT_ncol, metrics_nrow)
+        RDA_plots <- matrix(list(), RANKSTAT_ncol, 2)
 
         for (i in 1:RANKSTAT_ncol) {
           col_name <- colnames(RANKSTAT_data)[i]
 
           # Alpha diversity: Shannon index
-          shannon_plots[[i]] <- self$shannon(df_shannon = data.table::data.table(shannon_table),
-                                             col_name = col_name)
+          # Include hills plot
+          alpha_div_plots[[i]] <- patchwork::wrap_plots(self$alpha_diversity(col_name = col_name, method = "shannon"),
+                                                        nrow = 1)
+
+          # Create RDA1 vs PC1 triplot
+          RDA_plots[[i, 1]] <- self$triplot(feature_rank = "Genus",
+                                            feature_filter = feature_filter,
+                                            metadata.col = col_name,
+                                            pairwise = FALSE,
+                                            choice_dim = c("RDA1", "PC1"))
+
+          # Create PC1 vs PC2 triplot
+          RDA_plots[[i, 2]] <- self$triplot(feature_rank = "Genus",
+                                            feature_filter = feature_filter,
+                                            metadata.col = col_name,
+                                            pairwise = FALSE,
+                                            choice_dim = c("PC1", "PC2"))
+
 
           # Microbiome composition by all samples
           for (j in 1:feature_nrow) {
             # Creates composition long table
             res <- self$composition(feature_rank = feature_ranks[j],
-                                    feature_filter = c("uncultured"))
+                                    feature_filter = feature_filter)
 
             # Creates composition ggplot as list
             composition_plots[[i, j]] <- composition_plot(data = res$data,
                                                           palette = res$palette,
                                                           feature_rank = feature_ranks[j])
+
+            # Creates correlation ggplot as list
+            if (i == 1) {
+              correlation_plots[[j]] <- self$correlation(feature_rank = feature_ranks[j],
+                                                         feature_filter = feature_filter,
+                                                         cor_columns = colnames(CORRELATION_data))
+            }
+
+
+            # Creates Log2 Fold-Change (FC) ggplot as list
+            unique_groups <- unique(RANKSTAT_data[, .SD, .SDcols = col_name])
+            if (nrow(unique_groups) == 2) {
+              condition_A <- unique_groups[1, ]
+              condition_B <- unique_groups[2, ]
+
+              Log2FC_plots[[i, j]] <- self$differential_feature_expression(feature_rank = feature_ranks[j],
+                                                                           sample.id = "SAMPLE-ID",
+                                                                           condition.group = col_name,
+                                                                           condition_A = condition_A,
+                                                                           condition_B = condition_B,
+                                                                           feature_filter = feature_filter)[["volcano_plot"]][[1]]
+            }
+
+
           }
           for (j in 1:metrics_nrow) {
-            pcoa_plots[[i, j]] <- patchwork::wrap_plots(self$ordination(metric = metrics[j],
-                                                                        method = "pcoa",
-                                                                        weighted = TRUE),
+            # Creates temporary plot results for PCoA
+            tmp_plts <- self$ordination(metric = distance_metrics[j],
+                                        method = "pcoa",
+                                        group_by = col_name,
+                                        weighted = TRUE,
+                                        parallel = TRUE,
+                                        cpus = cpus)
+
+            pcoa_plots[[i, j]] <- patchwork::wrap_plots(tmp_plts,
                                                         nrow = 1) +
-              plot_layout(widths = c(5, 5, 5),
+              plot_layout(widths = c(rep(5, length(tmp_plts))),
                           guides = "collect")
 
-            nmds_plots[[i, j]] <- patchwork::wrap_plots(self$ordination(metric = metrics[j],
-                                                                        method = "nmds",
-                                                                        weighted = TRUE),
+            # Creates temporary plot results for NMDS
+            tmp_plts <- self$ordination(metric = distance_metrics[j],
+                                        method = "nmds",
+                                        group_by = col_name,
+                                        weighted = TRUE)
+
+            nmds_plots[[i, j]] <- patchwork::wrap_plots(tmp_plts,
                                                         nrow = 1) +
-              plot_layout(widths = c(5, 5, 5),
+              plot_layout(widths = c(rep(5, length(tmp_plts))),
                           guides = "collect")
           }
         }
-        plots$shannon_plots <- shannon_plots
+        plots$alpha_div_plots <- alpha_div_plots
+        plots$correlation_plots <- correlation_plots
         plots$composition_plots <- composition_plots
+        plots$Log2FC_plots <- Log2FC_plots
         plots$pcoa_plots <- pcoa_plots
         plots$nmds_plots <- nmds_plots
+        plots$rda_plots <- RDA_plots
       }
-
 
       return(plots)
     }

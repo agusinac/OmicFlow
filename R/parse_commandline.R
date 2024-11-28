@@ -7,17 +7,21 @@
 
 parse_commandline <- function() {
   option_list <- list (optparse::make_option(c("-m", "--metadata"),
-                                   action = "store",
-                                   help="tab seperated file"),
+                                             action = "store",
+                                             help="tab seperated file"),
                        optparse::make_option(c("-b", "--biom"),
-                                   action = "store",
-                                   help="biom format file"),
+                                             action = "store",
+                                             help="biom format file"),
                        optparse::make_option(c("-t", "--tree"),
-                                   action = "store",
-                                   help="Phylogenetic tree in newick format"),
+                                             action = "store",
+                                             help="Phylogenetic tree in newick format"),
+                       optparse::make_option(c("-c", "--cpus"),
+                                             action = "store",
+                                             help="Number of cores",
+                                             default = 4),
                        optparse::make_option(c("-o", "--outdir"),
-                                   action = "store",
-                                   help="Output directory")
+                                             action = "store",
+                                             help="Output directory")
   )
 
   parser <- optparse::OptionParser(option_list = option_list)

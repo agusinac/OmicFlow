@@ -172,6 +172,7 @@ paired <- obj$differential_feature_expression(feature_rank = "Genus",
 \item \href{#method-tools-sample_subset}{\code{tools$sample_subset()}}
 \item \href{#method-tools-feature_glom}{\code{tools$feature_glom()}}
 \item \href{#method-tools-transform}{\code{tools$transform()}}
+\item \href{#method-tools-normalize}{\code{tools$normalize()}}
 \item \href{#method-tools-rankstat}{\code{tools$rankstat()}}
 \item \href{#method-tools-alpha_diversity}{\code{tools$alpha_diversity()}}
 \item \href{#method-tools-composition}{\code{tools$composition()}}
@@ -179,6 +180,7 @@ paired <- obj$differential_feature_expression(feature_rank = "Genus",
 \item \href{#method-tools-differential_feature_expression}{\code{tools$differential_feature_expression()}}
 \item \href{#method-tools-regression}{\code{tools$regression()}}
 \item \href{#method-tools-correlation}{\code{tools$correlation()}}
+\item \href{#method-tools-label_phylo}{\code{tools$label_phylo()}}
 \item \href{#method-tools-autoFlow}{\code{tools$autoFlow()}}
 }
 }
@@ -325,7 +327,7 @@ obj$feature_glom(feature_rank = "Genus", feature_filter = c("uncultured", "metag
 \subsection{Method \code{transform()}}{
 Performs transformation on countData as a Triplet sparse matrix \link[Matrix]{uniqTsparse}
 \subsection{Usage}{
-\if{html}{\out{<div class="r">}}\preformatted{tools$transform(fun, ...)}\if{html}{\out{</div>}}
+\if{html}{\out{<div class="r">}}\preformatted{tools$transform(fun)}\if{html}{\out{</div>}}
 }
 
 \subsection{Arguments}{
@@ -347,6 +349,15 @@ obj$transform(function(x) x / sum(x))
 }
 \if{html}{\out{</div>}}
 
+}
+
+}
+\if{html}{\out{<hr>}}
+\if{html}{\out{<a id="method-tools-normalize"></a>}}
+\if{latex}{\out{\hypertarget{method-tools-normalize}{}}}
+\subsection{Method \code{normalize()}}{
+\subsection{Usage}{
+\if{html}{\out{<div class="r">}}\preformatted{tools$normalize()}\if{html}{\out{</div>}}
 }
 
 }
@@ -657,7 +668,25 @@ Computation and visualization of regression models
 \subsection{Method \code{correlation()}}{
 Computation and visualization of correlation models
 \subsection{Usage}{
-\if{html}{\out{<div class="r">}}\preformatted{tools$correlation()}\if{html}{\out{</div>}}
+\if{html}{\out{<div class="r">}}\preformatted{tools$correlation(
+  feature_rank,
+  feature_filter = NA,
+  cor_method = "spearman",
+  cor_columns = c("BMI", "Weight"),
+  cor_threshold = 0.6,
+  label_offset = 10,
+  normalize = TRUE
+)}\if{html}{\out{</div>}}
+}
+
+}
+\if{html}{\out{<hr>}}
+\if{html}{\out{<a id="method-tools-label_phylo"></a>}}
+\if{latex}{\out{\hypertarget{method-tools-label_phylo}{}}}
+\subsection{Method \code{label_phylo()}}{
+Relabelling phylogenetic tree by featureData
+\subsection{Usage}{
+\if{html}{\out{<div class="r">}}\preformatted{tools$label_phylo(feature_rank)}\if{html}{\out{</div>}}
 }
 
 }
