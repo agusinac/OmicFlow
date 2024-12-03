@@ -28,15 +28,17 @@ tools <- R6::R6Class(
     #' @param metaData A path to an existing file, data.table or data.frame.
     #' @return A new `tools` object.
     initialize = function(countData = NA, featureData = NA, metaData = NA) {
-      # counts
+      # Loads counts
       self$countData <- data.table::fread(countData)
 
-      # features
+      # Loads features
       self$featureData <- data.table::fread(featureData)
       self$featureData[, ID := rownames(self$featureData)]
 
-      # metadata
+      # Loads metadata & replaces empty values by NAs
       self$metaData <- data.table::fread(metaData)
+      self$metaData <- self$metaData[, lapply(.SD, function(x) ifelse(x == "", NA, x)),
+                                     .SDcols = colnames(self$metaData)]
 
       # Set column order
       self$countData <- self$countData[, self$metaData[["SAMPLE-ID"]], drop = FALSE]
@@ -58,6 +60,11 @@ tools <- R6::R6Class(
       # Creates new countData instance
       self$countData <- self$countData[keep_rows, keep_cols]
       self$featureData <- self$featureData[keep_rows]
+      invisible(self)
+    },
+    removeNAs = function(sample.id) {
+      self$metaData <- na.omit(self$metaData)
+      self$countData <- self$countData[, self$metaData[[ sample.id ]]]
       invisible(self)
     },
     #' @description
@@ -255,7 +262,7 @@ tools <- R6::R6Class(
       colors <- fetch_palette(self$metaData, col_name, Brewer.palID)
 
       # Create and saves plots
-      plot_list$diversity <- diversity_plot(dt = div,
+      plot_list$diversity <- diversity_plot(dt = na.omit(div),
                                             values = "V1",
                                             col_name = col_name,
                                             palette = colors,
@@ -399,7 +406,7 @@ tools <- R6::R6Class(
     #' @return A list of \link[ggplot2]{ggplot} object.
     #' @seealso \link[OmicFlow]{ordination_plot}, \link[OmicFlow]{stats_plot}, \link[OmicFlow]{pairwise_anosim}, \link[OmicFlow]{pairwise_adonis}
     ordination = function(metric = c("bray", "jaccard", "unifrac"), method = c("pcoa", "nmds"), group_by, distmat = NULL, weighted = FALSE, normalize = TRUE, parallel = FALSE,
-                          pca.pairwise = FALSE, pca.max.explained = 80, pca.dim = c(1,2), outdir=".", cpus = 8) {
+                          pca.pairwise = FALSE, pca.max.explained = 80, pca.dim = c(1,2), outdir=".", cpus = 8, sample.id = "SAMPLE-ID") {
 
       # Copies object to prevent modification of tools class components
       private$tmp_link(
@@ -408,6 +415,9 @@ tools <- R6::R6Class(
         .metaData = self$metaData,
         .treeData = self$treeData
       )
+
+      # Subset by missing values
+      self$removeNAs(sample.id)
 
       # Creates a list of plots
       plot_list <- list()
@@ -454,8 +464,8 @@ tools <- R6::R6Class(
       # Switch case to compute relevant statistics
       stats_results <- switch(
         method,
-        "pcoa" = pairwise_adonis(distmat, groups = self$metaData[[ group_by ]]),
-        "nmds" = pairwise_anosim(distmat, groups = self$metaData[[ group_by ]])
+        "pcoa" = pairwise_adonis(distmat, groups = na.omit(self$metaData[[ group_by ]])),
+        "nmds" = pairwise_anosim(distmat, groups = na.omit(self$metaData[[ group_by ]]))
       )
 
       # Normalization of eigenvalues
@@ -599,9 +609,8 @@ tools <- R6::R6Class(
         .treeData = self$treeData
       )
 
-      #------#
-      # Main #
-      #------#
+      # Subset by missing values
+      self$removeNAs(sample.id)
 
       # Agglomerate taxa by feature rank and filter unwanted taxa
       self$feature_glom(feature_rank = feature_rank, feature_filter = feature_filter)
@@ -793,7 +802,7 @@ tools <- R6::R6Class(
     #' @description
     #' Computation and visualization of regression models
     #' Thus far it contains triplot for RDA, should be modified
-    triplot = function(feature_rank, feature_filter = NA, metadata.col = NA, choice_dim = c("RDA1", "PC1"), pairwise = FALSE, Brewer.palID = "Set2", counts.scalar = 1) {
+    triplot = function(feature_rank, feature_filter = NA, metadata.col = NA, sample.id="SAMPLE-ID", choice_dim = c("RDA1", "PC1"), pairwise = FALSE, Brewer.palID = "Set2", counts.scalar = 1) {
       # Copies object to prevent modification of tools class components
       private$tmp_link(
         .countData = self$countData,
@@ -866,7 +875,10 @@ tools <- R6::R6Class(
       self$feature_glom(feature_rank = feature_rank, feature_filter = feature_filter)
       self$normalize()
 
-      counts <- t(as.matrix(self$countData))
+      # Remove NAs
+      metadata <- na.omit(self$metaData)
+      counts <- t(as.matrix(self$countData[, metadata[[ sample.id ]] ]))
+      dimnames(counts)[[2]] <- self$featureData[[ feature_rank ]]
 
       # Subsets user specified dimensions
       pc1 <- choice_dim[1]
@@ -874,8 +886,8 @@ tools <- R6::R6Class(
 
       # Transformation of counts and modelling to RDA
       counts.log <- logn(counts, scalar = counts.scalar)
-      model <- vegan::rda(counts.log ~ get(metadata.col, self$metaData) + Condition(NULL),
-                          data = self$metaData,
+      model <- vegan::rda(counts.log ~ get(metadata.col, metadata) + Condition(NULL),
+                          data = metadata,
                           scale = FALSE,
                           na.action = na.fail,
                           subset = NULL)
@@ -905,7 +917,7 @@ tools <- R6::R6Class(
       scores_species_merged[, explained_species_size := ifelse(taxa %in% Explained_species, rel_abun, 0)]
 
       #Fetch groups
-      mygroups <- get(metadata.col, self$metaData)
+      mygroups <- get(metadata.col, metadata)
 
       # to be named: scores_sites
       dt <- data.table::data.table(data.frame(pc1 = scores_sites[, pc1],
@@ -977,7 +989,7 @@ tools <- R6::R6Class(
     },
     #' @description
     #' Computation and visualization of correlation models
-    correlation = function(feature_rank, feature_filter = NA,
+    correlation = function(feature_rank, feature_filter = NA, sample.id = "SAMPLE-ID",
                            cor_method = "spearman", cor_columns = c("BMI", "Weight"), cor_threshold = 0.6,
                            label_offset = 10, normalize = TRUE) {
       # Copies object to prevent modification of tools class components
@@ -1000,11 +1012,15 @@ tools <- R6::R6Class(
       tree <- self$label_phylo(feature_rank = feature_rank)
 
       # Subset data by correlation columns
-      correlation_data = self$metaData[, .SD, .SDcols = cor_columns]
+      correlation_data = na.omit(self$metaData[, .SD, .SDcols = c(sample.id, cor_columns)])
 
       # Compute correlations for taxa
-      cor_mat <- as.data.frame(cor(t(as.matrix(self$countData)), correlation_data, method = cor_method))
+      Y <- correlation_data[, .SD, .SDcols = !c(sample.id)]
+      cor_mat <- as.data.frame(cor(x = t(as.matrix(self$countData[, correlation_data[[ sample.id ]] ])),
+                                   y = Y,
+                                   method = cor_method))
       rownames(cor_mat) <- tree$tip.label
+      colnames(cor_mat) <- sub("CORRELATION_", "", colnames(Y))
 
       # Creating first base tree
       p <- ggtree(tree, branch.length = "none") +
@@ -1038,8 +1054,10 @@ tools <- R6::R6Class(
       return(
         gheatmap(p1, cor_mat,
                  offset = 0.1,
-                 width = 0.3,
+                 width = 1,
                  colnames_position = "top",
+                 colnames_angle = 45,
+                 colnames_offset_y = 1,
                  hjust = 0.5,
                  font.size = 2.5) +
           scale_fill_viridis_c(option = "E",
@@ -1077,9 +1095,9 @@ tools <- R6::R6Class(
     #' @param distance_matrix A path to pre-computed distance matrix
     #'
     #' @return A nested list of \link[ggplot2]{ggplot} objects.
-    autoFlow = function(feature_ranks = c("Phylum", "Family", "Genus", "Species"),
+    autoFlow = function(feature_ranks = c("Phylum", "Family", "Genus"),
                         feature_filter = c("uncultured"),
-                        distance_metrics = c("unifrac","bray"),
+                        distance_metrics = c("unifrac"),
                         output = NA, alpha_div_table, dist_matrix,
                         cpus = 1) {
       # Plot results as list
@@ -1087,8 +1105,9 @@ tools <- R6::R6Class(
 
       # Collect columns
       metacols <- colnames(self$metaData)
-
       RANKSTAT_data <- self$metaData[, .SD, .SDcols = grepl("RANKSTAT_", metacols)]
+      RANKSTAT_colnames <- colnames(RANKSTAT_data)
+      self$metaData[, (RANKSTAT_colnames) := lapply(.SD, as.character), .SDcols = RANKSTAT_colnames]
       CORRELATION_data <- self$metaData[, .SD, .SDcols = grepl("CORRELATION_", metacols)]
 
       # Standard rank stats
@@ -1121,6 +1140,7 @@ tools <- R6::R6Class(
 
         for (i in 1:RANKSTAT_ncol) {
           col_name <- colnames(RANKSTAT_data)[i]
+          cat(paste0("column: ", col_name, " \n"))
 
           # Alpha diversity: Shannon index
           # Include hills plot
@@ -1146,12 +1166,14 @@ tools <- R6::R6Class(
           for (j in 1:feature_nrow) {
             # Creates composition long table
             res <- self$composition(feature_rank = feature_ranks[j],
-                                    feature_filter = feature_filter)
+                                    feature_filter = feature_filter,
+                                    col_name = col_name)
 
             # Creates composition ggplot as list
-            composition_plots[[i, j]] <- composition_plot(data = res$data,
+            composition_plots[[i, j]] <- composition_plot(data = na.omit(res$data),
                                                           palette = res$palette,
-                                                          feature_rank = feature_ranks[j])
+                                                          feature_rank = feature_ranks[j],
+                                                          group_by = col_name)
 
             # Creates correlation ggplot as list
             if (i == 1) {
@@ -1161,19 +1183,19 @@ tools <- R6::R6Class(
             }
 
 
-            # Creates Log2 Fold-Change (FC) ggplot as list
-            unique_groups <- unique(RANKSTAT_data[, .SD, .SDcols = col_name])
-            if (nrow(unique_groups) == 2) {
-              condition_A <- unique_groups[1, ]
-              condition_B <- unique_groups[2, ]
-
-              Log2FC_plots[[i, j]] <- self$differential_feature_expression(feature_rank = feature_ranks[j],
-                                                                           sample.id = "SAMPLE-ID",
-                                                                           condition.group = col_name,
-                                                                           condition_A = condition_A,
-                                                                           condition_B = condition_B,
-                                                                           feature_filter = feature_filter)[["volcano_plot"]][[1]]
-            }
+            # # Creates Log2 Fold-Change (FC) ggplot as list
+            # unique_groups <- unique(na.omit(RANKSTAT_data[, .SD, .SDcols = col_name]))
+            # if (nrow(unique_groups) == 2) {
+            #   condition_A <- unique_groups[1, ]
+            #   condition_B <- unique_groups[2, ]
+            #
+            #   Log2FC_plots[[i, j]] <- self$differential_feature_expression(feature_rank = feature_ranks[j],
+            #                                                                sample.id = "SAMPLE-ID",
+            #                                                                condition.group = col_name,
+            #                                                                condition_A = condition_A,
+            #                                                                condition_B = condition_B,
+            #                                                                feature_filter = feature_filter)[["volcano_plot"]][[1]]
+            # }
 
 
           }

@@ -30,7 +30,7 @@ diversity_plot <- function(dt, values, col_name, palette, method) {
                           values = palette) +
       ggpubr::stat_compare_means(comparisons = utils::combn(unique(dt[[col_name]]), 2, simplify=FALSE),
                                  label = "p.format",
-                                 method = "t.test") +
+                                 method = "wilcox.test") +
       ylim(0, max(dt[[ values ]])*1.20) +
       labs(title = NULL,
            subtitle = paste0("selected column: ", col_name, ", default test: Kruskal.test"),

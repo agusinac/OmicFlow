@@ -22,7 +22,7 @@ omics <- metataxonomics$new(metaData = base::file.path(current_path, options$met
 
 # Set parameters
 feature_ranks = c("Phylum", "Family", "Genus")
-distance_metrics = c("unifrac", "bray")
+distance_metrics = c("unifrac")
 feature_filter = c("uncultured")
 rankstat_labels <- sub("RANKSTAT_", "", colnames(omics$metaData)[grepl("RANKSTAT_", colnames(omics$metaData))])
 

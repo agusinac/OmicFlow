@@ -141,13 +141,13 @@ if (!is.null(plots$correlation_plots)) {
 
 ```{r}
 # Unnaming the plot list and saving as a new list
-if (!is.null(plots$Log2FC_plots)) {
-  cat("## Log2 Fold-Change {.tabset} \n")
-  plot_tabs(plots$Log2FC_plots, 
-            method = "matrix", 
-            label_col = rankstat_labels, 
-            label_row = feature_ranks)
-}
+# if (!is.null(plots$Log2FC_plots)) {
+#   cat("## Log2 Fold-Change {.tabset} \n")
+#   plot_tabs(plots$Log2FC_plots, 
+#             method = "matrix", 
+#             label_col = rankstat_labels, 
+#             label_row = feature_ranks)
+# }
 
 ```
 

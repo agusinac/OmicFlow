@@ -39,8 +39,10 @@ metataxonomics <- R6::R6Class(
         # Loads biom data
         self$biomData <- rhdf5::h5read(biomData, "/", read.attributes = TRUE)
 
-        # Loads metadata
+        # Loads metadata & replaces empty values by NAs
         self$metaData <- data.table::fread(metaData)
+        self$metaData <- self$metaData[, lapply(.SD, function(x) ifelse(x == "", NA, x)),
+                                       .SDcols = colnames(self$metaData)]
 
         # initializes count matrix
         indptr <- as.numeric(self$biomData$observation$matrix$indptr)
