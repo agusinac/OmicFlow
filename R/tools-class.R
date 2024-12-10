@@ -62,8 +62,8 @@ tools <- R6::R6Class(
       self$featureData <- self$featureData[keep_rows]
       invisible(self)
     },
-    removeNAs = function(sample.id) {
-      self$metaData <- na.omit(self$metaData)
+    removeNAs = function(sample.id, column) {
+      self$metaData <- na.omit(self$metaData, cols = column)
       self$countData <- self$countData[, self$metaData[[ sample.id ]]]
       invisible(self)
     },
@@ -417,7 +417,7 @@ tools <- R6::R6Class(
       )
 
       # Subset by missing values
-      self$removeNAs(sample.id)
+      self$removeNAs(sample.id, group_by)
 
       # Creates a list of plots
       plot_list <- list()
@@ -610,7 +610,7 @@ tools <- R6::R6Class(
       )
 
       # Subset by missing values
-      self$removeNAs(sample.id)
+      self$removeNAs(sample.id, condition.group)
 
       # Agglomerate taxa by feature rank and filter unwanted taxa
       self$feature_glom(feature_rank = feature_rank, feature_filter = feature_filter)
@@ -1007,16 +1007,15 @@ tools <- R6::R6Class(
       if (normalize) {
         self$normalize()
       }
-
       # Fetch labelled tree by featureData
       tree <- self$label_phylo(feature_rank = feature_rank)
 
       # Subset data by correlation columns
-      correlation_data = na.omit(self$metaData[, .SD, .SDcols = c(sample.id, cor_columns)])
+      correlation_data = na.omit(taxa$metaData[, .SD, .SDcols = c(sample.id, cor_columns)])
 
       # Compute correlations for taxa
       Y <- correlation_data[, .SD, .SDcols = !c(sample.id)]
-      cor_mat <- as.data.frame(cor(x = t(as.matrix(self$countData[, correlation_data[[ sample.id ]] ])),
+      cor_mat <- as.data.frame(cor(x = t(as.matrix(taxa$countData[, correlation_data[[ sample.id ]] ])),
                                    y = Y,
                                    method = cor_method))
       rownames(cor_mat) <- tree$tip.label

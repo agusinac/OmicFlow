@@ -61,18 +61,22 @@ metataxonomics <- R6::R6Class(
         self$countData <- self$countData[, self$metaData[["SAMPLE-ID"]], drop = FALSE]
 
         # initializes taxonomy table
-        self$featureData <- data.table::data.table(t(self$biomData$observation$metadata$taxonomy))
-        self$featureData <- self$featureData[, ID := self$biomData$observation$ids]
+        if (!is.null(self$biomData$observation$metadata$taxonomy)) {
+          self$featureData <- data.table::data.table(t(self$biomData$observation$metadata$taxonomy))
+          self$featureData <- self$featureData[, ID := self$biomData$observation$ids]
+        }
 
       } else {
         super$initialize()
       }
 
-      colnames(self$featureData)[!grepl("ID", colnames(self$featureData))] <- c("Domain", "Phylum", "Class", "Order", "Family", "Genus", "Species")
-      self$featureData <- self$featureData[, lapply(.SD, function(x) gsub("^[dpcofgs]_{2}", "", x)),
-                                           .SDcols = colnames(self$featureData)]
+      if (!is.null(self$featureData)) {
+        colnames(self$featureData)[!grepl("ID", colnames(self$featureData))] <- c("Domain", "Phylum", "Class", "Order", "Family", "Genus", "Species")
+        self$featureData <- self$featureData[, lapply(.SD, function(x) gsub("^[dpcofgs]_{2}", "", x)),
+                                             .SDcols = colnames(self$featureData)]
+      }
 
-      self$treeData <- ape::read.tree(treeData)
+      if (!is.na(treeData)) self$treeData <- ape::read.tree(treeData)
 
       self$print()
 

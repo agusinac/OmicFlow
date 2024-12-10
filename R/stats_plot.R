@@ -25,6 +25,9 @@ stats_plot <- function(data, X, Y, Label, Y_title=NULL, plot.title=NULL) {
            subtitle = "Above each bar: P-adjusted Values",
            x = "groups",
            y = Y_title) +
-      theme_bw()
+      theme_bw() +
+      theme(axis.text = element_text(angle = 45,
+                                     vjust = 1,
+                                     hjust = 1))
   )
 }
