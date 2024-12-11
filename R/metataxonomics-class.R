@@ -147,8 +147,99 @@ metataxonomics <- R6::R6Class(
     #' taxa$removeZeros()
     removeZeros = function() {
       super$removeZeros()
-      self$treeData <- ape::keep.tip(self$treeData, self$featureData$ID)
+      if (!is.null(self$treeData)) self$treeData <- ape::keep.tip(self$treeData, self$featureData$ID)
       invisible(self)
+    },
+    write_biom = function(file) {
+      # Create empty biom file
+      rhdf5::h5createFile(file)
+      # Create groups
+      invisible(rhdf5::h5createGroup(file = file, group = '/observation'))
+      invisible(rhdf5::h5createGroup(file = file, group = '/observation/matrix'))
+      invisible(rhdf5::h5createGroup(file = file, group = '/observation/metadata'))
+      invisible(rhdf5::h5createGroup(file = file, group = '/observation/group-metadata'))
+      invisible(rhdf5::h5createGroup(file = file, group = '/sample'))
+      invisible(rhdf5::h5createGroup(file = file, group = '/sample/matrix'))
+      invisible(rhdf5::h5createGroup(file = file, group = '/sample/metadata'))
+      invisible(rhdf5::h5createGroup(file = file, group = '/sample/group-metadata'))
+
+      # Read file
+      h5 <- rhdf5::H5Fopen(file)
+
+      # Add Attributes
+      rhdf5::h5writeAttribute(attr = "OTU table",
+                              h5obj = h5,
+                              name = 'type')
+      rhdf5::h5writeAttribute(attr = "http://biom-format.org",
+                              h5obj = h5,
+                              name = 'format-url')
+      rhdf5::h5writeAttribute(attr = as.integer(c(2,1,0)),
+                              h5obj = h5,
+                              name = 'format-version',
+                              encoding = 3)
+      rhdf5::h5writeAttribute(attr = paste(Sys.Date()),
+                              h5obj = h5,
+                              name = 'creation-date')
+      rhdf5::h5writeAttribute(attr = dim(self$countData),
+                              h5obj = h5,
+                              name = 'shape',
+                              encoding = 2)
+      rhdf5::h5writeAttribute(attr = length(self$countData@p),
+                              h5obj = h5,
+                              name = 'nnz')
+      rhdf5::h5writeAttribute(attr = paste("OmicFlow", utils::packageVersion("OmicFlow")),
+                              h5obj = h5,
+                              name = 'generated-by')
+
+      # Read counts by taxa
+      x <- matrix(c(self$countData@i - 1, self$countData@p - 1, self$countData@x), byrow=FALSE, ncol=3)
+
+      x <- x[order(x[,1]),,drop=FALSE]
+      indptr <- cumsum(unname(table(factor(x[,1]+1, 0:nrow(self$countData)))))
+
+      rhdf5::h5writeDataset(obj = rownames(self$countData),
+                            h5loc = h5,
+                            name = 'observation/ids')
+      rhdf5::h5writeDataset(obj = as.numeric(x[,3]),
+                            h5loc = h5,
+                            name = 'observation/matrix/data')
+      rhdf5::h5writeDataset(obj = as.integer(x[,2]),
+                            h5loc = h5,
+                            name = 'observation/matrix/indices')
+      rhdf5::h5writeDataset(obj = as.integer(indptr),
+                            h5loc = h5,
+                            name = 'observation/matrix/indptr')
+
+      # Read counts by sample
+      x <- x[order(x[,2]),,drop=FALSE]
+      indptr <- cumsum(unname(table(factor(x[,2]+1, 0:ncol(self$countData)))))
+
+      rhdf5::h5writeDataset(obj = colnames(self$countData),
+                            h5loc = h5,
+                            name = 'sample/ids')
+      rhdf5::h5writeDataset(obj = as.numeric(x[,3]),
+                            h5loc = h5,
+                            name = 'sample/matrix/data')
+      rhdf5::h5writeDataset(obj = as.integer(x[,1]),
+                            h5loc = h5,
+                            name = 'sample/matrix/indices')
+      rhdf5::h5writeDataset(obj = as.integer(indptr),
+                            h5loc = h5,
+                            name = 'sample/matrix/indptr')
+
+      # Add Taxonomy
+      if (ncol(self$featureData) > 1) {
+        h5path <- 'observation/metadata/taxonomy'
+        features <- t(as.matrix(self$featureData[, .SD, .SDcols = !c("ID")]))
+        dimnames(features) <- list(NULL, NULL)
+        rhdf5::h5writeDataset(obj = features,
+                              h5loc = h5,
+                              name = h5path)
+      }
+      # Close biom file connection
+      rhdf5::H5Fflush(h5)
+      rhdf5::H5Fclose(h5)
+      rhdf5::h5closeAll()
     }
   ),
   private = list(
