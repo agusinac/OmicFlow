@@ -295,7 +295,7 @@ tools <- R6::R6Class(
     #'
     #' @return A long \link[data.table]{data.table} table.
     #' @seealso \link[OmicFlow]{composition_plot}
-    composition = function(feature_rank, feature_filter = NA, col_name = NA, feature_top = 10, Brewer.palID = "RdYlBu") {
+    composition = function(feature_rank, feature_filter = NA, col_name = NA, sample.id = "SAMPLE-ID", feature_top = 10, Brewer.palID = "RdYlBu") {
       # Copies object to prevent modification of tools class components
       private$tmp_link(
         .countData = self$countData,
@@ -309,6 +309,11 @@ tools <- R6::R6Class(
 
       # Normalizes sample counts
       self$normalize()
+
+      # Remove NAs when col_name is specified
+      if (!is.na(col_name)) {
+        self$removeNAs(sample.id, col_name)
+      }
 
       # Convert sparse matrix to data.table (safe since feature_glom shrinks the sparse matrix)
       counts <- data.table::data.table(as.matrix(self$countData))
@@ -876,8 +881,11 @@ tools <- R6::R6Class(
       self$normalize()
 
       # Remove NAs
-      metadata <- na.omit(self$metaData)
-      counts <- t(as.matrix(self$countData[, metadata[[ sample.id ]] ]))
+      if (!is.na(metadata.col)) {
+        self$removeNAs(sample.id, metadata.col)
+      } else stop("metadata.col is empty!")
+
+      counts <- t(as.matrix(self$countData[, self$metaData[[ sample.id ]] ]))
       dimnames(counts)[[2]] <- self$featureData[[ feature_rank ]]
 
       # Subsets user specified dimensions
@@ -886,8 +894,8 @@ tools <- R6::R6Class(
 
       # Transformation of counts and modelling to RDA
       counts.log <- logn(counts, scalar = counts.scalar)
-      model <- vegan::rda(counts.log ~ get(metadata.col, metadata) + Condition(NULL),
-                          data = metadata,
+      model <- vegan::rda(counts.log ~ get(metadata.col, self$metaData) + Condition(NULL),
+                          data = self$metaData,
                           scale = FALSE,
                           na.action = na.fail,
                           subset = NULL)
@@ -917,7 +925,7 @@ tools <- R6::R6Class(
       scores_species_merged[, explained_species_size := ifelse(taxa %in% Explained_species, rel_abun, 0)]
 
       #Fetch groups
-      mygroups <- get(metadata.col, metadata)
+      mygroups <- get(metadata.col, self$metaData)
 
       # to be named: scores_sites
       dt <- data.table::data.table(data.frame(pc1 = scores_sites[, pc1],
@@ -939,6 +947,7 @@ tools <- R6::R6Class(
 
       # Loop through groups and bind data
       for (g in mygroups) {
+        g <- as.character(g)
         x <- rslt.hull[[g]][ , 1]
         y <- rslt.hull[[g]][ , 2]
         Group <- rep(g, length(x))
@@ -990,8 +999,7 @@ tools <- R6::R6Class(
     #' @description
     #' Computation and visualization of correlation models
     correlation = function(feature_rank, feature_filter = NA, sample.id = "SAMPLE-ID",
-                           cor_method = "spearman", cor_columns = c("BMI", "Weight"), cor_threshold = 0.6,
-                           label_offset = 10, normalize = TRUE) {
+                           cor_method = "spearman", cor_columns = c("BMI", "Weight"), cor_threshold = 0.6, normalize = TRUE) {
       # Copies object to prevent modification of tools class components
       private$tmp_link(
         .countData = self$countData,
@@ -1011,58 +1019,62 @@ tools <- R6::R6Class(
       tree <- self$label_phylo(feature_rank = feature_rank)
 
       # Subset data by correlation columns
-      correlation_data = na.omit(taxa$metaData[, .SD, .SDcols = c(sample.id, cor_columns)])
+      correlation_data <- na.omit(self$metaData[, .SD, .SDcols = c(sample.id, cor_columns)])
 
       # Compute correlations for taxa
       Y <- correlation_data[, .SD, .SDcols = !c(sample.id)]
-      cor_mat <- as.data.frame(cor(x = t(as.matrix(taxa$countData[, correlation_data[[ sample.id ]] ])),
+      cor_mat <- as.data.frame(cor(x = t(as.matrix(self$countData[, correlation_data[[ sample.id ]] ])),
                                    y = Y,
                                    method = cor_method))
       rownames(cor_mat) <- tree$tip.label
       colnames(cor_mat) <- sub("CORRELATION_", "", colnames(Y))
 
-      # Creating first base tree
-      p <- ggtree(tree, branch.length = "none") +
-        geom_tiplab(size = 3,
-                    offset = label_offset) +
-        geom_tippoint() +
-        geom_treescale() +
-        theme_tree()
-
       # Add taxa labels of where correlation is above threshold
-      rows_to_keep <- apply(cor_mat > cor_threshold | cor_mat < -cor_threshold, 1, any)
-      feature_tippoints <- rownames(cor_mat[rows_to_keep ,])
-      tip_labels <- p$data[p$data$label %in% feature_tippoints, ]
-
-      # Adding labelling layer to base tree
-      p1 <- p +
-        geom_tippoint(data = tip_labels,
-                      mapping = aes(x = x,
-                                    y = y,
-                                    label = label),
-                      color = "red") +
-        scale_color_manual(labels = c("black" = "weak",
-                                      "red" = "strong"),
-                           name = "Correlation strength") +
-        xlim(0, max(p$data$x) + label_offset * 4)
+      logical <- cor_mat > cor_threshold | cor_mat < -cor_threshold
+      logical_mat <- cor_mat[apply(logical, 1, any), ]
+      filter_NAs <- rownames(logical_mat)[!grepl("^NA", rownames(logical_mat))]
 
       # Restores tools class components
       private$tmp_restore()
 
-      # Adding heatmap to final tree
-      return(
-        gheatmap(p1, cor_mat,
-                 offset = 0.1,
-                 width = 1,
-                 colnames_position = "top",
-                 colnames_angle = 45,
-                 colnames_offset_y = 1,
-                 hjust = 0.5,
-                 font.size = 2.5) +
-          scale_fill_viridis_c(option = "E",
-                               name = cor_method,
-                               na.value = "white")
-      )
+      # Only visuakizes taxa meeting the correlation threshold
+      if (length(filter_NAs > 0)) {
+        final_cor <- logical_mat[filter_NAs, ]
+        final_tree <- ape::keep.tip(tree, tip = filter_NAs)
+
+        # Adding labelling layer to base tree
+        label_offset <- length(cor_columns) * 2.5
+        p <- ggtree(final_tree, branch.length = "none") +
+          geom_tiplab(size = 3, offset = label_offset) +
+          geom_treescale() +
+          theme_tree()
+        # Increases x-axis space based on label_offset
+        p <- p +
+          xlim(0, max(p$data$x) + label_offset * 2)
+
+        # Legend labels
+        cor_names <- colnames(final_cor)
+        cor_sequence <- seq_along(cor_names)
+        column_labels <- stats::setNames(as.character(cor_sequence), cor_names)
+
+        # Adding heatmap to final tree
+        return(gheatmap(p, final_cor,
+                        offset = 0.1,
+                        width = 1,
+                        colnames_position = "top",
+                        colnames_offset_y = 0.1,
+                        custom_column_labels = cor_sequence,
+                        hjust = 0.5,
+                        font.size = 2.5) +
+                 scale_fill_viridis_c(option = "E",
+                                      name = cor_method,
+                                      na.value = "white") +
+                 labs(caption = paste(column_labels, names(column_labels),
+                                      sep = " : ",
+                                      collapse = " - ")))
+      } else {
+        return(paste0("None ", feature_rank, " are found that meet the correlation threshold of (+/-) ", cor_threshold))
+      }
     },
     #' @description
     #' Relabelling phylogenetic tree by featureData
@@ -1139,7 +1151,7 @@ tools <- R6::R6Class(
 
         for (i in 1:RANKSTAT_ncol) {
           col_name <- colnames(RANKSTAT_data)[i]
-          cat(paste0("column: ", col_name, " \n"))
+          cat(paste0("Processing ... ", col_name, " \n"))
 
           # Alpha diversity: Shannon index
           # Include hills plot
@@ -1169,7 +1181,7 @@ tools <- R6::R6Class(
                                     col_name = col_name)
 
             # Creates composition ggplot as list
-            composition_plots[[i, j]] <- composition_plot(data = na.omit(res$data),
+            composition_plots[[i, j]] <- composition_plot(data = res$data,
                                                           palette = res$palette,
                                                           feature_rank = feature_ranks[j],
                                                           group_by = col_name)

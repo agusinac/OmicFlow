@@ -131,7 +131,7 @@ if (!is.null(plots$composition_plots)) {
 ```{r}
 if (!is.null(plots$correlation_plots)) {
   cat("## Correlations {.tabset} \n")
-  plot_tabs(plots$correlation_plots, 
+  plot_tabs(plots$correlation_plots,
             method = "vector",
             label_col = feature_ranks)
 }
