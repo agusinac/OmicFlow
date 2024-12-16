@@ -23,11 +23,11 @@ metataxonomics <- R6::R6Class(
 
     #' @description
     #' Initializes the metataxonomics class object with \code{metataxonomics$new()}
-    #' @param countData countData A path to an existing file, data.table or data.frame.
+    #' @param countData countData A path to an existing file or sparseMatrix.
     #' @param featureData A path to an existing file, data.table or data.frame.
     #' @param metaData A path to an existing file, data.table or data.frame.
     #' @param treeData A path to an existing newick file or class "phylo", see \link[ape]{read.tree}.
-    #' @param biomData A path to an existing biom file or hdf5 file, see \link[rhdf5]{h5read}.
+    #' @param biomData A path to an existing biom file, version 2.1.0, see \link[rhdf5]{h5read}.
     #' @examples
     #' taxa <- metataxonomics$new(metaData = "metadata.tsv",
     #'                            biomData = "biom_with_taxonomy.biom",
@@ -71,7 +71,7 @@ metataxonomics <- R6::R6Class(
       }
 
       if (!is.null(self$featureData)) {
-        colnames(self$featureData)[!grepl("ID", colnames(self$featureData))] <- c("Domain", "Phylum", "Class", "Order", "Family", "Genus", "Species")
+        colnames(self$featureData)[!grepl("ID", colnames(self$featureData))] <- c("Kingdom", "Phylum", "Class", "Order", "Family", "Genus", "Species")
         self$featureData <- self$featureData[, lapply(.SD, function(x) gsub("^[dpcofgs]_{2}", "", x)),
                                              .SDcols = colnames(self$featureData)]
       }
@@ -150,6 +150,16 @@ metataxonomics <- R6::R6Class(
       if (!is.null(self$treeData)) self$treeData <- ape::keep.tip(self$treeData, self$featureData$ID)
       invisible(self)
     },
+    #' @description
+    #' Writes \code{metataxonomics$new()} object as biom file, in a biom-format version 2.1 compatible format.
+    #' @param file Filename of the output biom file
+    #' @examples
+    #' taxa <- metataxonomics$new(metaData = "metadata.tsv",
+    #'                            biomData = "biom_with_taxonomy.biom",
+    #'                            treeData = "rooted_tree.newick")
+    #'
+    #' taxa$write_biom(file = "new_output.biom")
+    #'
     write_biom = function(file) {
       # Create empty biom file
       rhdf5::h5createFile(file)
@@ -167,7 +177,10 @@ metataxonomics <- R6::R6Class(
       h5 <- rhdf5::H5Fopen(file)
 
       # Add Attributes
-      rhdf5::h5writeAttribute(attr = "OTU table",
+      rhdf5::h5writeAttribute(attr = paste("No Table ID"),
+                              h5obj = h5,
+                              name = 'id')
+      rhdf5::h5writeAttribute(attr = paste("Table"),
                               h5obj = h5,
                               name = 'type')
       rhdf5::h5writeAttribute(attr = "http://biom-format.org",
@@ -184,7 +197,7 @@ metataxonomics <- R6::R6Class(
                               h5obj = h5,
                               name = 'shape',
                               encoding = 2)
-      rhdf5::h5writeAttribute(attr = length(self$countData@p),
+      rhdf5::h5writeAttribute(attr = max(self$countData@p),
                               h5obj = h5,
                               name = 'nnz')
       rhdf5::h5writeAttribute(attr = paste("OmicFlow", utils::packageVersion("OmicFlow")),
@@ -197,7 +210,7 @@ metataxonomics <- R6::R6Class(
       x <- x[order(x[,1]),,drop=FALSE]
       indptr <- cumsum(unname(table(factor(x[,1]+1, 0:nrow(self$countData)))))
 
-      rhdf5::h5writeDataset(obj = rownames(self$countData),
+      rhdf5::h5writeDataset(obj = base::rownames(self$countData),
                             h5loc = h5,
                             name = 'observation/ids')
       rhdf5::h5writeDataset(obj = as.numeric(x[,3]),
@@ -212,9 +225,9 @@ metataxonomics <- R6::R6Class(
 
       # Read counts by sample
       x <- x[order(x[,2]),,drop=FALSE]
-      indptr <- cumsum(unname(table(factor(x[,2]+1, 0:ncol(self$countData)))))
+      indptr <- base::cumsum(base::unname(base::table(base::factor(x[,2]+1, 0:ncol(self$countData)))))
 
-      rhdf5::h5writeDataset(obj = colnames(self$countData),
+      rhdf5::h5writeDataset(obj = base::colnames(self$countData),
                             h5loc = h5,
                             name = 'sample/ids')
       rhdf5::h5writeDataset(obj = as.numeric(x[,3]),
@@ -239,7 +252,6 @@ metataxonomics <- R6::R6Class(
       # Close biom file connection
       rhdf5::H5Fflush(h5)
       rhdf5::H5Fclose(h5)
-      rhdf5::h5closeAll()
     }
   ),
   private = list(
