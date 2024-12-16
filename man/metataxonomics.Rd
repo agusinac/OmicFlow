@@ -64,6 +64,17 @@ taxa$sample_subset(cycle == "t1")
 
 # Remove empty features from countData and treeData
 taxa$removeZeros()
+
+## ------------------------------------------------
+## Method `metataxonomics$write_biom`
+## ------------------------------------------------
+
+taxa <- metataxonomics$new(metaData = "metadata.tsv",
+                           biomData = "biom_with_taxonomy.biom",
+                           treeData = "rooted_tree.newick")
+
+taxa$write_biom(file = "new_output.biom")
+
 }
 \section{Super class}{
 \code{\link[OmicFlow:tools]{OmicFlow::tools}} -> \code{metataxonomics}
@@ -90,6 +101,7 @@ taxa$removeZeros()
 \item \href{#method-metataxonomics-print}{\code{metataxonomics$print()}}
 \item \href{#method-metataxonomics-reset}{\code{metataxonomics$reset()}}
 \item \href{#method-metataxonomics-removeZeros}{\code{metataxonomics$removeZeros()}}
+\item \href{#method-metataxonomics-write_biom}{\code{metataxonomics$write_biom()}}
 }
 }
 \if{html}{\out{
@@ -106,9 +118,10 @@ taxa$removeZeros()
 <li><span class="pkg-link" data-pkg="OmicFlow" data-topic="tools" data-id="normalize"><a href='../../OmicFlow/html/tools.html#method-tools-normalize'><code>OmicFlow::tools$normalize()</code></a></span></li>
 <li><span class="pkg-link" data-pkg="OmicFlow" data-topic="tools" data-id="ordination"><a href='../../OmicFlow/html/tools.html#method-tools-ordination'><code>OmicFlow::tools$ordination()</code></a></span></li>
 <li><span class="pkg-link" data-pkg="OmicFlow" data-topic="tools" data-id="rankstat"><a href='../../OmicFlow/html/tools.html#method-tools-rankstat'><code>OmicFlow::tools$rankstat()</code></a></span></li>
-<li><span class="pkg-link" data-pkg="OmicFlow" data-topic="tools" data-id="regression"><a href='../../OmicFlow/html/tools.html#method-tools-regression'><code>OmicFlow::tools$regression()</code></a></span></li>
+<li><span class="pkg-link" data-pkg="OmicFlow" data-topic="tools" data-id="removeNAs"><a href='../../OmicFlow/html/tools.html#method-tools-removeNAs'><code>OmicFlow::tools$removeNAs()</code></a></span></li>
 <li><span class="pkg-link" data-pkg="OmicFlow" data-topic="tools" data-id="sample_subset"><a href='../../OmicFlow/html/tools.html#method-tools-sample_subset'><code>OmicFlow::tools$sample_subset()</code></a></span></li>
 <li><span class="pkg-link" data-pkg="OmicFlow" data-topic="tools" data-id="transform"><a href='../../OmicFlow/html/tools.html#method-tools-transform'><code>OmicFlow::tools$transform()</code></a></span></li>
+<li><span class="pkg-link" data-pkg="OmicFlow" data-topic="tools" data-id="triplot"><a href='../../OmicFlow/html/tools.html#method-tools-triplot'><code>OmicFlow::tools$triplot()</code></a></span></li>
 </ul>
 </details>
 }}
@@ -130,7 +143,7 @@ Initializes the metataxonomics class object with \code{metataxonomics$new()}
 \subsection{Arguments}{
 \if{html}{\out{<div class="arguments">}}
 \describe{
-\item{\code{countData}}{countData A path to an existing file, data.table or data.frame.}
+\item{\code{countData}}{countData A path to an existing file or sparseMatrix.}
 
 \item{\code{metaData}}{A path to an existing file, data.table or data.frame.}
 
@@ -138,7 +151,7 @@ Initializes the metataxonomics class object with \code{metataxonomics$new()}
 
 \item{\code{treeData}}{A path to an existing newick file or class "phylo", see \link[ape]{read.tree}.}
 
-\item{\code{biomData}}{A path to an existing biom file or hdf5 file, see \link[rhdf5]{h5read}.}
+\item{\code{biomData}}{A path to an existing biom file, version 2.1.0, see \link[rhdf5]{h5read}.}
 }
 \if{html}{\out{</div>}}
 }
@@ -236,6 +249,36 @@ taxa$sample_subset(cycle == "t1")
 
 # Remove empty features from countData and treeData
 taxa$removeZeros()
+}
+\if{html}{\out{</div>}}
+
+}
+
+}
+\if{html}{\out{<hr>}}
+\if{html}{\out{<a id="method-metataxonomics-write_biom"></a>}}
+\if{latex}{\out{\hypertarget{method-metataxonomics-write_biom}{}}}
+\subsection{Method \code{write_biom()}}{
+Writes \code{metataxonomics$new()} object as biom file, in a biom-format version 2.1 compatible format.
+\subsection{Usage}{
+\if{html}{\out{<div class="r">}}\preformatted{metataxonomics$write_biom(file)}\if{html}{\out{</div>}}
+}
+
+\subsection{Arguments}{
+\if{html}{\out{<div class="arguments">}}
+\describe{
+\item{\code{file}}{Filename of the output biom file}
+}
+\if{html}{\out{</div>}}
+}
+\subsection{Examples}{
+\if{html}{\out{<div class="r example copy">}}
+\preformatted{taxa <- metataxonomics$new(metaData = "metadata.tsv",
+                           biomData = "biom_with_taxonomy.biom",
+                           treeData = "rooted_tree.newick")
+
+taxa$write_biom(file = "new_output.biom")
+
 }
 \if{html}{\out{</div>}}
 

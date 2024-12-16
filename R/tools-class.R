@@ -823,8 +823,20 @@ tools <- R6::R6Class(
     },
     #' @description
     #' Computation and visualization of regression models
-    #' Thus far it contains triplot for RDA, should be modified
-    triplot = function(feature_rank, feature_filter = NA, metadata.col = NA, sample.id="SAMPLE-ID", choice_dim = c("RDA1", "PC1"), pairwise = FALSE, Brewer.palID = "Set2", counts.scalar = 1) {
+    #' Thus far it contains triplot for RDA, should be modified to perform a standard regression and then optionally also visualize RDA.
+    #' @param feature_rank A featureData column name to visualize.
+    #' @param feature_filter Removes features by name, works on single strings or vector of strings.
+    #' @param feature_top Integer of the top features to visualize, the max is 15, due to a limit of palettes.
+    #' @param metadata.col A metaData column that will be used as contrast. Multiple columns are not yet supported.
+    #' @param sample.id A metaData column specifying the sample.id, used to filter out NAs from \code{metadata.col} column name.
+    #' @param choice_dim A character vector to visualize which dimensions, default \code{c("RDA1", "PC1")}.
+    #' @param pairwise A boolean variable, if TRUE it will perform pairwise visualization of PCA and outputs it as a pdf file.
+    #' @param Brewer.palID Palette set to be applied, see \link[RColorBrewer]{brewer.pal} or \link[OmicFlow]{fetch_palette}.
+    #' @param counts.scalar Adds a pseudocount to countData prior to log transformation.
+    #' @return A \link[ggplot2]{ggplot} object.
+    triplot = function(feature_rank, feature_filter = NA, metadata.col = NA, sample.id="SAMPLE-ID",
+                       choice_dim = c("RDA1", "PC1"), pairwise = FALSE,
+                       Brewer.palID = "Set2", counts.scalar = 1) {
       # Copies object to prevent modification of tools class components
       private$tmp_link(
         .countData = self$countData,
@@ -1116,6 +1128,8 @@ tools <- R6::R6Class(
     },
     #' @description
     #' Relabelling phylogenetic tree by featureData
+    #' @param feature_rank A featureData column name to visualize.
+    #' @return A re-labelled tree as \link[ape] object
     label_phylo = function(feature_rank) {
       # Create tmp tree copy
       tmp_tree <- self$treeData

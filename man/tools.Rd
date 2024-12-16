@@ -24,6 +24,16 @@ obj <- tools$new(countData = "counts.csv",
 obj$removeZeros()
 
 ## ------------------------------------------------
+## Method `tools$removeNAs`
+## ------------------------------------------------
+
+obj <- tools$new(countData = "counts.csv",
+                 featureData = "features.txt",
+                 metaData = "metadata.tsv"
+obj$removeNAs(sample.id = "SAMPLE-ID", column = "treatment")
+
+
+## ------------------------------------------------
 ## Method `tools$feature_subset`
 ## ------------------------------------------------
 
@@ -61,7 +71,17 @@ obj <- tools$new(countData = "counts.csv",
                  featureData = "features.txt",
                  metaData = "metadata.tsv"
 obj$transform(log2)
-obj$transform(function(x) x / sum(x))
+
+
+## ------------------------------------------------
+## Method `tools$normalize`
+## ------------------------------------------------
+
+obj <- tools$new(countData = "counts.csv",
+                 featureData = "features.txt",
+                 metaData = "metadata.tsv"
+obj$normalize()
+
 
 ## ------------------------------------------------
 ## Method `tools$rankstat`
@@ -82,8 +102,7 @@ obj <- tools$new(countData = "counts.csv",
                  metaData = "metadata.tsv"
 plt <- obj$alpha_diversity(col_name = "treatment",
                            method = "shannon")
-plt <- obj$alpha_diversity(custom_div = shannon_df,
-                           col_name = "treatment")
+
 
 ## ------------------------------------------------
 ## Method `tools$composition`
@@ -113,6 +132,7 @@ obj <- tools$new(countData = "counts.csv",
 pcoa_plots <- obj$ordination(metric = "bray",
                              method = "pcoa",
                              group_by = "treatment",
+                             sample.id = "SAMPLE-ID",
                              weighted = TRUE,
                              parallel = TRUE,
                              normalize = TRUE)
@@ -128,11 +148,11 @@ obj <- tools$new(countData = "counts.csv",
                  metaData = "metadata.tsv"
 
 unpaired <- obj$differential_feature_expression(feature_rank = "Genus",
-                                           sample.id = "SAMPLE-ID",
-                                           paired = FALSE,
-                                           condition.group = "treatment",
-                                           condition_A = c("H"),
-                                           condition_B = c("T"))
+                                                sample.id = "SAMPLE-ID",
+                                                paired = FALSE,
+                                                condition.group = "treatment",
+                                                condition_A = c("H"),
+                                                condition_B = c("T"))
 
 paired <- obj$differential_feature_expression(feature_rank = "Genus",
                                               sample.id = "SAMPLE-ID",
@@ -141,6 +161,22 @@ paired <- obj$differential_feature_expression(feature_rank = "Genus",
                                               condition_A = c("t2", "t3"),
                                               condition_B = c("t1", "t2"),
                                               feature_top = 20)
+
+
+## ------------------------------------------------
+## Method `tools$correlation`
+## ------------------------------------------------
+
+obj <- tools$new(countData = "counts.csv",
+                 featureData = "features.txt",
+                 metaData = "metadata.tsv"
+
+plt <- obj$correlation(feature_rank = "Genus",
+                       feature_filter = c("uncultured"),
+                       sample.id = "SAMPLE-ID",
+                       cor_method = "spearman",
+                       cor_columns = c("BMI", "weight", "flight.time"),
+                       cor_threshold = 0.8)
 
 }
 \seealso{
@@ -168,6 +204,7 @@ paired <- obj$differential_feature_expression(feature_rank = "Genus",
 \itemize{
 \item \href{#method-tools-new}{\code{tools$new()}}
 \item \href{#method-tools-removeZeros}{\code{tools$removeZeros()}}
+\item \href{#method-tools-removeNAs}{\code{tools$removeNAs()}}
 \item \href{#method-tools-feature_subset}{\code{tools$feature_subset()}}
 \item \href{#method-tools-sample_subset}{\code{tools$sample_subset()}}
 \item \href{#method-tools-feature_glom}{\code{tools$feature_glom()}}
@@ -178,7 +215,7 @@ paired <- obj$differential_feature_expression(feature_rank = "Genus",
 \item \href{#method-tools-composition}{\code{tools$composition()}}
 \item \href{#method-tools-ordination}{\code{tools$ordination()}}
 \item \href{#method-tools-differential_feature_expression}{\code{tools$differential_feature_expression()}}
-\item \href{#method-tools-regression}{\code{tools$regression()}}
+\item \href{#method-tools-triplot}{\code{tools$triplot()}}
 \item \href{#method-tools-correlation}{\code{tools$correlation()}}
 \item \href{#method-tools-label_phylo}{\code{tools$label_phylo()}}
 \item \href{#method-tools-autoFlow}{\code{tools$autoFlow()}}
@@ -224,6 +261,37 @@ Removes empty (zero) values by row and column.
                  featureData = "features.txt",
                  metaData = "metadata.tsv"
 obj$removeZeros()
+}
+\if{html}{\out{</div>}}
+
+}
+
+}
+\if{html}{\out{<hr>}}
+\if{html}{\out{<a id="method-tools-removeNAs"></a>}}
+\if{latex}{\out{\hypertarget{method-tools-removeNAs}{}}}
+\subsection{Method \code{removeNAs()}}{
+Remove NAs from metaData and updates the countData object fields
+\subsection{Usage}{
+\if{html}{\out{<div class="r">}}\preformatted{tools$removeNAs(sample.id, column)}\if{html}{\out{</div>}}
+}
+
+\subsection{Arguments}{
+\if{html}{\out{<div class="arguments">}}
+\describe{
+\item{\code{sample.id}}{The column containing sample-id that are also the countData columns.}
+
+\item{\code{column}}{The column from where NAs should be removed.}
+}
+\if{html}{\out{</div>}}
+}
+\subsection{Examples}{
+\if{html}{\out{<div class="r example copy">}}
+\preformatted{obj <- tools$new(countData = "counts.csv",
+                 featureData = "features.txt",
+                 metaData = "metadata.tsv"
+obj$removeNAs(sample.id = "SAMPLE-ID", column = "treatment")
+
 }
 \if{html}{\out{</div>}}
 
@@ -333,9 +401,7 @@ Performs transformation on countData as a Triplet sparse matrix \link[Matrix]{un
 \subsection{Arguments}{
 \if{html}{\out{<div class="arguments">}}
 \describe{
-\item{\code{fun}}{A function such as \code{function(x)}}
-
-\item{\code{...}}{Anything following a function}
+\item{\code{fun}}{A function such as \code{log2}, \code{log}}
 }
 \if{html}{\out{</div>}}
 }
@@ -345,7 +411,7 @@ Performs transformation on countData as a Triplet sparse matrix \link[Matrix]{un
                  featureData = "features.txt",
                  metaData = "metadata.tsv"
 obj$transform(log2)
-obj$transform(function(x) x / sum(x))
+
 }
 \if{html}{\out{</div>}}
 
@@ -356,8 +422,21 @@ obj$transform(function(x) x / sum(x))
 \if{html}{\out{<a id="method-tools-normalize"></a>}}
 \if{latex}{\out{\hypertarget{method-tools-normalize}{}}}
 \subsection{Method \code{normalize()}}{
+Relative abundance computation by column sums.
 \subsection{Usage}{
 \if{html}{\out{<div class="r">}}\preformatted{tools$normalize()}\if{html}{\out{</div>}}
+}
+
+\subsection{Examples}{
+\if{html}{\out{<div class="r example copy">}}
+\preformatted{obj <- tools$new(countData = "counts.csv",
+                 featureData = "features.txt",
+                 metaData = "metadata.tsv"
+obj$normalize()
+
+}
+\if{html}{\out{</div>}}
+
 }
 
 }
@@ -397,7 +476,6 @@ plt
 Alpha diversity based on \link[vegan]{diversity}
 \subsection{Usage}{
 \if{html}{\out{<div class="r">}}\preformatted{tools$alpha_diversity(
-  custom_div = NA,
   col_name,
   method = c("shannon", "invsimpson", "simpson"),
   Brewer.palID = "Set2",
@@ -408,8 +486,6 @@ Alpha diversity based on \link[vegan]{diversity}
 \subsection{Arguments}{
 \if{html}{\out{<div class="arguments">}}
 \describe{
-\item{\code{custom_div}}{A custom data.frame or data.table of pre-computed diversity continuous values from qiime2 core diversity.}
-
 \item{\code{col_name}}{The metaData column of categorical variables to create a ggplot object.}
 
 \item{\code{method}}{Diversity metric such as "shannon", "invsimpson" or "simpson"}
@@ -430,8 +506,7 @@ A \link[ggplot2]{ggplot} object.
                  metaData = "metadata.tsv"
 plt <- obj$alpha_diversity(col_name = "treatment",
                            method = "shannon")
-plt <- obj$alpha_diversity(custom_div = shannon_df,
-                           col_name = "treatment")
+
 }
 \if{html}{\out{</div>}}
 
@@ -448,6 +523,7 @@ Visualization of compositional data.
   feature_rank,
   feature_filter = NA,
   col_name = NA,
+  sample.id = "SAMPLE-ID",
   feature_top = 10,
   Brewer.palID = "RdYlBu"
 )}\if{html}{\out{</div>}}
@@ -461,6 +537,8 @@ Visualization of compositional data.
 \item{\code{feature_filter}}{Removes features by name, works on single strings or vector of strings.}
 
 \item{\code{col_name}}{A metaData column name to add to the compositional data.}
+
+\item{\code{sample.id}}{A metaData column specifying the sample.id, used to filter out NAs if col_name is specified.}
 
 \item{\code{feature_top}}{Integer of the top features to visualize, the max is 15, due to a limit of palettes.}
 
@@ -509,7 +587,8 @@ Ordination of countData with statistical tests.
   pca.max.explained = 80,
   pca.dim = c(1, 2),
   outdir = ".",
-  cpus = 8
+  cpus = 8,
+  sample.id = "SAMPLE-ID"
 )}\if{html}{\out{</div>}}
 }
 
@@ -539,6 +618,8 @@ Ordination of countData with statistical tests.
 \item{\code{outdir}}{Output directory of pca.pairwise, outputs a pdf document.}
 
 \item{\code{cpus}}{Integer, number of cores to use. Default is 8 when parallelize is TRUE.}
+
+\item{\code{sample.id}}{A metaData column specifying the sample.id, used to filter out NAs from \code{group_by} column name.}
 }
 \if{html}{\out{</div>}}
 }
@@ -554,6 +635,7 @@ A list of \link[ggplot2]{ggplot} object.
 pcoa_plots <- obj$ordination(metric = "bray",
                              method = "pcoa",
                              group_by = "treatment",
+                             sample.id = "SAMPLE-ID",
                              weighted = TRUE,
                              parallel = TRUE,
                              normalize = TRUE)
@@ -583,8 +665,7 @@ Differential feature expression
   foldchange.threshold = 0.06,
   feature_filter = NA,
   feature_top = NA,
-  normalize = TRUE,
-  cpus = 1
+  normalize = TRUE
 )}\if{html}{\out{</div>}}
 }
 
@@ -593,7 +674,7 @@ Differential feature expression
 \describe{
 \item{\code{feature_rank}}{A featureData column name to visualize.}
 
-\item{\code{sample.id}}{A metaData column name containing the sample ids.}
+\item{\code{sample.id}}{A metaData column specifying the sample.id, used to filter out NAs from \code{condition.group} column name.}
 
 \item{\code{paired}}{Boolean, wether to compute paired or unpaired log2 fold change, for paired it is required to specify paired.id. Default is unpaired.}
 
@@ -614,8 +695,6 @@ Differential feature expression
 \item{\code{feature_top}}{Integer of the top features to visualize, the max is 15, due to a limit of palettes.}
 
 \item{\code{normalize}}{Boolean, wether to normalize by total sample sums.}
-
-\item{\code{cpus}}{Integer, number of cores to use. Default is 1.}
 }
 \if{html}{\out{</div>}}
 }
@@ -632,11 +711,11 @@ Differential feature expression
                  metaData = "metadata.tsv"
 
 unpaired <- obj$differential_feature_expression(feature_rank = "Genus",
-                                           sample.id = "SAMPLE-ID",
-                                           paired = FALSE,
-                                           condition.group = "treatment",
-                                           condition_A = c("H"),
-                                           condition_B = c("T"))
+                                                sample.id = "SAMPLE-ID",
+                                                paired = FALSE,
+                                                condition.group = "treatment",
+                                                condition_A = c("H"),
+                                                condition_B = c("T"))
 
 paired <- obj$differential_feature_expression(feature_rank = "Genus",
                                               sample.id = "SAMPLE-ID",
@@ -653,30 +732,106 @@ paired <- obj$differential_feature_expression(feature_rank = "Genus",
 
 }
 \if{html}{\out{<hr>}}
-\if{html}{\out{<a id="method-tools-regression"></a>}}
-\if{latex}{\out{\hypertarget{method-tools-regression}{}}}
-\subsection{Method \code{regression()}}{
+\if{html}{\out{<a id="method-tools-triplot"></a>}}
+\if{latex}{\out{\hypertarget{method-tools-triplot}{}}}
+\subsection{Method \code{triplot()}}{
 Computation and visualization of regression models
+Thus far it contains triplot for RDA, should be modified to perform a standard regression and then optionally also visualize RDA.
 \subsection{Usage}{
-\if{html}{\out{<div class="r">}}\preformatted{tools$regression()}\if{html}{\out{</div>}}
+\if{html}{\out{<div class="r">}}\preformatted{tools$triplot(
+  feature_rank,
+  feature_filter = NA,
+  metadata.col = NA,
+  sample.id = "SAMPLE-ID",
+  choice_dim = c("RDA1", "PC1"),
+  pairwise = FALSE,
+  Brewer.palID = "Set2",
+  counts.scalar = 1
+)}\if{html}{\out{</div>}}
 }
 
+\subsection{Arguments}{
+\if{html}{\out{<div class="arguments">}}
+\describe{
+\item{\code{feature_rank}}{A featureData column name to visualize.}
+
+\item{\code{feature_filter}}{Removes features by name, works on single strings or vector of strings.}
+
+\item{\code{metadata.col}}{A metaData column that will be used as contrast. Multiple columns are not yet supported.}
+
+\item{\code{sample.id}}{A metaData column specifying the sample.id, used to filter out NAs from \code{metadata.col} column name.}
+
+\item{\code{choice_dim}}{A character vector to visualize which dimensions, default \code{c("RDA1", "PC1")}.}
+
+\item{\code{pairwise}}{A boolean variable, if TRUE it will perform pairwise visualization of PCA and outputs it as a pdf file.}
+
+\item{\code{Brewer.palID}}{Palette set to be applied, see \link[RColorBrewer]{brewer.pal} or \link[OmicFlow]{fetch_palette}.}
+
+\item{\code{counts.scalar}}{Adds a pseudocount to countData prior to log transformation.}
+
+\item{\code{feature_top}}{Integer of the top features to visualize, the max is 15, due to a limit of palettes.}
+}
+\if{html}{\out{</div>}}
+}
+\subsection{Returns}{
+A \link[ggplot2]{ggplot} object.
+}
 }
 \if{html}{\out{<hr>}}
 \if{html}{\out{<a id="method-tools-correlation"></a>}}
 \if{latex}{\out{\hypertarget{method-tools-correlation}{}}}
 \subsection{Method \code{correlation()}}{
-Computation and visualization of correlation models
+Correlation Analysis, default spearm and automatic filter & Visualization based on thresholds
 \subsection{Usage}{
 \if{html}{\out{<div class="r">}}\preformatted{tools$correlation(
   feature_rank,
   feature_filter = NA,
+  sample.id = "SAMPLE-ID",
   cor_method = "spearman",
   cor_columns = c("BMI", "Weight"),
   cor_threshold = 0.6,
-  label_offset = 10,
   normalize = TRUE
 )}\if{html}{\out{</div>}}
+}
+
+\subsection{Arguments}{
+\if{html}{\out{<div class="arguments">}}
+\describe{
+\item{\code{feature_rank}}{A featureData column name to visualize.}
+
+\item{\code{feature_filter}}{Removes features by name, works on single strings or vector of strings.}
+
+\item{\code{sample.id}}{A metaData column specifying the sample.id, used to filter out NAs from \code{cor_columns} column name.}
+
+\item{\code{cor_method}}{Correlation method, default spearman, see \link[stats]{cor}.}
+
+\item{\code{cor_columns}}{A vector of a single or multiple column names with continuous data.}
+
+\item{\code{cor_threshold}}{Float variable, used to filter taxa that meet the cor_threshold in both positive as negative values. Default is 0.6.}
+
+\item{\code{normalize}}{Boolean, wether to normalize by total sample sums.}
+}
+\if{html}{\out{</div>}}
+}
+\subsection{Returns}{
+A \link[ggplot2]{ggplot} object or \code{NULL} when no matches are found.
+}
+\subsection{Examples}{
+\if{html}{\out{<div class="r example copy">}}
+\preformatted{obj <- tools$new(countData = "counts.csv",
+                 featureData = "features.txt",
+                 metaData = "metadata.tsv"
+
+plt <- obj$correlation(feature_rank = "Genus",
+                       feature_filter = c("uncultured"),
+                       sample.id = "SAMPLE-ID",
+                       cor_method = "spearman",
+                       cor_columns = c("BMI", "weight", "flight.time"),
+                       cor_threshold = 0.8)
+
+}
+\if{html}{\out{</div>}}
+
 }
 
 }
@@ -689,34 +844,46 @@ Relabelling phylogenetic tree by featureData
 \if{html}{\out{<div class="r">}}\preformatted{tools$label_phylo(feature_rank)}\if{html}{\out{</div>}}
 }
 
+\subsection{Arguments}{
+\if{html}{\out{<div class="arguments">}}
+\describe{
+\item{\code{feature_rank}}{A featureData column name to visualize.}
+}
+\if{html}{\out{</div>}}
+}
+\subsection{Returns}{
+A re-labelled tree as \link\link{ape} object
+}
 }
 \if{html}{\out{<hr>}}
 \if{html}{\out{<a id="method-tools-autoFlow"></a>}}
 \if{latex}{\out{\hypertarget{method-tools-autoFlow}{}}}
 \subsection{Method \code{autoFlow()}}{
 Automated Omics Analysis based on metadata template.
+For now only works with headers "RANKSTAT_" and "CORRELATION_".
+Samples should be as "SAMPLE-ID" upper or lower case.
 \subsection{Usage}{
 \if{html}{\out{<div class="r">}}\preformatted{tools$autoFlow(
-  feature_ranks = c("Phylum", "Family", "Genus", "Species"),
-  distance_metrics = c("unifrac", "bray"),
-  output = NA,
-  shannon_table,
-  distance_matrix
+  feature_ranks = c("Phylum", "Family", "Genus"),
+  feature_filter = c("uncultured"),
+  distance_metrics = c("unifrac"),
+  dist_matrix = NA,
+  cpus = 1
 )}\if{html}{\out{</div>}}
 }
 
 \subsection{Arguments}{
 \if{html}{\out{<div class="arguments">}}
 \describe{
-\item{\code{feature_ranks}}{A character vector of features to use.}
+\item{\code{feature_ranks}}{A character vector of features to use, default \code{c("Phylum", "Family", "Genus")}.}
 
-\item{\code{distance_metrics}}{A character vector of dissimilarity metrics to use.}
+\item{\code{feature_filter}}{A character vector of to filter unwanted taxa, default \code{c("uncultured")}}
 
-\item{\code{output}}{String variable of the out folder.}
+\item{\code{distance_metrics}}{A character vector specifying what (dis)similarity metrics to use, default \code{c("unifrac")}}
 
-\item{\code{shannon_table}}{A path to pre-computed alpha diversity file}
+\item{\code{dist_matrix}}{A path to pre-computed distance matrix.}
 
-\item{\code{distance_matrix}}{A path to pre-computed distance matrix}
+\item{\code{cpus}}{Number of cores to use, only used in \link[tools]{ordination} when dist_matrix is not supplied.}
 }
 \if{html}{\out{</div>}}
 }

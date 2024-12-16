@@ -10,7 +10,9 @@ volcano_plot(
   Y,
   feature_rank,
   pvalue.threshold = 0.05,
-  logfold.threshold = 0.6
+  logfold.threshold = 0.6,
+  label_A = "A",
+  label_B = "B"
 )
 }
 \arguments{
