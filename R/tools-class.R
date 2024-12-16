@@ -62,6 +62,16 @@ tools <- R6::R6Class(
       self$featureData <- self$featureData[keep_rows]
       invisible(self)
     },
+    #' @description
+    #' Remove NAs from metaData and updates the countData object fields
+    #' @param sample.id The column containing sample-id that are also the countData columns.
+    #' @param column The column from where NAs should be removed.
+    #' @examples
+    #' obj <- tools$new(countData = "counts.csv",
+    #'                  featureData = "features.txt",
+    #'                  metaData = "metadata.tsv"
+    #' obj$removeNAs(sample.id = "SAMPLE-ID", column = "treatment")
+    #'
     removeNAs = function(sample.id, column) {
       self$metaData <- na.omit(self$metaData, cols = column)
       self$countData <- self$countData[, self$metaData[[ sample.id ]]]
@@ -101,7 +111,7 @@ tools <- R6::R6Class(
       rows_to_keep <- self$metaData[, ...]
       self$metaData <- self$metaData[rows_to_keep, ]
       self$countData <- self$countData[, rows_to_keep]
-      self$removeZeros()
+      # self$removeZeros()
       invisible(self)
     },
     #' @description
@@ -162,18 +172,25 @@ tools <- R6::R6Class(
     },
     #' @description
     #' Performs transformation on countData as a Triplet sparse matrix \link[Matrix]{uniqTsparse}
-    #' @param fun A function such as \code{function(x)}
-    #' @param ... Anything following a function
+    #' @param fun A function such as \code{log2}, \code{log}
     #' @examples
     #' obj <- tools$new(countData = "counts.csv",
     #'                  featureData = "features.txt",
     #'                  metaData = "metadata.tsv"
     #' obj$transform(log2)
-    #' obj$transform(function(x) x / sum(x))
+    #'
     transform = function(fun) {
       self$countData@x <- fun(self$countData@x)
       invisible(self)
     },
+    #' @description
+    #' Relative abundance computation by column sums.
+    #' @examples
+    #' obj <- tools$new(countData = "counts.csv",
+    #'                  featureData = "features.txt",
+    #'                  metaData = "metadata.tsv"
+    #' obj$normalize()
+    #'
     normalize = function() {
       self$countData@x <- self$countData@x / rep(Matrix::colSums(self$countData), base::diff(self$countData@p))
       invisible(self)
@@ -224,7 +241,6 @@ tools <- R6::R6Class(
     },
     #' @description
     #' Alpha diversity based on \link[vegan]{diversity}
-    #' @param custom_div A custom data.frame or data.table of pre-computed diversity continuous values from qiime2 core diversity.
     #' @param col_name The metaData column of categorical variables to create a ggplot object.
     #' @param method Diversity metric such as "shannon", "invsimpson" or "simpson"
     #' @param Brewer.palID Palette set to be applied, see \link[RColorBrewer]{brewer.pal} or \link[OmicFlow]{fetch_palette}.
@@ -235,8 +251,7 @@ tools <- R6::R6Class(
     #'                  metaData = "metadata.tsv"
     #' plt <- obj$alpha_diversity(col_name = "treatment",
     #'                            method = "shannon")
-    #' plt <- obj$alpha_diversity(custom_div = shannon_df,
-    #'                            col_name = "treatment")
+    #'
     #' @return A \link[ggplot2]{ggplot} object.
     #' @seealso \link[OmicFlow]{diversity_plot}
     alpha_diversity = function(col_name, method = c("shannon", "invsimpson", "simpson"), Brewer.palID="Set2", evenness = FALSE) {
@@ -278,6 +293,7 @@ tools <- R6::R6Class(
     #' @param feature_rank A featureData column name to visualize.
     #' @param feature_filter Removes features by name, works on single strings or vector of strings.
     #' @param col_name A metaData column name to add to the compositional data.
+    #' @param sample.id A metaData column specifying the sample.id, used to filter out NAs if col_name is specified.
     #' @param feature_top Integer of the top features to visualize, the max is 15, due to a limit of palettes.
     #' @param Brewer.palID Palette set to be applied, see \link[RColorBrewer]{brewer.pal} or \link[OmicFlow]{fetch_palette}.
     #' @examples
@@ -387,6 +403,7 @@ tools <- R6::R6Class(
     #' @param method Ordination method, supports "pcoa" and "nmds".
     #' @param distmat A custom distance matrix in \link[stats]{dist} format.
     #' @param group_by A metaData column to be used as contrast for PERMANOVA or ANOSIM statistical test.
+    #' @param sample.id A metaData column specifying the sample.id, used to filter out NAs from \code{group_by} column name.
     #' @param weighted Boolean, wether to compute weighted or unweighted dissimilarities.
     #' @param normalize Boolean, wether to normalize by total sample sums.
     #' @param parallel Boolean, wether to parallelize the computation of the dissimilarity matrix.
@@ -403,6 +420,7 @@ tools <- R6::R6Class(
     #' pcoa_plots <- obj$ordination(metric = "bray",
     #'                              method = "pcoa",
     #'                              group_by = "treatment",
+    #'                              sample.id = "SAMPLE-ID",
     #'                              weighted = TRUE,
     #'                              parallel = TRUE,
     #'                              normalize = TRUE)
@@ -566,7 +584,7 @@ tools <- R6::R6Class(
     #' @param feature_rank A featureData column name to visualize.
     #' @param feature_filter Removes features by name, works on single strings or vector of strings.
     #' @param feature_top Integer of the top features to visualize, the max is 15, due to a limit of palettes.
-    #' @param sample.id A metaData column name containing the sample ids.
+    #' @param sample.id A metaData column specifying the sample.id, used to filter out NAs from \code{condition.group} column name.
     #' @param paired Boolean, wether to compute paired or unpaired log2 fold change, for paired it is required to specify paired.id. Default is unpaired.
     #' @param paired.id A metaData column name containing paired ids.
     #' @param condition.group A metaData column name of where the conditions A and B are located.
@@ -575,18 +593,17 @@ tools <- R6::R6Class(
     #' @param pvalue.threshold Integer, a P-value threshold to label and color significant features. Default is 0.05.
     #' @param foldchange.threshold Integer, a fold-change threshold to label and color significantly expressed features. Default is 0.06
     #' @param normalize Boolean, wether to normalize by total sample sums.
-    #' @param cpus Integer, number of cores to use. Default is 1.
     #' @examples
     #' obj <- tools$new(countData = "counts.csv",
     #'                  featureData = "features.txt",
     #'                  metaData = "metadata.tsv"
     #'
     #' unpaired <- obj$differential_feature_expression(feature_rank = "Genus",
-    #'                                            sample.id = "SAMPLE-ID",
-    #'                                            paired = FALSE,
-    #'                                            condition.group = "treatment",
-    #'                                            condition_A = c("H"),
-    #'                                            condition_B = c("T"))
+    #'                                                 sample.id = "SAMPLE-ID",
+    #'                                                 paired = FALSE,
+    #'                                                 condition.group = "treatment",
+    #'                                                 condition_A = c("H"),
+    #'                                                 condition_B = c("T"))
     #'
     #' paired <- obj$differential_feature_expression(feature_rank = "Genus",
     #'                                               sample.id = "SAMPLE-ID",
@@ -602,7 +619,7 @@ tools <- R6::R6Class(
     #' @seealso \link[OmicFlow]{volcano_plot}, \link[OmicFlow]{ViolinBoxPlot}, \link[OmicFlow]{paired_fold}, \link[OmicFlow]{unpaired_fold}
     differential_feature_expression = function(feature_rank, sample.id, paired=FALSE, paired.id,
                                                condition.group, condition_A, condition_B, pvalue.threshold=0.05, foldchange.threshold=0.06,
-                                               feature_filter = NA, feature_top = NA, normalize = TRUE, cpus = 1) {
+                                               feature_filter = NA, feature_top = NA, normalize = TRUE) {
       # Final output
       plot_list <- list()
 
@@ -997,7 +1014,28 @@ tools <- R6::R6Class(
       )
     },
     #' @description
-    #' Computation and visualization of correlation models
+    #' Correlation Analysis, default spearm and automatic filter & Visualization based on thresholds
+    #' @param feature_rank A featureData column name to visualize.
+    #' @param feature_filter Removes features by name, works on single strings or vector of strings.
+    #' @param sample.id A metaData column specifying the sample.id, used to filter out NAs from \code{cor_columns} column name.
+    #' @param cor_columns A vector of a single or multiple column names with continuous data.
+    #' @param cor_method Correlation method, default spearman, see \link[stats]{cor}.
+    #' @param cor_threshold Float variable, used to filter taxa that meet the cor_threshold in both positive as negative values. Default is 0.6.
+    #' @param normalize Boolean, wether to normalize by total sample sums.
+    #' @examples
+    #' obj <- tools$new(countData = "counts.csv",
+    #'                  featureData = "features.txt",
+    #'                  metaData = "metadata.tsv"
+    #'
+    #' plt <- obj$correlation(feature_rank = "Genus",
+    #'                        feature_filter = c("uncultured"),
+    #'                        sample.id = "SAMPLE-ID",
+    #'                        cor_method = "spearman",
+    #'                        cor_columns = c("BMI", "weight", "flight.time"),
+    #'                        cor_threshold = 0.8)
+    #'
+    #' @return
+    #' A \link[ggplot2]{ggplot} object or \code{NULL} when no matches are found.
     correlation = function(feature_rank, feature_filter = NA, sample.id = "SAMPLE-ID",
                            cor_method = "spearman", cor_columns = c("BMI", "Weight"), cor_threshold = 0.6, normalize = TRUE) {
       # Copies object to prevent modification of tools class components
@@ -1023,9 +1061,9 @@ tools <- R6::R6Class(
 
       # Compute correlations for taxa
       Y <- correlation_data[, .SD, .SDcols = !c(sample.id)]
-      cor_mat <- as.data.frame(cor(x = t(as.matrix(self$countData[, correlation_data[[ sample.id ]] ])),
-                                   y = Y,
-                                   method = cor_method))
+      cor_mat <- as.data.frame(stats::cor(x = t(as.matrix(self$countData[, correlation_data[[ sample.id ]] ])),
+                                          y = Y,
+                                          method = cor_method))
       rownames(cor_mat) <- tree$tip.label
       colnames(cor_mat) <- sub("CORRELATION_", "", colnames(Y))
 
@@ -1099,17 +1137,19 @@ tools <- R6::R6Class(
     },
     #' @description
     #' Automated Omics Analysis based on metadata template.
-    #' @param feature_ranks A character vector of features to use.
-    #' @param distance_metrics A character vector of dissimilarity metrics to use.
-    #' @param output String variable of the out folder.
-    #' @param shannon_table A path to pre-computed alpha diversity file
-    #' @param distance_matrix A path to pre-computed distance matrix
+    #' For now only works with headers "RANKSTAT_" and "CORRELATION_".
+    #' Samples should be as "SAMPLE-ID" upper or lower case.
+    #' @param feature_ranks A character vector of features to use, default \code{c("Phylum", "Family", "Genus")}.
+    #' @param feature_filter A character vector of to filter unwanted taxa, default \code{c("uncultured")}
+    #' @param distance_metrics A character vector specifying what (dis)similarity metrics to use, default \code{c("unifrac")}
+    #' @param dist_matrix A path to pre-computed distance matrix.
+    #' @param cpus Number of cores to use, only used in \link[tools]{ordination} when dist_matrix is not supplied.
     #'
     #' @return A nested list of \link[ggplot2]{ggplot} objects.
     autoFlow = function(feature_ranks = c("Phylum", "Family", "Genus"),
                         feature_filter = c("uncultured"),
                         distance_metrics = c("unifrac"),
-                        output = NA, alpha_div_table, dist_matrix,
+                        dist_matrix = NA,
                         cpus = 1) {
       # Plot results as list
       plots <- list()
