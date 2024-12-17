@@ -868,6 +868,7 @@ Samples should be as "SAMPLE-ID" upper or lower case.
   feature_filter = c("uncultured"),
   distance_metrics = c("unifrac"),
   dist_matrix = NA,
+  alpha_div_table = NA,
   cpus = 1
 )}\if{html}{\out{</div>}}
 }
@@ -881,7 +882,9 @@ Samples should be as "SAMPLE-ID" upper or lower case.
 
 \item{\code{distance_metrics}}{A character vector specifying what (dis)similarity metrics to use, default \code{c("unifrac")}}
 
-\item{\code{dist_matrix}}{A path to pre-computed distance matrix.}
+\item{\code{dist_matrix}}{A path to pre-computed distance matrix, expects tsv/csv/txt file from qiime2.}
+
+\item{\code{alpha_div_table}}{A path to pre-computed alpha diversity with rarefraction depth, expects tsv/csv/txt from qiime2.}
 
 \item{\code{cpus}}{Number of cores to use, only used in \link[tools]{ordination} when dist_matrix is not supplied.}
 }

@@ -1,14 +1,14 @@
 #------------------------------------------------------------------------------------#
 #
-#   Created by Alem Gusinac, last modified at 11-10-2024
-# 
+#   Created by Alem Gusinac, last modified at 16-12-2024
+#
 #   This Dockerfile creates a container suitable for r-base:latest and Qiime2
 #   It builds on top of a slim ubuntu (70MB) base
-# 
+#
 #   Current available setups by section:
 #       1. lib dependencies
 #       2. R packages
-# 
+#
 #   Additional setups can be included after the latest section
 #   It is important to include lib/pkgs for your setup in the first section
 #
@@ -29,7 +29,7 @@ ENV DEBIAN_FRONTEND=noninteractive
 RUN apt-get update && apt-get install -y \
     wget curl \
     libtool \
-    libcurl4-openssl-dev \ 
+    libcurl4-openssl-dev \
     libxml2-dev \
     libcairo2-dev \
     libsqlite3-dev \
@@ -71,22 +71,32 @@ RUN R -e "install.packages('docopt', dependencies=TRUE)"
 # R dependencies from CRAN
 RUN Rscript install2.r --error --skipinstalled \
     BiocManager \
-    optparse \
     remotes \
+    ape \
     data.table \
-    foreach \
-    parallel \
     doParallel \
-    purrr \
     dplyr \
-    rbiom \
-    patchwork \
+    downloadthis \
+    DT \
+    foreach \
+    gghalves \
     ggplot2 \
-    && rm -rf /tmp/downloaded_packages
-
-# R dependencies from BiocManager
-RUN Rscript installBioc.r --error --skipinstalled \
-
+    ggrepel \
+    kableExtra \
+    magrittr \
+    Matrix \
+    optparse \
+    parallel \
+    patchwork \
+    purrr \
+    R6 \
+    rbiom \
+    RColorBrewer \
+    rhdf5 \
+    stats \
+    utils \
+    vegan \
+    viridis \
     && rm -rf /tmp/downloaded_packages
 
 #------------------------------------------------------------------------------------#

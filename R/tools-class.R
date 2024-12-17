@@ -111,7 +111,7 @@ tools <- R6::R6Class(
       rows_to_keep <- self$metaData[, ...]
       self$metaData <- self$metaData[rows_to_keep, ]
       self$countData <- self$countData[, rows_to_keep]
-      # self$removeZeros()
+      self$removeZeros()
       invisible(self)
     },
     #' @description
@@ -441,6 +441,10 @@ tools <- R6::R6Class(
 
       # Subset by missing values
       self$removeNAs(sample.id, group_by)
+      if (inherits(distmat, "Matrix")) {
+        distmat <- distmat[self$metaData[[sample.id]], self$metaData[[sample.id]]]
+        distmat <- as.dist(distmat)
+      }
 
       # Creates a list of plots
       plot_list <- list()
@@ -1156,7 +1160,8 @@ tools <- R6::R6Class(
     #' @param feature_ranks A character vector of features to use, default \code{c("Phylum", "Family", "Genus")}.
     #' @param feature_filter A character vector of to filter unwanted taxa, default \code{c("uncultured")}
     #' @param distance_metrics A character vector specifying what (dis)similarity metrics to use, default \code{c("unifrac")}
-    #' @param dist_matrix A path to pre-computed distance matrix.
+    #' @param dist_matrix A path to pre-computed distance matrix, expects tsv/csv/txt file from qiime2.
+    #' @param alpha_div_table A path to pre-computed alpha diversity with rarefraction depth, expects tsv/csv/txt from qiime2.
     #' @param cpus Number of cores to use, only used in \link[tools]{ordination} when dist_matrix is not supplied.
     #'
     #' @return A nested list of \link[ggplot2]{ggplot} objects.
@@ -1164,7 +1169,9 @@ tools <- R6::R6Class(
                         feature_filter = c("uncultured"),
                         distance_metrics = c("unifrac"),
                         dist_matrix = NA,
+                        alpha_div_table = NA,
                         cpus = 1) {
+
       # Plot results as list
       plots <- list()
 
@@ -1189,11 +1196,23 @@ tools <- R6::R6Class(
       #
       # Object manipulation
       #
-      self$feature_subset(Domain == "Bacteria")
+      self$feature_subset(Kingdom == "Bacteria")
 
       # Main loop
       if (RANKSTAT_ncol > 0) {
 
+        # Load custom distance matrix if supplied
+        if (!is.na(dist_matrix)) {
+          dist_matrix <- read_tsv_matrix(filename = dist_matrix)
+          dist_matrix <- dist_matrix[self$metaData[["SAMPLE-ID"]], self$metaData[["SAMPLE-ID"]]]
+        }
+
+        # Load custom rarefraction alpha diversity table if supplied
+        if (!is.na(alpha_div_table)) {
+          alpha_div_table <- read_rarefraction_qiime(filename = alpha_div_table)
+        }
+
+        # Initialize plot containers
         composition_plots <- matrix(list(), RANKSTAT_ncol, feature_nrow)
         correlation_plots <- list()
         Log2FC_plots <- matrix(list(), RANKSTAT_ncol, feature_nrow)
@@ -1208,9 +1227,22 @@ tools <- R6::R6Class(
           cat(paste0("Processing ... ", col_name, " \n"))
 
           # Alpha diversity: Shannon index
-          # Include hills plot
-          alpha_div_plots[[i]] <- patchwork::wrap_plots(self$alpha_diversity(col_name = col_name, method = "shannon"),
-                                                        nrow = 1)
+          if (inherits(alpha_div_table, "data.table")) {
+            dt_final <- base::merge(alpha_div_table,
+                                    self$metaData[, .SD, .SDcols = c("SAMPLE-ID", col_name)],
+                                    by = "SAMPLE-ID",
+                                    all.x = TRUE) %>%
+              na.omit(cols = col_name)
+
+            alpha_div_plots[[i]] <- diversity_plot(dt = dt_final,
+                                                   values = "alpha_div",
+                                                   col_name = col_name,
+                                                   palette = fetch_palette(dt_final, col_name, "Set2"),
+                                                   method = "custom")
+          } else {
+            alpha_div_plots[[i]] <- patchwork::wrap_plots(self$alpha_diversity(col_name = col_name, method = "shannon"),
+                                                          nrow = 1)
+          }
 
           # Create RDA1 vs PC1 triplot
           RDA_plots[[i, 1]] <- self$triplot(feature_rank = "Genus",
@@ -1265,13 +1297,19 @@ tools <- R6::R6Class(
 
           }
           for (j in 1:metrics_nrow) {
-            # Creates temporary plot results for PCoA
-            tmp_plts <- self$ordination(metric = distance_metrics[j],
-                                        method = "pcoa",
-                                        group_by = col_name,
-                                        weighted = TRUE,
-                                        parallel = TRUE,
-                                        cpus = cpus)
+            if (inherits(dist_matrix, "Matrix")) {
+              tmp_plts <- self$ordination(distmat = dist_matrix,
+                                          method = "pcoa",
+                                          group_by = col_name)
+            } else {
+              # Creates temporary plot results for PCoA
+              tmp_plts <- self$ordination(metric = distance_metrics[j],
+                                          method = "pcoa",
+                                          group_by = col_name,
+                                          weighted = TRUE,
+                                          parallel = TRUE,
+                                          cpus = cpus)
+            }
 
             pcoa_plots[[i, j]] <- patchwork::wrap_plots(tmp_plts,
                                                         nrow = 1) +
@@ -1279,10 +1317,17 @@ tools <- R6::R6Class(
                           guides = "collect")
 
             # Creates temporary plot results for NMDS
-            tmp_plts <- self$ordination(metric = distance_metrics[j],
-                                        method = "nmds",
-                                        group_by = col_name,
-                                        weighted = TRUE)
+            if (inherits(dist_matrix, "Matrix")) {
+              tmp_plts <- self$ordination(distmat = dist_matrix,
+                                          method = "nmds",
+                                          group_by = col_name)
+            } else {
+              tmp_plts <- self$ordination(metric = distance_metrics[j],
+                                          method = "nmds",
+                                          group_by = col_name,
+                                          weighted = TRUE)
+            }
+
 
             nmds_plots[[i, j]] <- patchwork::wrap_plots(tmp_plts,
                                                         nrow = 1) +

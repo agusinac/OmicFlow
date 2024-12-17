@@ -54,7 +54,7 @@ plot_tabs <- function(plots, method, label_col, label_row) {
 # if (!is.null(preprocess_stats)) {
 #   cat("# Preprocessing step \n")
 #   cat("Refer to published paper regarding pipeline\n")
-#   preprocess_stats %>% 
+#   preprocess_stats %>%
 #     kableExtra::kbl(caption = "Table 1: Stats from cutadapt and DADA2 denoising") %>%
 #     kableExtra::kable_classic(full_width = TRUE, html_font = "Calibri")
 # }

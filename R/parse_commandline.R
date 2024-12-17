@@ -21,7 +21,13 @@ parse_commandline <- function() {
                                              default = 4),
                        optparse::make_option(c("-o", "--outdir"),
                                              action = "store",
-                                             help="Output directory")
+                                             help="Output directory"),
+                       optparse::make_option(c("--i-beta-div"),
+                                             action = "store",
+                                             help="custom beta diversity from qiime2"),
+                       optparse::make_option(c("--i-alpha-div"),
+                                             action = "store",
+                                             help="custom alpha diversity with rarefraction from qiime2")
   )
 
   parser <- optparse::OptionParser(option_list = option_list)

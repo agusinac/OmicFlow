@@ -16,9 +16,9 @@ outfile_path <- normalizePath(options$outdir)
 
 # main -------------------------------------------------------------------------
 # switch statement based on omic selected, create object
-omics <- metataxonomics$new(metaData = base::file.path(current_path, options$metadata),
-                            biomData = base::file.path(current_path, options$biom),
-                            treeData = base::file.path(current_path, options$tree))
+omics <- metataxonomics$new(metaData = options$metadata,
+                            biomData = options$biom,
+                            treeData = options$tree)
 
 # Set parameters
 feature_ranks = c("Phylum", "Family", "Genus")
@@ -26,10 +26,29 @@ distance_metrics = c("unifrac")
 feature_filter = c("uncultured")
 rankstat_labels <- sub("RANKSTAT_", "", colnames(omics$metaData)[grepl("RANKSTAT_", colnames(omics$metaData))])
 
+# Fetch additional files from preprocessing pipeline ---------------------------
+# file_location <- normalizePath(getwd())
+# read_stats_path <- paste0(file_location, "/read_stats.txt")
+# sankeyplot <- paste0(file_location, "/sankeyplots/biotaviz_sankey_prepfile-AverageAllSamples.png")
+#
+# if (file.exists(read_stats_path)) {
+#   preprocess_stats <- readr::read_delim(read_stats_path)
+# } else {
+#   preprocess_stats <- NULL
+# }
+#
+# if (file.exists(sankeyplot)) {
+#   sankeyplot <- sankeyplot
+# } else {
+#   sankeyplot <- NULL
+# }
+
 # Initiate OmicFlow
 plots <- omics$autoFlow(feature_ranks = feature_ranks,
                         feature_filter = feature_filter,
                         distance_metrics = distance_metrics,
+                        dist_matrix = options$`i-beta-div`,
+                        alpha_div_table = options$`i-alpha-div`,
                         cpus = options$cpus)
 
 # Create report
