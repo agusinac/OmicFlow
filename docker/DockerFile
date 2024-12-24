@@ -1,6 +1,6 @@
 #------------------------------------------------------------------------------------#
 #
-#   Created by Alem Gusinac, last modified at 16-12-2024
+#   Created by Alem Gusinac, last modified at 24-12-2024
 #
 #   This Dockerfile creates a container suitable for r-base:latest and Qiime2
 #   It builds on top of a slim ubuntu (70MB) base
@@ -27,26 +27,28 @@ ENV DEBIAN_FRONTEND=noninteractive
 
 # Install dependencies
 RUN apt-get update && apt-get install -y \
+    make \
+    cmake \
+    git \
     wget curl \
-    libtool \
-    libcurl4-openssl-dev \
-    libxml2-dev \
-    libcairo2-dev \
-    libsqlite3-dev \
-    libmariadbd-dev \
-    libpq-dev \
-    libssh2-1-dev \
-    unixodbc-dev \
+    pandoc \
+    rustc \
+    cargo \
+    pgp \
+    autoconf automake \
+    libx11-dev \
     libcurl4-openssl-dev \
     libssl-dev \
     zlib1g-dev \
-    libncurses5-dev \
-    libgdbm-dev \
-    libnss3-dev \
-    libreadline-dev \
-    libffi-dev \
-    libbz2-dev \
-    liblzma-dev \
+    libfreetype6-dev \
+    libjpeg-dev \
+    libpng-dev \
+    libtiff-dev \
+    libicu-dev \
+    libfontconfig1-dev \
+    libfribidi-dev \
+    libharfbuzz-dev \
+    libxml2-dev \
     && rm -rf /var/lib/apt/lists/*
 
 #------------------------------------------------------------------------------------#
@@ -68,10 +70,16 @@ COPY installGithub.r .
 # Required package for install2.r
 RUN R -e "install.packages('docopt', dependencies=TRUE)"
 
+# Essential R dependencies
+RUN Rscript install2.r --error --skipinstalled \
+    remotes \
+    devtools \
+    BiocManager \
+    b64 \
+    && rm -rf /tmp/downloaded_packages
+
 # R dependencies from CRAN
 RUN Rscript install2.r --error --skipinstalled \
-    BiocManager \
-    remotes \
     ape \
     data.table \
     doParallel \
@@ -82,6 +90,7 @@ RUN Rscript install2.r --error --skipinstalled \
     gghalves \
     ggplot2 \
     ggrepel \
+    ggpubr \
     kableExtra \
     magrittr \
     Matrix \
@@ -92,11 +101,15 @@ RUN Rscript install2.r --error --skipinstalled \
     R6 \
     rbiom \
     RColorBrewer \
-    rhdf5 \
     stats \
     utils \
     vegan \
     viridis \
+    && rm -rf /tmp/downloaded_packages
+
+RUN Rscript installBioc.r --error --skipinstalled \
+    rhdf5 \
+    ggtree \
     && rm -rf /tmp/downloaded_packages
 
 #------------------------------------------------------------------------------------#
