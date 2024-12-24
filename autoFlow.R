@@ -1,18 +1,19 @@
 # Load Library -----------------------------------------------------------------
-devtools::load_all()
 library("Matrix")
 library("ggplot2")
 library("ggtree")
 library("patchwork")
 
 # Fetch current Rscript path
-Rscript <- sub("--file=", "", commandArgs()[4])
+Rscript <- sub("--file=", "", grep("^--file", commandArgs(), value = TRUE)[1])
 current_path <- sub(basename(Rscript), "", normalizePath(Rscript))
+# Since OmicFlow is not a package yet, current work-around:
+devtools::load_all(current_path)
 
 # Parse command line
 options <- parse_commandline()
 
-outfile_path <- normalizePath(options$outdir)
+outfile_path <- options$outdir
 
 # main -------------------------------------------------------------------------
 # switch statement based on omic selected, create object

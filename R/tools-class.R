@@ -220,7 +220,7 @@ tools <- R6::R6Class(
                                       value.name = "counts")
 
       # Sets order level of taxonomic ranks
-      long_values[, variable := factor(variable, levels = c("Species", "Genus", "Family", "Order", "Class", "Phylum", "Domain"))]
+      long_values[, variable := factor(variable, levels = c("Species", "Genus", "Family", "Order", "Class", "Phylum", "Kingdom"))]
 
 
       # Returns rankstat plot
@@ -597,6 +597,7 @@ tools <- R6::R6Class(
     #' @param pvalue.threshold Integer, a P-value threshold to label and color significant features. Default is 0.05.
     #' @param foldchange.threshold Integer, a fold-change threshold to label and color significantly expressed features. Default is 0.06
     #' @param normalize Boolean, wether to normalize by total sample sums.
+    #' @param cpus Integer, number of cores to use. Default is 4, only used in \link[OmicFlow]{paired_fold}.
     #' @examples
     #' obj <- tools$new(countData = "counts.csv",
     #'                  featureData = "features.txt",
@@ -623,7 +624,7 @@ tools <- R6::R6Class(
     #' @seealso \link[OmicFlow]{volcano_plot}, \link[OmicFlow]{ViolinBoxPlot}, \link[OmicFlow]{paired_fold}, \link[OmicFlow]{unpaired_fold}
     differential_feature_expression = function(feature_rank, sample.id, paired=FALSE, paired.id,
                                                condition.group, condition_A, condition_B, pvalue.threshold=0.05, foldchange.threshold=0.06,
-                                               feature_filter = NA, feature_top = NA, normalize = TRUE) {
+                                               feature_filter = NA, feature_top = NA, normalize = TRUE, cpus = 4) {
       # Final output
       plot_list <- list()
 
@@ -711,8 +712,7 @@ tools <- R6::R6Class(
                              condition_A = condition_A,
                              condition_B = condition_B,
                              condition_labels = condition.labels,
-                             feature_rank = feature_rank,
-                             cpus = cpus)
+                             feature_rank = feature_rank)
 
       } else {
         stop("paired can only be TRUE or FALSE, check your input.")

@@ -16,7 +16,7 @@
 #' @export
 
 
-unpaired_fold <- function(dt, sample.id, condition_A, condition_B, condition_labels, feature_rank, cpus = 8) {
+unpaired_fold <- function(dt, sample.id, condition_A, condition_B, condition_labels, feature_rank) {
   # Creates tmp data table
   tmp_dt <- data.table::copy(dt)
 
@@ -27,10 +27,6 @@ unpaired_fold <- function(dt, sample.id, condition_A, condition_B, condition_lab
   # Create data.tables for results
   unpaired_dt <- data.table::data.table(feature_rank = feature_labels)
   colnames(unpaired_dt) <- feature_rank
-
-  # Register Parallel backend
-  cl <- parallel::makeCluster(cpus)
-  doParallel::registerDoParallel(cl)
 
   # Computing for multiple conditions
   for (i in seq_along(condition_A)) {
@@ -62,8 +58,6 @@ unpaired_fold <- function(dt, sample.id, condition_A, condition_B, condition_lab
       unpaired_dt[k, (paste0("pvalue_", i)) := stats::wilcox.test(mat_A[k, ], mat_B[k, ], correct = TRUE)$p.value]
     }
   }
-  # Stop the cluster
-  parallel::stopCluster(cl)
 
   return(unpaired_dt)
 }
