@@ -33,12 +33,24 @@ taxa$reset()
 ```
 
 ## Automatic data analysis
-Finally, the automation of data analysis happens via a metadata template, that can be filled in by the user and handled by OmicFlow. Here we need the report folder and autoFlow.R script. This can be easily called from the command-line or wrapped as a autoFlow.nf (nextflow) script. In the docker folder you can find a docker file to build your docker or pull a recent release via ``docker pull agusinac/autoflow:0.0.1``
+Finally, the automation of data analysis happens via a metadata template, that can be filled in by the user and handled by OmicFlow. Here we need the report folder and autoFlow.R script. This can be easily called from the command-line or wrapped as a autoFlow.nf (nextflow) script.
 ```bash
 Rscript autoFlow.R \
   --metadata "metadata.tsv" \
   --biom "table.biom" \
-  --tree "rooted_tree.newick"
+  --tree "rooted_tree.newick" \
+  --cpus 4
+```
+
+## Running with Docker
+```bash
+docker pull agusinac/autoflow:0.0.1
+
+docker run --rm -v $(pwd):/scripts agusinac/autoflow:0.0.1 Rscript scripts/autoFlow.R \
+  --metadata "metadata.tsv" \
+  --biom "table.biom" \
+  --tree "rooted_tree.newick" \
+  --cpus 4
 ```
 
 ## metadata template example
