@@ -145,14 +145,15 @@ tools <- R6::R6Class(
       for (i in 1:nrow(grouped_ids)) {
         ids <- grouped_ids$IDs[[i]]
         if (length(ids) == 1) {
-          counts_glom[i, ] <- self$countData[grouped_ids$IDs[[i]],]
+          counts_glom[i, ] <- self$countData[ids, ]
         } else {
-          counts_glom[i, ] <- Matrix::colSums(self$countData[grouped_ids$IDs[[i]],])
+          counts_glom[i, ] <- Matrix::colSums(self$countData[ids, ])
         }
       }
 
       # Prepare final self-components
       self$featureData <- base::unique(self$featureData, by = feature_rank)
+      self$featureData <- self$featureData[ base::order(base::match(self$featureData[[ feature_rank ]], grouped_ids[[ feature_rank ]] )) ]
       self$countData <- counts_glom
 
       # Clean up featureData
@@ -311,7 +312,7 @@ tools <- R6::R6Class(
     #'
     #' @return A long \link[data.table]{data.table} table.
     #' @seealso \link[OmicFlow]{composition_plot}
-    composition = function(feature_rank, feature_filter = NA, col_name = NA, sample.id = "SAMPLE-ID", feature_top = 10, Brewer.palID = "RdYlBu") {
+    composition = function(feature_rank, feature_filter = NA, col_name = NULL, sample.id = "SAMPLE-ID", feature_top = 10, Brewer.palID = "RdYlBu", remove_na = FALSE) {
       # Copies object to prevent modification of tools class components
       private$tmp_link(
         .countData = self$countData,
@@ -327,7 +328,7 @@ tools <- R6::R6Class(
       self$normalize()
 
       # Remove NAs when col_name is specified
-      if (!is.na(col_name)) {
+      if (!is.null(col_name) & remove_na) {
         self$removeNAs(sample.id, col_name)
       }
 
@@ -372,7 +373,7 @@ tools <- R6::R6Class(
       colnames(final_long) <- c(feature_rank, "SAMPLE-ID", "value")
 
       # Adds metadata columns by user input
-      if (!is.na(col_name)) {
+      if (!is.null(col_name)) {
         composition_final <- base::merge(final_long,
                                          self$metaData[, .SD, .SDcols = c("SAMPLE-ID", col_name)],
                                          by = "SAMPLE-ID",
