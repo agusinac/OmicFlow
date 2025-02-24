@@ -8,7 +8,7 @@
 metataxonomics <- R6::R6Class(
   classname = "metataxonomics",
   cloneable = FALSE,
-  inherit = tools,
+  inherit = omics,
   public = list(
     #' @field countData A path to an existing file, data.table or data.frame.
     countData = NULL,
@@ -37,7 +37,7 @@ metataxonomics <- R6::R6Class(
     initialize = function(countData = NA, metaData = NA, featureData = NA, treeData = NA, biomData = NA) {
       if (tools::file_ext(biomData) == "biom") {
         # Loads biom data
-        self$biomData <- rhdf5::h5read(biomData, "/", read.attributes = TRUE)
+        self$biomData <- rbiom::read.biom(biomData)
 
         # Loads metadata & replaces empty values by NAs
         self$metaData <- data.table::fread(metaData)
@@ -45,25 +45,30 @@ metataxonomics <- R6::R6Class(
                                        .SDcols = colnames(self$metaData)]
 
         # initializes count matrix
-        indptr <- as.numeric(self$biomData$observation$matrix$indptr)
-
-        self$countData <- Matrix::sparseMatrix(
-          i        = unlist(sapply(1:(length(indptr)-1), function (i) rep(i, diff(indptr[c(i,i+1)])))),
-          j        = as.numeric(self$biomData$observation$matrix$indices) + 1,
-          x        = as.numeric(self$biomData$observation$matrix$data),
-          dims     = c(length(self$biomData$observation$ids), length(self$biomData$sample$ids)),
-          dimnames = list(
-            as.character(self$biomData$observation$ids),
-            as.character(self$biomData$sample$ids)
-          ))
+        # indptr <- as.numeric(self$biomData$observation$matrix$indptr)
+        #
+        # self$countData <- Matrix::sparseMatrix(
+        #   i        = unlist(sapply(1:(length(indptr)-1), function (i) rep(i, diff(indptr[c(i,i+1)])))),
+        #   j        = as.numeric(self$biomData$observation$matrix$indices) + 1,
+        #   x        = as.numeric(self$biomData$observation$matrix$data),
+        #   dims     = c(length(self$biomData$observation$ids), length(self$biomData$sample$ids)),
+        #   dimnames = list(
+        #     as.character(self$biomData$observation$ids),
+        #     as.character(self$biomData$sample$ids)
+        #   ))
+        self$countData <- Matrix::sparseMatrix(i = self$biomData$counts$i,
+                                               j = self$biomData$counts$j,
+                                               x = self$biomData$counts$v,
+                                               dimnames = self$biomData$counts$dimnames)
+        rownames(self$countData) <- rownames(self$biomData$counts)
 
         # Set column order
         self$countData <- self$countData[, self$metaData[["SAMPLE-ID"]], drop = FALSE]
 
         # initializes taxonomy table
-        if (!is.null(self$biomData$observation$metadata$taxonomy)) {
-          self$featureData <- data.table::data.table(t(self$biomData$observation$metadata$taxonomy))
-          self$featureData <- self$featureData[, ID := self$biomData$observation$ids]
+        if (!is.null(self$biomData$taxonomy)) {
+          self$featureData <- data.table::data.table(self$biomData$taxonomy)
+          self$featureData <- self$featureData[, ID := rownames(self$biomData$taxonomy)]
         }
 
       } else {
@@ -71,7 +76,6 @@ metataxonomics <- R6::R6Class(
       }
 
       if (!is.null(self$featureData)) {
-        colnames(self$featureData)[!grepl("ID", colnames(self$featureData))] <- c("Kingdom", "Phylum", "Class", "Order", "Family", "Genus", "Species")
         self$featureData <- self$featureData[, lapply(.SD, function(x) gsub("^[dpcofgs]_{2}", "", x)),
                                              .SDcols = colnames(self$featureData)]
       }
