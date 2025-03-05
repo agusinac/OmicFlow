@@ -45,6 +45,7 @@ omics <- R6::R6Class(
       if (!is.na(featureData)) {
         self$featureData <- data.table::fread(featureData)
         self$featureData[, ID := rownames(self$featureData)]
+        colnames(self$featureData) <- gsub("\\s+", "_", colnames(self$featureData))
 
       } else {
         cli::cli_abort(c(
@@ -58,6 +59,7 @@ omics <- R6::R6Class(
         colnames(self$metaData) <- base::toupper(colnames(self$metaData))
         self$metaData <- self$metaData[, lapply(.SD, function(x) ifelse(x == "", NA, x)),
                                        .SDcols = colnames(self$metaData)]
+        colnames(self$metaData) <- gsub("\\s+", "_", colnames(self$metaData))
 
         cli::cli_warn(c(
           "i" = "colnames of metaData are automatically converted to uppercase letters."
@@ -202,6 +204,7 @@ omics <- R6::R6Class(
       empty_strings <- !is.na(self$featureData[[feature_rank]])
       self$featureData <- self$featureData[empty_strings, ]
       self$countData <- self$countData[empty_strings, ]
+      rownames(self$countData) <- self$featureData$ID
 
       # Remove user-specified feature(s) filter as array
       if (is(feature_filter, "character")) {
@@ -511,16 +514,22 @@ omics <- R6::R6Class(
         counts <- slam::as.simple_triplet_matrix(self$countData)
         rownames(counts) <- self$featureData$ID
 
-        if (metric == "unifrac") {
-          distmat <- rbiom::beta.div(biom = counts,
-                                     method = metric,
-                                     weighted = weighted,
-                                     tree = self$treeData)
-        } else {
-          distmat <- rbiom::beta.div(biom = counts,
-                                     method = metric,
-                                     weighted = weighted)
-        }
+        distmat <- switch(
+          metric,
+          "unifrac" = rbiom::bdiv_distmat(biom = counts,
+                                          bdiv = metric,
+                                          weighted = weighted,
+                                          tree = prot$treeData),
+          "manhattan" = ,
+          "euclidean" = ,
+          "jaccard" = ,
+          "bray" = rbiom::bdiv_distmat(biom = counts,
+                                       bdiv = metric,
+                                       weighted = weighted)
+
+        )
+
+        plot_list$distances <- distmat
       }
 
       # Switch case to compute loading scores
@@ -533,7 +542,6 @@ omics <- R6::R6Class(
                                 trace = FALSE,
                                 autotransform = FALSE)
       )
-
       # Switch case to compute relevant statistics
       stats_results <- switch(
         method,
@@ -549,11 +557,12 @@ omics <- R6::R6Class(
 
         # Collects loading scores into dataframe
         df_pcs_points <- data.table::data.table(pcs$points)
-        colnames(df_pcs_points) <- base::sub("Dim", "PC", colnames(df_pcs_points))
+        colnames(df_pcs_points) <- paste0("PC", 1:ncol(df_pcs_points))
       } else if (method == "nmds") {
         df_pcs_points <- data.table::data.table(pcs$points)
         df_pcs_points$stress <- pcs$stress
       }
+      plot_list$pcs <- pcs
 
       # Adds relevant data
       df_pcs_points[, groups := self$metaData[[ group_by ]] ]
@@ -668,9 +677,10 @@ omics <- R6::R6Class(
     #' * A list of \link[ggplot2]{ggplot} object.
     #' * A long \link[data.table]{data.table} table.
     #' @seealso \link[OmicFlow]{volcano_plot}, \link[OmicFlow]{ViolinBoxPlot}, \link[OmicFlow]{paired_fold}, \link[OmicFlow]{unpaired_fold}
-    differential_feature_expression = function(feature_rank, sample.id, paired=FALSE, paired.id,
-                                               condition.group, condition_A, condition_B, pvalue.threshold=0.05, foldchange.threshold=0.06,
-                                               feature_filter = NA, feature_top = NA, normalize = TRUE) {
+    differential_feature_expression = function(sample.id, paired.id, feature_rank, paired=FALSE, normalize = TRUE,
+                                               condition.group, condition_A, condition_B,
+                                               pvalue.threshold=0.05, foldchange.threshold=0.06,
+                                               feature_filter = NA, feature_top = NA) {
       # Final output
       plot_list <- list()
 
@@ -765,7 +775,7 @@ omics <- R6::R6Class(
       # Generate heatmap plot with df_diff data
       if (paired == TRUE) {
         # Adds size to paired heatmap
-        add_columns <- unique(self$metaData[, .SD, .SDcols = c(sample.id, paired.id)])
+        add_columns <- unique(prot$metaData[, .SD, .SDcols = c(sample.id, paired.id)])
 
         merged_data <- base::merge(
           stats_dt,
@@ -775,14 +785,14 @@ omics <- R6::R6Class(
         )
 
         # Subset merged data
-        subset_merged <- merged_data[, .SD, .SDcols = c(paired.id, feature_rank, "values")]
+        subset_merged <- merged_data[, .(values = sum(values, na.rm=FALSE)), by = c(paired.id, feature_rank)]
         colnames(subset_merged) <- c("SAMPLE-ID", feature_rank, "values")
 
         # Second merge
         final_merge <- base::merge(
           x = DFE,
           y = subset_merged,
-          by = c("SAMPLE-ID", "Genus"),
+          by = c("SAMPLE-ID", feature_rank),
           all.x = TRUE
         )
 
@@ -790,7 +800,7 @@ omics <- R6::R6Class(
 
         # Check if multiple diff_ are present
         grouped_dt <- final_merge %>%
-          dplyr::group_by(`SAMPLE-ID`, Genus) %>%
+          dplyr::group_by(`SAMPLE-ID`, !!sym(feature_rank)) %>%
           dplyr::summarise(mean_values = mean(values, na.rum = TRUE),
                            diff_1 = mean(diff_1, na.rm = TRUE)) %>%
           dplyr::ungroup()
@@ -833,7 +843,7 @@ omics <- R6::R6Class(
                 legend.text = element_text(size=12),
                 legend.title = element_text(size=14),
                 strip.background = element_rect(fill = "#EEEEEE", color = "#FFFFFF")) +
-          scale_y_discrete(limits = rev(levels(as.factor(grouped_dt[["Genus"]])))) +
+          scale_y_discrete(limits = rev(levels(as.factor(grouped_dt[[feature_rank]])))) +
           scale_fill_gradient2(name = paste0("log2( A / B )"),
                                low = "blue",
                                mid = "white",
