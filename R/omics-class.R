@@ -291,6 +291,7 @@ omics <- R6::R6Class(
     #' @param method Diversity metric such as "shannon", "invsimpson" or "simpson"
     #' @param Brewer.palID Palette set to be applied, see \link[RColorBrewer]{brewer.pal} or \link[OmicFlow]{fetch_palette}.
     #' @param evenness A boolean wether to divide diversity by number of species, see \link[vegan]{specnumber}.
+    #' @param p.adjust.method A character variable to specify the p.adjust.method to be used, default is 'fdr'.
     #' @examples
     #' obj <- omics$new(countData = "counts.csv",
     #'                  featureData = "features.txt",
@@ -301,7 +302,7 @@ omics <- R6::R6Class(
     #' @return A \link[ggplot2]{ggplot} object.
     #' @seealso \link[OmicFlow]{diversity_plot}
     alpha_diversity = function(col_name, method = c("shannon", "invsimpson", "simpson"),
-                               Brewer.palID="Set2", evenness = FALSE, paired = FALSE) {
+                               Brewer.palID="Set2", evenness = FALSE, paired = FALSE, p.adjust.method = "fdr") {
 
       # OUTPUT: Plot list
       plot_list <- list()
@@ -330,7 +331,8 @@ omics <- R6::R6Class(
                                             col_name = col_name,
                                             palette = colors,
                                             method = method,
-                                            paired = paired)
+                                            paired = paired,
+                                            p.adjust.method = p.adjust.method)
 
       # Restores omics class components
       private$tmp_restore()
