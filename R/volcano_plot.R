@@ -67,7 +67,7 @@ volcano_plot <- function(dt, X, Y, feature_rank, pvalue.threshold = 0.05, logfol
                  shape = 16, alpha = 0.5) +
       scale_size_continuous(name = "Mean Rel. Abun.") +
       labs(x = paste0("Fold Change log2( ",label_A," / ",label_B," )"),
-           y = "-log10( P-value )")
+           y = paste0("-log10( ", Y ," )"))
     # +
     #   ylim(0, max_pvalue + 1.5)
   )

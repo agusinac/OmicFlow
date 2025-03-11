@@ -521,7 +521,7 @@ omics <- R6::R6Class(
           "unifrac" = rbiom::bdiv_distmat(biom = counts,
                                           bdiv = metric,
                                           weighted = weighted,
-                                          tree = prot$treeData),
+                                          tree = self$treeData),
           "manhattan" = ,
           "euclidean" = ,
           "jaccard" = ,
@@ -777,7 +777,7 @@ omics <- R6::R6Class(
       # Generate heatmap plot with df_diff data
       if (paired == TRUE) {
         # Adds size to paired heatmap
-        add_columns <- unique(prot$metaData[, .SD, .SDcols = c(sample.id, paired.id)])
+        add_columns <- unique(self$metaData[, .SD, .SDcols = c(sample.id, paired.id)])
 
         merged_data <- base::merge(
           stats_dt,

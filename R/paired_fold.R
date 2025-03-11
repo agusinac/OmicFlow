@@ -17,19 +17,16 @@
 #'
 #' @export
 
-paired_fold <- function(dt, sample.id, paired.id, unique.id, condition_A, condition_B, feature_rank, condition_labels, cpus = 8) {
+paired_fold <- function(dt, sample.id, paired.id, unique.id, condition_A, condition_B, feature_rank, condition_labels) {
   # tmp data.table
   tmp_dt <- data.table::copy(dt)
 
   feature_labels <- tmp_dt[[ feature_rank ]]
-  paired_dt <- data.table::data.table(feature_rank = feature_labels)
-  colnames(paired_dt) <- feature_rank
+  paired_A <- c()
+  paired_B <- c()
+  paired_dt <- c()
 
-  # Register Parallel backend
-  cl <- parallel::makeCluster(cpus)
-  doParallel::registerDoParallel(cl)
-
-  results <- foreach(id = seq_along(unique.id), .combine = rbind, .packages = 'data.table') %dopar% {
+  for (id in seq_along(unique.id)) {
     # extract samples, takes only matching pairs
     pair <- colnames(dt)[grepl(unique.id[id], colnames(dt))]
     if (length(pair) == 2) {
@@ -48,16 +45,24 @@ paired_fold <- function(dt, sample.id, paired.id, unique.id, condition_A, condit
         dt_A <- sample_pair[, .SD, .SDcols = colnames(sample_pair)[grepl(condition_A[i], condition_labels)][1]]
         dt_B <- sample_pair[, .SD, .SDcols = colnames(sample_pair)[grepl(condition_B[i], condition_labels)][1]]
 
+        # Collecting A and B for significance test at the end
+        paired_A <- cbind(paired_A, as.matrix(dt_A))
+        paired_B <- cbind(paired_B, as.matrix(dt_B))
+
         # subtraction
         dt_diff[, (paste0("diff_", i)) := dt_A - dt_B]
         dt_diff[, (feature_rank) := feature_labels]
+
       }
-      dt_diff[, (sample.id) := unique.id[id]]
+      paired_dt <- rbind(paired_dt, dt_diff[, (sample.id) := unique.id[id]])
     }
   }
-  # Wraps and ends Parallel backend
-  parallel::stopCluster(cl)
-  paired_dt <- na.omit(rbind(paired_dt, results, fill = TRUE))
-
+  # Performing Wilcox signed rank test
+  for (k in seq_along(feature_labels)) {
+    # save p-values in data.table
+    paired_dt[k, ("pvalue") := stats::wilcox.test(paired_A[k, ], paired_B[k, ],
+                                                            correct = TRUE,
+                                                            paired = TRUE)$p.value]
+  }
   return(paired_dt)
 }
