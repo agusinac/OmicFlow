@@ -22,6 +22,8 @@ ordination_plot <- function(df_pcs, pcs, pair, dist.metric) {
     y_label = paste0(pair[2])
   }
 
+  df_pcs$groups <- as.factor(df_pcs$groups)
+
   return(
     df_pcs %>%
       ggplot(mapping = aes(x = .data[[ pair[1] ]],
