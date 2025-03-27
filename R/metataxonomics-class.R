@@ -44,31 +44,23 @@ metataxonomics <- R6::R6Class(
         self$metaData <- self$metaData[, lapply(.SD, function(x) ifelse(x == "", NA, x)),
                                        .SDcols = colnames(self$metaData)]
 
-        # initializes count matrix
-        # indptr <- as.numeric(self$biomData$observation$matrix$indptr)
-        #
-        # self$countData <- Matrix::sparseMatrix(
-        #   i        = unlist(sapply(1:(length(indptr)-1), function (i) rep(i, diff(indptr[c(i,i+1)])))),
-        #   j        = as.numeric(self$biomData$observation$matrix$indices) + 1,
-        #   x        = as.numeric(self$biomData$observation$matrix$data),
-        #   dims     = c(length(self$biomData$observation$ids), length(self$biomData$sample$ids)),
-        #   dimnames = list(
-        #     as.character(self$biomData$observation$ids),
-        #     as.character(self$biomData$sample$ids)
-        #   ))
+        # Converts slam::triple_sparse_matrix to Matrix::sparseMatrix
         self$countData <- Matrix::sparseMatrix(i = self$biomData$counts$i,
                                                j = self$biomData$counts$j,
                                                x = self$biomData$counts$v,
                                                dimnames = self$biomData$counts$dimnames)
-        rownames(self$countData) <- rownames(self$biomData$counts)
 
-        # Set column order
+        # Match and order row names for countData and metaData
+        # Now assuming countData has the right order and mistake is made in metadata
+        self$countData <- self$countData[, colnames(self$countData) %in% self$metaData[["SAMPLE-ID"]], drop = FALSE]
+        self$metaData <- self$metaData[self$metaData[["SAMPLE-ID"]] %in% colnames(self$countData), ]
         self$countData <- self$countData[, self$metaData[["SAMPLE-ID"]], drop = FALSE]
 
         # initializes taxonomy table
         if (!is.null(self$biomData$taxonomy)) {
           self$featureData <- data.table::data.table(self$biomData$taxonomy)
-          self$featureData <- self$featureData[, ID := rownames(self$biomData$taxonomy)]
+          colnames(self$featureData) <- sub(".otu", "ID", colnames(self$biomData$taxonomy))
+          rownames(self$countData) <- self$featureData$ID
         }
 
       } else {
