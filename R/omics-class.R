@@ -171,7 +171,7 @@ omics <- R6::R6Class(
     feature_glom = function(feature_rank, feature_filter = NA) {
       # creates a subset of unique feature rank, hashes combined for each unique rank
       counts <- data.table::data.table("ID" = rownames(self$countData))
-      features <- data.table::copy(self$featureData)
+      features <- data.table::copy(self$featureData[self$featureData[[ feature_rank ]] != "", ])
 
       # set keys
       data.table::setkey(counts, ID)
@@ -196,7 +196,7 @@ omics <- R6::R6Class(
       }
 
       # Prepare final self-components
-      self$featureData <- base::unique(self$featureData, by = feature_rank)
+      self$featureData <- base::unique(features, by = feature_rank)
       self$featureData <- self$featureData[ base::order(base::match(self$featureData[[ feature_rank ]], grouped_ids[[ feature_rank ]] )) ]
       self$countData <- counts_glom
 
@@ -1017,6 +1017,7 @@ omics <- R6::R6Class(
 
       #Fetch groups
       mygroups <- get(metadata.col, self$metaData)
+      fills <- stats::setNames(RColorBrewer::brewer.pal(length(unique(mygroups)), "Set1"), unique(mygroups))
 
       # to be named: scores_sites
       dt <- data.table::data.table(data.frame(pc1 = scores_sites[, pc1],
@@ -1055,36 +1056,55 @@ omics <- R6::R6Class(
       # Returns plot
       return(
         ggplot() +
-          geom_point(data = scores_sites, aes(x = .data[[pc1]],
-                                              y = .data[[pc2]]),
-                     shape = 21,
+          # Polygon layer with first fill scale
+          geom_polygon(data = df_hull,
+                       aes(x = x,
+                           y = y,
+                           fill = Group),
+                       alpha = 0.2,
+                       color = "gray40",
+                       show.legend = FALSE) +
+          scale_fill_manual(values = fills) +
+          ggrepel::geom_label_repel(data=df_mean.ord,
+                                    aes(x=x, y=y, label=Group, fill=Group),
+                                    color = "black",
+                                    show.legend = FALSE) +
+          guides(fill = "none") +
+
+          # Reset fill scale for points
+          ggnewscale::new_scale_fill() +
+
+          # Main points layer with second fill scale
+          geom_point(data = dt,
+                     aes(x = .data[["pc1"]],
+                         y = .data[["pc2"]]),
                      fill = "steelblue",
-                     col = "black") +
-          geom_point(data = scores_species_merged, aes(x = .data[[pc1]],
-                                                       y = .data[[pc2]],
-                                                       size = .data[["explained_species_size"]],
-                                                       col = .data[["explained_species_label"]]),
+                     col = "black",
+                     shape = 21) +
+
+          # Species points layer
+          geom_point(data = scores_species_merged,
+                     aes(x = .data[[pc1]],
+                         y = .data[[pc2]],
+                         size = .data[["explained_species_size"]],
+                         col = .data[["explained_species_label"]],
+                         stroke = ifelse(scores_species_merged$explained_species_label != "", 1.5, 0.5)),
                      show.legend = TRUE,
-                     stroke = ifelse(scores_species_merged$explained_species_label != "", 1.5, 0.5),
                      shape = 22) +
-          geom_polygon(data=df_hull, aes(x=x, y=y, fill=Group),
-                       alpha = 0.2, color = "gray40", show.legend = FALSE) +
-          geom_text(data=df_mean.ord, aes(x=x, y=y, label=Group),
-                    color = "black", show.legend = FALSE) +
+
+          # Remaining formatting
           theme_bw() +
-          theme(axis.text.x = element_text(angle = 45, hjust = 1, size=12),
-                axis.text.y = element_text(size=12),
-                axis.text = element_text(size=12),
-                text = element_text(size=12),
-                legend.text = element_text(size=12),
-                legend.title = element_text(size=14),
-                strip.background = element_rect(fill = "#EEEEEE", color = "#FFFFFF")) +
+          theme(axis.text.x = element_text(angle = 45, hjust = 1, size = 12),
+                text = element_text(size = 12),
+                legend.text = element_text(size = 12),
+                legend.title = element_text(size = 14)) +
           scale_size_continuous(name = "rel. Abun.") +
           scale_color_manual(name = paste0(pc1, " explained species"),
                              values = colors) +
-          labs(x = paste0(pc1, " (", choice_dim.explained[ pc1 ], "%)"),
-               y = paste0(pc2, " (", choice_dim.explained[ pc2 ], "%)")) +
-          guides(fill = "none", colour = guide_legend(override.aes = list(stroke = 1.5)))
+          labs(x = paste0(pc1, " (", choice_dim.explained[pc1], "%)"),
+               y = paste0(pc2, " (", choice_dim.explained[pc2], "%)")) +
+          guides(fill = guide_legend(position = "bottom", override.aes = list(size = 2, color = "white")),
+                 colour = guide_legend(override.aes = list(stroke = 1.5)))
       )
     },
     #' @description
@@ -1226,9 +1246,18 @@ omics <- R6::R6Class(
     autoFlow = function(feature_ranks = c("Phylum", "Family", "Genus"),
                         feature_filter = c("uncultured"),
                         distance_metrics = c("unifrac"),
-                        dist_matrix = NA,
-                        alpha_div_table = NA,
+                        dist_matrix = NULL,
+                        alpha_div_table = NULL,
                         cpus = 1) {
+
+      # Nested function
+      is_empty = function(obj) {
+        if (length(obj) == 0) {
+          return(NULL)
+        } else {
+          return(obj)
+        }
+      }
 
       # Plot results as list
       plots <- list()
@@ -1240,8 +1269,6 @@ omics <- R6::R6Class(
       self$metaData[, (RANKSTAT_colnames) := lapply(.SD, as.character), .SDcols = RANKSTAT_colnames]
       CORRELATION_data <- self$metaData[, .SD, .SDcols = grepl("CORRELATION_", metacols)]
 
-      # Standard rank stats
-      plots$rankstat_plot <- self$rankstat()
       #
       #---------------------------------------------#
       # Perform standard visualizations             #
@@ -1255,18 +1282,20 @@ omics <- R6::R6Class(
       # Object manipulation
       #
       self$feature_subset(Kingdom == "Bacteria")
+      # Standard rank stats
+      plots$rankstat_plot <- self$rankstat()
 
       # Main loop
       if (RANKSTAT_ncol > 0) {
 
         # Load custom distance matrix if supplied
-        if (!is.na(dist_matrix)) {
+        if (!is.null(dist_matrix)) {
           dist_matrix <- read_tsv_matrix(filename = dist_matrix)
           dist_matrix <- dist_matrix[self$metaData[["SAMPLE-ID"]], self$metaData[["SAMPLE-ID"]]]
         }
 
         # Load custom rarefraction alpha diversity table if supplied
-        if (!is.na(alpha_div_table)) {
+        if (!is.null(alpha_div_table)) {
           alpha_div_table <- read_rarefraction_qiime(filename = alpha_div_table)
         }
 
@@ -1296,10 +1325,9 @@ omics <- R6::R6Class(
                                                    values = "alpha_div",
                                                    col_name = col_name,
                                                    palette = fetch_palette(dt_final, col_name, "Set2"),
-                                                   method = "custom")
+                                                   method = "custom")$diversity
           } else {
-            alpha_div_plots[[i]] <- patchwork::wrap_plots(self$alpha_diversity(col_name = col_name, method = "shannon"),
-                                                          nrow = 1)
+            alpha_div_plots[[i]] <- self$alpha_diversity(col_name = col_name, method = "shannon")$diversity
           }
 
           # Create RDA1 vs PC1 triplot
@@ -1331,7 +1359,7 @@ omics <- R6::R6Class(
                                                           group_by = col_name)
 
             # Creates correlation ggplot as list
-            if (i == 1) {
+            if (i == 1 & length(CORRELATION_data) > 0) {
               correlation_plots[[j]] <- self$correlation(feature_rank = feature_ranks[j],
                                                          feature_filter = feature_filter,
                                                          cor_columns = colnames(CORRELATION_data))
@@ -1369,7 +1397,7 @@ omics <- R6::R6Class(
                                           cpus = cpus)
             }
 
-            pcoa_plots[[i, j]] <- patchwork::wrap_plots(tmp_plts,
+            pcoa_plots[[i, j]] <- patchwork::wrap_plots(tmp_plts[c("scree_plot", "anova_plot", "scores_plot")],
                                                         nrow = 1) +
               plot_layout(widths = c(rep(5, length(tmp_plts))),
                           guides = "collect")
@@ -1387,19 +1415,19 @@ omics <- R6::R6Class(
             }
 
 
-            nmds_plots[[i, j]] <- patchwork::wrap_plots(tmp_plts,
+            nmds_plots[[i, j]] <- patchwork::wrap_plots(tmp_plts[c("anova_plot", "scores_plot")],
                                                         nrow = 1) +
               plot_layout(widths = c(rep(5, length(tmp_plts))),
                           guides = "collect")
           }
         }
-        plots$alpha_div_plots <- alpha_div_plots
-        plots$correlation_plots <- correlation_plots
-        plots$composition_plots <- composition_plots
-        plots$Log2FC_plots <- Log2FC_plots
-        plots$pcoa_plots <- pcoa_plots
-        plots$nmds_plots <- nmds_plots
-        plots$rda_plots <- RDA_plots
+        plots$alpha_div_plots <- is_empty(alpha_div_plots)
+        plots$correlation_plots <- is_empty(correlation_plots)
+        plots$composition_plots <- is_empty(composition_plots)
+        plots$Log2FC_plots <- is_empty(Log2FC_plots)
+        plots$pcoa_plots <- is_empty(pcoa_plots)
+        plots$nmds_plots <- is_empty(nmds_plots)
+        plots$rda_plots <- is_empty(RDA_plots)
       }
 
       return(plots)
