@@ -19,11 +19,11 @@ outfile_path <- options$outdir
 # switch statement based on omic selected, create object
 omics <- metataxonomics$new(metaData = options$metadata,
                             biomData = options$biom,
-                            treeData = options$tree)
+                            treeData = ifelse(!is.null(options$tree), options$tree, NA))
 
 # Set parameters
 feature_ranks = c("Phylum", "Family", "Genus")
-distance_metrics = c("unifrac")
+distance_metrics = c("bray")
 feature_filter = c("uncultured")
 rankstat_labels <- sub("RANKSTAT_", "", colnames(omics$metaData)[grepl("RANKSTAT_", colnames(omics$metaData))])
 
@@ -46,11 +46,11 @@ rankstat_labels <- sub("RANKSTAT_", "", colnames(omics$metaData)[grepl("RANKSTAT
 
 # Initiate OmicFlow
 plots <- omics$autoFlow(feature_ranks = feature_ranks,
-                        feature_filter = feature_filter,
-                        distance_metrics = distance_metrics,
-                        dist_matrix = options$`i-beta-div`,
-                        alpha_div_table = options$`i-alpha-div`,
-                        cpus = options$cpus)
+                       feature_filter = feature_filter,
+                       distance_metrics = distance_metrics,
+                       dist_matrix = options$`i-beta-div`,
+                       alpha_div_table = options$`i-alpha-div`,
+                       cpus = options$cpus)
 
 # Create report
 rmarkdown::render(input = paste0(current_path, "report/report.Rmd"),
