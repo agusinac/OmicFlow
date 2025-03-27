@@ -21,11 +21,13 @@ diversity_plot <- function(dt, values, col_name, palette, method, paired = FALSE
     rstatix::add_significance() %>%
     rstatix::add_xy_position(x = col_name)
 
+  pvalues_adjusted.filtered <- pvalues_adjusted[grepl("\\*", pvalues_adjusted$p.adj.signif) ,]
+
   return(dt %>%
-           ggplot(mapping = aes(x = .data[[ col_name ]],
+           ggplot(mapping = aes(x = as.factor(.data[[ col_name ]]),
                                 y = .data[[ values ]])) +
            gghalves::geom_half_boxplot() +
-           gghalves::geom_half_point_panel(aes(color = .data[[ col_name ]])) +
+           gghalves::geom_half_point_panel(aes(color = as.factor(.data[[ col_name ]]))) +
            theme_bw() +
            theme(legend.position = "none",
                  text=element_text(size=14),
@@ -36,12 +38,11 @@ diversity_plot <- function(dt, values, col_name, palette, method, paired = FALSE
                  axis.text.x = element_text(size=12)) +
            scale_colour_manual(name = "groups",
                                values = palette) +
-           ggpubr::stat_pvalue_manual(pvalues_adjusted,
+           ggpubr::stat_pvalue_manual(pvalues_adjusted.filtered,
                                       label = "p.adj",
-                                      step.increase = 0.1) +
-           ylim(0, max(dt[[ values ]])*1.20) +
+                                      step.increase = 0.05) +
            labs(title = NULL,
-                subtitle = paste0("selected column: ", col_name, ", default test: Mann-whitney, p.adjusted by ", p.adjust.method),
+                subtitle = paste0("Attribute: ", col_name, ", test: Mann-whitney, p.adjusted by ", p.adjust.method),
                 x = "sample groups",
                 y = paste0("Alpha diversity: ", method))
   )
