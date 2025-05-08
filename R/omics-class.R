@@ -30,10 +30,7 @@ omics <- R6::R6Class(
     initialize = function(countData = NA, featureData = NA, metaData = NA) {
       # Loads counts
       if (!is.na(countData)) {
-        tmp <- data.table::fread(countData)
-        self$countData <- mltools::sparsify(dt = tmp,
-                                            sparsifyNAs = TRUE, # Assuming missing data were zero's
-                                            naCols = "none")
+        self$countData <- read_sparseTable(countData)
 
       } else {
         cli::cli_abort(c(
@@ -43,7 +40,8 @@ omics <- R6::R6Class(
 
       # Loads features
       if (!is.na(featureData)) {
-        self$featureData <- data.table::fread(featureData)
+        self$featureData <- data.table::fread(featureData,
+                                              header = TRUE)
         self$featureData[, ID := rownames(self$featureData)]
         colnames(self$featureData) <- gsub("\\s+", "_", colnames(self$featureData))
 
@@ -427,7 +425,9 @@ omics <- R6::R6Class(
         composition_final <- base::merge(final_long,
                                          self$metaData[, .SD, .SDcols = c("SAMPLE-ID", col_name)],
                                          by = "SAMPLE-ID",
-                                         all.x = TRUE)
+                                         all = TRUE,
+                                         allow.cartesian = TRUE) %>%
+          unique()
       } else {
         composition_final <- final_long
       }
@@ -907,6 +907,9 @@ omics <- R6::R6Class(
         .treeData = self$treeData
       )
 
+      ## Return list of components
+      results <- list()
+
       # Nested functions, later to be combined within omics-class
       logn <- function(otu_tab, scalar=1) {
         # log-transform, center
@@ -991,6 +994,8 @@ omics <- R6::R6Class(
                           na.action = na.fail,
                           subset = NULL)
 
+      results$model <- model
+
       # MAIN code
       # Subset species and sites scores
       model.dims <- dim(model$CCA$u)[2] + dim(model$CA$u)[2]
@@ -1024,6 +1029,7 @@ omics <- R6::R6Class(
                                               pc2 = scores_sites[, pc2],
                                               group = mygroups))
 
+      results$data <- dt
       # Get centroid centers for annotation
       df_mean.ord <- stats::aggregate(dt, by=list(dt$group),mean)
       colnames(df_mean.ord) <- c("Group", "x", "y")
@@ -1053,9 +1059,8 @@ omics <- R6::R6Class(
       # Restores omics class components
       private$tmp_restore()
 
-      # Returns plot
-      return(
-        ggplot() +
+
+      results$plot <- ggplot() +
           # Polygon layer with first fill scale
           geom_polygon(data = df_hull,
                        aes(x = x,
@@ -1105,7 +1110,8 @@ omics <- R6::R6Class(
                y = paste0(pc2, " (", choice_dim.explained[pc2], "%)")) +
           guides(fill = guide_legend(position = "bottom", override.aes = list(size = 2, color = "white")),
                  colour = guide_legend(override.aes = list(stroke = 1.5)))
-      )
+
+        return(results)
     },
     #' @description
     #' Correlation Analysis, default spearm and automatic filter & Visualization based on thresholds

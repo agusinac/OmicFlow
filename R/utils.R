@@ -35,3 +35,27 @@ read_rarefraction_qiime <- function(filename) {
 
   return(shannon_long)
 }
+
+read_sparseTable <- function(filename) {
+  # Read text file, supports csv, excel and tsv formats
+  dt <- data.table::fread(filename)
+  dt[, (names(dt)) := lapply(.SD, function(x) {
+    x <- gsub("\\s+", "", x)                      # Removes spaces between strings
+    x <- gsub("^[A-Za-z]*", "", x)                # Removes letters
+    })]
+
+  # Convert to matrix format
+  mat_1 <- as.matrix(dt,
+                     rownames = rownames(dt),
+                     colnames = colnames(dt))
+
+  # Change character values to numeric
+  mat_2 <- matrix(data = as.numeric(mat_1),
+                  ncol = ncol(dt))
+  colnames(mat_2) <- colnames(dt)
+
+  mat_2[is.na(mat_2) | mat_2 == ""] <- 0          # Empty strings from cleaning step
+
+  # Return sparseMatrix
+  return(as(mat_2, "sparseMatrix"))
+}
