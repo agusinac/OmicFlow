@@ -44,6 +44,7 @@ omics <- R6::R6Class(
                                               header = TRUE)
         self$featureData[, ID := rownames(self$featureData)]
         colnames(self$featureData) <- gsub("\\s+", "_", colnames(self$featureData))
+        rownames(self$countData) <- self$featureData$ID # Should be replaced by featureID
 
       } else {
         cli::cli_abort(c(
@@ -169,7 +170,8 @@ omics <- R6::R6Class(
     feature_glom = function(feature_rank, feature_filter = NA) {
       # creates a subset of unique feature rank, hashes combined for each unique rank
       counts <- data.table::data.table("ID" = rownames(self$countData))
-      features <- data.table::copy(self$featureData[self$featureData[[ feature_rank ]] != "", ])
+      # Supports multiple features
+      features <- data.table::copy(self$featureData[self$featureData[[ feature_rank[1] ]] != "", ])
 
       # set keys
       data.table::setkey(counts, ID)
@@ -195,11 +197,14 @@ omics <- R6::R6Class(
 
       # Prepare final self-components
       self$featureData <- base::unique(features, by = feature_rank)
-      self$featureData <- self$featureData[ base::order(base::match(self$featureData[[ feature_rank ]], grouped_ids[[ feature_rank ]] )) ]
+      # Fetch first ID from each list
+      grouped_ids$ID_first <- sapply(grouped_ids$IDs, `[[`, 1)
+      # Reorder by matching IDs
+      self$featureData <- self$featureData[ base::order(base::match(self$featureData$ID, grouped_ids$ID_first)) ]
       self$countData <- counts_glom
 
       # Clean up featureData
-      empty_strings <- !is.na(self$featureData[[feature_rank]])
+      empty_strings <- !is.na(self$featureData[[ feature_rank[1] ]])
       self$featureData <- self$featureData[empty_strings, ]
       self$countData <- self$countData[empty_strings, ]
       rownames(self$countData) <- self$featureData$ID
@@ -253,9 +258,9 @@ omics <- R6::R6Class(
     #' plt <- obj$rankstat()
     #' plt
     #' @return A \link[ggplot2]{ggplot} object.
-    rankstat = function() {
+    rankstat = function(feature_ranks = c("Kingdom", "Phylum", "Class", "Order", "Family", "Genus", "Species")) {
       # Counts number of ASVs without empty values
-      values <- self$featureData[, lapply(.SD, function(x) sum(!is.na(x) & x != "")), .SDcols = !c("ID")]
+      values <- self$featureData[, lapply(.SD, function(x) sum(!is.na(x) & x != "")), .SDcols = !c("ID")][, .SD, .SDcols = feature_ranks]
 
       # Pivot into long table
       long_values <- data.table::melt(data = values,
@@ -264,7 +269,7 @@ omics <- R6::R6Class(
                                       value.name = "counts")
 
       # Sets order level of taxonomic ranks
-      long_values[, variable := factor(variable, levels = c("Species", "Genus", "Family", "Order", "Class", "Phylum", "Kingdom"))]
+      long_values[, variable := factor(variable, levels = base::rev(feature_ranks))]
 
 
       # Returns rankstat plot
@@ -547,8 +552,8 @@ omics <- R6::R6Class(
       # Switch case to compute relevant statistics
       stats_results <- switch(
         method,
-        "pcoa" = pairwise_adonis(distmat, groups = na.omit(self$metaData[[ group_by ]])),
-        "nmds" = pairwise_anosim(distmat, groups = na.omit(self$metaData[[ group_by ]]))
+        "pcoa" = pairwise_adonis(distmat, groups = self$metaData[[ group_by ]]),
+        "nmds" = pairwise_anosim(distmat, groups = self$metaData[[ group_by ]])
       )
 
       # Normalization of eigenvalues
@@ -682,7 +687,7 @@ omics <- R6::R6Class(
     differential_feature_expression = function(sample.id, paired.id, feature_rank, paired=FALSE, normalize = TRUE,
                                                condition.group, condition_A, condition_B,
                                                pvalue.threshold=0.05, foldchange.threshold=0.06,
-                                               feature_filter = NA, feature_top = NA) {
+                                               feature_filter = NULL, feature_top = NULL) {
       # Final output
       plot_list <- list()
 
@@ -698,7 +703,8 @@ omics <- R6::R6Class(
       self$removeNAs(sample.id, condition.group)
 
       # Agglomerate taxa by feature rank and filter unwanted taxa
-      self$feature_glom(feature_rank = feature_rank, feature_filter = feature_filter)
+      self$feature_glom(feature_rank = feature_rank,
+                        feature_filter = feature_filter)
 
       # normalization if applicable
       if (normalize) {
@@ -706,7 +712,7 @@ omics <- R6::R6Class(
       }
 
       # Check how many features to select (depended if volcano is desired)
-      if (!is.na(feature_top)) {
+      if (!is.null(feature_top)) {
         feature_top <- feature_top
       } else {
         feature_top <- nrow(self$featureData)
@@ -1341,14 +1347,14 @@ omics <- R6::R6Class(
                                             feature_filter = feature_filter,
                                             metadata.col = col_name,
                                             pairwise = FALSE,
-                                            choice_dim = c("RDA1", "PC1"))
+                                            choice_dim = c("RDA1", "PC1"))$plot
 
           # Create PC1 vs PC2 triplot
           RDA_plots[[i, 2]] <- self$triplot(feature_rank = "Genus",
                                             feature_filter = feature_filter,
                                             metadata.col = col_name,
                                             pairwise = FALSE,
-                                            choice_dim = c("PC1", "PC2"))
+                                            choice_dim = c("PC1", "PC2"))$plot
 
 
           # Microbiome composition by all samples
