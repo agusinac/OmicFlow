@@ -34,13 +34,14 @@ metataxonomics <- R6::R6Class(
     #'                            treeData = "rooted_tree.newick")
     #'
     #' @return A new `metataxonomics` object.
-    initialize = function(countData = NA, metaData = NA, featureData = NA, treeData = NA, biomData = NA) {
-      if (tools::file_ext(biomData) == "biom") {
+    initialize = function(countData = NA, metaData = NA, featureData = NA, treeData = NA, biomData = NA,
+                          feature_names = c("Kingdom", "Phylum", "Class", "Order", "Family", "Genus", "Species")) {
+      if (!is.na(biomData) & tools::file_ext(biomData) == "biom") {
         # Loads biom data
         self$biomData <- rbiom::read.biom(biomData)
 
         # Loads metadata & replaces empty values by NAs
-        self$metaData <- data.table::fread(metaData)
+        self$metaData <- data.table::fread(metaData, header=TRUE)
         self$metaData <- self$metaData[, lapply(.SD, function(x) ifelse(x == "", NA, x)),
                                        .SDcols = colnames(self$metaData)]
 
@@ -60,16 +61,21 @@ metataxonomics <- R6::R6Class(
         if (!is.null(self$biomData$taxonomy)) {
           self$featureData <- data.table::data.table(self$biomData$taxonomy)
           colnames(self$featureData) <- sub(".otu", "ID", colnames(self$biomData$taxonomy))
-          rownames(self$countData) <- self$featureData$ID
         }
 
       } else {
-        super$initialize()
+        super$initialize(countData = countData,
+                         featureData = featureData,
+                         metaData = metaData)
       }
 
       if (!is.null(self$featureData)) {
         self$featureData <- self$featureData[, lapply(.SD, function(x) gsub("^[dpcofgs]_{2}", "", x)),
                                              .SDcols = colnames(self$featureData)]
+        # Rename last column names by feature_names
+        n_feature_names <- length(feature_names)
+        n_cols_featureData <- ncol(self$featureData)
+        colnames(self$featureData)[n_cols_featureData:(n_cols_featureData - n_feature_names + 1)] <- base::rev(feature_names)
       }
 
       if (!is.na(treeData)) self$treeData <- ape::read.tree(treeData)
