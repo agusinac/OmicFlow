@@ -16,7 +16,7 @@
 #' @export
 
 
-unpaired_fold <- function(dt, sample.id, condition_A, condition_B, condition_labels, feature_rank) {
+foldchange <- function(dt, sample.id, condition_A, condition_B, condition_labels, feature_rank, unique.ids, paired=FALSE) {
   # Creates tmp data table
   tmp_dt <- data.table::copy(dt)
 
@@ -25,8 +25,8 @@ unpaired_fold <- function(dt, sample.id, condition_A, condition_B, condition_lab
   tmp_dt <- tmp_dt[, .SD, .SDcols = !c(feature_rank)]
 
   # Create data.tables for results
-  unpaired_dt <- data.table::data.table(feature_rank = feature_labels)
-  colnames(unpaired_dt) <- feature_rank
+  foldchange_dt <- data.table::data.table(feature_rank = feature_labels)
+  colnames(foldchange_dt) <- feature_rank
 
   # Computing for multiple conditions
   for (i in seq_along(condition_A)) {
@@ -34,30 +34,28 @@ unpaired_fold <- function(dt, sample.id, condition_A, condition_B, condition_lab
     dt_A <- tmp_dt[, .SD, .SDcols = colnames(tmp_dt)[grepl(condition_A[i], condition_labels)]]
     dt_B <- tmp_dt[, .SD, .SDcols = colnames(tmp_dt)[grepl(condition_B[i], condition_labels)]]
 
-    # Improve with foreach and parallelize it!
-    # Create cross-wise combinations
-    # combinations <- data.table::data.table(expand.grid(colnames(dt_A), colnames(dt_B)))
+    ## In case of paired samples
+    if (paired) {
+      pairs <- find_pairs(dt_A, dt_B, unique.ids)
+      dt_A <- dt_A[, .SD, .SDcols = pairs$colnames_A]
+      dt_B <- dt_B[, .SD, .SDcols = pairs$colnames_B]
+    }
 
-    # Perform subtraction cross wise
-    # results <- foreach(j = seq_along(combinations$Var1), .combine = cbind, .packages = 'data.table') %dopar% {
-    #   col_A <- combinations$Var1[j]
-    #   col_B <- combinations$Var2[j]
-    #
-    #   dt_A[, ..col_A] - dt_B[, ..col_B]
-    # }
     result <- base::rowMeans(dt_A) - base::rowMeans(dt_B)
 
-    unpaired_dt <- cbind(unpaired_dt, result)
-    colnames(unpaired_dt) <- c(feature_rank, paste0("Log2FC_", i))
+    foldchange_dt <- cbind(foldchange_dt, result)
+    colnames(foldchange_dt) <- c(feature_rank, paste0("Log2FC_", i))
 
     # Compute pvalues with wilcox test
     mat_A <- as.matrix(dt_A)
     mat_B <- as.matrix(dt_B)
     for (k in seq_along(feature_labels)) {
       # save p-values in data.table
-      unpaired_dt[k, (paste0("pvalue_", i)) := stats::wilcox.test(mat_A[k, ], mat_B[k, ], correct = TRUE)$p.value]
+      foldchange_dt[k, (paste0("pvalue_", i)) := stats::wilcox.test(mat_A[k, ], mat_B[k, ],
+                                                                  correct = TRUE,
+                                                                  paired = paired)$p.value]
     }
   }
 
-  return(unpaired_dt)
+  return(foldchange_dt)
 }

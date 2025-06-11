@@ -484,7 +484,7 @@ omics <- R6::R6Class(
     #'
     #' @return A list of \link[ggplot2]{ggplot} object.
     #' @seealso \link[OmicFlow]{ordination_plot}, \link[OmicFlow]{stats_plot}, \link[OmicFlow]{pairwise_anosim}, \link[OmicFlow]{pairwise_adonis}
-    ordination = function(metric = c("bray", "jaccard", "unifrac"), method = c("pcoa", "nmds"), group_by, distmat = NULL, weighted = FALSE, normalize = TRUE, parallel = FALSE,
+    ordination = function(metric = c("bray", "jaccard", "unifrac"), method = c("pcoa", "nmds"), group_by, distmat = NULL, weighted = TRUE, normalize = TRUE, parallel = FALSE,
                           pca.pairwise = FALSE, pca.max.explained = 80, pca.dim = c(1,2), outdir=".", cpus = 8, sample.id = "SAMPLE-ID") {
 
       # Copies object to prevent modification of omics class components
@@ -749,118 +749,21 @@ omics <- R6::R6Class(
       # Compute 2-fold expression based on (un)paired samples
       # Computes on equation oflog2(A) - log2(B)
       # Supports multiple inputs for A and B.
-      # For example A = T1, T2 and B = H1, H2
-      if (paired == TRUE) {
-        # sorting of metadata
-        condition.labels <- data.table::setorderv(self$metaData,
-                                                  cols = c(sample.id, paired.id, condition.group))[[ condition.group ]]
-        # paired samples
-        DFE <- paired_fold(dt = dt,
-                           sample.id = sample.id,
-                           paired.id = paired.id,
-                           condition_A = condition_A,
-                           condition_B = condition_B,
-                           unique.id = unique(self$metaData[[ paired.id ]]),
-                           condition_labels = condition.labels,
-                           feature_rank = feature_rank)
+      condition.labels <- data.table::setorderv(self$metaData,
+                                                cols = c(sample.id, condition.group))[[ condition.group ]]
 
-      } else if (paired == FALSE) {
-        # sorting of metadata
-        condition.labels <- data.table::setorderv(self$metaData,
-                                                  cols = c(sample.id, condition.group))[[ condition.group ]]
-        # unpaired samples
-        DFE <- unpaired_fold(dt = dt,
-                             sample.id = sample.id,
-                             condition_A = condition_A,
-                             condition_B = condition_B,
-                             condition_labels = condition.labels,
-                             feature_rank = feature_rank)
-
-      } else {
-        stop("paired can only be TRUE or FALSE, check your input.")
-      }
-
-      # Generate heatmap plot with df_diff data
-      if (paired == TRUE) {
-        # Adds size to paired heatmap
-        add_columns <- unique(self$metaData[, .SD, .SDcols = c(sample.id, paired.id)])
-
-        merged_data <- base::merge(
-          stats_dt,
-          add_columns,
-          by = sample.id,
-          all.x = TRUE
+      # paired samples
+      DFE <- foldchange(
+        dt = dt,
+        sample.id = sample.id,
+        condition_A = condition_A,
+        condition_B = condition_B,
+        unique.ids = unique(self$metaData[[ paired.id ]]),
+        paired = paired,
+        condition_labels = condition.labels,
+        feature_rank = feature_rank
         )
 
-        # Subset merged data
-        subset_merged <- merged_data[, .(values = sum(values, na.rm=FALSE)), by = c(paired.id, feature_rank)]
-        colnames(subset_merged) <- c("SAMPLE-ID", feature_rank, "values")
-
-        # Second merge
-        final_merge <- base::merge(
-          x = DFE,
-          y = subset_merged,
-          by = c("SAMPLE-ID", feature_rank),
-          all.x = TRUE
-        )
-
-        plot_list$data <- final_merge
-
-        # Check if multiple diff_ are present
-        grouped_dt <- final_merge %>%
-          dplyr::group_by(`SAMPLE-ID`, !!sym(feature_rank)) %>%
-          dplyr::summarise(mean_values = mean(values, na.rum = TRUE),
-                           diff_1 = mean(diff_1, na.rm = TRUE)) %>%
-          dplyr::ungroup()
-
-
-        # Generating heatmap plot based on paired boolean
-        n_diff_columns <-  sum(grepl("^diff_", colnames(DFE)))
-
-        # Generate heatmap plot with df_diff data
-        heatmap_plot <- grouped_dt %>%
-          ggplot(mapping = aes(x = base::get(sample.id, DFE),
-                               y = base::get(feature_rank, DFE)))
-
-        # If there is only one column uses default settings
-        if (n_diff_columns == 1) {
-          heatmap_plot <- heatmap_plot +
-            geom_point(aes(size = mean_values, fill = diff_1), shape = 21)
-        } else {
-          # Adds geom_tile for number of diff_columns
-          for (i in 1:n_diff_columns) {
-            if (i == 1) {
-              heatmap_plot <- heatmap_plot +
-                geom_point(aes(size = mean_values, fill = !!sym(paste0("diff_", i))), shape = 21)
-            } else {
-              heatmap_plot <- heatmap_plot +
-                geom_point(aes(size = mean_values, fill = !!sym(paste0("diff_", i))),
-                           shape = 21,
-                           position = position_nudge(x = 0.5))
-            }
-
-          }
-        }
-        # Finishes heatmap plot
-        plot_list$tile_plot <- heatmap_plot +
-          theme_bw() +
-          theme(axis.text.x = element_text(angle = 45, hjust = 1, size=12),
-                axis.text.y = element_text(size=12),
-                axis.text = element_text(size=12),
-                text = element_text(size=12),
-                legend.text = element_text(size=12),
-                legend.title = element_text(size=14),
-                strip.background = element_rect(fill = "#EEEEEE", color = "#FFFFFF")) +
-          scale_y_discrete(limits = rev(levels(as.factor(grouped_dt[[feature_rank]])))) +
-          scale_fill_gradient2(name = paste0("log2( A / B )"),
-                               low = "blue",
-                               mid = "white",
-                               high = "red",
-                               na.value = "grey80") +
-          scale_size_continuous(name = "Mean Rel. Abun. (%)", labels = scales::label_number(accuracy = 0.01)) +
-          labs(x = NULL,
-               y = NULL)
-      } else {
         #----------------------#
         # Visualization        #
         #----------------------#
@@ -883,7 +786,6 @@ omics <- R6::R6Class(
                        label_B = condition_B)
         })
 
-      }
       # Restores omics class components
       private$tmp_restore()
 

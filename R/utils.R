@@ -59,3 +59,21 @@ read_sparseTable <- function(filename) {
   # Return sparseMatrix
   return(as(mat_2, "sparseMatrix"))
 }
+
+find_pairs <- function(dt_A, dt_B, unique.ids) {
+  result <- data.table::rbindlist(lapply(unique.ids, function(id) {
+
+    A_matches <- colnames(dt_A)[stringr::str_detect(colnames(dt_A), id)]
+    B_matches <- colnames(dt_B)[stringr::str_detect(colnames(dt_B), id)]
+
+    if (length(A_matches) == 1 && length(B_matches) == 1) {
+      data.table::data.table(colnames_A = A_matches, colnames_B = B_matches, id = id)
+    } else {
+      NULL
+    }
+
+  }))
+  result[, id := NULL]
+
+  return(result)
+}
