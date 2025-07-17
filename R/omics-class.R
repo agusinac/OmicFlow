@@ -15,10 +15,24 @@ omics <- R6::R6Class(
   public = list(
     #' @field countData A path to an existing file, data.table or data.frame.
     countData = NULL,
+
     #' @field featureData A path to an existing file, data.table or data.frame.
     featureData = NULL,
+
     #' @field metaData A path to an existing file, data.table or data.frame.
     metaData = NULL,
+
+    #' @field .valid_schema Boolean value for schema validation via JSON
+    .valid_schema = NULL,
+
+    #' @field .feature_id String value, default name for the feature identifiers.
+    .feature_id = "FEATURE_ID",
+
+    #' @field .sample_id String value, default name for the sample identifiers.
+    .sample_id = "SAMPLE_ID",
+
+    #' @field .samplepair_id String value, default name for the sample pair identifiers.
+    .samplepair_id = "SAMPLEPAIR_ID",
 
     #' @description
     #' Wrapper function that is inherited and adapted for each omics class.
@@ -28,41 +42,29 @@ omics <- R6::R6Class(
     #' @param metaData A path to an existing file, data.table or data.frame.
     #' @return A new `omics` object.
     initialize = function(countData = NA, featureData = NA, metaData = NA) {
-      # Loads counts
-      if (!is.na(countData)) {
-        self$countData <- read_sparseTable(countData)
-
-      } else {
-        cli::cli_abort(c(
-          "countData cannot be empty, please provide a tab or comma separated file"
-        ))
-      }
-
-      # Loads features
-      if (!is.na(featureData)) {
-        self$featureData <- data.table::fread(featureData,
-                                              header = TRUE)
-        self$featureData[, ID := rownames(self$featureData)]
-        colnames(self$featureData) <- gsub("\\s+", "_", colnames(self$featureData))
-        rownames(self$countData) <- self$featureData$ID # Should be replaced by featureID
-
-      } else {
-        cli::cli_abort(c(
-          "featureData cannot be empty, please provide a tab or comma separated file"
-        ))
-      }
-
-      # Loads metadata & replaces empty values by NAs
+      #-------------------#
+      ###   metaData    ###
+      #-------------------#
       if (!is.na(metaData)) {
-        self$metaData <- data.table::fread(metaData)
-        colnames(self$metaData) <- base::toupper(colnames(self$metaData))
-        self$metaData <- self$metaData[, lapply(.SD, function(x) ifelse(x == "", NA, x)),
-                                       .SDcols = colnames(self$metaData)]
-        colnames(self$metaData) <- gsub("\\s+", "_", colnames(self$metaData))
+        self$metaData <- data.table::fread(metaData, header = TRUE)
+        self$validate()
 
-        cli::cli_warn(c(
-          "i" = "colnames of metaData are automatically converted to uppercase letters."
-        ))
+        if (self$.valid_schema) {
+          cli::cli_alert_success("Metadata template passed the JSON validation.")
+          self$metaData <- self$metaData[, lapply(.SD, function(x) ifelse(x == "", NA, x)),
+                                         .SDcols = colnames(self$metaData)]
+          colnames(self$metaData) <- gsub("\\s+", "_", colnames(self$metaData))
+
+          # If samplepair id doesn't exist, pairing is disabled
+          if (!any(grepl(self$.samplepair_id, colnames(self$metaData))) && all(is.na(self$metaData[[self$.samplepair_id]]))) {
+            self$.samplepair_id <- NULL
+          }
+        } else {
+          errors <- attr(self$.valid_schema, "errors")
+          cli::cli_abort(
+            "JSON validation failed: \n{ paste(errors$message, collapse = '\n')}"
+            )
+        }
 
       } else {
         cli::cli_abort(c(
@@ -70,20 +72,69 @@ omics <- R6::R6Class(
         ))
       }
 
+      #-------------------#
+      ###  featureData  ###
+      #-------------------#
+      if (!is.na(featureData)) {
+        self$featureData <- data.table::fread(featureData,
+                                              header = TRUE)
+
+        if (any(grepl(self$.feature_id, colnames(self$metaData))) && !all(is.na(self$metaData[[self$.feature_id]]))) {
+          FEATURE_ID <- self$metaData[[self$.feature_id]]
+        } else {
+          FEATURE_ID <- paste0("feature_", rownames(self$featureData))
+        }
+
+        self$featureData[, (self$.feature_id) := FEATURE_ID]
+        colnames(self$featureData) <- gsub("\\s+", "_", colnames(self$featureData))
+
+        cli::cli_alert_success("featureData is loaded.")
+      }
+
+      #-------------------#
+      ###   countData   ###
+      #-------------------#
+      if (!is.na(countData)) {
+        self$countData <- read_sparseTable(countData)
+        rownames(self$countData) <- self$featureData$FEATURE_ID
+        cli::cli_alert_success("countData is loaded.")
+      }
+
       # There should be an interal metadata template check to make sure all headers are correct.
       # Should also include to check for missing data and alert the user!
       # Current example to be used in the future
       base::tryCatch(
-        { self$countData <- self$countData[, self$metaData[["SAMPLE-ID"]], drop = FALSE] },
+        { self$countData <- self$countData[, self$metaData[[ self$.sample_id ]], drop = FALSE] },
         error = function(e) {
           cli::cli_abort(c(
             "Error occured during countData subsetting by metaData:",
-            "i" = "The error message was: {e$message}",
-            "x" = "Possible cause: 'SAMPLE-ID' doesn't exist."
+            "i" = "The error message was: {e$message}"
           ))
         }
       )
 
+    },
+    validate = function() {
+      # Creates temporary json file from metadata
+      tmp_json <- base::tempfile(fileext = ".json")
+
+      json_data <- jsonlite::toJSON(self$metaData,
+                                    dataframe = "rows",
+                                    pretty = TRUE,
+                                    auto_unbox = TRUE)
+
+      writeLines(json_data, tmp_json)
+
+      self$.valid_schema <- jsonvalidate::json_validate(
+        tmp_json, "metadata_schema.json",
+        engine = "ajv",
+        verbose = TRUE,
+        error = FALSE,
+        strict = TRUE
+        )
+
+      unlink(tmp_json)
+      invisible(self)
     },
     #' @description
     #' Removes empty (zero) values by row and column.
@@ -148,13 +199,26 @@ omics <- R6::R6Class(
     #' obj$sample_subset(cycle %in% c("t1", "t5"))
     sample_subset = function(...) {
       # set order of columns
-      self$countData <- self$countData[, self$metaData[["SAMPLE-ID"]], drop = FALSE]
+      self$countData <- self$countData[, self$metaData[[ self$.sample_id ]], drop = FALSE]
       # subset columns and rows
       rows_to_keep <- self$metaData[, ...]
       self$metaData <- self$metaData[rows_to_keep, ]
       # NAs can occur in rows_to_keep, which then doesnt work on sparse Matrix.
-      self$countData <- self$countData[, self$metaData[["SAMPLE-ID"]] ]
+      self$countData <- self$countData[, self$metaData[[ self$.sample_id ]] ]
       self$removeZeros()
+      invisible(self)
+    },
+    #' @description
+    #' If num_unique_pairs is not defined, it will find the maximum number of sample_ids per samplepair_id and subset everything.
+    #' Especially useful when using it within functions that support paired analysis.
+    samplepair_subset = function(num_unique_pairs = NULL) {
+      if (is.null(num_unique_pairs)) {
+        counts <- self$metaData[, .(unique_count = data.table::uniqueN(SAMPLE_ID)), by = SAMPLEPAIR_ID]
+        num_unique_pairs <- counts[, max(unique_count)]
+      }
+      taxa$metaData <- taxa$metaData[SAMPLEPAIR_ID %in% counts[unique_count == num_unique_pairs, SAMPLEPAIR_ID]]
+      taxa$countData <- taxa$countData[, taxa$metaData[[self$.sample_id]] ]
+      taxa$removeZeros()
       invisible(self)
     },
     #' @description
@@ -169,16 +233,17 @@ omics <- R6::R6Class(
     #' obj$feature_glom(feature_rank = "Genus", feature_filter = c("uncultured", "metagenome"))
     feature_glom = function(feature_rank, feature_filter = NA) {
       # creates a subset of unique feature rank, hashes combined for each unique rank
-      counts <- data.table::data.table("ID" = rownames(self$countData))
+      counts <- data.table::data.table("FEATURE_ID" = rownames(self$countData))
+
       # Supports multiple features
       features <- data.table::copy(self$featureData[self$featureData[[ feature_rank[1] ]] != "", ])
 
       # set keys
-      data.table::setkey(counts, ID)
-      data.table::setkey(features, ID)
+      data.table::setkey(counts, FEATURE_ID)
+      data.table::setkey(features, FEATURE_ID)
 
       # Create groups by ID
-      grouped_ids <- features[, .(IDs = list(ID)), by = feature_rank]
+      grouped_ids <- features[, .(IDs = list(FEATURE_ID)), by = feature_rank]
       counts_glom <- Matrix::Matrix(0,
                                     nrow = nrow(grouped_ids),
                                     ncol = ncol(self$countData),
@@ -200,14 +265,14 @@ omics <- R6::R6Class(
       # Fetch first ID from each list
       grouped_ids$ID_first <- sapply(grouped_ids$IDs, `[[`, 1)
       # Reorder by matching IDs
-      self$featureData <- self$featureData[ base::order(base::match(self$featureData$ID, grouped_ids$ID_first)) ]
+      self$featureData <- self$featureData[ base::order(base::match(self$featureData$FEATURE_ID, grouped_ids$ID_first)) ]
       self$countData <- counts_glom
 
       # Clean up featureData
       empty_strings <- !is.na(self$featureData[[ feature_rank[1] ]])
       self$featureData <- self$featureData[empty_strings, ]
       self$countData <- self$countData[empty_strings, ]
-      rownames(self$countData) <- self$featureData$ID
+      rownames(self$countData) <- self$featureData$FEATURE_ID
 
       # Remove user-specified feature(s) filter as array
       if (is(feature_filter, "character")) {
@@ -260,7 +325,7 @@ omics <- R6::R6Class(
     #' @return A \link[ggplot2]{ggplot} object.
     rankstat = function(feature_ranks = c("Kingdom", "Phylum", "Class", "Order", "Family", "Genus", "Species")) {
       # Counts number of ASVs without empty values
-      values <- self$featureData[, lapply(.SD, function(x) sum(!is.na(x) & x != "")), .SDcols = !c("ID")][, .SD, .SDcols = feature_ranks]
+      values <- self$featureData[, lapply(.SD, function(x) sum(!is.na(x) & x != "")), .SDcols = !c(self$.feature_id)][, .SD, .SDcols = feature_ranks]
 
       # Pivot into long table
       long_values <- data.table::melt(data = values,
@@ -304,8 +369,12 @@ omics <- R6::R6Class(
     #'
     #' @return A \link[ggplot2]{ggplot} object.
     #' @seealso \link[OmicFlow]{diversity_plot}
-    alpha_diversity = function(col_name, method = c("shannon", "invsimpson", "simpson"),
-                               Brewer.palID="Set2", evenness = FALSE, paired = FALSE, p.adjust.method = "fdr") {
+    alpha_diversity = function(col_name,
+                               method = c("shannon", "invsimpson", "simpson"),
+                               Brewer.palID = "Set2",
+                               evenness = FALSE,
+                               paired = FALSE,
+                               p.adjust.method = "fdr") {
 
       # OUTPUT: Plot list
       plot_list <- list()
@@ -317,6 +386,11 @@ omics <- R6::R6Class(
         .metaData = self$metaData,
         .treeData = self$treeData
       )
+
+      # Subset by samplepair completion
+      if (paired && !is.null(self$.samplepair_id) ) {
+        self$samplepair_subset()
+      }
 
       # Alpha diversity based on 'method'
       div <- data.table::data.table(diversity(x = self$countData, index=method))
@@ -365,7 +439,7 @@ omics <- R6::R6Class(
     #'
     #' @return A long \link[data.table]{data.table} table.
     #' @seealso \link[OmicFlow]{composition_plot}
-    composition = function(feature_rank, feature_filter = NA, col_name = NULL, sample.id = "SAMPLE-ID", feature_top = 10, Brewer.palID = "RdYlBu", remove_na = FALSE) {
+    composition = function(feature_rank, feature_filter = NA, col_name = NULL, feature_top = 10, Brewer.palID = "RdYlBu", remove_na = FALSE) {
       # Copies object to prevent modification of omics class components
       private$tmp_link(
         .countData = self$countData,
@@ -382,7 +456,7 @@ omics <- R6::R6Class(
 
       # Remove NAs when col_name is specified
       if (!is.null(col_name) & remove_na) {
-        self$removeNAs(sample.id, col_name)
+        self$removeNAs(self$.sample_id, col_name)
       }
 
       # Convert sparse matrix to data.table (safe since feature_glom shrinks the sparse matrix)
@@ -423,13 +497,13 @@ omics <- R6::R6Class(
                                      variable.factor = FALSE,
                                      value.factor = TRUE)
       # Rename colnames for merge step
-      colnames(final_long) <- c(feature_rank, "SAMPLE-ID", "value")
+      colnames(final_long) <- c(feature_rank, self$.sample_id, "value")
 
       # Adds metadata columns by user input
       if (!is.null(col_name)) {
         composition_final <- base::merge(final_long,
-                                         self$metaData[, .SD, .SDcols = c("SAMPLE-ID", col_name)],
-                                         by = "SAMPLE-ID",
+                                         self$metaData[, .SD, .SDcols = c(self$.sample_id, col_name)],
+                                         by = self$.sample_id,
                                          all = TRUE,
                                          allow.cartesian = TRUE) %>%
           unique()
@@ -484,8 +558,19 @@ omics <- R6::R6Class(
     #'
     #' @return A list of \link[ggplot2]{ggplot} object.
     #' @seealso \link[OmicFlow]{ordination_plot}, \link[OmicFlow]{stats_plot}, \link[OmicFlow]{pairwise_anosim}, \link[OmicFlow]{pairwise_adonis}
-    ordination = function(metric = c("bray", "jaccard", "unifrac"), method = c("pcoa", "nmds"), group_by, distmat = NULL, weighted = TRUE, normalize = TRUE, parallel = FALSE,
-                          pca.pairwise = FALSE, pca.max.explained = 80, pca.dim = c(1,2), outdir=".", cpus = 8, sample.id = "SAMPLE-ID") {
+    ordination = function(metric = c("bray", "jaccard", "unifrac"),
+                          method = c("pcoa", "nmds"),
+                          group_by,
+                          distmat = NULL,
+                          weighted = TRUE,
+                          normalize = TRUE,
+                          parallel = FALSE,
+                          pca.pairwise = FALSE,
+                          pca.max.explained = 80,
+                          pca.dim = c(1,2),
+                          outdir=".",
+                          cpus = 8,
+                          perm=999) {
 
       # Copies object to prevent modification of omics class components
       private$tmp_link(
@@ -496,9 +581,9 @@ omics <- R6::R6Class(
       )
 
       # Subset by missing values
-      self$removeNAs(sample.id, group_by)
+      self$removeNAs(self$.sample_id, group_by)
       if (inherits(distmat, "Matrix")) {
-        distmat <- distmat[self$metaData[[sample.id]], self$metaData[[sample.id]]]
+        distmat <- distmat[self$metaData[[ self$.sample_id ]], self$metaData[[ self$.sample_id ]]]
         distmat <- as.dist(distmat)
       }
 
@@ -519,7 +604,7 @@ omics <- R6::R6Class(
       if (is.null(distmat)) {
         # Requires rownames to contain same labels as tree
         counts <- slam::as.simple_triplet_matrix(self$countData)
-        rownames(counts) <- self$featureData$ID
+        rownames(counts) <- self$featureData$FEATURE_ID
 
         distmat <- switch(
           metric,
@@ -552,8 +637,8 @@ omics <- R6::R6Class(
       # Switch case to compute relevant statistics
       stats_results <- switch(
         method,
-        "pcoa" = pairwise_adonis(distmat, groups = self$metaData[[ group_by ]]),
-        "nmds" = pairwise_anosim(distmat, groups = self$metaData[[ group_by ]])
+        "pcoa" = pairwise_adonis(distmat, groups = self$metaData[[ group_by ]], perm = perm),
+        "nmds" = pairwise_anosim(distmat, groups = self$metaData[[ group_by ]], perm = perm)
       )
 
       # Normalization of eigenvalues
@@ -650,9 +735,7 @@ omics <- R6::R6Class(
     #' @param feature_rank A featureData column name to visualize.
     #' @param feature_filter Removes features by name, works on single strings or vector of strings.
     #' @param feature_top Integer of the top features to visualize, the max is 15, due to a limit of palettes.
-    #' @param sample.id A metaData column specifying the sample.id, used to filter out NAs from \code{condition.group} column name.
     #' @param paired Boolean, wether to compute paired or unpaired log2 fold change, for paired it is required to specify paired.id. Default is unpaired.
-    #' @param paired.id A metaData column name containing paired ids.
     #' @param condition.group A metaData column name of where the conditions A and B are located.
     #' @param condition_A A character string or vector.
     #' @param condition_B A character string or vector.
@@ -666,14 +749,12 @@ omics <- R6::R6Class(
     #'                  metaData = "metadata.tsv"
     #'
     #' unpaired <- obj$differential_feature_expression(feature_rank = "Genus",
-    #'                                                 sample.id = "SAMPLE-ID",
     #'                                                 paired = FALSE,
     #'                                                 condition.group = "treatment",
     #'                                                 condition_A = c("H"),
     #'                                                 condition_B = c("T"))
     #'
     #' paired <- obj$differential_feature_expression(feature_rank = "Genus",
-    #'                                               sample.id = "SAMPLE-ID",
     #'                                               paired = TRUE,
     #'                                               condition.group = "cycle",
     #'                                               condition_A = c("t2", "t3"),
@@ -684,10 +765,16 @@ omics <- R6::R6Class(
     #' * A list of \link[ggplot2]{ggplot} object.
     #' * A long \link[data.table]{data.table} table.
     #' @seealso \link[OmicFlow]{volcano_plot}, \link[OmicFlow]{ViolinBoxPlot}, \link[OmicFlow]{paired_fold}, \link[OmicFlow]{unpaired_fold}
-    differential_feature_expression = function(sample.id, paired.id, feature_rank, paired=FALSE, normalize = TRUE,
-                                               condition.group, condition_A, condition_B,
-                                               pvalue.threshold=0.05, foldchange.threshold=0.06,
-                                               feature_filter = NULL, feature_top = NULL) {
+    differential_feature_expression = function(feature_rank,
+                                               paired = FALSE,
+                                               normalize = TRUE,
+                                               condition.group,
+                                               condition_A,
+                                               condition_B,
+                                               pvalue.threshold = 0.05,
+                                               foldchange.threshold = 0.06,
+                                               feature_filter = NULL,
+                                               feature_top = NULL) {
       # Final output
       plot_list <- list()
 
@@ -699,8 +786,13 @@ omics <- R6::R6Class(
         .treeData = self$treeData
       )
 
+      # Subset by samplepair completion
+      if (paired && !is.null(self$.samplepair_id) ) {
+        self$samplepair_subset()
+      }
+
       # Subset by missing values
-      self$removeNAs(sample.id, condition.group)
+      self$removeNAs(self$.sample_id, condition.group)
 
       # Agglomerate taxa by feature rank and filter unwanted taxa
       self$feature_glom(feature_rank = feature_rank,
@@ -726,10 +818,10 @@ omics <- R6::R6Class(
       dt <- sparse_to_dtable(self$countData)[, (feature_rank) := self$featureData[[feature_rank]]]
       stats_dt <- base::merge(data.table::melt(dt,
                                                measure.vars = colnames(dt)[!grepl(feature_rank, colnames(dt))],
-                                               variable.name = sample.id,
+                                               variable.name = self$.sample_id,
                                                value.name = "values"),
-                              self$metaData[, .SD, .SDcols = c(sample.id, condition.group)],
-                              by = sample.id)
+                              self$metaData[, .SD, .SDcols = c(self$.sample_id, condition.group)],
+                              by = self$.sample_id)
 
       # Create row_sums
       dt[, row_sum := rowSums(.SD), .SDcols = !c(feature_rank)]
@@ -750,15 +842,15 @@ omics <- R6::R6Class(
       # Computes on equation oflog2(A) - log2(B)
       # Supports multiple inputs for A and B.
       condition.labels <- data.table::setorderv(self$metaData,
-                                                cols = c(sample.id, condition.group))[[ condition.group ]]
+                                                cols = c(self$.sample_id, condition.group))[[ condition.group ]]
 
       # paired samples
       DFE <- foldchange(
         dt = dt,
-        sample.id = sample.id,
+        sample.id = self$.sample_id,
         condition_A = condition_A,
         condition_B = condition_B,
-        unique.ids = unique(self$metaData[[ paired.id ]]),
+        unique.ids = unique(self$metaData[[ self$.samplepair_id ]]),
         paired = paired,
         condition_labels = condition.labels,
         feature_rank = feature_rank
@@ -804,9 +896,14 @@ omics <- R6::R6Class(
     #' @param Brewer.palID Palette set to be applied, see \link[RColorBrewer]{brewer.pal} or \link[OmicFlow]{fetch_palette}.
     #' @param counts.scalar Adds a pseudocount to countData prior to log transformation.
     #' @return A \link[ggplot2]{ggplot} object.
-    triplot = function(feature_rank, feature_filter = NA, metadata.col = NA, sample.id="SAMPLE-ID",
-                       choice_dim = c("RDA1", "PC1"), pairwise = FALSE,
-                       Brewer.palID = "Set2", counts.scalar = 1) {
+    triplot = function(feature_rank,
+                       feature_filter = NA,
+                       sample.id = self$.sample_id,
+                       metadata.col = NA,
+                       choice_dim = c("RDA1", "PC1"),
+                       pairwise = FALSE,
+                       Brewer.palID = "Set2",
+                       counts.scalar = 1) {
       # Copies object to prevent modification of omics class components
       private$tmp_link(
         .countData = self$countData,
