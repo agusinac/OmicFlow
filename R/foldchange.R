@@ -34,13 +34,6 @@ foldchange <- function(dt, sample.id, condition_A, condition_B, condition_labels
     dt_A <- tmp_dt[, .SD, .SDcols = colnames(tmp_dt)[grepl(condition_A[i], condition_labels)]]
     dt_B <- tmp_dt[, .SD, .SDcols = colnames(tmp_dt)[grepl(condition_B[i], condition_labels)]]
 
-    ## In case of paired samples
-    if (paired) {
-      pairs <- find_pairs(dt_A, dt_B, unique.ids)
-      dt_A <- dt_A[, .SD, .SDcols = pairs$colnames_A]
-      dt_B <- dt_B[, .SD, .SDcols = pairs$colnames_B]
-    }
-
     result <- base::rowMeans(dt_A) - base::rowMeans(dt_B)
 
     foldchange_dt <- cbind(foldchange_dt, result)
