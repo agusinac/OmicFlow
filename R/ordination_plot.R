@@ -31,7 +31,7 @@ ordination_plot <- function(df_pcs, pcs, pair, dist.metric) {
                            color = groups,
                            linetype = groups)) +
       geom_point(alpha = 5) +
-      stat_ellipse(type = "norm") +
+      stat_ellipse(type = "t") +
       theme_bw() +
       theme(text=element_text(size=14),
             legend.text = element_text(size=12),
