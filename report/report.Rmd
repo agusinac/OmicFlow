@@ -170,13 +170,12 @@ save_content <- function(data, extension) {
 # Data as content to be used for downloadthis
 content <- list(counts = omics$countData,
                 metadata = omics$metaData, 
-                features = omics$featureData, 
-                tree = omics$treeData)
+                features = omics$featureData)
 
 # Dataframe to be viewed
 overview <- data.frame(
-  Name = c("counts", "metadata", "features", "tree"),
-  data_type = c(".mtx", ".tsv", ".tsv", ".newick")
+  Name = c("counts", "metadata", "features"),
+  data_type = c(".mtx", ".tsv", ".tsv")
 )
 
 overview[["Download"]] <- vapply(1:nrow(overview), function(i) {

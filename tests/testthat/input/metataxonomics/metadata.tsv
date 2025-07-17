@@ -1,5 +1,0 @@
-SAMPLE-ID	FILENAME_fw	FILENAME_rev	DESCRIPTION	RANKSTAT_treatment	RANKSTAT_sex	CORRELATION_BMI	CORRELATION_weight	PAIREDGROUPBY_time
-S100	S100_R1_.fastq.gz	S100_R2_.fastq.gz		tumor	male	22	77	A1
-S103	S103_R1_.fastq.gz	S103_R2_.fastq.gz		tumor	female	23	71	B1
-S115	S115_R1_.fastq.gz	S115_R2_.fastq.gz		healthy	female	30	69	A1
-S120	S120_R1_.fastq.gz	S120_R2_.fastq.gz		healthy	male	22	80	B1
