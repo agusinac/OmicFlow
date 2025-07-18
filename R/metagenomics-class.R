@@ -142,7 +142,7 @@ metagenomics <- R6::R6Class(
     #' taxa
     #'
     #' # method 2 to call print function
-    #' taxa$print()
+    #' self$print()
     #'
     print = function() {
       cat("## metagenomics-class object \n")
@@ -161,13 +161,13 @@ metagenomics <- R6::R6Class(
     #'                            treeData = "rooted_tree.newick")
     #'
     #' # Performs modifications
-    #' taxa$transform(log2)
+    #' self$transform(log2)
     #'
     #' # resets
-    #' taxa$reset()
+    #' self$reset()
     #'
     #' # An inbuilt reset function prevents unwanted modification to the taxa object.
-    #' taxa$rankstat()
+    #' self$rankstat()
     #'
     reset = function() {
       self$countData = private$original_data$counts
@@ -184,10 +184,10 @@ metagenomics <- R6::R6Class(
     #'                            treeData = "rooted_tree.newick")
     #'
     #' # Sample subset induces empty features
-    #' taxa$sample_subset(cycle == "t1")
+    #' self$sample_subset(cycle == "t1")
     #'
     #' # Remove empty features from countData and treeData
-    #' taxa$removeZeros()
+    #' self$removeZeros()
     removeZeros = function() {
       super$removeZeros()
       if (!is.null(self$treeData)) self$treeData <- ape::keep.tip(self$treeData, self$featureData$ID)
@@ -201,57 +201,85 @@ metagenomics <- R6::R6Class(
     #'                            biomData = "biom_with_taxonomy.biom",
     #'                            treeData = "rooted_tree.newick")
     #'
-    #' taxa$write_biom(file = "new_output.biom")
+    #' self$write_biom(file = "new_output.biom")
     #'
-    write_biom = function(file) {
-      # Create empty biom file
-      rhdf5::h5createFile(file)
-      # Create groups
-      invisible(rhdf5::h5createGroup(file = file, group = '/observation'))
-      invisible(rhdf5::h5createGroup(file = file, group = '/observation/matrix'))
-      invisible(rhdf5::h5createGroup(file = file, group = '/observation/metadata'))
-      invisible(rhdf5::h5createGroup(file = file, group = '/observation/group-metadata'))
-      invisible(rhdf5::h5createGroup(file = file, group = '/sample'))
-      invisible(rhdf5::h5createGroup(file = file, group = '/sample/matrix'))
-      invisible(rhdf5::h5createGroup(file = file, group = '/sample/metadata'))
-      invisible(rhdf5::h5createGroup(file = file, group = '/sample/group-metadata'))
+    write_biom = function (filename) {
 
-      # Read file
-      h5 <- rhdf5::H5Fopen(file)
+      res <- try(
+        rhdf5::h5createFile(filename),
+        silent = TRUE
+      )
+      if (!res) {
+        cli::cli_abort("Can't create file {.filename {filename}}: {res}")
+      }
 
-      # Add Attributes
-      rhdf5::h5writeAttribute(attr = paste("No Table ID"),
+      groups <- c(
+        'observation',
+        'observation/matrix',
+        'observation/metadata',
+        'observation/group-metadata',
+        'sample',
+        'sample/matrix',
+        'sample/metadata',
+        'sample/group-metadata'
+      )
+
+      for (group in groups) {
+        invisible(rhdf5::h5createGroup(filename, group))
+      }
+
+      h5 <- try(
+        rhdf5::H5Fopen(name = filename,
+                       flags = 'H5F_ACC_RDWR',
+                       native = TRUE),
+        silent = TRUE
+      )
+      if (!inherits(h5, "H5IdComponent")) {
+        cli::cli_abort("Can't open HDF5 file {.file {file}}: {h5}")
+      }
+
+      # convert countData to triplet matrix
+      triplets <- Matrix::summary(self$countData)
+
+      #----------------------------#
+      #       Add Attributes       #
+      #----------------------------#
+      rhdf5::h5writeAttribute(attr ="No Table ID",
                               h5obj = h5,
                               name = 'id')
-      rhdf5::h5writeAttribute(attr = paste("Table"),
+      rhdf5::h5writeAttribute(attr = "OTU table",
                               h5obj = h5,
                               name = 'type')
+      rhdf5::h5writeAttribute(attr = "Auto-generated biom file",
+                              h5obj = h5,
+                              name = 'comment')
       rhdf5::h5writeAttribute(attr = "http://biom-format.org",
                               h5obj = h5,
                               name = 'format-url')
       rhdf5::h5writeAttribute(attr = as.integer(c(2,1,0)),
                               h5obj = h5,
-                              name = 'format-version',
-                              encoding = 3)
+                              name = 'format-version')
       rhdf5::h5writeAttribute(attr = paste(Sys.Date()),
                               h5obj = h5,
                               name = 'creation-date')
       rhdf5::h5writeAttribute(attr = dim(self$countData),
                               h5obj = h5,
-                              name = 'shape',
-                              encoding = 2)
-      rhdf5::h5writeAttribute(attr = max(self$countData@p),
+                              name = 'shape')
+      rhdf5::h5writeAttribute(attr = length(triplets),
                               h5obj = h5,
                               name = 'nnz')
       rhdf5::h5writeAttribute(attr = paste("OmicFlow", utils::packageVersion("OmicFlow")),
                               h5obj = h5,
                               name = 'generated-by')
 
-      # Read counts by taxa
-      x <- matrix(c(self$countData@i - 1, self$countData@p - 1, self$countData@x), byrow=FALSE, ncol=3)
-
+      #----------------------------#
+      #       Counts by row        #
+      #----------------------------#
+      x <- matrix(c(triplets$i - 1, triplets$j - 1, triplets$x), ncol = 3)
       x <- x[order(x[,1]),,drop=FALSE]
-      indptr <- cumsum(unname(table(factor(x[,1]+1, 0:nrow(self$countData)))))
+
+      counts_per_row <- base::tabulate(x[,1] + 1L, nbins = nrow(self$countData))
+      indptr <- c(0L, base::cumsum(counts_per_row))
 
       rhdf5::h5writeDataset(obj = base::rownames(self$countData),
                             h5loc = h5,
@@ -266,11 +294,14 @@ metagenomics <- R6::R6Class(
                             h5loc = h5,
                             name = 'observation/matrix/indptr')
 
-      # Read counts by sample
+      #----------------------------#
+      #       Counts by column     #
+      #----------------------------#
       x <- x[order(x[,2]),,drop=FALSE]
-      indptr <- base::cumsum(base::unname(base::table(base::factor(x[,2]+1, 0:ncol(self$countData)))))
+      counts_per_col <- base::tabulate(x[,2] + 1L, nbins = ncol(self$countData))
+      indptr <- c(0L, cumsum(counts_per_col))
 
-      rhdf5::h5writeDataset(obj = base::colnames(self$countData),
+      rhdf5::h5writeDataset(obj = base::colnames(counts),
                             h5loc = h5,
                             name = 'sample/ids')
       rhdf5::h5writeDataset(obj = as.numeric(x[,3]),
@@ -283,17 +314,19 @@ metagenomics <- R6::R6Class(
                             h5loc = h5,
                             name = 'sample/matrix/indptr')
 
-      # Add Taxonomy
-      if (ncol(self$featureData) > 1) {
+      #----------------------------#
+      #       Add Taxonomy         #
+      #----------------------------#
+      if (all(dim(self$featureData)) > 0) {
         h5path <- 'observation/metadata/taxonomy'
-        features <- t(as.matrix(self$featureData[, .SD, .SDcols = !c("ID")]))
+        features <- t(as.matrix(self$featureData[, .SD, .SDcols = !c("FEATURE_ID")]))
         dimnames(features) <- list(NULL, NULL)
         rhdf5::h5writeDataset(obj = features,
                               h5loc = h5,
                               name = h5path)
       }
-      # Close biom file connection
-      rhdf5::H5Fflush(h5)
+
+      # Close hdf5 file connection
       rhdf5::H5Fclose(h5)
     }
   ),
