@@ -347,6 +347,8 @@ metagenomics <- R6::R6Class(
                               neworder = c(self$.feature_id, base::setdiff(colnames(self$featureData), self$.feature_id))
                               )
       colnames(self$featureData) <- gsub("\\s+", "_", colnames(self$featureData))
+      self$featureData <- self$featureData[, lapply(.SD, function(x) ifelse(x == "", NA, x)),
+                                           .SDcols = colnames(self$featureData)]
 
       cli::cli_alert_success("featureData is loaded.")
     },
