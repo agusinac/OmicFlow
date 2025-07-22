@@ -59,3 +59,18 @@ read_sparseTable <- function(filename) {
   # Return sparseMatrix
   return(as(mat_2, "sparseMatrix"))
 }
+
+column_exists <- function(column, table) {
+  valid_columns <- column[column %in% colnames(table)]
+
+  if (length(valid_columns) == 0 ) {
+    return(FALSE)
+  }
+
+  # For each existing column, check if it's *not entirely NA*
+  columns_empty <- all(sapply(valid_columns, function(col) {
+    any(!is.na(table[[col]]))
+  }))
+
+  return ( length(valid_columns) == length(column) && columns_empty )
+}
