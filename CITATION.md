@@ -2,112 +2,296 @@
 
 ## ape
 
-Emmanuel Paradis, Klaus Schliep. ape 5.0: an environment for modern phylogenetics and evolutionary analyses in {R}. Bioinformatics. 2019;35:526-528. doi: 10.1093/bioinformatics/bty633.
+```
+@Article{,
+  title = {ape 5.0: an environment for modern phylogenetics and evolutionary analyses in {R}},
+  author = {Emmanuel Paradis and Klaus Schliep},
+  journal = {Bioinformatics},
+  year = {2019},
+  volume = {35},
+  pages = {526-528},
+  doi = {10.1093/bioinformatics/bty633},
+}
+```
 
 
 ## data.table
 
-Tyson Barrett <t.barrett88@gmail.com> [aut, cre] (<https://orcid.org/0000-0002-2137-1391>), Matt Dowle <mattjdowle@gmail.com> [aut], Arun Srinivasan <asrini@pm.me> [aut], Jan Gorecki [aut], Michael Chirico [aut] (<https://orcid.org/0000-0003-0787-087X>), Toby Hocking [aut] (<https://orcid.org/0000-0002-3146-0865>), Benjamin Schwendinger [aut] (<https://orcid.org/0000-0003-3315-8114>), Ivan Krylov <ikrylov@disroot.org> [aut] (<https://orcid.org/0000-0002-0172-3812>). data.table: Extension of `data.frame`. 2025.
+```
+@Manual{,
+  title = {data.table: Extension of `data.frame`},
+  author = {Tyson Barrett and Matt Dowle and Arun Srinivasan and Jan Gorecki and Michael Chirico and Toby Hocking and Benjamin Schwendinger and Ivan Krylov},
+  year = {2025},
+  note = {R package version 1.17.0},
+  url = {https://CRAN.R-project.org/package=data.table},
+}
+```
 
 
 ## doParallel
 
-Microsoft Corporation [aut, cph], Steve Weston [aut]. doParallel: Foreach Parallel Adaptor for the 'parallel' Package. 2022.
+```
+@Manual{,
+  title = {doParallel: Foreach Parallel Adaptor for the 'parallel' Package},
+  author = {Microsoft Corporation and Steve Weston},
+  year = {2022},
+  note = {R package version 1.0.17},
+  url = {https://CRAN.R-project.org/package=doParallel},
+}
+```
 
 
 ## dplyr
 
-Hadley Wickham <hadley@posit.co> [aut, cre] (<https://orcid.org/0000-0003-4757-117X>), Romain François [aut] (<https://orcid.org/0000-0002-2444-4226>), Lionel Henry [aut], Kirill Müller [aut] (<https://orcid.org/0000-0002-1416-3412>), Davis Vaughan <davis@posit.co> [aut] (<https://orcid.org/0000-0003-4777-038X>). dplyr: A Grammar of Data Manipulation. 2023.
-
-
-## foreach
-
-Microsoft [aut, cph], Steve Weston [aut]. foreach: Provides Foreach Looping Construct. 2022.
+```
+@Manual{,
+  title = {dplyr: A Grammar of Data Manipulation},
+  author = {Hadley Wickham and Romain François and Lionel Henry and Kirill Müller and Davis Vaughan},
+  year = {2023},
+  note = {R package version 1.1.4},
+  url = {https://CRAN.R-project.org/package=dplyr},
+}
+```
 
 
 ## gghalves
 
-Frederik Tiedemann <fj.tiedemann@googlemail.com> [aut, cre]. gghalves: Compose Half-Half Plots Using Your Favourite Geoms. 2022.
+```
+@Manual{,
+  title = {gghalves: Compose Half-Half Plots Using Your Favourite Geoms},
+  author = {Frederik Tiedemann},
+  year = {2022},
+  note = {R package version 0.1.4},
+  url = {https://CRAN.R-project.org/package=gghalves},
+}
+```
 
 
 ## ggplot2
 
-Hadley Wickham. ggplot2: Elegant Graphics for Data Analysis. 2016.
+```
+@Book{,
+  author = {Hadley Wickham},
+  title = {ggplot2: Elegant Graphics for Data Analysis},
+  publisher = {Springer-Verlag New York},
+  year = {2016},
+  isbn = {978-3-319-24277-4},
+  url = {https://ggplot2.tidyverse.org},
+}
+```
 
 
 ## ggrepel
 
-Kamil Slowikowski <kslowikowski@gmail.com> [aut, cre] (<https://orcid.org/0000-0002-2843-6370>). ggrepel: Automatically Position Non-Overlapping Text Labels with
-'ggplot2'. 2024.
+```
+@Manual{,
+  title = {ggrepel: Automatically Position Non-Overlapping Text Labels with
+'ggplot2'},
+  author = {Kamil Slowikowski},
+  year = {2024},
+  note = {R package version 0.9.6},
+  url = {https://CRAN.R-project.org/package=ggrepel},
+}
+```
 
 
 ## magrittr
 
-Stefan Milton Bache <stefan@stefanbache.dk> [aut, cph] (Original author and creator of magrittr), Hadley Wickham <hadley@rstudio.com> [aut]. magrittr: A Forward-Pipe Operator for R. 2022.
+```
+@Manual{,
+  title = {magrittr: A Forward-Pipe Operator for R},
+  author = {Stefan Milton Bache and Hadley Wickham},
+  year = {2022},
+  note = {R package version 2.0.3},
+  url = {https://CRAN.R-project.org/package=magrittr},
+}
+```
 
 
 ## Matrix
 
-Douglas Bates [aut] (<https://orcid.org/0000-0001-8316-9503>), Martin Maechler <mmaechler+Matrix@gmail.com> [aut, cre] (<https://orcid.org/0000-0002-8685-9910>), Mikael Jagan [aut] (<https://orcid.org/0000-0002-3542-2938>). Matrix: Sparse and Dense Matrix Classes and Methods. 2024.
+```
+@Manual{,
+  title = {Matrix: Sparse and Dense Matrix Classes and Methods},
+  author = {Douglas Bates and Martin Maechler and Mikael Jagan},
+  year = {2024},
+  note = {R package version 1.6-5},
+  url = {https://CRAN.R-project.org/package=Matrix},
+}
+```
 
 
 ## optparse
 
-Trevor L. Davis <trevor.l.davis@gmail.com> [aut, cre] (<https://orcid.org/0000-0001-6341-4639>). optparse: Command Line Option Parser. 2024.
+```
+@Manual{,
+  title = {optparse: Command Line Option Parser},
+  author = {Trevor L. Davis},
+  year = {2024},
+  note = {R package version 1.7.5},
+  url = {https://CRAN.R-project.org/package=optparse},
+}
+```
 
 
 ## parallel
 
-R Core Team. R: A Language and Environment for Statistical Computing. 2024.
+```
+@Manual{,
+  title = {R: A Language and Environment for Statistical Computing},
+  author = {{R Core Team}},
+  organization = {R Foundation for Statistical Computing},
+  address = {Vienna, Austria},
+  year = {2024},
+  url = {https://www.R-project.org/},
+}
+```
 
 
 ## patchwork
 
-Thomas Lin Pedersen <thomasp85@gmail.com> [cre, aut] (<https://orcid.org/0000-0002-5147-4711>). patchwork: The Composer of Plots. 2025.
+```
+@Manual{,
+  title = {patchwork: The Composer of Plots},
+  author = {Thomas Lin Pedersen},
+  year = {2025},
+  note = {R package version 1.3.1},
+  url = {https://CRAN.R-project.org/package=patchwork},
+}
+```
 
 
 ## purrr
 
-Hadley Wickham <hadley@posit.co> [aut, cre] (<https://orcid.org/0000-0003-4757-117X>), Lionel Henry <lionel@posit.co> [aut]. purrr: Functional Programming Tools. 2025.
+```
+@Manual{,
+  title = {purrr: Functional Programming Tools},
+  author = {Hadley Wickham and Lionel Henry},
+  year = {2025},
+  note = {R package version 1.0.4},
+  url = {https://CRAN.R-project.org/package=purrr},
+}
+```
 
 
 ## R6
 
-Winston Chang <winston@posit.co> [aut, cre]. R6: Encapsulated Classes with Reference Semantics. 2025.
+```
+@Manual{,
+  title = {R6: Encapsulated Classes with Reference Semantics},
+  author = {Winston Chang},
+  year = {2025},
+  note = {R package version 2.6.1},
+  url = {https://CRAN.R-project.org/package=R6},
+}
+```
 
 
 ## rbiom
 
-Daniel P. Smith <dansmith01@gmail.com> [aut, cre] (<https://orcid.org/0000-0002-2479-2044>). rbiom: Read/Write, Analyze, and Visualize 'BIOM' Data. 2025.
+```
+@Manual{,
+  title = {rbiom: Read/Write, Analyze, and Visualize 'BIOM' Data},
+  author = {Daniel P. Smith},
+  year = {2025},
+  note = {R package version 2.2.1},
+  url = {https://CRAN.R-project.org/package=rbiom},
+}
+```
 
 
 ## RColorBrewer
 
-Erich Neuwirth <erich.neuwirth@univie.ac.at> [aut, cre]. RColorBrewer: ColorBrewer Palettes. 2022.
+```
+@Manual{,
+  title = {RColorBrewer: ColorBrewer Palettes},
+  author = {Erich Neuwirth},
+  year = {2022},
+  note = {R package version 1.1-3},
+  url = {https://CRAN.R-project.org/package=RColorBrewer},
+}
+```
 
 
 ## rhdf5
 
-Bernd Fischer [aut], Mike Smith <mike.smith@embl.de> [aut, cre] (<https://orcid.org/0000-0002-7800-3848>), Gregoire Pau [aut]. rhdf5: R Interface to HDF5. 2023. doi: 10.18129/B9.bioc.rhdf5.
+```
+@Manual{,
+  title = {rhdf5: R Interface to HDF5},
+  author = {Bernd Fischer and Mike Smith and Gregoire Pau},
+  year = {2023},
+  note = {R package version 2.46.1},
+  url = {https://bioconductor.org/packages/rhdf5},
+  doi = {10.18129/B9.bioc.rhdf5},
+}
+```
 
 
 ## stats
 
-R Core Team. R: A Language and Environment for Statistical Computing. 2024.
+```
+@Manual{,
+  title = {R: A Language and Environment for Statistical Computing},
+  author = {{R Core Team}},
+  organization = {R Foundation for Statistical Computing},
+  address = {Vienna, Austria},
+  year = {2024},
+  url = {https://www.R-project.org/},
+}
+```
 
 
 ## utils
 
-R Core Team. R: A Language and Environment for Statistical Computing. 2024.
+```
+@Manual{,
+  title = {R: A Language and Environment for Statistical Computing},
+  author = {{R Core Team}},
+  organization = {R Foundation for Statistical Computing},
+  address = {Vienna, Austria},
+  year = {2024},
+  url = {https://www.R-project.org/},
+}
+```
 
 
 ## vegan
 
-Jari Oksanen <jhoksane@gmail.com> [aut, cre], Gavin L. Simpson <ucfagls@gmail.com> [aut], F. Guillaume Blanchet [aut], Roeland Kindt [aut], Pierre Legendre [aut], Peter R. Minchin [aut], R.B. O'Hara [aut], Peter Solymos [aut], M. Henry H. Stevens [aut], Eduard Szoecs [aut], Helene Wagner [aut], Matt Barbour [aut], Michael Bedward [aut], Ben Bolker [aut], Daniel Borcard [aut], Gustavo Carvalho [aut], Michael Chirico [aut], Miquel De Caceres [aut], Sebastien Durand [aut], Heloisa Beatriz Antoniazi Evangelista [aut], Rich FitzJohn [aut], Michael Friendly [aut], Brendan Furneaux [aut], Geoffrey Hannigan [aut], Mark O. Hill [aut], Leo Lahti [aut], Dan McGlinn [aut], Marie-Helene Ouellette [aut], Eduardo Ribeiro Cunha [aut], Tyler Smith [aut], Adrian Stier [aut], Cajo J.F. Ter Braak [aut], James Weedon [aut], Tuomas Borman [aut]. vegan: Community Ecology Package. 2025.
+```
+@Manual{,
+  title = {vegan: Community Ecology Package},
+  author = {Jari Oksanen and Gavin L. Simpson and F. Guillaume Blanchet and Roeland Kindt and Pierre Legendre and Peter R. Minchin and R.B. O'Hara and Peter Solymos and M. Henry H. Stevens and Eduard Szoecs and Helene Wagner and Matt Barbour and Michael Bedward and Ben Bolker and Daniel Borcard and Gustavo Carvalho and Michael Chirico and Miquel {De Caceres} and Sebastien Durand and Heloisa Beatriz Antoniazi Evangelista and Rich FitzJohn and Michael Friendly and Brendan Furneaux and Geoffrey Hannigan and Mark O. Hill and Leo Lahti and Dan McGlinn and Marie-Helene Ouellette and Eduardo {Ribeiro Cunha} and Tyler Smith and Adrian Stier and Cajo J.F. {Ter Braak} and James Weedon and Tuomas Borman},
+  year = {2025},
+  note = {R package version 2.6-10},
+  url = {https://CRAN.R-project.org/package=vegan},
+}
+```
 
 
 ## viridis
 
-Garnier, Simon, Ross, Noam, Rudis, Robert, Camargo, Antônio Pedro, Sciaini, Marco, Scherer, Cédric. {viridis(Lite)} - Colorblind-Friendly Color Maps for R. 2024. doi: 10.5281/zenodo.4679423.
+```
+@Manual{,
+  title = {{viridis(Lite)} - Colorblind-Friendly Color Maps for R},
+  author = {{Garnier} and {Simon} and {Ross} and {Noam} and {Rudis} and {Robert} and {Camargo} and Antônio Pedro and {Sciaini} and {Marco} and {Scherer} and {Cédric}},
+  year = {2024},
+  note = {viridis package version 0.6.5},
+  url = {https://sjmgarnier.github.io/viridis/},
+  doi = {10.5281/zenodo.4679423},
+}
+```
+
+
+## cli
+
+```
+@Manual{,
+  title = {cli: Helpers for Developing Command Line Interfaces},
+  author = {Gábor Csárdi},
+  year = {2023},
+  note = {R package version 3.6.2},
+  url = {https://CRAN.R-project.org/package=cli},
+}
+```
 
 
