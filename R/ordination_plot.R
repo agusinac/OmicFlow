@@ -1,7 +1,7 @@
 #' Ordination plot with ggplot2
 #'
-#' @description Creates an ordination plot of a distance matrix. This function is built into the \code{ordination} method from the abstract class \link[OmicFlow]{tools} and inherited by other omics classes, such as;
-#' \link[OmicFlow]{metataxonomics}, transcriptomics, metabolomics and proteomics.
+#' @description Creates an ordination plot of a distance matrix. This function is built into the \code{ordination} method from the abstract class \link[OmicFlow]{omics} and inherited by other omics classes, such as;
+#' \link[OmicFlow]{metagenomics} and \link[OmicFlow]{proteomics}.
 #'
 #' @param df_pcs A \code{data.frame} or \code{data.table} of Principal Components as columns and rows as loading scores.
 #' @param pcs A nested list as output from \link[vegan]{wcmdscale} or \link[vegan]{metaMDS}.
@@ -12,7 +12,21 @@
 #' @export
 
 ordination_plot <- function(df_pcs, pcs, pair, dist.metric) {
-  # Creates labels
+  ## Error handling
+  #--------------------------------------------------------------------#
+
+  if (!inherits(df_pcs, "data.frame") || !inherits(df_pcs, "data.table"))
+    cli::cli_abort("df_pcs must be a data.frame or data.table.")
+
+  if (!is.character(pair) && length(pair) != 2)
+    cli::cli_abort("{pair} needs to contain characters with length of 2.")
+
+  if (!is.character(dist.metric) && length(dist.metric) != 1)
+    cli::cli_abort("{dist.metric} needs to contain characters with length of 1.")
+
+  ## MAIN
+  #--------------------------------------------------------------------#
+
   plot_title = paste0("Distance metric used: ", dist.metric)
   if (!is.null(pcs$eig_norm)) {
     x_label = paste0(pair[1], " (", round(as.numeric(pcs$eig_norm[1]), 2), "%)")

@@ -1,19 +1,39 @@
 #' Fetch palette(s)
 #'
 #' @description Creates an object of hexcode colors with names.
-#' This function is built into the \code{ordination} method from the abstract class \link[OmicFlow]{tools} and inherited by other omics classes, such as;
-#' \link[OmicFlow]{metataxonomics}, transcriptomics, metabolomics and proteomics.
+#' This function is built into the \code{ordination} method from the abstract class \link[OmicFlow]{omics} and inherited by other omics classes, such as;
+#' \link[OmicFlow]{metagenomics} and \link[OmicFlow]{proteomics}.
 #'
-#' @param metadata A \code{data.frame} or \code{data.table}.
-#' @param col_name A column name that exists in metadata.
-#' @param Brewer.palID A character name that exists in \link[RColorBrewer]{brewer.pal}, default: \code{"Set2"}.
+#' @param data A \link[base]{data.frame} or \link[data.table]{data.table} computed from \link[OmicFlow]{diversity}.
+#' @param col_name A column name of a categorical variable.
+#' @param Brewer.palID A character name that exists in \link[RColorBrewer]{brewer.pal} (Default: \code{"Set2"}).
 #' @return An object of names and hexcolors
 #' @seealso \link[stats]{setNames}
 #'
 #' @export
 
-fetch_palette <- function(metadata, col_name, Brewer.palID="Set2") {
-  # Creating color palette
+fetch_palette <- function(data,
+                          col_name,
+                          Brewer.palID = "Set2") {
+
+  ## Error handling
+  #--------------------------------------------------------------------#
+
+  if (!inherits(data, "data.frame") || !inherits(data, "data.table"))
+    cli::cli_abort("data must be a data.frame or data.table.")
+
+  if (!is.character(col_name) && length(col_name) != 1) {
+    cli::cli_abort("Column name: {col_name} needs to contain characters with length of 1.")
+  } else if (!column_exists(col_name, data)) {
+    cli::cli_abort("The {col_name} column does not exist in the provided data.")
+  }
+
+  if (!is.character(Brewer.palID) && length(Brewer.palID) != 1)
+    cli::cli_abort("The {Brewer.palID} needs to contain characters with length of 1.")
+
+  ## MAIN
+  #--------------------------------------------------------------------#
+
   unique_groups <- unique(metadata[[col_name]])
   chosen_palette <- RColorBrewer::brewer.pal(length(unique_groups), Brewer.palID)
   colors <- stats::setNames(chosen_palette, unique_groups)

@@ -1,21 +1,68 @@
 #' Volcano plot with ggplot2
 #'
-#' @description Creates a Volcano plot. This function is built into the \code{differential_feature_expression} method from the abstract class \link[OmicFlow]{tools} and inherited by other omics classes, such as;
-#' \link[OmicFlow]{metataxonomics}, transcriptomics, metabolomics and proteomics.
+#' @description Creates a Volcano plot. This function is built into the \code{differential_feature_expression} method from the abstract class \link[OmicFlow]{omics} and inherited by other omics classes, such as;
+#' \link[OmicFlow]{metagenomics} and \link[OmicsFLow]{proteomics}.
 #'
-#' @param dt A \code{data.frame} or \code{data.table}.
+#' @param data A \code{data.frame} or \code{data.table}.
 #' @param X A column name of a continuous variable.
 #' @param Y A column name of a continuous variable.
 #' @param feature_rank A character variable of the feature column.
-#' @param logfold.threshold A Log2(A/B) Fold Change threshold, default is 0.6.
-#' @param pvalue.threshold A P-value threshold, default is 0.05.
+#' @param logfold.threshold A Log2(A/B) Fold Change threshold (default: 0.6).
+#' @param pvalue.threshold A P-value threshold (default: 0.05).
 #' @return A \link[ggplot2]{ggplot2} object to be further modified.
 #'
 #' @export
 
-volcano_plot <- function(dt, X, Y, feature_rank, pvalue.threshold = 0.05, logfold.threshold = 0.6, label_A = "A", label_B = "B") {
+volcano_plot <- function(data,
+                         X,
+                         Y,
+                         feature_rank,
+                         pvalue.threshold = 0.05,
+                         logfold.threshold = 0.6,
+                         label_A = "A",
+                         label_B = "B") {
+
+  ## Error handling
+  #--------------------------------------------------------------------#
+
+  if (!inherits(data, "data.frame") || !inherits(data, "data.table"))
+    cli::cli_abort("Data must be a data.frame or data.table.")
+
+  if (!is.character(X) && length(X) != 1) {
+    cli::cli_abort("{X} needs to contain characters with length of 1.")
+  } else if (!column_exists(X, data)) {
+    cli::cli_abort("The {X} column does not exist in the provided data.")
+  }
+
+  if (!is.character(Y) && length(Y) != 1) {
+    cli::cli_abort("{Y} needs to contain characters with length of 1.")
+  } else if (!column_exists(Y, data)) {
+    cli::cli_abort("The {Y} column does not exist in the provided data.")
+  }
+
+  if (!is.character(feature_rank) && length(feature_rank) != 1) {
+    cli::cli_abort("{feature_rank} needs to contain characters with length of 1.")
+  } else if (!column_exists(feature_rank, data)) {
+    cli::cli_abort("The {feature_rank} column does not exist in the provided data.")
+  }
+
+  if (!is.numeric(pvalue.threshold))
+    cli::cli_abort("{pvalue.threshold} need to be numeric.")
+
+  if (!is.numeric(logfold.threshold))
+    cli::cli_abort("{logfold.threshold} need to be numeric.")
+
+  if (!is.character(label_A))
+    cli::cli_abort("{label_A} needs to contain characters.")
+
+  if (!is.character(label_B))
+    cli::cli_abort("{label_B} needs to contain characters.")
+
+  ## MAIN
+  #--------------------------------------------------------------------#
+
   # copies data.table
-  tmpdt <- data.table::copy(dt)
+  tmpdt <- data.table::copy(data)
 
   # Creates labels for significant and non-significant differential expression
   tmpdt[, (Y) := -log10(base::get(Y))]

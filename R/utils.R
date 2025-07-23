@@ -1,8 +1,28 @@
 sparse_to_dtable <- function(sparsemat) {
+
+  ## Error handling
+  #--------------------------------------------------------------------#
+
+  if (!inherits(sparsemat, "sparseMatrix"))
+    cli::cli_abort("sparsemat must be a sparseMatrix.")
+
+  ## MAIN
+  #--------------------------------------------------------------------#
+
   return(data.table::data.table(as.matrix(sparsemat)))
 }
 
 read_tsv_matrix <- function(filename) {
+
+  ## Error handling
+  #--------------------------------------------------------------------#
+
+  if (!file.exists(filename))
+    cli::cli_abort("{filename} does not exist.")
+
+  ## MAIN
+  #--------------------------------------------------------------------#
+
   distmat <- data.table::fread(filename,
                                header = TRUE)
 
@@ -22,6 +42,16 @@ read_tsv_matrix <- function(filename) {
 }
 
 read_rarefraction_qiime <- function(filename) {
+
+  ## Error handling
+  #--------------------------------------------------------------------#
+
+  if (!file.exists(filename))
+    cli::cli_abort("{filename} does not exist.")
+
+  ## MAIN
+  #--------------------------------------------------------------------#
+
   df_shannon <- data.table::fread(filename)
 
   # Pivot into long table
@@ -37,6 +67,16 @@ read_rarefraction_qiime <- function(filename) {
 }
 
 read_sparseTable <- function(filename) {
+
+  ## Error handling
+  #--------------------------------------------------------------------#
+
+  if (!file.exists(filename))
+    cli::cli_abort("{filename} does not exist.")
+
+  ## MAIN
+  #--------------------------------------------------------------------#
+
   # Read text file, supports csv, excel and tsv formats
   dt <- data.table::fread(filename)
   dt[, (names(dt)) := lapply(.SD, function(x) {
@@ -61,6 +101,19 @@ read_sparseTable <- function(filename) {
 }
 
 column_exists <- function(column, table) {
+
+  ## Error handling
+  #--------------------------------------------------------------------#
+
+  if (!is.character(column) && length(column) != 1)
+    cli::cli_abort("{column} needs to contain characters with length of 1.")
+
+  if (!inherits(table, "data.frame") || !inherits(table, "data.table"))
+    cli::cli_abort("table must be a data.frame or data.table.")
+
+  ## MAIN
+  #--------------------------------------------------------------------#
+
   valid_columns <- column[column %in% colnames(table)]
 
   if (length(valid_columns) == 0 ) {
@@ -73,4 +126,35 @@ column_exists <- function(column, table) {
   }))
 
   return ( length(valid_columns) == length(column) && columns_empty )
+}
+
+parse_commandline <- function() {
+  option_list <- list (optparse::make_option(c("-m", "--metadata"),
+                                             action = "store",
+                                             help="tab seperated file"),
+                       optparse::make_option(c("-b", "--biom"),
+                                             action = "store",
+                                             help="biom format file"),
+                       optparse::make_option(c("-t", "--tree"),
+                                             action = "store",
+                                             help="Phylogenetic tree in newick format"),
+                       optparse::make_option(c("-c", "--cpus"),
+                                             action = "store",
+                                             help="Number of cores",
+                                             default = 4),
+                       optparse::make_option(c("-o", "--outdir"),
+                                             action = "store",
+                                             help="Output directory",
+                                             default = normalizePath(getwd())),
+                       optparse::make_option(c("--i-beta-div"),
+                                             action = "store",
+                                             help="custom beta diversity from qiime2"),
+                       optparse::make_option(c("--i-alpha-div"),
+                                             action = "store",
+                                             help="custom alpha diversity with rarefraction from qiime2")
+  )
+
+  parser <- optparse::OptionParser(option_list = option_list)
+  arguments <- optparse::parse_args(parser, positional_arguments=TRUE)
+  return(arguments$options)
 }

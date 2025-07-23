@@ -12,10 +12,13 @@ proteomics <- R6::R6Class(
   public = list(
     #' @field countData A path to an existing file, data.table or data.frame.
     countData = NULL,
+
     #' @field metaData A path to an existing file, data.table or data.frame.
     metaData = NULL,
+
     #' @field featureData A path to an existing file, data.table or data.frame.
     featureData = NULL,
+
     #' @field treeData A path to an existing newick file or class "phylo", see \link[ape]{read.tree}.
     treeData = NULL,
 
@@ -107,7 +110,7 @@ proteomics <- R6::R6Class(
     #' prot$removeZeros()
     removeZeros = function() {
       super$removeZeros()
-      if (!is.null(self$treeData)) self$treeData <- ape::keep.tip(self$treeData, self$featureData$ID)
+      if (!is.null(self$treeData)) self$treeData <- ape::keep.tip(self$treeData, self$featureData$FEATURE_ID)
       invisible(self)
     }
   ),

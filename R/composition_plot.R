@@ -1,19 +1,19 @@
 #' Composition plot with ggplot2
 #'
-#' @description Creates a composition of features works on the output of \link[OmicFlow]{metataxonomics} with method \code{composition} from abstract class \link[OmicFlow]{tools}
+#' @description Creates a composition of features works on the output of \link[OmicFlow]{metagenomics} with method \code{composition} from abstract class \link[OmicFlow]{omics}
 #'
-#' @param data A \code{data.frame} or \code{data.table}.
-#' @param palette An object with names and hexcode or color names, see \link{fetch_palette} or \link[stats]{setNames}.
-#' @param feature_rank A character variable of the feature column, by default set to "Genus".
-#' @param title_name A character variable to set the \code{ggtitle} of the ggplot, by default set to NULL.
+#' @param data A \link[base]{data.frame} or \link[data.table]{data.table}.
+#' @param palette An object with names and hexcode or color names, see \link[OmicFlow]{fetch_palette}.
+#' @param feature_rank A character variable of the feature column (Default: `"Genus"`).
+#' @param title_name A character variable to set the \code{ggtitle} of the ggplot (Default: NULL).
 #' @param group_by A character variable to aggregate the stacked bars by group.
 #' @return A \link[ggplot2]{ggplot2} object to be further modified
 #'
 #' @examples
 #' # Initialize a new object 'taxa_class'
-#' taxa_class <- metataxonomics$new(metaData = "metadata.tsv",
-#'                                  biomData = "biom_with_taxonomy.biom",
-#'                                  treeData = "rooted_tree.newick")
+#' taxa_class <- metagenomics$new(metaData = "metadata.tsv",
+#'                                biomData = "biom_with_taxonomy.biom",
+#'                                treeData = "rooted_tree.newick")
 #'
 #' # Compute the composition for the top 10 features
 #' result <- taxa_class$composition(feature_rank = "Genus",
@@ -27,7 +27,32 @@
 #'
 #' @export
 
-composition_plot <- function(data, palette, feature_rank = "Genus", title_name = NULL, group_by = FALSE) {
+composition_plot <- function(data,
+                             palette,
+                             feature_rank = "Genus",
+                             title_name = NULL,
+                             group_by = FALSE) {
+  ## Error handling
+  #--------------------------------------------------------------------#
+
+  if (!inherits(data, "data.frame") || !inherits(data, "data.table"))
+    cli::cli_abort("Data must be a data.frame or data.table.")
+
+  if (!is.character(palette))
+    cli::cli_abort("{palette} needs to contain characters.")
+
+  if (!is.character(feature_rank) && length(feature_rank) != 1)
+    cli::cli_abort("{feature_rank} needs to contain characters with length of 1.")
+
+  if (!is.null(title_name) && !is.character(title_name))
+    cli::cli_abort("{title_name} needs to be of type character.")
+
+  if (!column_exists("SAMPLE_ID", data))
+    cli::cli_abort("SAMPLE_ID needs to exist within the provided data.frame/data.table.")
+
+  ## MAIN
+  #--------------------------------------------------------------------#
+
   # Generates a stacked barplot as base with custome palette
   if (group_by != FALSE) {
     plt <- data %>%
@@ -37,7 +62,7 @@ composition_plot <- function(data, palette, feature_rank = "Genus", title_name =
   } else {
     plt <- data %>%
       ggplot(mapping = aes(y = value,
-                           x = `SAMPLE-ID`,
+                           x = SAMPLE_ID,
                            fill = base::get(feature_rank, data)))
   }
   # Required for stacked barplot

@@ -3,8 +3,6 @@
 #' @description Computes the hill numbers for q is 0, 1 or 2.
 #' Code is adapted from \link[hillR]{hill_taxa} and uses \link[Matrix]{sparseMatrix} in triplet format over the dense matrix.
 #' The code is much faster and memory efficient, while still being mathematical correct.
-#' This function is built into the \code{alpha_diversity} method from the abstract class \link[OmicFlow]{tools} and inherited by other omics classes, such as;
-#' \link[OmicFlow]{metataxonomics}, transcriptomics, metabolomics and proteomics.
 #'
 #' @param x A \code{matrix} or \code{sparseMatrix}.
 #' @param q An integer for 0, 1 or 2, default is 0.

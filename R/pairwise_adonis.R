@@ -1,14 +1,14 @@
 #' Pairwise adonis2 (PERMANOVA) computation
 #'
-#' @description Computes pairwise adonis2 from vegan, given a distance matrix and a vector of labels.
-#' This function is built into the \code{ordination} method from the abstract class \link[OmicFlow]{tools} and inherited by other omics classes, such as;
-#' \link[OmicFlow]{metataxonomics}, transcriptomics, metabolomics and proteomics.
+#' @description Computes pairwise \link[vegan]{adonis2}, given a distance matrix and a vector of labels.
+#' This function is built into the \code{ordination} method from the abstract class \link[OmicFlow]{omics} and inherited by other omics classes, such as;
+#' \link[OmicFlow]{metagenomics} and \link[OmicsFLow]{proteomics}.
 #'
-#' @param x  A distance matrix in the form of \link[stats]{dist}.
+#' @param x A distance matrix in the form of \link[stats]{dist}.
 #' Obtained from a dissimilarity metric, in the case of similarity metric please use \code{1-dist}
-#' @param groups  A vector (column from a table) of labels.
+#' @param groups A vector (column from a table) of labels.
 #' @param p.adjust.m P adjust method see \link[stats]{p.adjust}
-#' @param perm  Number of permutations to compare against the null hypothesis of adonis2 default: \code{perm=999}.
+#' @param perm  Number of permutations to compare against the null hypothesis of adonis2 (default: \code{perm=999}).
 #' @seealso \link[vegan]{adonis2}
 #' @return A \code{data.frame} of
 #'  * pairs that are used
@@ -21,7 +21,29 @@
 #'
 #' @export
 
-pairwise_adonis <- function(x, groups, p.adjust.m = "bonferroni", perm = 999){
+pairwise_adonis <- function(x,
+                            groups,
+                            p.adjust.method = "bonferroni",
+                            perm = 999){
+
+  ## Error handling
+  #--------------------------------------------------------------------#
+
+  if (!inherits(x, "dist"))
+    cli::cli_abort("x must be of class dist.")
+
+  if (!vector(groups))
+    cli::cli_abort("groups must be a vector.")
+
+  if (!c(p.adjust.method %in% p.adjust.methods))
+    cli::cli_abort("Specified {p.adjust.method} is not valid. \nValid options: {p.adjust.methods}.")
+
+  if (!is.integer(perm))
+    cli::cli_abort("Permutations {perm} need to be an integer.")
+
+  ## MAIN
+  #--------------------------------------------------------------------#
+
   # Initialize required parameters
   co <- combn(unique(as.character(groups)), 2)
   n <- ncol(co)
@@ -53,7 +75,7 @@ pairwise_adonis <- function(x, groups, p.adjust.m = "bonferroni", perm = 999){
     p.value[i] <- ad$`Pr(>F)`[1]
   }
   # Adjusts P-values and returns combined dataframe
-  p.adj <- p.adjust(p.value, method = p.adjust.m)
+  p.adj <- p.adjust(p.value, method = p.adjust.method)
   pairw.res <- data.frame(pairs, Df, SumsOfSqs, F.Model, R2, p.value, p.adj)
   class(pairw.res) <- c("pwadonis", "data.frame")
   return(pairw.res)

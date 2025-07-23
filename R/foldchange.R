@@ -1,24 +1,53 @@
-#' Computes non-paired Log2(A) - Log2(B) Fold Change
+#' Computes Log2(A) - Log2(B) Fold Change of (non-) paired data.
 #'
-#' @description Computes non-paired Log2(A) - Log2(B) Fold Change. The function can handle multiple categorical variables in A and B. It is possible to use multiple cores to speed up computation time.
-#' This function is built into the \code{differential_feature_expression} method from the abstract class \link[OmicFlow]{tools} and inherited by other omics classes, such as;
-#' \link[OmicFlow]{metataxonomics}, transcriptomics, metabolomics and proteomics.
+#' @description Computes (non-)paired Log2(A) - Log2(B) Fold Change.
+#' This function is built into the \code{differential_feature_expression} method from the abstract class \link[OmicFlow]{omics} and inherited by other omics classes, such as;
+#' \link[OmicFlow]{metagenomics} and \link[OmicFlow]{proteomics}.
 #'
-#' @param dt A \code{data.table}.
+#' @param data A \link[data.table]{data.table}.
 #' @param sample.id A column name of a categorical variable containing sample IDs.
+#' @param feature_rank A character variable of the feature level (e.g. "Genus" in taxonomy).
 #' @param condition_A A vector of categorical characters, it is possible to specify multiple labels.
 #' @param condition_B A vector of categorical characters, it is possible to specify multiple labels.
-#' @param condition_labels A column name of a categorical variable in where \code{condtion_A} and \code{condition_B} can be found.
-#' @param feature_rank A character variable of the feature level (e.g. "Genus" in taxonomy).
-#' @param cpus An integer specifying the number of cores to use for embarrassing parallelism, see \link[parallel]{makeCluster}.
-#' @return A list of \code{data.table} for \link{volcano_plot} and \link{ViolinBoxPlot}.
+#' @param condition_labels A vector characters wherein `condition_A` and `condition_B` are present.
+#' @return A \link[data.table]{data.table}
 #'
 #' @export
 
+foldchange <- function(data,
+                       sample.id,
+                       feature_rank,
+                       condition_A,
+                       condition_B,
+                       condition_labels,
+                       paired = FALSE) {
 
-foldchange <- function(dt, sample.id, condition_A, condition_B, condition_labels, feature_rank, unique.ids, paired=FALSE) {
+  ## Error handling
+  #--------------------------------------------------------------------#
+
+  if (!inherits(data, "data.frame") || !inherits(data, "data.table"))
+    cli::cli_abort("data must be a data.frame or data.table.")
+
+  if (!is.character(sample.id) && length(values) != 1) {
+    cli::cli_abort("Column name: {sample.id} needs to contain characters with length of 1.")
+  } else if (!column_exists(sample.id, data)) {
+    cli::cli_abort("The {sample.id} column does not exist in the provided data.")
+  }
+
+  if (!is.character(feature_rank) && length(values) != 1) {
+    cli::cli_abort("Column name: {feature_rank} needs to contain characters with length of 1.")
+  } else if (!column_exists(feature_rank, data)) {
+    cli::cli_abort("The {feature_rank} column does not exist in the provided data.")
+  }
+
+  if (!is.vector(condition_labels))
+    cli::cli_abort("{condition_labels} needs to be a vector.")
+
+  ## MAIN
+  #--------------------------------------------------------------------#
+
   # Creates tmp data table
-  tmp_dt <- data.table::copy(dt)
+  tmp_dt <- data.table::copy(data)
 
   # subset feature labels before removing them
   feature_labels <- tmp_dt[[ feature_rank ]]
@@ -44,9 +73,13 @@ foldchange <- function(dt, sample.id, condition_A, condition_B, condition_labels
     mat_B <- as.matrix(dt_B)
     for (k in seq_along(feature_labels)) {
       # save p-values in data.table
-      foldchange_dt[k, (paste0("pvalue_", i)) := stats::wilcox.test(mat_A[k, ], mat_B[k, ],
-                                                                  correct = TRUE,
-                                                                  paired = paired)$p.value]
+      foldchange_dt[
+        k, (paste0("pvalue_", i)) := stats::wilcox.test(
+          mat_A[k, ], mat_B[k, ],
+          correct = TRUE,
+          paired = paired
+          )$p.value
+        ]
     }
   }
 

@@ -36,8 +36,8 @@ metagenomics <- R6::R6Class(
     #' @param biomData A path to an existing biom file, version 2.1.0, see \link[rhdf5]{h5read}.
     #' @examples
     #' taxa <- metagenomics$new(metaData = "metadata.tsv",
-    #'                            biomData = "biom_with_taxonomy.biom",
-    #'                            treeData = "rooted_tree.newick")
+    #'                          biomData = "biom_with_taxonomy.biom",
+    #'                          treeData = "rooted_tree.newick")
     #'
     #' @return A new `metagenomics` object.
     initialize = function(countData = NA, metaData = NA, featureData = NA, treeData = NA, biomData = NA,
@@ -154,11 +154,11 @@ metagenomics <- R6::R6Class(
     #' @description
     #' Upon creation of a new `metagenomics` object a small backup of the original data is created.
     #' Since modification of the object is done by reference and duplicates are not made, it is possible to `reset` changes to the class.
-    #' The methods from the abstract class `tools` also contain a private method to prevent any changes to the original object. Such cases are ordination, alpha_diversity, differential_feature_expression.
+    #' The methods from the abstract class `omics` also contain a private method to prevent any changes to the original object. Such cases are ordination, alpha_diversity, differential_feature_expression.
     #' @examples
     #' taxa <- metagenomics$new(metaData = "metadata.tsv",
-    #'                            biomData = "biom_with_taxonomy.biom",
-    #'                            treeData = "rooted_tree.newick")
+    #'                          biomData = "biom_with_taxonomy.biom",
+    #'                          treeData = "rooted_tree.newick")
     #'
     #' # Performs modifications
     #' self$transform(log2)
@@ -190,18 +190,18 @@ metagenomics <- R6::R6Class(
     #' self$removeZeros()
     removeZeros = function() {
       super$removeZeros()
-      if (!is.null(self$treeData)) self$treeData <- ape::keep.tip(self$treeData, self$featureData$ID)
+      if (!is.null(self$treeData)) self$treeData <- ape::keep.tip(self$treeData, self$featureData$FEATURE_ID)
       invisible(self)
     },
     #' @description
-    #' Writes \code{metagenomics$new()} object as biom file, in a biom-format version 2.1 compatible format.
-    #' @param file Filename of the output biom file
+    #' Creates a BIOM file in HDF5 format of the loaded items via ['new()']{#method-new}, which is compatible to the python biom-format version 2.1.
+    #' @param filename A character variable of either the full path of filename of the biom file (e.g. `output.biom`)
     #' @examples
     #' taxa <- metagenomics$new(metaData = "metadata.tsv",
-    #'                            biomData = "biom_with_taxonomy.biom",
-    #'                            treeData = "rooted_tree.newick")
+    #'                          biomData = "biom_with_taxonomy.biom",
+    #'                          treeData = "rooted_tree.newick")
     #'
-    #' self$write_biom(file = "new_output.biom")
+    #' taxa$write_biom(file = "output.biom")
     #'
     write_biom = function (filename) {
 

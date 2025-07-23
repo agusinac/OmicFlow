@@ -82,9 +82,8 @@ omics <- R6::R6Class(
           #--------------------------------------------------------------------#
           ## Disable samplepair_id if not supplied
           #--------------------------------------------------------------------#
-          if (column_exists(self$.samplepair_id, self$metaData)) {
+          if (column_exists(self$.samplepair_id, self$metaData))
             self$.samplepair_id <- NULL
-          }
 
         } else {
           errors <- attr(self$.valid_schema, "errors")
@@ -197,16 +196,22 @@ omics <- R6::R6Class(
     #' obj$removeNAs(column = "treatment")
     #'
     removeNAs = function(column) {
+
+      ## Error handling
+      #--------------------------------------------------------------------#
+
       if (is.integer(column) && length(column) <= length(colnames(self$metaData))) {
         column <- colnames(self$metaData[column])
 
       } else {
-        cli::cli_abort("Column indexes are out of bound")
+        cli::cli_abort("{column} indexes are out of bound")
       }
 
-      if (!column_exists(column, self$metaData)) {
-        cli::cli_abort("Columns do not exist in the metaData or one of the specified columns is completely empty!")
-      }
+      if (!column_exists(column, self$metaData))
+        cli::cli_abort("{column} do not exist in the metaData or one of the specified columns is completely empty!")
+
+      ## MAIN
+      #--------------------------------------------------------------------#
 
       self$metaData <- na.omit(self$metaData, cols = column)
       self$countData <- self$countData[, self$metaData[[ self$.sample_id ]]]
@@ -263,9 +268,15 @@ omics <- R6::R6Class(
     #' obj$samplepair_subset(num_unique_pairs = 2)
     #'
     samplepair_subset = function(num_unique_pairs = NULL) {
-      if (!is.null(num_unique_pairs) && !is.integer(num_unique_pairs)) {
-        cli::cli_abort("num_unique_pairs must contain integers!")
-      }
+
+      ## Error handling
+      #--------------------------------------------------------------------#
+
+      if (!is.null(num_unique_pairs) && !is.integer(num_unique_pairs))
+        cli::cli_abort("{num_unique_pairs} must contain integers!")
+
+      ## MAIN
+      #--------------------------------------------------------------------#
 
       if (is.null(num_unique_pairs)) {
         counts <- self$metaData[, .(unique_count = data.table::uniqueN(SAMPLE_ID)), by = SAMPLEPAIR_ID]
@@ -289,13 +300,18 @@ omics <- R6::R6Class(
     #' obj$feature_glom(feature_rank = "Genus", feature_filter = c("uncultured", "metagenome"))
     #'
     feature_glom = function(feature_rank, feature_filter = NA) {
-      if (!is.character(feature_rank)) {
-        cli::cli_abort("Feature_rank needs to be a character or vector containing characters")
-      }
 
-      if (!is.na(feature_filter) && !is.character(feature_filter)) {
-        cli::cli_abort("Feature_filter needs to be a character or vector containing characters")
-      }
+      ## Error handling
+      #--------------------------------------------------------------------#
+
+      if (!is.character(feature_rank))
+        cli::cli_abort("{feature_rank} needs to be a character or vector containing characters")
+
+      if (!is.na(feature_filter) && !is.character(feature_filter))
+        cli::cli_abort("{feature_filter} needs to be a character or vector containing characters")
+
+      ## MAIN
+      #--------------------------------------------------------------------#
 
       # creates a subset of unique feature rank, hashes combined for each unique rank
       counts <- data.table::data.table("FEATURE_ID" = rownames(self$countData))
@@ -363,9 +379,16 @@ omics <- R6::R6Class(
     #' obj$transform(log2)
     #'
     transform = function(FUN) {
-      if (!inherits(FUN, "function")) {
-        cli::cli_abort("FUN must be a function!")
-      }
+
+      ## Error handling
+      #--------------------------------------------------------------------#
+
+      if (!inherits(FUN, "function"))
+        cli::cli_abort("{FUN} must be a function!")
+
+      ## MAIN
+      #--------------------------------------------------------------------#
+
       self$countData@x <- fun(self$countData@x)
       invisible(self)
     },
@@ -395,16 +418,22 @@ omics <- R6::R6Class(
     #' @return A \link[ggplot2]{ggplot} object.
     #'
     rankstat = function(feature_ranks) {
+
+      ## Error handling
+      #--------------------------------------------------------------------#
+
       if (is.integer(feature_ranks) && length(feature_ranks) <= length(colnames(self$featureData))) {
         column <- colnames(self$featureData[feature_ranks])
 
       } else {
-        cli::cli_abort("Column indexes are out of bound.")
+        cli::cli_abort("{column} indexes are out of bound.")
       }
 
-      if (!column_exists(feature_ranks, self$featureData)) {
-        cli::cli_abort("Specified columns do not exist.")
-      }
+      if (!column_exists(feature_ranks, self$featureData))
+        cli::cli_abort("Specified {feature_ranks} do not exist in the featureData.")
+
+      ## MAIN
+      #--------------------------------------------------------------------#
 
       # Counts number of ASVs without empty values
       values <- self$featureData[, lapply(.SD, function(x) sum(!is.na(x) & x != "")), .SDcols = !c(self$.feature_id)][, .SD, .SDcols = feature_ranks]
@@ -459,11 +488,20 @@ omics <- R6::R6Class(
                                paired = FALSE,
                                p.adjust.method = "fdr") {
 
+      ## Error handling
+      #--------------------------------------------------------------------#
+
       if (!is.character(col_name) && length(col_name) != 1) {
-        cli::cli_abort("Column name must be a character and of length 1")
+        cli::cli_abort("{col_name} must be a character and of length 1")
       } else if (!column_exists(column_name, self$metaData)) {
-        cli::cli_abort("The specified column does not exist in the metaData.")
+        cli::cli_abort("The specified {col_name} does not exist in the metaData.")
       }
+
+      if (!c(p.adjust.method %in% p.adjust.methods))
+        cli::cli_abort("Specified {p.adjust.method} is not valid. \nValid options: {p.adjust.methods}")
+
+      ## MAIN
+      #--------------------------------------------------------------------#
 
       # OUTPUT: Plot list
       plot_list <- list()
@@ -477,9 +515,8 @@ omics <- R6::R6Class(
       )
 
       # Subset by samplepair completion
-      if (paired && !is.null(self$.samplepair_id) ) {
+      if ( paired && !is.null(self$.samplepair_id) )
         self$samplepair_subset()
-      }
 
       # Alpha diversity based on 'method'
       div <- data.table::data.table(diversity(x = self$countData, index=method))
@@ -492,7 +529,7 @@ omics <- R6::R6Class(
 
       # Create and saves plots
       plot_list$data <- div
-      plot_list$diversity <- diversity_plot(dt = na.omit(div),
+      plot_list$diversity <- diversity_plot(data = na.omit(div),
                                             values = "V1",
                                             col_name = col_name,
                                             palette = colors,
@@ -509,7 +546,7 @@ omics <- R6::R6Class(
     #' Visualization of compositional data.
     #' @param feature_rank A featureData column name to visualize.
     #' @param feature_filter Removes features by name, works on single strings or vector of strings.
-    #' @param col_name A metaData column name to add to the compositional data.
+    #' @param col_name Optional, a string or vector of strings to add to the final compositional data output.
     #' @param feature_top Integer of the top features to visualize, the max is 15, due to a limit of palettes.
     #' @param Brewer.palID Palette set to be applied, see \link[RColorBrewer]{brewer.pal} or \link[OmicFlow]{fetch_palette}.
     #' @examples
@@ -534,17 +571,23 @@ omics <- R6::R6Class(
                            Brewer.palID = "RdYlBu",
                            remove_na = FALSE) {
 
+      ## Error handling
+      #--------------------------------------------------------------------#
+
       if (!is.null(col_name) && !is.character(col_name) && length(col_name) != 1) {
-        cli::cli_abort("Column name must be a character and of length 1")
-      } else if (!column_exists(column_name, self$metaData)) {
-        cli::cli_abort("The specified column does not exist in the metaData.")
+        cli::cli_abort("{col_name} must be a character and of length 1")
+      } else if (!column_exists(col_name, self$metaData)) {
+        cli::cli_abort("The specified {col_name} does not exist in the metaData.")
       }
 
       if (!is.integer(feature_top)) {
-        cli::cli_abort("feature_top must be an integer!")
+        cli::cli_abort("{feature_top} must be an integer!")
       } else if (feature_top > 15) {
-        cli::cli_alert_warning("The feature_top is set to an integer higher than 15.\n This may lead that colors are difficult to be distinguished.\n For color-blind people it is recommended to use a feature_top of maximum 15.")
+        cli::cli_alert_warning("The {feature_top} is set to an integer higher than 15.\n This may lead that colors are difficult to be distinguished.\n For color-blind people it is recommended to use a feature_top of maximum 15.")
       }
+
+      ## MAIN
+      #--------------------------------------------------------------------#
 
       # Copies object to prevent modification of omics class components
       private$tmp_link(
@@ -561,9 +604,8 @@ omics <- R6::R6Class(
       self$normalize()
 
       # Remove NAs when col_name is specified
-      if (!is.null(col_name) & remove_na) {
+      if (!is.null(col_name) & remove_na)
         self$removeNAs(col_name)
-      }
 
       # Convert sparse matrix to data.table (safe since feature_glom shrinks the sparse matrix)
       counts <- data.table::data.table(as.matrix(self$countData))
@@ -634,18 +676,13 @@ omics <- R6::R6Class(
     },
     #' @description
     #' Ordination of countData with statistical tests.
-    #' @param metric A dissimilarity or similarity metric to be applied on the countData, thus far supports 'bray', 'jaccard' and 'unifrac' column name to visualize.
+    #' @param metric A dissimilarity or similarity metric to be applied on the `countData`, thus far supports 'bray', 'jaccard' and 'unifrac' when a tree is provided via `treeData`.
     #' @param method Ordination method, supports "pcoa" and "nmds".
-    #' @param distmat A custom distance matrix in \link[stats]{dist} format.
-    #' @param group_by A metaData column to be used as contrast for PERMANOVA or ANOSIM statistical test.
-    #' @param weighted Boolean, wether to compute weighted or unweighted dissimilarities.
-    #' @param normalize Boolean, wether to normalize by total sample sums.
-    #' @param parallel Boolean, wether to parallelize the computation of the dissimilarity matrix.
-    #' @param pca.pairwise Boolean, wether to visualize different combinations of the principal components, only works with method 'pcoa'.
-    #' @param pca.max.explained Integer specifying the maximum number of dissimilarity explained, used in pca.pairwise, default is 80, max number of dimensions is 15.
-    #' @param pca.dim Vector with integers, specifying what dimensions to visualize in case of pca.pairwise is FALSE.
-    #' @param outdir Output directory of pca.pairwise, outputs a pdf document.
-    #' @param cpus Integer, number of cores to use. Default is 8 when parallelize is TRUE.
+    #' @param distmat A custom distance matrix in either \link[stats]{dist} or \link[Matrix]{Matrix} format.
+    #' @param group_by A string variable as metaData column to be used for the PERMANOVA or ANOSIM statistical test.
+    #' @param weighted A Boolean value, whether to compute weighted or unweighted dissimilarities (Default: TRUE).
+    #' @param normalize A Boolean value, whether to [`normalize()`](#method-normalize) by total sample sums (Default: TRUE).
+    #' @param cpus An Integer value, indicating the number of processes to spawn (Default: 1).
     #' @examples
     #' obj <- omics$new(countData = "counts.csv",
     #'                  featureData = "features.txt",
@@ -667,13 +704,35 @@ omics <- R6::R6Class(
                           distmat = NULL,
                           weighted = TRUE,
                           normalize = TRUE,
-                          parallel = FALSE,
-                          pca.pairwise = FALSE,
-                          pca.max.explained = 80,
-                          pca.dim = c(1,2),
-                          outdir=".",
-                          cpus = 8,
+                          cpus = 1,
                           perm=999) {
+
+      ## Error handling
+      #--------------------------------------------------------------------#
+
+      if (!is.character(metric) && length(metric) != 1)
+        cli::cli_abort("{metric} needs to be a character with a length of 1")
+
+      if (!is.character(method) && length(method) != 1)
+        cli::cli_abort("{method} needs to be a character with a length of 1")
+
+      if (!is.character(group_by) && length(group_by) != 1) {
+        cli::cli_abort("{group_by} needs to be a character with a length of 1")
+      } else if (!column_exists(group_by, self$metaData)) {
+        cli::cli_abort("{group_by} does not exist in the metaData or is empty.")
+      }
+
+      if (!is.integer(cpus))
+        cli::cli_abort("{cpus} need to be an integer!")
+
+      if (!is.integer(perm))
+        cli::cli_abort("Permutations {perm} need to be an integer")
+
+      if (!inherits(distmat, "Matrix") || !inherits(distmat, "dist"))
+        cli::cli_abort("custom distance matrix (distmat) need to be of class Matrix or dist")
+
+      ## MAIN
+      #--------------------------------------------------------------------#
 
       # Copies object to prevent modification of omics class components
       private$tmp_link(
@@ -693,38 +752,33 @@ omics <- R6::R6Class(
       # Creates a list of plots
       plot_list <- list()
 
-      if (parallel == TRUE) {
-        # Uses available CPUs for %dopar%
-        RcppParallel::setThreadOptions(numThreads = cpus)
-      }
-
       # Normalizes counts
-      if (normalize == TRUE) {
+      if (normalize)
         self$normalize()
-      }
 
-      # computes distance matrix without sample rarefying
-      if (is.null(distmat)) {
-        # Requires rownames to contain same labels as tree
-        counts <- slam::as.simple_triplet_matrix(self$countData)
-        rownames(counts) <- self$featureData$FEATURE_ID
 
-        distmat <- switch(
-          metric,
-          "unifrac" = rbiom::bdiv_distmat(biom = counts,
-                                          bdiv = metric,
-                                          weighted = weighted,
-                                          tree = self$treeData),
-          "manhattan" = ,
-          "euclidean" = ,
-          "jaccard" = ,
-          "bray" = rbiom::bdiv_distmat(biom = counts,
-                                       bdiv = metric,
-                                       weighted = weighted)
-        )
+      # Requires rownames to contain same labels as tree
+      counts <- slam::as.simple_triplet_matrix(self$countData)
+      rownames(counts) <- self$featureData$FEATURE_ID
 
-        plot_list$distances <- distmat
-      }
+      distmat <- switch(
+        metric,
+        "unifrac" = rbiom::bdiv_distmat(biom = counts,
+                                        bdiv = metric,
+                                        weighted = weighted,
+                                        tree = self$treeData,
+                                        cpus = cpus),
+        "manhattan" = ,
+        "euclidean" = ,
+        "jaccard" = ,
+        "bray" = rbiom::bdiv_distmat(biom = counts,
+                                     bdiv = metric,
+                                     weighted = weighted,
+                                     cpus = cpus)
+      )
+
+      plot_list$distances <- distmat
+
 
       # Switch case to compute loading scores
       pcs <- switch(
@@ -762,27 +816,27 @@ omics <- R6::R6Class(
       df_pcs_points[, groups := self$metaData[[ group_by ]] ]
       df_pcs_points[, samples := row.names(df_pcs_points) ]
 
-      # Pairwise dimensions
-      if (pca.pairwise & method == "pcoa") {
-        # Finds number of dimensions that explain 80% of distances
-        n_dimensions = 0
-        sum_eig = 0
-        for (eig in pcs$eig_norm) {
-          if (sum_eig < pca.max.explained) {
-            sum_eig <- sum_eig + eig
-            n_dimensions <- n_dimensions + 1
-          } else break
-        }
-
-        # Creates paired combinations of dimensions into a list of plots
-        n_dim_pairs <- utils::combn(seq(n_dimensions), 2)
-        pdf(paste0(outdir, "/pairwise_PCoA.pdf"))
-        for (i in seq(ncol(n_dim_pairs))) {
-          pair <- n_dim_pairs[, i]
-          print(pcoa_plot(df_pcs_points, pcs, pair, metric))
-        }
-        dev.off()
-      }
+      # # Pairwise dimensions
+      # if (pca.pairwise & method == "pcoa") {
+      #   # Finds number of dimensions that explain 80% of distances
+      #   n_dimensions = 0
+      #   sum_eig = 0
+      #   for (eig in pcs$eig_norm) {
+      #     if (sum_eig < pca.max.explained) {
+      #       sum_eig <- sum_eig + eig
+      #       n_dimensions <- n_dimensions + 1
+      #     } else break
+      #   }
+      #
+      #   # Creates paired combinations of dimensions into a list of plots
+      #   n_dim_pairs <- utils::combn(seq(n_dimensions), 2)
+      #   pdf(paste0(outdir, "/pairwise_PCoA.pdf"))
+      #   for (i in seq(ncol(n_dim_pairs))) {
+      #     pair <- n_dim_pairs[, i]
+      #     print(pcoa_plot(df_pcs_points, pcs, pair, metric))
+      #   }
+      #   dev.off()
+      # }
 
       if (method == "pcoa") {
         # Scree plot of first 10 dimensions
@@ -833,18 +887,17 @@ omics <- R6::R6Class(
       return(plot_list)
     },
     #' @description
-    #' Differential feature expression
-    #' @param feature_rank A featureData column name to visualize.
-    #' @param feature_filter Removes features by name, works on single strings or vector of strings.
-    #' @param feature_top Integer of the top features to visualize, the max is 15, due to a limit of palettes.
-    #' @param paired Boolean, wether to compute paired or unpaired log2 fold change, for paired it is required to specify paired.id. Default is unpaired.
-    #' @param condition.group A metaData column name of where the conditions A and B are located.
-    #' @param condition_A A character string or vector.
-    #' @param condition_B A character string or vector.
-    #' @param pvalue.threshold Integer, a P-value threshold to label and color significant features. Default is 0.05.
-    #' @param foldchange.threshold Integer, a fold-change threshold to label and color significantly expressed features. Default is 0.06
-    #' @param normalize Boolean, wether to normalize by total sample sums.
-    #' @param cpus Integer, number of cores to use. Default is 4, only used in \link[OmicFlow]{paired_fold}.
+    #' Differential feature expression using the \link[OmicFlow]{foldchange} for both paired and non-paired samples.
+    #' @param feature_rank A character value or vector of columns to aggregate from the `featureData`.
+    #' @param feature_filter A character value or vector of characters to remove features via regex pattern (Default: NULL).
+    #' @param feature_top Integer of the top features to visualize (Default: NULL, everything will be used).
+    #' @param paired A Boolean value, the paired is only applicable when a `SAMPLEPAIR_ID` column exists within the `metaData`. See \link[stats]{wilcox.test}
+    #' @param condition.group A string value for an existing column name in `metaData`, wherein the conditions A and B are located.
+    #' @param condition_A A character value or vector of characters.
+    #' @param condition_B A character value or vector of characters.
+    #' @param pvalue.threshold An Integer value, a P-value threshold to label and color significant features (Default: 0.05).
+    #' @param foldchange.threshold An Integer value, a fold-change threshold to label and color significantly expressed features (Default: 0.06).
+    #' @param normalize A Boolean value, whether to [`normalize()`](#method-normalize) by total sample sums (Default: TRUE).
     #' @examples
     #' obj <- omics$new(countData = "counts.csv",
     #'                  featureData = "features.txt",
@@ -868,15 +921,49 @@ omics <- R6::R6Class(
     #' * A long \link[data.table]{data.table} table.
     #' @seealso \link[OmicFlow]{volcano_plot}, \link[OmicFlow]{ViolinBoxPlot}, \link[OmicFlow]{paired_fold}, \link[OmicFlow]{unpaired_fold}
     differential_feature_expression = function(feature_rank,
+                                               feature_filter = NULL,
+                                               feature_top = NULL,
                                                paired = FALSE,
                                                normalize = TRUE,
                                                condition.group,
                                                condition_A,
                                                condition_B,
                                                pvalue.threshold = 0.05,
-                                               foldchange.threshold = 0.06,
-                                               feature_filter = NULL,
-                                               feature_top = NULL) {
+                                               foldchange.threshold = 0.06
+                                               ) {
+
+      ## Error handling
+      #--------------------------------------------------------------------#
+
+      if (!is.character(feature_rank) && length(feature_rank) != 1)
+        cli::cli_abort("{feature_rank} needs to be a character with a lenght of 1")
+
+      if (!is.character(condition.group) && length(condition.group) != 1) {
+        cli::cli_abort("{condition.group} needs to be a character with a length of 1")
+      } else if (!column_exists(condition.group, self$metaData)) {
+        cli::cli_abort("{condition.group} does not exist in the metaData or is empty.")
+      }
+
+      if (!is.character(condition_A))
+        cli::cli_abort("{condition_A} needs to be a character.")
+
+      if (!is.character(condition_B))
+        cli::cli_abort("{condition_B} needs to be a character.")
+
+      if (!is.numeric(pvalue.threshold))
+        cli::cli_abort("{pvalue.threshold} need to be numeric.")
+
+      if (!is.numeric(foldchange.threshold))
+        cli::cli_abort("{foldchange.threshold} need to be numeric.")
+
+      if (paired && is.null(self$.samplepair_id)) {
+        cli::cli_alert_warning("Paired is set to {paired} but SAMPLEPAIR_ID does not exist in the metaData.\n Differential feature analysis will not be done with paired set to FALSE!")
+        paired <- FALSE
+      }
+
+      ## MAIN
+      #--------------------------------------------------------------------#
+
       # Final output
       plot_list <- list()
 
@@ -889,9 +976,8 @@ omics <- R6::R6Class(
       )
 
       # Subset by samplepair completion
-      if (paired && !is.null(self$.samplepair_id) ) {
+      if ( paired && !is.null(self$.samplepair_id) )
         self$samplepair_subset()
-      }
 
       # Subset by missing values
       self$removeNAs(condition.group)
@@ -901,9 +987,8 @@ omics <- R6::R6Class(
                         feature_filter = feature_filter)
 
       # normalization if applicable
-      if (normalize) {
+      if (normalize)
         self$normalize()
-      }
 
       # Check how many features to select (depended if volcano is desired)
       if (!is.null(feature_top)) {
@@ -948,11 +1033,10 @@ omics <- R6::R6Class(
 
       # paired samples
       DFE <- foldchange(
-        dt = dt,
+        data = dt,
         sample.id = self$.sample_id,
         condition_A = condition_A,
         condition_B = condition_B,
-        unique.ids = unique(self$metaData[[ self$.samplepair_id ]]),
         paired = paired,
         condition_labels = condition.labels,
         feature_rank = feature_rank
@@ -970,7 +1054,7 @@ omics <- R6::R6Class(
         n_diff_columns <- sum(grepl("^Log2FC_", colnames(DFE)))
 
         plot_list$volcano_plot <- lapply(1:n_diff_columns, function(i) {
-          volcano_plot(dt = DFE,
+          volcano_plot(data = DFE,
                        X = paste0("Log2FC_", i),
                        Y = paste0("pvalue_", i),
                        feature_rank = feature_rank,
@@ -985,365 +1069,325 @@ omics <- R6::R6Class(
 
       return(plot_list)
     },
-    #' @description
-    #' Computation and visualization of regression models
-    #' Thus far it contains triplot for RDA, should be modified to perform a standard regression and then optionally also visualize RDA.
-    #' @param feature_rank A featureData column name to visualize.
-    #' @param feature_filter Removes features by name, works on single strings or vector of strings.
-    #' @param feature_top Integer of the top features to visualize, the max is 15, due to a limit of palettes.
-    #' @param metadata.col A metaData column that will be used as contrast. Multiple columns are not yet supported.
-    #' @param sample.id A metaData column specifying the sample.id, used to filter out NAs from \code{metadata.col} column name.
-    #' @param choice_dim A character vector to visualize which dimensions, default \code{c("RDA1", "PC1")}.
-    #' @param pairwise A boolean variable, if TRUE it will perform pairwise visualization of PCA and outputs it as a pdf file.
-    #' @param Brewer.palID Palette set to be applied, see \link[RColorBrewer]{brewer.pal} or \link[OmicFlow]{fetch_palette}.
-    #' @param counts.scalar Adds a pseudocount to countData prior to log transformation.
-    #' @return A \link[ggplot2]{ggplot} object.
-    triplot = function(feature_rank,
-                       feature_filter = NA,
-                       sample.id = self$.sample_id,
-                       metadata.col = NA,
-                       choice_dim = c("RDA1", "PC1"),
-                       pairwise = FALSE,
-                       Brewer.palID = "Set2",
-                       counts.scalar = 1) {
-      # Copies object to prevent modification of omics class components
-      private$tmp_link(
-        .countData = self$countData,
-        .featureData = self$featureData,
-        .metaData = self$metaData,
-        .treeData = self$treeData
-      )
-
-      ## Return list of components
-      results <- list()
-
-      # Nested functions, later to be combined within omics-class
-      logn <- function(otu_tab, scalar=1) {
-        # log-transform, center
-        # Y' = log ( A * Y + 1 ) ; where A is the 'strength' of the log transformation : 1, 10, 100, 1000, etc., default = 1
-        otu_tab.log <- ( scalar * otu_tab ) + 1
-        otu_tab.log <- log( otu_tab.log )
-        otu_tab.sc <- scale(otu_tab.log, center = TRUE, scale = FALSE)
-        return(otu_tab.sc)
-      }
-
-      eigen_80 <- function(eig_explained) {
-        sum_variance = 0
-        counter = 1
-        for (i in 1:length(eig_explained)) {
-          sum_variance <- sum_variance + eig_explained[i]
-          counter <- counter + 1
-          if (sum_variance >= 80) break
-        }
-
-        return(counter)
-      }
-
-      subset_by_dimensions <- function(model, dimensions) {
-        perc_explained <- round(100*(summary(model)$cont$importance[2, dimensions]),2)
-        n_dim_pairs <- dimensions[1:eigen_80(perc_explained)]
-        return(perc_explained)
-      }
-
-      subset_by_species <- function(model, scores_species, pc) {
-        species_explained <- utils::head(base::sort(round(100*scores_species[, pc]^2, 3), decreasing = TRUE))
-        scores_species_explained <- scores_species[rownames(scores_species) %in% names(species_explained),]
-
-        result <- list(
-          scores = scores_species_explained,
-          explained_PC1 = species_explained
-        )
-
-        return(result)
-      }
-
-      # Main pairwise code
-      if (pairwise == TRUE) {
-        # Creates a vector of 10 dimensions (PC1 - PC10)
-        pairwise_dims <- sprintf("PC%d", seq(1:11))
-        subset.result <- subset_by_dimensions(model, pairwise_dims)
-
-        # save pdf
-        pdf(paste0(outdir, "/pairwise_PCA.pdf"))
-        for (i in seq(ncol(subset.result$n_dim_pairs))) {
-          pair <- subset.result$n_dim_pairs[, i]
-          scores_species_explained <- subset_by_species(model, scores_species, pc = pair[1])
-
-          triplot(model, target_col, self$metaData, subset.result$var_explained, scores_species,
-                  scores_species_explained, scores_sites,
-                  pc1 = pair[1],
-                  pc2 = pair[2])
-        }
-        dev.off()
-      }
-
-      # Agglomerate taxa by feature rank and filter unwanted taxa
-      self$feature_glom(feature_rank = feature_rank, feature_filter = feature_filter)
-      self$normalize()
-
-      # Remove NAs
-      if (!is.na(metadata.col)) {
-        self$removeNAs(metadata.col)
-      } else stop("metadata.col is empty!")
-
-      counts <- t(as.matrix(self$countData[, self$metaData[[ sample.id ]] ]))
-      dimnames(counts)[[2]] <- self$featureData[[ feature_rank ]]
-
-      # Subsets user specified dimensions
-      pc1 <- choice_dim[1]
-      pc2 <- choice_dim[2]
-
-      # Transformation of counts and modelling to RDA
-      counts.log <- logn(counts, scalar = counts.scalar)
-      model <- vegan::rda(counts.log ~ get(metadata.col, self$metaData) + Condition(NULL),
-                          data = self$metaData,
-                          scale = FALSE,
-                          na.action = na.fail,
-                          subset = NULL)
-
-      results$model <- model
-
-      # MAIN code
-      # Subset species and sites scores
-      model.dims <- dim(model$CCA$u)[2] + dim(model$CA$u)[2]
-      scores_species <- vegan::scores(x = model, display = "species", choices = c(1:model.dims), scaling=0)
-      scores_sites <- vegan::scores(x = model, display = "sites", choices = c(1:model.dims))
-
-      # Subset species most fitted/captured by user defined dimensions
-      choice_dim.scores_species_explained <- subset_by_species(model, scores_species, pc = choice_dim[1])
-      choice_dim.explained <- subset_by_dimensions(model, choice_dim)
-
-      # Include relative abundance and significant groups in scores_sites
-      rel_abun <- colSums(counts)
-      Explained_species <- rownames(choice_dim.scores_species_explained$scores)
-      scores_species_merged <- data.table::data.table(cbind(scores_species, rel_abun))
-      scores_species_merged$taxa <- rownames(scores_species)
-
-      # Creating color palette
-      chosen_palette <- RColorBrewer::brewer.pal(length(Explained_species), Brewer.palID)
-      colors <- stats::setNames(chosen_palette, Explained_species)
-
-      # include groups for labelling and size
-      scores_species_merged[, explained_species_label := ifelse(taxa %in% Explained_species, taxa, "")]
-      scores_species_merged[, explained_species_size := ifelse(taxa %in% Explained_species, rel_abun, 0)]
-
-      #Fetch groups
-      mygroups <- get(metadata.col, self$metaData)
-      fills <- stats::setNames(RColorBrewer::brewer.pal(length(unique(mygroups)), "Set1"), unique(mygroups))
-
-      # to be named: scores_sites
-      dt <- data.table::data.table(data.frame(pc1 = scores_sites[, pc1],
-                                              pc2 = scores_sites[, pc2],
-                                              group = mygroups))
-
-      results$data <- dt
-      # Get centroid centers for annotation
-      df_mean.ord <- stats::aggregate(dt, by=list(dt$group),mean)
-      colnames(df_mean.ord) <- c("Group", "x", "y")
-      df_mean.ord <- df_mean.ord[df_mean.ord$Group %in% mygroups, ]
-
-      rslt.hull <- vegan::ordihull(scores_sites[, c(pc1, pc2)],
-                                   groups = mygroups,
-                                   show.group = mygroups,
-                                   draw = 'none')
-
-      # Initialize an empty data.table
-      df_hull <- data.table::data.table(Group = character(), x = numeric(), y = numeric())
-
-      # Loop through groups and bind data
-      for (g in mygroups) {
-        g <- as.character(g)
-        x <- rslt.hull[[g]][ , 1]
-        y <- rslt.hull[[g]][ , 2]
-        Group <- rep(g, length(x))
-        df_temp <- data.table::data.table(Group = Group, x = x, y = y)
-        df_hull <- rbind(df_hull, df_temp, use.names = TRUE, fill = TRUE)
-      }
-
-      # Convert to data.table
-      data.table::setDT(df_hull)
-
-      # Restores omics class components
-      private$tmp_restore()
-
-
-      results$plot <- ggplot() +
-          # Polygon layer with first fill scale
-          geom_polygon(data = df_hull,
-                       aes(x = x,
-                           y = y,
-                           fill = Group),
-                       alpha = 0.2,
-                       color = "gray40",
-                       show.legend = FALSE) +
-          scale_fill_manual(values = fills) +
-          ggrepel::geom_label_repel(data=df_mean.ord,
-                                    aes(x=x, y=y, label=Group, fill=Group),
-                                    color = "black",
-                                    show.legend = FALSE) +
-          guides(fill = "none") +
-
-          # Reset fill scale for points
-          ggnewscale::new_scale_fill() +
-
-          # Main points layer with second fill scale
-          geom_point(data = dt,
-                     aes(x = .data[["pc1"]],
-                         y = .data[["pc2"]]),
-                     fill = "steelblue",
-                     col = "black",
-                     shape = 21) +
-
-          # Species points layer
-          geom_point(data = scores_species_merged,
-                     aes(x = .data[[pc1]],
-                         y = .data[[pc2]],
-                         size = .data[["explained_species_size"]],
-                         col = .data[["explained_species_label"]],
-                         stroke = ifelse(scores_species_merged$explained_species_label != "", 1.5, 0.5)),
-                     show.legend = TRUE,
-                     shape = 22) +
-
-          # Remaining formatting
-          theme_bw() +
-          theme(axis.text.x = element_text(angle = 45, hjust = 1, size = 12),
-                text = element_text(size = 12),
-                legend.text = element_text(size = 12),
-                legend.title = element_text(size = 14)) +
-          scale_size_continuous(name = "rel. Abun.") +
-          scale_color_manual(name = paste0(pc1, " explained species"),
-                             values = colors) +
-          labs(x = paste0(pc1, " (", choice_dim.explained[pc1], "%)"),
-               y = paste0(pc2, " (", choice_dim.explained[pc2], "%)")) +
-          guides(fill = guide_legend(position = "bottom", override.aes = list(size = 2, color = "white")),
-                 colour = guide_legend(override.aes = list(stroke = 1.5)))
-
-        return(results)
-    },
-    #' @description
-    #' Correlation Analysis, default spearm and automatic filter & Visualization based on thresholds
-    #' @param feature_rank A featureData column name to visualize.
-    #' @param feature_filter Removes features by name, works on single strings or vector of strings.
-    #' @param sample.id A metaData column specifying the sample.id, used to filter out NAs from \code{cor_columns} column name.
-    #' @param cor_columns A vector of a single or multiple column names with continuous data.
-    #' @param cor_method Correlation method, default spearman, see \link[stats]{cor}.
-    #' @param cor_threshold Float variable, used to filter taxa that meet the cor_threshold in both positive as negative values. Default is 0.6.
-    #' @param normalize Boolean, wether to normalize by total sample sums.
-    #' @examples
-    #' obj <- omics$new(countData = "counts.csv",
-    #'                  featureData = "features.txt",
-    #'                  metaData = "metadata.tsv"
-    #'
-    #' plt <- obj$correlation(feature_rank = "Genus",
-    #'                        feature_filter = c("uncultured"),
-    #'                        sample.id = "SAMPLE-ID",
-    #'                        cor_method = "spearman",
-    #'                        cor_columns = c("BMI", "weight", "flight.time"),
-    #'                        cor_threshold = 0.8)
-    #'
-    #' @return
-    #' A \link[ggplot2]{ggplot} object or \code{NULL} when no matches are found.
-    correlation = function(feature_rank, feature_filter = NA, sample.id = "SAMPLE-ID",
-                           cor_method = "spearman", cor_columns = c("BMI", "Weight"), cor_threshold = 0.6, normalize = TRUE) {
-      # Copies object to prevent modification of omics class components
-      private$tmp_link(
-        .countData = self$countData,
-        .featureData = self$featureData,
-        .metaData = self$metaData,
-        .treeData = self$treeData
-      )
-
-      # Agglomerate taxa by feature rank and filter unwanted taxa
-      self$feature_glom(feature_rank = feature_rank,
-                        feature_filter = feature_filter)
-
-      if (normalize) {
-        self$normalize()
-      }
-      # Fetch labelled tree by featureData
-      tree <- self$label_phylo(feature_rank = feature_rank)
-
-      # Subset data by correlation columns
-      correlation_data <- na.omit(self$metaData[, .SD, .SDcols = c(sample.id, cor_columns)])
-
-      # Compute correlations for taxa
-      Y <- correlation_data[, .SD, .SDcols = !c(sample.id)]
-      cor_mat <- as.data.frame(stats::cor(x = t(as.matrix(self$countData[, correlation_data[[ sample.id ]] ])),
-                                          y = Y,
-                                          method = cor_method))
-      rownames(cor_mat) <- tree$tip.label
-      colnames(cor_mat) <- sub("CORRELATION_", "", colnames(Y))
-
-      # Add taxa labels of where correlation is above threshold
-      logical <- cor_mat > cor_threshold | cor_mat < -cor_threshold
-      logical_mat <- cor_mat[apply(logical, 1, any), ]
-      filter_NAs <- rownames(logical_mat)[!grepl("^NA", rownames(logical_mat))]
-
-      # Restores omics class components
-      private$tmp_restore()
-
-      # Only visuakizes taxa meeting the correlation threshold
-      if (length(filter_NAs > 0)) {
-        final_cor <- logical_mat[filter_NAs, ]
-        final_tree <- ape::keep.tip(tree, tip = filter_NAs)
-
-        # Adding labelling layer to base tree
-        label_offset <- length(cor_columns) * 2.5
-        p <- ggtree(final_tree, branch.length = "none") +
-          geom_tiplab(size = 3, offset = label_offset) +
-          geom_treescale() +
-          theme_tree()
-        # Increases x-axis space based on label_offset
-        p <- p +
-          xlim(0, max(p$data$x) + label_offset * 2)
-
-        # Legend labels
-        cor_names <- colnames(final_cor)
-        cor_sequence <- seq_along(cor_names)
-        column_labels <- stats::setNames(as.character(cor_sequence), cor_names)
-
-        # Adding heatmap to final tree
-        return(gheatmap(p, final_cor,
-                        offset = 0.1,
-                        width = 1,
-                        colnames_position = "top",
-                        colnames_offset_y = 0.1,
-                        custom_column_labels = cor_sequence,
-                        hjust = 0.5,
-                        font.size = 2.5) +
-                 scale_fill_viridis_c(option = "E",
-                                      name = cor_method,
-                                      na.value = "white") +
-                 labs(caption = paste(column_labels, names(column_labels),
-                                      sep = " : ",
-                                      collapse = " - ")))
-      } else {
-        return(paste0("None ", feature_rank, " are found that meet the correlation threshold of (+/-) ", cor_threshold))
-      }
-    },
-    #' @description
-    #' Relabelling phylogenetic tree by featureData
-    #' @param feature_rank A featureData column name to visualize.
-    #' @return A re-labelled tree as \link[ape] object
-    label_phylo = function(feature_rank) {
-      # Create tmp tree copy
-      tmp_tree <- self$treeData
-
-      # starts with empty tip labels order
-      tip_dt <- data.table::data.table("tips" = tmp_tree$tip.label)
-
-      # Create lookup-table
-      lookup_dt <- data.table::data.table("id" = self$featureData[[ "ID" ]],
-                                          feature_rank = self$featureData[[ feature_rank ]])
-      colnames(lookup_dt) <- c("id", feature_rank)
-
-      # join tables
-      final_dt <- base::merge(tip_dt, lookup_dt, by.x="tips", by.y="id", all.x = TRUE)
-      # Re-name tips and perform filtering if applicable.
-      tmp_tree$tip.label <- final_dt[[ feature_rank ]]
-
-      return(tmp_tree)
-    },
+    # triplot = function(feature_rank,
+    #                    feature_filter = NA,
+    #                    sample.id = self$.sample_id,
+    #                    metadata.col = NA,
+    #                    choice_dim = c("RDA1", "PC1"),
+    #                    pairwise = FALSE,
+    #                    Brewer.palID = "Set2",
+    #                    counts.scalar = 1) {
+    #   # Copies object to prevent modification of omics class components
+    #   private$tmp_link(
+    #     .countData = self$countData,
+    #     .featureData = self$featureData,
+    #     .metaData = self$metaData,
+    #     .treeData = self$treeData
+    #   )
+    #
+    #   ## Return list of components
+    #   results <- list()
+    #
+    #   # Nested functions, later to be combined within omics-class
+    #   logn <- function(otu_tab, scalar=1) {
+    #     # log-transform, center
+    #     # Y' = log ( A * Y + 1 ) ; where A is the 'strength' of the log transformation : 1, 10, 100, 1000, etc., default = 1
+    #     otu_tab.log <- ( scalar * otu_tab ) + 1
+    #     otu_tab.log <- log( otu_tab.log )
+    #     otu_tab.sc <- scale(otu_tab.log, center = TRUE, scale = FALSE)
+    #     return(otu_tab.sc)
+    #   }
+    #
+    #   eigen_80 <- function(eig_explained) {
+    #     sum_variance = 0
+    #     counter = 1
+    #     for (i in 1:length(eig_explained)) {
+    #       sum_variance <- sum_variance + eig_explained[i]
+    #       counter <- counter + 1
+    #       if (sum_variance >= 80) break
+    #     }
+    #
+    #     return(counter)
+    #   }
+    #
+    #   subset_by_dimensions <- function(model, dimensions) {
+    #     perc_explained <- round(100*(summary(model)$cont$importance[2, dimensions]),2)
+    #     n_dim_pairs <- dimensions[1:eigen_80(perc_explained)]
+    #     return(perc_explained)
+    #   }
+    #
+    #   subset_by_species <- function(model, scores_species, pc) {
+    #     species_explained <- utils::head(base::sort(round(100*scores_species[, pc]^2, 3), decreasing = TRUE))
+    #     scores_species_explained <- scores_species[rownames(scores_species) %in% names(species_explained),]
+    #
+    #     result <- list(
+    #       scores = scores_species_explained,
+    #       explained_PC1 = species_explained
+    #     )
+    #
+    #     return(result)
+    #   }
+    #
+    #   # Main pairwise code
+    #   if (pairwise == TRUE) {
+    #     # Creates a vector of 10 dimensions (PC1 - PC10)
+    #     pairwise_dims <- sprintf("PC%d", seq(1:11))
+    #     subset.result <- subset_by_dimensions(model, pairwise_dims)
+    #
+    #     # save pdf
+    #     pdf(paste0(outdir, "/pairwise_PCA.pdf"))
+    #     for (i in seq(ncol(subset.result$n_dim_pairs))) {
+    #       pair <- subset.result$n_dim_pairs[, i]
+    #       scores_species_explained <- subset_by_species(model, scores_species, pc = pair[1])
+    #
+    #       triplot(model, target_col, self$metaData, subset.result$var_explained, scores_species,
+    #               scores_species_explained, scores_sites,
+    #               pc1 = pair[1],
+    #               pc2 = pair[2])
+    #     }
+    #     dev.off()
+    #   }
+    #
+    #   # Agglomerate taxa by feature rank and filter unwanted taxa
+    #   self$feature_glom(feature_rank = feature_rank, feature_filter = feature_filter)
+    #   self$normalize()
+    #
+    #   # Remove NAs
+    #   if (!is.na(metadata.col)) {
+    #     self$removeNAs(metadata.col)
+    #   } else stop("metadata.col is empty!")
+    #
+    #   counts <- t(as.matrix(self$countData[, self$metaData[[ sample.id ]] ]))
+    #   dimnames(counts)[[2]] <- self$featureData[[ feature_rank ]]
+    #
+    #   # Subsets user specified dimensions
+    #   pc1 <- choice_dim[1]
+    #   pc2 <- choice_dim[2]
+    #
+    #   # Transformation of counts and modelling to RDA
+    #   counts.log <- logn(counts, scalar = counts.scalar)
+    #   model <- vegan::rda(counts.log ~ get(metadata.col, self$metaData) + Condition(NULL),
+    #                       data = self$metaData,
+    #                       scale = FALSE,
+    #                       na.action = na.fail,
+    #                       subset = NULL)
+    #
+    #   results$model <- model
+    #
+    #   # MAIN code
+    #   # Subset species and sites scores
+    #   model.dims <- dim(model$CCA$u)[2] + dim(model$CA$u)[2]
+    #   scores_species <- vegan::scores(x = model, display = "species", choices = c(1:model.dims), scaling=0)
+    #   scores_sites <- vegan::scores(x = model, display = "sites", choices = c(1:model.dims))
+    #
+    #   # Subset species most fitted/captured by user defined dimensions
+    #   choice_dim.scores_species_explained <- subset_by_species(model, scores_species, pc = choice_dim[1])
+    #   choice_dim.explained <- subset_by_dimensions(model, choice_dim)
+    #
+    #   # Include relative abundance and significant groups in scores_sites
+    #   rel_abun <- colSums(counts)
+    #   Explained_species <- rownames(choice_dim.scores_species_explained$scores)
+    #   scores_species_merged <- data.table::data.table(cbind(scores_species, rel_abun))
+    #   scores_species_merged$taxa <- rownames(scores_species)
+    #
+    #   # Creating color palette
+    #   chosen_palette <- RColorBrewer::brewer.pal(length(Explained_species), Brewer.palID)
+    #   colors <- stats::setNames(chosen_palette, Explained_species)
+    #
+    #   # include groups for labelling and size
+    #   scores_species_merged[, explained_species_label := ifelse(taxa %in% Explained_species, taxa, "")]
+    #   scores_species_merged[, explained_species_size := ifelse(taxa %in% Explained_species, rel_abun, 0)]
+    #
+    #   #Fetch groups
+    #   mygroups <- get(metadata.col, self$metaData)
+    #   fills <- stats::setNames(RColorBrewer::brewer.pal(length(unique(mygroups)), "Set1"), unique(mygroups))
+    #
+    #   # to be named: scores_sites
+    #   dt <- data.table::data.table(data.frame(pc1 = scores_sites[, pc1],
+    #                                           pc2 = scores_sites[, pc2],
+    #                                           group = mygroups))
+    #
+    #   results$data <- dt
+    #   # Get centroid centers for annotation
+    #   df_mean.ord <- stats::aggregate(dt, by=list(dt$group),mean)
+    #   colnames(df_mean.ord) <- c("Group", "x", "y")
+    #   df_mean.ord <- df_mean.ord[df_mean.ord$Group %in% mygroups, ]
+    #
+    #   rslt.hull <- vegan::ordihull(scores_sites[, c(pc1, pc2)],
+    #                                groups = mygroups,
+    #                                show.group = mygroups,
+    #                                draw = 'none')
+    #
+    #   # Initialize an empty data.table
+    #   df_hull <- data.table::data.table(Group = character(), x = numeric(), y = numeric())
+    #
+    #   # Loop through groups and bind data
+    #   for (g in mygroups) {
+    #     g <- as.character(g)
+    #     x <- rslt.hull[[g]][ , 1]
+    #     y <- rslt.hull[[g]][ , 2]
+    #     Group <- rep(g, length(x))
+    #     df_temp <- data.table::data.table(Group = Group, x = x, y = y)
+    #     df_hull <- rbind(df_hull, df_temp, use.names = TRUE, fill = TRUE)
+    #   }
+    #
+    #   # Convert to data.table
+    #   data.table::setDT(df_hull)
+    #
+    #   # Restores omics class components
+    #   private$tmp_restore()
+    #
+    #
+    #   results$plot <- ggplot() +
+    #       # Polygon layer with first fill scale
+    #       geom_polygon(data = df_hull,
+    #                    aes(x = x,
+    #                        y = y,
+    #                        fill = Group),
+    #                    alpha = 0.2,
+    #                    color = "gray40",
+    #                    show.legend = FALSE) +
+    #       scale_fill_manual(values = fills) +
+    #       ggrepel::geom_label_repel(data=df_mean.ord,
+    #                                 aes(x=x, y=y, label=Group, fill=Group),
+    #                                 color = "black",
+    #                                 show.legend = FALSE) +
+    #       guides(fill = "none") +
+    #
+    #       # Reset fill scale for points
+    #       ggnewscale::new_scale_fill() +
+    #
+    #       # Main points layer with second fill scale
+    #       geom_point(data = dt,
+    #                  aes(x = .data[["pc1"]],
+    #                      y = .data[["pc2"]]),
+    #                  fill = "steelblue",
+    #                  col = "black",
+    #                  shape = 21) +
+    #
+    #       # Species points layer
+    #       geom_point(data = scores_species_merged,
+    #                  aes(x = .data[[pc1]],
+    #                      y = .data[[pc2]],
+    #                      size = .data[["explained_species_size"]],
+    #                      col = .data[["explained_species_label"]],
+    #                      stroke = ifelse(scores_species_merged$explained_species_label != "", 1.5, 0.5)),
+    #                  show.legend = TRUE,
+    #                  shape = 22) +
+    #
+    #       # Remaining formatting
+    #       theme_bw() +
+    #       theme(axis.text.x = element_text(angle = 45, hjust = 1, size = 12),
+    #             text = element_text(size = 12),
+    #             legend.text = element_text(size = 12),
+    #             legend.title = element_text(size = 14)) +
+    #       scale_size_continuous(name = "rel. Abun.") +
+    #       scale_color_manual(name = paste0(pc1, " explained species"),
+    #                          values = colors) +
+    #       labs(x = paste0(pc1, " (", choice_dim.explained[pc1], "%)"),
+    #            y = paste0(pc2, " (", choice_dim.explained[pc2], "%)")) +
+    #       guides(fill = guide_legend(position = "bottom", override.aes = list(size = 2, color = "white")),
+    #              colour = guide_legend(override.aes = list(stroke = 1.5)))
+    #
+    #     return(results)
+    # },
+    # correlation = function(feature_rank, feature_filter = NA, sample.id = "SAMPLE-ID",
+    #                        cor_method = "spearman", cor_columns = c("BMI", "Weight"), cor_threshold = 0.6, normalize = TRUE) {
+    #   # Copies object to prevent modification of omics class components
+    #   private$tmp_link(
+    #     .countData = self$countData,
+    #     .featureData = self$featureData,
+    #     .metaData = self$metaData,
+    #     .treeData = self$treeData
+    #   )
+    #
+    #   # Agglomerate taxa by feature rank and filter unwanted taxa
+    #   self$feature_glom(feature_rank = feature_rank,
+    #                     feature_filter = feature_filter)
+    #
+    #   if (normalize) {
+    #     self$normalize()
+    #   }
+    #   # Fetch labelled tree by featureData
+    #   tree <- self$label_phylo(feature_rank = feature_rank)
+    #
+    #   # Subset data by correlation columns
+    #   correlation_data <- na.omit(self$metaData[, .SD, .SDcols = c(sample.id, cor_columns)])
+    #
+    #   # Compute correlations for taxa
+    #   Y <- correlation_data[, .SD, .SDcols = !c(sample.id)]
+    #   cor_mat <- as.data.frame(stats::cor(x = t(as.matrix(self$countData[, correlation_data[[ sample.id ]] ])),
+    #                                       y = Y,
+    #                                       method = cor_method))
+    #   rownames(cor_mat) <- tree$tip.label
+    #   colnames(cor_mat) <- sub("CORRELATION_", "", colnames(Y))
+    #
+    #   # Add taxa labels of where correlation is above threshold
+    #   logical <- cor_mat > cor_threshold | cor_mat < -cor_threshold
+    #   logical_mat <- cor_mat[apply(logical, 1, any), ]
+    #   filter_NAs <- rownames(logical_mat)[!grepl("^NA", rownames(logical_mat))]
+    #
+    #   # Restores omics class components
+    #   private$tmp_restore()
+    #
+    #   # Only visuakizes taxa meeting the correlation threshold
+    #   if (length(filter_NAs > 0)) {
+    #     final_cor <- logical_mat[filter_NAs, ]
+    #     final_tree <- ape::keep.tip(tree, tip = filter_NAs)
+    #
+    #     # Adding labelling layer to base tree
+    #     label_offset <- length(cor_columns) * 2.5
+    #     p <- ggtree(final_tree, branch.length = "none") +
+    #       geom_tiplab(size = 3, offset = label_offset) +
+    #       geom_treescale() +
+    #       theme_tree()
+    #     # Increases x-axis space based on label_offset
+    #     p <- p +
+    #       xlim(0, max(p$data$x) + label_offset * 2)
+    #
+    #     # Legend labels
+    #     cor_names <- colnames(final_cor)
+    #     cor_sequence <- seq_along(cor_names)
+    #     column_labels <- stats::setNames(as.character(cor_sequence), cor_names)
+    #
+    #     # Adding heatmap to final tree
+    #     return(gheatmap(p, final_cor,
+    #                     offset = 0.1,
+    #                     width = 1,
+    #                     colnames_position = "top",
+    #                     colnames_offset_y = 0.1,
+    #                     custom_column_labels = cor_sequence,
+    #                     hjust = 0.5,
+    #                     font.size = 2.5) +
+    #              scale_fill_viridis_c(option = "E",
+    #                                   name = cor_method,
+    #                                   na.value = "white") +
+    #              labs(caption = paste(column_labels, names(column_labels),
+    #                                   sep = " : ",
+    #                                   collapse = " - ")))
+    #   } else {
+    #     return(paste0("None ", feature_rank, " are found that meet the correlation threshold of (+/-) ", cor_threshold))
+    #   }
+    # },
+    # label_phylo = function(feature_rank) {
+    #   # Create tmp tree copy
+    #   tmp_tree <- self$treeData
+    #
+    #   # starts with empty tip labels order
+    #   tip_dt <- data.table::data.table("tips" = tmp_tree$tip.label)
+    #
+    #   # Create lookup-table
+    #   lookup_dt <- data.table::data.table("id" = self$featureData[[ "ID" ]],
+    #                                       feature_rank = self$featureData[[ feature_rank ]])
+    #   colnames(lookup_dt) <- c("id", feature_rank)
+    #
+    #   # join tables
+    #   final_dt <- base::merge(tip_dt, lookup_dt, by.x="tips", by.y="id", all.x = TRUE)
+    #   # Re-name tips and perform filtering if applicable.
+    #   tmp_tree$tip.label <- final_dt[[ feature_rank ]]
+    #
+    #   return(tmp_tree)
+    # },
     #' @description
     #' Automated Omics Analysis based on metadata template.
     #' For now only works with headers "RANKSTAT_" and "CORRELATION_".
