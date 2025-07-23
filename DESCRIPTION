@@ -1,15 +1,26 @@
 Package: OmicFlow
-Title: What the Package Does (One Line, Title Case)
+Title: Fast and Efficient (automated) analysis of sparse omics data.
 Version: 1.0.0
-Authors@R: c(
+Authors@R:c(
     person(
       "Alem", "Gusinac",
-      email = ,
+      email = "alem.gusinac@gmail.com",
       role = c("aut", "cre"),
       comment = c(ORCID = "0009-0006-1896-4176")
+      ),
+    person(
+      "Thomas", "Ederveen",
+      role = c("auth"),
+      comment = c(ORCID = "0000-0003-0068-1275")
+      ),
+    person(
+      "Annemarie", "Boleij",
+      role = c("fnd"),
+      comment = c(ORCID = "0000-0003-4495-5880")
       )
-    ) 
-Description: What the package does (one paragraph).
+    )
+Description: 
+  
 URL: https://github.com/agusinac/OmicFlow
 License: LICENSE
 Depends: R (>= 4.3.3)
@@ -21,7 +32,6 @@ Imports:
     data.table,
     doParallel,
     dplyr,
-    foreach,
     gghalves,
     ggplot2,
     ggrepel,
@@ -38,7 +48,8 @@ Imports:
     stats,
     utils,
     vegan,
-    viridis
+    viridis,
+    cli
 Suggests: 
     testthat (>= 3.0.0)
 Config/testthat/edition: 3

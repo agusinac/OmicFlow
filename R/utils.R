@@ -158,3 +158,61 @@ parse_commandline <- function() {
   arguments <- optparse::parse_args(parser, positional_arguments=TRUE)
   return(arguments$options)
 }
+
+update_citations_md <- function() {
+  format_citation <- function(entry) {
+    safe_value <- function(x) {
+      if (is.null(x) || is.na(x) || length(x) == 0) "" else x
+    }
+
+    entry <- as.list(entry)
+    authors <- safe_value(paste(entry$author, collapse = ", "))
+    title   <- safe_value(entry$title)
+    journal <- safe_value(entry$journal)
+    year    <- safe_value(entry$year)
+    volume  <- safe_value(entry$volume)
+    pages   <- safe_value(entry$pages)
+    doi     <- safe_value(entry$doi)
+
+    citation <- paste0(authors, ". ", title, ".")
+
+    if (journal != "") citation <- paste0(citation, " ", journal, ".")
+    if (year    != "") citation <- paste0(citation, " ", year)
+    if (volume  != "") citation <- paste0(citation, ";", volume)
+    if (pages   != "") citation <- paste0(citation, ":", pages)
+    citation <- paste0(citation, ".")
+    if (doi     != "") citation <- paste0(citation, " doi: ", doi, ".")
+
+    return(citation)
+  }
+
+  # Get imported packages from DESCRIPTION
+  imports <- desc::desc_get_deps("DESCRIPTION")
+  imported_pkgs <- imports$package[imports$type == "Imports"]
+
+  # Open output file
+  outfile <- file("CITATION.md", "w")
+  writeLines("# Citations for Imported Packages\n", outfile)
+
+  for (pkg in imported_pkgs) {
+    writeLines(paste0("## ", pkg, "\n"), outfile)
+
+    # Try to get citations
+    cites <- tryCatch(utils::citation(pkg), error = function(e) NA)
+
+    if (is.na(cites)) {
+      writeLines("No citation found.\n", outfile)
+      next
+    }
+
+    # Process each citation entry
+    for (entry in cites) {
+      citation_str <- format_citation(entry)
+      writeLines(citation_str, outfile)
+      writeLines("\n", outfile)
+    }
+  }
+
+  # Close file
+  close(outfile)
+}

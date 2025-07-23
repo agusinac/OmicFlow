@@ -1,2 +1,5 @@
 ^OmicFlow\.Rproj$
 ^\.Rproj\.user$
+^src
+^to_implement
+^Analysis_*
