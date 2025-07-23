@@ -5,7 +5,7 @@
 \title{Volcano plot with ggplot2}
 \usage{
 volcano_plot(
-  dt,
+  data,
   X,
   Y,
   feature_rank,
@@ -16,7 +16,7 @@ volcano_plot(
 )
 }
 \arguments{
-\item{dt}{A \code{data.frame} or \code{data.table}.}
+\item{data}{A \code{data.frame} or \code{data.table}.}
 
 \item{X}{A column name of a continuous variable.}
 
@@ -24,14 +24,14 @@ volcano_plot(
 
 \item{feature_rank}{A character variable of the feature column.}
 
-\item{pvalue.threshold}{A P-value threshold, default is 0.05.}
+\item{pvalue.threshold}{A P-value threshold (default: 0.05).}
 
-\item{logfold.threshold}{A Log2(A/B) Fold Change threshold, default is 0.6.}
+\item{logfold.threshold}{A Log2(A/B) Fold Change threshold (default: 0.6).}
 }
 \value{
 A \link[ggplot2]{ggplot2} object to be further modified.
 }
 \description{
-Creates a Volcano plot. This function is built into the \code{differential_feature_expression} method from the abstract class \link[OmicFlow]{tools} and inherited by other omics classes, such as;
-\link[OmicFlow]{metataxonomics}, transcriptomics, metabolomics and proteomics.
+Creates a Volcano plot. This function is built into the \code{differential_feature_expression} method from the abstract class \link[OmicFlow]{omics} and inherited by other omics classes, such as;
+\link[OmicFlow]{metagenomics} and \link[OmicsFLow]{proteomics}.
 }

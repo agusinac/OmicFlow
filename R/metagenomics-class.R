@@ -1,7 +1,7 @@
 #' Sub-class metagenomics
 #'
 #' @description This is a sub-class for 16S metagenomics data, called metagenomics.
-#' It inherits all methods from the abstract class \link[OmicFlow]{tools} and only adapts the \code{initialize} function.
+#' It inherits all methods from the abstract class \link[OmicFlow]{omics} and only adapts the \code{initialize} function.
 #'
 #' @export
 
@@ -25,8 +25,6 @@ metagenomics <- R6::R6Class(
     #' @field biomData A path to an existing biom file or hdf5 file, see \link[rhdf5]{h5read}.
     biomData = NULL,
 
-    #' @field valid A path to an existing file, data.table or data.frame.
-
     #' @description
     #' Initializes the metagenomics class object with \code{metagenomics$new()}
     #' @param countData countData A path to an existing file or sparseMatrix.
@@ -34,13 +32,18 @@ metagenomics <- R6::R6Class(
     #' @param metaData A path to an existing file, data.table or data.frame.
     #' @param treeData A path to an existing newick file or class "phylo", see \link[ape]{read.tree}.
     #' @param biomData A path to an existing biom file, version 2.1.0, see \link[rhdf5]{h5read}.
+    #' @param feature_names A character vector to name the feature names that fit the supplied `featureData` (Default: \code[c("Kingdom", "Phylum", "Class", "Order", "Family", "Genus", "Species")]).
     #' @examples
     #' taxa <- metagenomics$new(metaData = "metadata.tsv",
     #'                          biomData = "biom_with_taxonomy.biom",
     #'                          treeData = "rooted_tree.newick")
     #'
     #' @return A new `metagenomics` object.
-    initialize = function(countData = NA, metaData = NA, featureData = NA, treeData = NA, biomData = NA,
+    initialize = function(countData = NA,
+                          metaData = NA,
+                          featureData = NA,
+                          treeData = NA,
+                          biomData = NA,
                           feature_names = c("Kingdom", "Phylum", "Class", "Order", "Family", "Genus", "Species")) {
 
       super$initialize(countData = countData,

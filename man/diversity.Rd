@@ -4,12 +4,17 @@
 \alias{diversity}
 \title{Alpha Diversity}
 \usage{
-diversity(x, index = "shannon", normalize = TRUE, base = exp(1))
+diversity(
+  x,
+  method = c("shannon", "simpson", "invsimpson"),
+  normalize = TRUE,
+  base = exp(1)
+)
 }
 \arguments{
-\item{x}{A \code{matrix} or \code{sparseMatrix}.}
+\item{x}{A \link[base]{matrix} or \link[Matrix]{sparseMatrix}.}
 
-\item{index}{A string variable for method; shannon, simpson or invsimpson.}
+\item{method}{A character variable for method; shannon, simpson or invsimpson.}
 
 \item{normalize}{A boolean variable for sample normalization by column sums.}
 
@@ -22,8 +27,8 @@ A numeric vector with type double.
 Computes the alpha diversity based on Shannon index, simpson or invsimpson.
 Code is adapted from \link[vegan]{diversity} and uses \link[Matrix]{sparseMatrix} in triplet format over the dense matrix.
 The code is much faster and memory efficient, while still being mathematical correct.
-This function is built into the \code{alpha_diversity} method from the abstract class \link[OmicFlow]{tools} and inherited by other omics classes, such as;
-\link[OmicFlow]{metataxonomics}, transcriptomics, metabolomics and proteomics.
+This function is built into the \code{alpha_diversity} method from the abstract class \link[OmicFlow]{omics} and inherited by other omics classes, such as;
+\link[OmicFlow]{metagenomics} and \link[OmicFlow]{proteomics}.
 }
 \seealso{
 \link[vegan]{diversity}

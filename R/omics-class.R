@@ -568,8 +568,7 @@ omics <- R6::R6Class(
                            feature_filter = NA,
                            col_name = NULL,
                            feature_top = c(10, 15),
-                           Brewer.palID = "RdYlBu",
-                           remove_na = FALSE) {
+                           Brewer.palID = "RdYlBu") {
 
       ## Error handling
       #--------------------------------------------------------------------#
@@ -585,6 +584,9 @@ omics <- R6::R6Class(
       } else if (feature_top > 15) {
         cli::cli_alert_warning("The {feature_top} is set to an integer higher than 15.\n This may lead that colors are difficult to be distinguished.\n For color-blind people it is recommended to use a feature_top of maximum 15.")
       }
+
+      if (!is.character(Brewer.palID) && length(Brewer.palID) != 1)
+        cli::cli_abort("{Brewer.palID} must be a character and of length 1")
 
       ## MAIN
       #--------------------------------------------------------------------#
@@ -604,7 +606,7 @@ omics <- R6::R6Class(
       self$normalize()
 
       # Remove NAs when col_name is specified
-      if (!is.null(col_name) & remove_na)
+      if (!is.null(col_name))
         self$removeNAs(col_name)
 
       # Convert sparse matrix to data.table (safe since feature_glom shrinks the sparse matrix)
@@ -683,6 +685,7 @@ omics <- R6::R6Class(
     #' @param weighted A Boolean value, whether to compute weighted or unweighted dissimilarities (Default: TRUE).
     #' @param normalize A Boolean value, whether to [`normalize()`](#method-normalize) by total sample sums (Default: TRUE).
     #' @param cpus An Integer value, indicating the number of processes to spawn (Default: 1).
+    #' @param perm An integer value, number of permutations to compare against the null hypothesis of adonis2 (default: \code{perm=999}).
     #' @examples
     #' obj <- omics$new(countData = "counts.csv",
     #'                  featureData = "features.txt",

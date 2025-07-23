@@ -15,12 +15,14 @@ stats_plot(data, X, Y, Label, Y_title = NULL, plot.title = NULL)
 
 \item{Label}{A column name of a categorical variable to label the bars.}
 
-\item{plot.title}{A character variable to name the plot title, default is \code{NULL}.}
+\item{Y_title}{A character variable to name the Y - axis title (default: NULL).}
+
+\item{plot.title}{A character variable to name the plot title (default: NULL).}
 }
 \value{
 A \link[ggplot2]{ggplot2} object to be further modified
 }
 \description{
-Creates a Stats plot of \link[OmicFlow]{pairwise_adonis} or \link[OmicFlow]{pairwise_anosim} results. This function is built into the \code{ordination} method from the abstract class \link[OmicFlow]{tools} and inherited by other omics classes, such as;
-\link[OmicFlow]{metataxonomics}, transcriptomics, metabolomics and proteomics.
+Creates a Stats plot of \link[OmicFlow]{pairwise_adonis} or \link[OmicFlow]{pairwise_anosim} results. This function is built into the \code{ordination} method from the abstract class \link[OmicFlow]{omics} and inherited by other omics classes, such as;
+\link[OmicFlow]{metagenomics} and \link[OmicsFLow]{proteomics}.
 }

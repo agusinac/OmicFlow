@@ -1,12 +1,18 @@
 Package: OmicFlow
 Title: What the Package Does (One Line, Title Case)
-Version: 0.0.0.9000
-Authors@R: 
-    person("Alem", "Gusinac", , "alem.gusinac@gmail.com", role = c("aut", "cre"),
-           comment = c(ORCID = "YOUR-ORCID-ID"))
+Version: 1.0.0
+Authors@R: c(
+    person(
+      "Alem", "Gusinac",
+      email = ,
+      role = c("aut", "cre"),
+      comment = c(ORCID = "0009-0006-1896-4176")
+      )
+    ) 
 Description: What the package does (one paragraph).
-License: `use_mit_license()`, `use_gpl3_license()` or friends to pick a
-    license
+URL: https://github.com/agusinac/OmicFlow
+License: LICENSE
+Depends: R (>= 4.3.3)
 Encoding: UTF-8
 Roxygen: list(markdown = TRUE)
 RoxygenNote: 7.3.2

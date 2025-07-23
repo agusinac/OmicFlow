@@ -4,23 +4,33 @@
 \alias{diversity_plot}
 \title{Diversity plot with ggplot2}
 \usage{
-diversity_plot(dt, values, col_name, palette, method)
+diversity_plot(
+  data,
+  values,
+  col_name,
+  palette,
+  method,
+  paired = FALSE,
+  p.adjust.method = "fdr"
+)
 }
 \arguments{
-\item{dt}{A \code{data.frame} or \code{data.table} computed from \link[vegan]{diversity}.}
+\item{data}{A \link[base]{data.frame} or \link[data.table]{data.table} computed from \link[OmicFlow]{diversity}.}
 
 \item{values}{A column name of a continuous variable.}
 
 \item{col_name}{A column name of a categorical variable.}
 
-\item{palette}{An object with names and hexcode or color names, see \link{fetch_palette} or \link[stats]{setNames}.}
+\item{palette}{An object with names and hexcode or color names, see \link[OmicFlow]{fetch_palette} or \link[stats]{setNames}.}
 
 \item{method}{A character variable indicating what method is used to compute the diversity.}
+
+\item{p.adjust.method}{A character variable to specify the p.adjust.method to be used (Default: fdr).}
 }
 \value{
 A \link[ggplot2]{ggplot2} object to be further modified
 }
 \description{
-Creates an Alpha diversity plot. This function is built into the \code{alpha_diversity} method from the abstract class \link[OmicFlow]{tools} and inherited by other omics classes, such as;
-\link[OmicFlow]{metataxonomics}, transcriptomics, metabolomics and proteomics.
+Creates an Alpha diversity plot. This function is built into the \code{alpha_diversity} method from the abstract class \link[OmicFlow]{omics} and inherited by other omics classes, such as;
+\link[OmicFlow]{metagenomics} and \link[OmicFlow]{proteomics}.
 }

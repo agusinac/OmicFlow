@@ -4,22 +4,22 @@
 \alias{fetch_palette}
 \title{Fetch palette(s)}
 \usage{
-fetch_palette(metadata, col_name, Brewer.palID = "Set2")
+fetch_palette(data, col_name, Brewer.palID = "Set2")
 }
 \arguments{
-\item{metadata}{A \code{data.frame} or \code{data.table}.}
+\item{data}{A \link[base]{data.frame} or \link[data.table]{data.table} computed from \link[OmicFlow]{diversity}.}
 
-\item{col_name}{A column name that exists in metadata.}
+\item{col_name}{A column name of a categorical variable.}
 
-\item{Brewer.palID}{A character name that exists in \link[RColorBrewer]{brewer.pal}, default: \code{"Set2"}.}
+\item{Brewer.palID}{A character name that exists in \link[RColorBrewer]{brewer.pal} (Default: \code{"Set2"}).}
 }
 \value{
 An object of names and hexcolors
 }
 \description{
 Creates an object of hexcode colors with names.
-This function is built into the \code{ordination} method from the abstract class \link[OmicFlow]{tools} and inherited by other omics classes, such as;
-\link[OmicFlow]{metataxonomics}, transcriptomics, metabolomics and proteomics.
+This function is built into the \code{ordination} method from the abstract class \link[OmicFlow]{omics} and inherited by other omics classes, such as;
+\link[OmicFlow]{metagenomics} and \link[OmicFlow]{proteomics}.
 }
 \seealso{
 \link[stats]{setNames}

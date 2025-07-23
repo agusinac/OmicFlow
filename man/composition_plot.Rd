@@ -13,13 +13,13 @@ composition_plot(
 )
 }
 \arguments{
-\item{data}{A \code{data.frame} or \code{data.table}.}
+\item{data}{A \link[base]{data.frame} or \link[data.table]{data.table}.}
 
-\item{palette}{An object with names and hexcode or color names, see \link{fetch_palette} or \link[stats]{setNames}.}
+\item{palette}{An object with names and hexcode or color names, see \link[OmicFlow]{fetch_palette}.}
 
-\item{feature_rank}{A character variable of the feature column, by default set to "Genus".}
+\item{feature_rank}{A character variable of the feature column (Default: \code{"Genus"}).}
 
-\item{title_name}{A character variable to set the \code{ggtitle} of the ggplot, by default set to NULL.}
+\item{title_name}{A character variable to set the \code{ggtitle} of the ggplot (Default: NULL).}
 
 \item{group_by}{A character variable to aggregate the stacked bars by group.}
 }
@@ -27,13 +27,13 @@ composition_plot(
 A \link[ggplot2]{ggplot2} object to be further modified
 }
 \description{
-Creates a composition of features works on the output of \link[OmicFlow]{metataxonomics} with method \code{composition} from abstract class \link[OmicFlow]{tools}
+Creates a composition of features works on the output of \link[OmicFlow]{metagenomics} with method \code{composition} from abstract class \link[OmicFlow]{omics}
 }
 \examples{
 # Initialize a new object 'taxa_class'
-taxa_class <- metataxonomics$new(metaData = "metadata.tsv",
-                                 biomData = "biom_with_taxonomy.biom",
-                                 treeData = "rooted_tree.newick")
+taxa_class <- metagenomics$new(metaData = "metadata.tsv",
+                               biomData = "biom_with_taxonomy.biom",
+                               treeData = "rooted_tree.newick")
 
 # Compute the composition for the top 10 features
 result <- taxa_class$composition(feature_rank = "Genus",

@@ -4,7 +4,7 @@
 \alias{pairwise_anosim}
 \title{Pairwise anosim (ANOSIM) computation}
 \usage{
-pairwise_anosim(x, groups, p.adjust.m = "bonferroni", perm = 999)
+pairwise_anosim(x, groups, p.adjust.method = "bonferroni", perm = 999)
 }
 \arguments{
 \item{x}{A distance matrix in the form of \link[stats]{dist}.
@@ -12,9 +12,9 @@ Obtained from a dissimilarity metric, in the case of similarity metric please us
 
 \item{groups}{A vector (column from a table) of labels.}
 
-\item{p.adjust.m}{P adjust method see \link[stats]{p.adjust}}
+\item{perm}{Number of permutations to compare against the null hypothesis of anosim (default: \code{perm=999}).}
 
-\item{perm}{Number of permutations to compare against the null hypothesis of anosim default: \code{perm=999}.}
+\item{p.adjust.m}{P adjust method see \link[stats]{p.adjust}}
 }
 \value{
 A \code{data.frame} of
@@ -26,9 +26,9 @@ A \code{data.frame} of
 }
 }
 \description{
-Computes pairwise anosim from vegan, given a distance matrix and a vector of labels.
-This function is built into the \code{ordination} method from the abstract class \link[OmicFlow]{tools} and inherited by other omics classes, such as;
-\link[OmicFlow]{metataxonomics}, transcriptomics, metabolomics and proteomics.
+Computes pairwise \link[vegan]{anosim}, given a distance matrix and a vector of labels.
+This function is built into the \code{ordination} method from the abstract class \link[OmicFlow]{omics} and inherited by other omics classes, such as;
+\link[OmicFlow]{metagenomics} and \link[OmicsFLow]{proteomics}.
 }
 \seealso{
 \link[vegan]{anosim}

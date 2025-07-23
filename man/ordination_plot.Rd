@@ -19,6 +19,6 @@ ordination_plot(df_pcs, pcs, pair, dist.metric)
 A \link[ggplot2]{ggplot2} object to be further modified
 }
 \description{
-Creates an ordination plot of a distance matrix. This function is built into the \code{ordination} method from the abstract class \link[OmicFlow]{tools} and inherited by other omics classes, such as;
-\link[OmicFlow]{metataxonomics}, transcriptomics, metabolomics and proteomics.
+Creates an ordination plot of a distance matrix. This function is built into the \code{ordination} method from the abstract class \link[OmicFlow]{omics} and inherited by other omics classes, such as;
+\link[OmicFlow]{metagenomics} and \link[OmicFlow]{proteomics}.
 }
