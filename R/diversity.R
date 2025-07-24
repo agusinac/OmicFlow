@@ -45,7 +45,7 @@ diversity <- function(x,
     x@x <- x@x / total
   }
 
-  if (index == "shannon") {
+  if (method == "shannon") {
     x@x <- -x@x * log(x@x, base)
   } else {
     x@x <- x@x * x@x
@@ -53,9 +53,9 @@ diversity <- function(x,
   if (length(dim(x)) > 1) {
     H <- Matrix::colSums(x, na.rm = TRUE)
   }
-  if (index == "simpson") {
+  if (method == "simpson") {
     H <- 1 - H
-  } else if (index == "invsimpson") {
+  } else if (method == "invsimpson") {
     H <- 1/H
   }
   ## check NA in data

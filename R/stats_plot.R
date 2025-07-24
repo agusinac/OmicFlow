@@ -23,7 +23,7 @@ stats_plot <- function(data,
   ## Error handling
   #--------------------------------------------------------------------#
 
-  if (!inherits(data, "data.frame") || !inherits(data, "data.table"))
+  if (!inherits(data, "data.frame") && !inherits(data, "data.table"))
     cli::cli_abort("Data must be a data.frame or data.table.")
 
   if (!is.character(X) && length(X) != 1) {

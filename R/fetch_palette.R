@@ -34,7 +34,7 @@ fetch_palette <- function(data,
   ## MAIN
   #--------------------------------------------------------------------#
 
-  unique_groups <- unique(metadata[[col_name]])
+  unique_groups <- unique(data[[col_name]])
   chosen_palette <- RColorBrewer::brewer.pal(length(unique_groups), Brewer.palID)
   colors <- stats::setNames(chosen_palette, unique_groups)
   return(colors)

@@ -82,7 +82,7 @@ omics <- R6::R6Class(
           #--------------------------------------------------------------------#
           ## Disable samplepair_id if not supplied
           #--------------------------------------------------------------------#
-          if (column_exists(self$.samplepair_id, self$metaData))
+          if (!column_exists(self$.samplepair_id, self$metaData))
             self$.samplepair_id <- NULL
 
         } else {
@@ -200,12 +200,11 @@ omics <- R6::R6Class(
       ## Error handling
       #--------------------------------------------------------------------#
 
-      if (is.integer(column) && length(column) <= length(colnames(self$metaData))) {
+      if (all(is.wholenumber(column)) && length(column) <= length(colnames(self$metaData)))
         column <- colnames(self$metaData[column])
 
-      } else {
-        cli::cli_abort("{column} indexes are out of bound")
-      }
+      if (!is.character(column))
+        cli::cli_abort("{column} needs to be a character or an integer.")
 
       if (!column_exists(column, self$metaData))
         cli::cli_abort("{column} do not exist in the metaData or one of the specified columns is completely empty!")
@@ -272,14 +271,15 @@ omics <- R6::R6Class(
       ## Error handling
       #--------------------------------------------------------------------#
 
-      if (!is.null(num_unique_pairs) && !is.integer(num_unique_pairs))
+      if (!is.null(num_unique_pairs) && !is.wholenumber(num_unique_pairs))
         cli::cli_abort("{num_unique_pairs} must contain integers!")
 
       ## MAIN
       #--------------------------------------------------------------------#
 
+      counts <- self$metaData[, .(unique_count = data.table::uniqueN(SAMPLE_ID)), by = SAMPLEPAIR_ID]
+
       if (is.null(num_unique_pairs)) {
-        counts <- self$metaData[, .(unique_count = data.table::uniqueN(SAMPLE_ID)), by = SAMPLEPAIR_ID]
         num_unique_pairs <- counts[, max(unique_count)]
       }
 
@@ -422,12 +422,11 @@ omics <- R6::R6Class(
       ## Error handling
       #--------------------------------------------------------------------#
 
-      if (is.integer(feature_ranks) && length(feature_ranks) <= length(colnames(self$featureData))) {
-        column <- colnames(self$featureData[feature_ranks])
+      if (!is.character(feature_ranks))
+        cli::cli_abort("{feature_ranks} needs to be of character or integer type.")
 
-      } else {
-        cli::cli_abort("{column} indexes are out of bound.")
-      }
+      if (all(is.wholenumber(feature_ranks)) && length(feature_ranks) > length(colnames(self$featureData)))
+        feature_ranks <- colnames(self$featureData[feature_ranks])
 
       if (!column_exists(feature_ranks, self$featureData))
         cli::cli_abort("Specified {feature_ranks} do not exist in the featureData.")
@@ -493,7 +492,7 @@ omics <- R6::R6Class(
 
       if (!is.character(col_name) && length(col_name) != 1) {
         cli::cli_abort("{col_name} must be a character and of length 1")
-      } else if (!column_exists(column_name, self$metaData)) {
+      } else if (!column_exists(col_name, self$metaData)) {
         cli::cli_abort("The specified {col_name} does not exist in the metaData.")
       }
 
@@ -514,12 +513,16 @@ omics <- R6::R6Class(
         .treeData = self$treeData
       )
 
+      # Remove NAs when col_name is specified
+      if (!is.null(col_name))
+        self$removeNAs(col_name)
+
       # Subset by samplepair completion
       if ( paired && !is.null(self$.samplepair_id) )
         self$samplepair_subset()
 
       # Alpha diversity based on 'method'
-      div <- data.table::data.table(diversity(x = self$countData, index=method))
+      div <- data.table::data.table(diversity(x = self$countData, method=method))
       div[, (col_name) := self$metaData[, .SD, .SDcols = c(col_name)]]
       # Adjusts for evenness
       if (evenness) div$V1 <- div$V1 / log(vegan::specnumber(div$V1))
@@ -529,13 +532,16 @@ omics <- R6::R6Class(
 
       # Create and saves plots
       plot_list$data <- div
-      plot_list$diversity <- diversity_plot(data = na.omit(div),
-                                            values = "V1",
-                                            col_name = col_name,
-                                            palette = colors,
-                                            method = method,
-                                            paired = paired,
-                                            p.adjust.method = p.adjust.method)
+      diversity_plt <- diversity_plot(data = na.omit(div),
+                                      values = "V1",
+                                      col_name = col_name,
+                                      palette = colors,
+                                      method = method,
+                                      paired = paired,
+                                      p.adjust.method = p.adjust.method)
+
+      plot_list$stats <- as.data.frame(diversity_plt$stats)
+      plot_list$plot <- diversity_plt$plot
 
       # Restores omics class components
       private$tmp_restore()
@@ -579,7 +585,7 @@ omics <- R6::R6Class(
         cli::cli_abort("The specified {col_name} does not exist in the metaData.")
       }
 
-      if (!is.integer(feature_top)) {
+      if (!is.wholenumber(feature_top)) {
         cli::cli_abort("{feature_top} must be an integer!")
       } else if (feature_top > 15) {
         cli::cli_alert_warning("The {feature_top} is set to an integer higher than 15.\n This may lead that colors are difficult to be distinguished.\n For color-blind people it is recommended to use a feature_top of maximum 15.")
@@ -708,7 +714,7 @@ omics <- R6::R6Class(
                           weighted = TRUE,
                           normalize = TRUE,
                           cpus = 1,
-                          perm=999) {
+                          perm = 999) {
 
       ## Error handling
       #--------------------------------------------------------------------#
@@ -725,14 +731,19 @@ omics <- R6::R6Class(
         cli::cli_abort("{group_by} does not exist in the metaData or is empty.")
       }
 
-      if (!is.integer(cpus))
+      if (!is.wholenumber(cpus))
         cli::cli_abort("{cpus} need to be an integer!")
 
-      if (!is.integer(perm))
+      if (!is.wholenumber(perm))
         cli::cli_abort("Permutations {perm} need to be an integer")
 
-      if (!inherits(distmat, "Matrix") || !inherits(distmat, "dist"))
+      if (!is.null(distmat) && (!inherits(distmat, "Matrix") && !inherits(distmat, "dist")))
         cli::cli_abort("custom distance matrix (distmat) need to be of class Matrix or dist")
+
+      if (is.null(self$treeData) && metric == "unifrac") {
+        cli::cli_alert_warning("The specified {metric} is invalid since no tree is supplied.\n Switching to bray-curtis metric.")
+        metric <- "bray"
+      }
 
       ## MAIN
       #--------------------------------------------------------------------#
@@ -780,8 +791,7 @@ omics <- R6::R6Class(
                                      cpus = cpus)
       )
 
-      plot_list$distances <- distmat
-
+      plot_list$dist <- distmat
 
       # Switch case to compute loading scores
       pcs <- switch(
@@ -799,6 +809,7 @@ omics <- R6::R6Class(
         "pcoa" = pairwise_adonis(distmat, groups = self$metaData[[ group_by ]], perm = perm),
         "nmds" = pairwise_anosim(distmat, groups = self$metaData[[ group_by ]], perm = perm)
       )
+      plot_list$anova_data <- stats_results
 
       # Normalization of eigenvalues
       if (method == "pcoa") {
@@ -858,7 +869,7 @@ omics <- R6::R6Class(
                y = "dissimilarity explained [%]")
 
         # PERMANOVA
-        plot_list$anova_plot <- stats_plot(stats_results,
+        plot_list$anova_plot <- stats_plot(data = stats_results,
                                            X = "pairs",
                                            Y = "F.Model",
                                            Label = "p.adj",

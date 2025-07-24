@@ -108,7 +108,7 @@ column_exists <- function(column, table) {
   if (!is.character(column) && length(column) != 1)
     cli::cli_abort("{column} needs to contain characters with length of 1.")
 
-  if (!inherits(table, "data.frame") || !inherits(table, "data.table"))
+  if (!inherits(table, "data.frame") && !inherits(table, "data.table"))
     cli::cli_abort("table must be a data.frame or data.table.")
 
   ## MAIN
@@ -197,3 +197,33 @@ update_citations_md <- function() {
   # Close file
   close(outfile)
 }
+
+is.wholenumber <- function(x, tol = .Machine$double.eps^0.5) {
+  if (is.character(x)) {
+    return(FALSE)
+  } else {
+    abs(x - round(x)) < tol
+  }
+}
+
+combine_conditions <- function(condition1, condition2) {
+  # Combine to strings for easy comparison
+  cond1_str <- paste(condition1$group1, condition1$group2, sep = "_")
+  cond2_str <- paste(condition2$group1, condition2$group2, sep = "_")
+
+  # Find which condition2 are NOT already in condition1
+  new_pairs_idx <- !cond2_str %in% cond1_str
+
+  if (any(new_pairs_idx)) {
+    # There are new pairs in condition2 not in condition1;
+    # append only the new ones
+    new_rows <- signif_pairs[new_pairs_idx, ]
+    updated_conditions <- rbind(conditions, new_rows)
+  } else {
+    # All pairs in condition2 are already included
+    updated_conditions <- conditions
+  }
+
+  return(updated_conditions)
+}
+

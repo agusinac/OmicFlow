@@ -29,13 +29,13 @@ pairwise_anosim <- function(x,
   if (!inherits(x, "dist"))
     cli::cli_abort("x must be of class dist.")
 
-  if (!vector(groups))
+  if (!is.vector(groups))
     cli::cli_abort("groups must be a vector.")
 
   if (!c(p.adjust.method %in% p.adjust.methods))
     cli::cli_abort("Specified {p.adjust.method} is not valid. \nValid options: {p.adjust.methods}.")
 
-  if (!is.integer(perm))
+  if (!is.wholenumber(perm))
     cli::cli_abort("Permutations {perm} need to be an integer.")
 
   ## MAIN
@@ -53,12 +53,11 @@ pairwise_anosim <- function(x,
     }
 
     ano <- vegan::anosim(m, groups[groups %in% co[, i]], permutations = perm)
-    pairs[i] <- paste0(co[1,i], ".vs.", co[2,i])
+    pairs[i] <- paste(co[1, i],'vs',co[2, i])
     anosimR[i] <- ano$statistic
     p.value[i] <- ano$signif
   }
   p.adj <- p.adjust(p.value, method = p.adjust.method)
   pairw.res <- data.frame(pairs, anosimR, p.value, p.adj)
-  class(pairw.res) <- c("pwanosim", "data.frame")
   return(pairw.res)
 }

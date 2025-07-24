@@ -32,13 +32,13 @@ pairwise_adonis <- function(x,
   if (!inherits(x, "dist"))
     cli::cli_abort("x must be of class dist.")
 
-  if (!vector(groups))
-    cli::cli_abort("groups must be a vector.")
+  if (!is.vector(groups))
+    cli::cli_abort("{groups} must be a vector.")
 
   if (!c(p.adjust.method %in% p.adjust.methods))
     cli::cli_abort("Specified {p.adjust.method} is not valid. \nValid options: {p.adjust.methods}.")
 
-  if (!is.integer(perm))
+  if (!is.wholenumber(perm))
     cli::cli_abort("Permutations {perm} need to be an integer.")
 
   ## MAIN
@@ -77,6 +77,5 @@ pairwise_adonis <- function(x,
   # Adjusts P-values and returns combined dataframe
   p.adj <- p.adjust(p.value, method = p.adjust.method)
   pairw.res <- data.frame(pairs, Df, SumsOfSqs, F.Model, R2, p.value, p.adj)
-  class(pairw.res) <- c("pwadonis", "data.frame")
   return(pairw.res)
 }

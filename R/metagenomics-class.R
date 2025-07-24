@@ -105,8 +105,19 @@ metagenomics <- R6::R6Class(
       }
 
       #-------------------#
+      ###   treeData    ###
+      #-------------------#
+
+      if (!is.na(treeData)) {
+        self$treeData <- ape::read.tree(treeData)
+        cli::cli_alert_success("treeData is loaded.")
+      }
+
+      #-------------------#
       ###     CLEANUP   ###
       #-------------------#
+
+      cli::cli_alert_info("Final steps .. cleaning & creating back-up")
 
       # Removing prefix of taxonomic features
       self$featureData <- self$featureData[, lapply(.SD, function(x) gsub("^[dpcofgs]_{2}", "", x)),
@@ -118,11 +129,6 @@ metagenomics <- R6::R6Class(
 
       # Subsetting countData by metadata
       self$countData <- self$countData[, self$metaData[[ self$.sample_id ]], drop = FALSE]
-
-      if (!is.na(treeData)) {
-        self$treeData <- ape::read.tree(treeData)
-        cli::cli_alert_success("treeData is loaded.")
-      }
 
       self$print()
 
@@ -341,7 +347,7 @@ metagenomics <- R6::R6Class(
       if (any(grepl(self$.feature_id, colnames(self$metaData))) && !all(is.na(self$metaData[[ self$.feature_id ]]))) {
         FEATURE_ID <- self$metaData[[self$.feature_id]]
       } else {
-        FEATURE_ID <- paste0("feature_", rownames(self$featureData))
+        FEATURE_ID <- self$biomData$observation$ids
       }
 
       # Adds feature id as first column
@@ -380,7 +386,7 @@ metagenomics <- R6::R6Class(
       setnames(featureData, c(self$.feature_id, feature_names))
 
       # Fill first column with $id values
-      self$featureData[[1]] <- vapply(self$biomData$rows, function(x) as.character(x$id), character(1))
+      self$featureData[["FEATURE_ID"]] <- vapply(self$biomData$rows, function(x) as.character(x$id), character(1))
 
       for (i in seq_along(self$biomData$rows)) {
         taxonomy <- self$biomData$rows[[i]]$metadata$taxonomy
@@ -399,8 +405,6 @@ metagenomics <- R6::R6Class(
 
       if (any(grepl(self$.feature_id, colnames(self$metaData))) && !all(is.na(self$metaData[[self$.feature_id]]))) {
         FEATURE_ID <- self$metaData[[self$.feature_id]]
-      } else {
-        FEATURE_ID <- paste0("feature_", rownames(self$featureData))
       }
 
       # Adds feature id as first column

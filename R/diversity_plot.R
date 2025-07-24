@@ -51,6 +51,7 @@ diversity_plot <- function(data,
   ## MAIN
   #--------------------------------------------------------------------#
 
+  result <- list()
 
   pvalues_adjusted <- data %>%
     rstatix::pairwise_wilcox_test(formula = stats::reformulate(col_name, response = values),
@@ -61,27 +62,33 @@ diversity_plot <- function(data,
 
   pvalues_adjusted.filtered <- pvalues_adjusted[grepl("\\*", pvalues_adjusted$p.adj.signif) ,]
 
-  return(data %>%
-           ggplot(mapping = aes(x = as.factor(.data[[ col_name ]]),
-                                y = .data[[ values ]])) +
-           gghalves::geom_half_boxplot() +
-           gghalves::geom_half_point_panel(aes(color = as.factor(.data[[ col_name ]]))) +
-           theme_bw() +
-           theme(legend.position = "none",
-                 text=element_text(size=14),
-                 legend.text = element_text(size=12),
-                 legend.title = element_text(size=14),
-                 axis.text = element_text(size=12),
-                 axis.text.y = element_text(size=12),
-                 axis.text.x = element_text(size=12)) +
-           scale_colour_manual(name = "groups",
-                               values = palette) +
-           ggpubr::stat_pvalue_manual(pvalues_adjusted.filtered,
-                                      label = "p.adj",
-                                      step.increase = 0.05) +
-           labs(title = NULL,
-                subtitle = paste0("Attribute: ", col_name, ", test: Mann-whitney, p.adjusted by ", p.adjust.method),
-                x = "sample groups",
-                y = paste0("Alpha diversity: ", method))
+  plt <- data %>%
+    ggplot(mapping = aes(x = as.factor(.data[[ col_name ]]),
+                         y = .data[[ values ]])) +
+    gghalves::geom_half_boxplot() +
+    gghalves::geom_half_point_panel(aes(color = as.factor(.data[[ col_name ]]))) +
+    theme_bw() +
+    theme(legend.position = "none",
+          text=element_text(size=14),
+          legend.text = element_text(size=12),
+          legend.title = element_text(size=14),
+          axis.text = element_text(size=12),
+          axis.text.y = element_text(size=12),
+          axis.text.x = element_text(size=12)) +
+    scale_colour_manual(name = "groups",
+                        values = palette) +
+    ggpubr::stat_pvalue_manual(pvalues_adjusted.filtered,
+                               label = "p.adj",
+                               step.increase = 0.05) +
+    labs(title = NULL,
+         subtitle = paste0("Attribute: ", col_name, ", test: Mann-whitney, p.adjusted by ", p.adjust.method),
+         x = "sample groups",
+         y = paste0("Alpha diversity: ", method))
+
+  result <- list(
+    plot = plt,
+    stats = pvalues_adjusted
   )
+
+  return(result)
 }

@@ -1,5 +1,5 @@
 #' @keywords internal
-"_PACKAGE"
+"PACKAGE"
 
 ## usethis namespace: start
 #' @importFrom magrittr %>%
