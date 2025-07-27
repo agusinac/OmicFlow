@@ -467,7 +467,7 @@ omics <- R6::R6Class(
     #' Alpha diversity based on \link[OmicFlow]{diversity}
     #' @param col_name The metaData column of categorical variables to create a ggplot object.
     #' @param method Diversity metric such as "shannon", "invsimpson" or "simpson"
-    #' @param Brewer.palID Palette set to be applied, see \link[RColorBrewer]{brewer.pal} or \link[OmicFlow]{fetch_palette}.
+    #' @param Brewer.palID Palette set to be applied, see \link[RColorBrewer]{brewer.pal} or \link[OmicFlow]{colormap}.
     #' @param evenness A boolean wether to divide diversity by number of species, see \link[vegan]{specnumber}.
     #' @param paired A boolean value to perform paired analysis in \link[stats]{wilcox.test} and samplepair subsetting via \link[OmicFlow]{samplepair_subset}
     #' @param p.adjust.method A character variable to specify the p.adjust.method to be used, default is 'fdr'.
@@ -528,7 +528,7 @@ omics <- R6::R6Class(
       if (evenness) div$V1 <- div$V1 / log(vegan::specnumber(div$V1))
 
       # get colors
-      colors <- fetch_palette(self$metaData, col_name, Brewer.palID)
+      colors <- colormap(self$metaData, col_name, Brewer.palID)
 
       # Create and saves plots
       plot_list$data <- div
@@ -554,7 +554,7 @@ omics <- R6::R6Class(
     #' @param feature_filter Removes features by name, works on single strings or vector of strings.
     #' @param col_name Optional, a string or vector of strings to add to the final compositional data output.
     #' @param feature_top Integer of the top features to visualize, the max is 15, due to a limit of palettes.
-    #' @param Brewer.palID Palette set to be applied, see \link[RColorBrewer]{brewer.pal} or \link[OmicFlow]{fetch_palette}.
+    #' @param Brewer.palID Palette set to be applied, see \link[RColorBrewer]{brewer.pal} or \link[OmicFlow]{colormap}.
     #' @examples
     #' obj <- omics$new(countData = "counts.csv",
     #'                  featureData = "features.txt",
@@ -706,7 +706,7 @@ omics <- R6::R6Class(
     #' pcoa_plots
     #'
     #' @return A list of \link[ggplot2]{ggplot} object.
-    #' @seealso \link[OmicFlow]{ordination_plot}, \link[OmicFlow]{stats_plot}, \link[OmicFlow]{pairwise_anosim}, \link[OmicFlow]{pairwise_adonis}
+    #' @seealso \link[OmicFlow]{ordination_plot}, \link[OmicFlow]{plot_pairwise_stats}, \link[OmicFlow]{pairwise_anosim}, \link[OmicFlow]{pairwise_adonis}
     ordination = function(metric = c("bray", "jaccard", "unifrac"),
                           method = c("pcoa", "nmds"),
                           group_by,
@@ -869,30 +869,40 @@ omics <- R6::R6Class(
                y = "dissimilarity explained [%]")
 
         # PERMANOVA
-        plot_list$anova_plot <- stats_plot(data = stats_results,
-                                           X = "pairs",
-                                           Y = "F.Model",
-                                           Label = "p.adj",
-                                           Y_title = "Pseudo F test statistic",
-                                           plot.title = "PERMANOVA")
+        plot_list$anova_plot <- plot_pairwise_stats(
+          data = stats_results,
+          group_col = "pairs",
+          stats_col = "F.Model",
+          label_col = "p.adj",
+          y_axis_title = "Pseudo F test statistic",
+          plot_title = "PERMANOVA"
+        )
         # Loading score plot
-        plot_list$scores_plot <- ordination_plot(df_pcs_points,
-                                                 pcs,
-                                                 pair=c("PC1", "PC2"),
-                                                 metric)
+        plot_list$scores_plot <- ordination_plot(
+          data = df_pcs_points,
+          col_name = "groups",
+          pair=c("PC1", "PC2"),
+          dist_explained = pcs$eig_norm,
+          dist_metric = metric
+        )
 
       } else if (method == "nmds") {
-        plot_list$anova_plot <- stats_plot(stats_results,
-                                           X = "pairs",
-                                           Y = "anosimR",
-                                           Label = "p.adj",
-                                           Y_title = "ANOSIM R statistic",
-                                           plot.title = "ANOSIM")
+        plot_list$anova_plot <- plot_pairwise_stats(
+          data = stats_results,
+          group_col = "pairs",
+          stats_col = "anosimR",
+          label_col = "p.adj",
+          y_axis_title = "ANOSIM R statistic",
+          plot_title = "ANOSIM"
+        )
 
-        plot_list$scores_plot <- ordination_plot(df_pcs_points,
-                                                 pcs,
-                                                 pair=c("MDS1", "MDS2"),
-                                                 metric)
+        plot_list$scores_plot <- ordination_plot(
+          data = df_pcs_points,
+          col_name = "groups",
+          pair=c("MDS1", "MDS2"),
+          dist_explained = pcs$eig_norm,
+          dist_metric = metric
+        )
       }
 
       # Restores omics class components
@@ -1048,7 +1058,6 @@ omics <- R6::R6Class(
       # paired samples
       DFE <- foldchange(
         data = dt,
-        sample.id = self$.sample_id,
         condition_A = condition_A,
         condition_B = condition_B,
         paired = paired,
@@ -1069,9 +1078,10 @@ omics <- R6::R6Class(
 
         plot_list$volcano_plot <- lapply(1:n_diff_columns, function(i) {
           volcano_plot(data = DFE,
-                       X = paste0("Log2FC_", i),
-                       Y = paste0("pvalue_", i),
+                       logfold_col = paste0("Log2FC_", i),
+                       pvalue_col = paste0("pvalue_", i),
                        feature_rank = feature_rank,
+                       abundance_col = "rel_abun",
                        pvalue.threshold = pvalue.threshold,
                        logfold.threshold = foldchange.threshold,
                        label_A = condition_A,
@@ -1495,7 +1505,7 @@ omics <- R6::R6Class(
             alpha_div_plots[[i]] <- diversity_plot(dt = dt_final,
                                                    values = "alpha_div",
                                                    col_name = col_name,
-                                                   palette = fetch_palette(dt_final, col_name, "Set2"),
+                                                   palette = colormap(dt_final, col_name, "Set2"),
                                                    method = "custom")$diversity
           } else {
             alpha_div_plots[[i]] <- self$alpha_diversity(col_name = col_name, method = "shannon")$diversity
