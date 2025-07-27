@@ -10,14 +10,52 @@
 #' @param base Input for \link[base]{log} to use natural logarithmic scale, log2, log10 or other.
 #' @return A numeric vector with type double.
 #' @seealso \link[hillR]{hill_taxa}
+#' @examples 
+#' library("Matrix")
+#' 
+#' n_row <- 1000
+#' n_col <- 100
+#' density <- 0.2
+#' num_entries <- n_row * n_col
+#' num_nonzero <- round(num_entries * density)
 #'
+#' set.seed(123)
+#' positions <- sample(num_entries, num_nonzero, replace=FALSE)
+#' row_idx <- ((positions - 1) %% n_row) + 1
+#' col_idx <- ((positions - 1) %/% n_row) + 1
+#'
+#' values <- runif(num_nonzero, min = 0, max = 1)
+#' sparse_mat <- sparseMatrix(
+#'   i = row_idx,
+#'   j = col_idx,
+#'   x = values,
+#'   dims = c(n_row, n_col)
+#' )
+#' 
+#' result <- OmicFlow::hill_taxa(
+#'  x = sparse_mat,
+#'  q = 2
+#' )
 #' @export
-hill_taxa <- function (x, q = 0, normalize = TRUE, base = exp(1)) {
+
+hill_taxa <- function (x,
+                       q = 0,
+                       normalize = TRUE, 
+                       base = exp(1)) {
+
+  ## Error handling
+  #--------------------------------------------------------------------#
+
   x <- drop(as(x, "sparseMatrix"))
   if (!is.numeric(x@x))
-    stop("input data must be numeric")
+    cli::cli_abort("input data must be numeric")
+
   if (any(x@x < 0, na.rm = TRUE))
-    stop("input data must be non-negative")
+    cli::cli_abort("input data must be non-negative")
+
+  ## MAIN
+  #--------------------------------------------------------------------#
+
   if (normalize) {
     total <- rep(Matrix::colSums(x), base::diff(x@p))
     x@x <- x@x / total

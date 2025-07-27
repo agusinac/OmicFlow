@@ -3,20 +3,57 @@
 #' @description Creates a Volcano plot. This function is built into the \code{differential_feature_expression} method from the abstract class \link[OmicFlow]{omics} and inherited by other omics classes, such as;
 #' \link[OmicFlow]{metagenomics} and \link[OmicsFLow]{proteomics}.
 #'
-#' @param data A \code{data.frame} or \code{data.table}.
-#' @param X A column name of a continuous variable.
-#' @param Y A column name of a continuous variable.
+#' @param data A \code{data.table}.
+#' @param logfold_col A column name of a continuous variable.
+#' @param pvalue_col A column name of a continuous variable.
+#' @param abundance_col A column name of a continuous variable.
 #' @param feature_rank A character variable of the feature column.
 #' @param logfold.threshold A Log2(A/B) Fold Change threshold (default: 0.6).
 #' @param pvalue.threshold A P-value threshold (default: 0.05).
+#' @param label_A A character to describe condition A.
+#' @param label_B A character to describe condition B.
+#' 
 #' @return A \link[ggplot2]{ggplot2} object to be further modified.
-#'
+#' @examples 
+#' library(data.table)
+#' library(ggplot2)
+#' 
+#' # Create mock data frame
+#' mock_volcano_data <- data.table(
+#' 
+#'   # Feature names (feature_rank)
+#'   Feature = paste0("Gene", 1:20),   
+#' 
+#'   # Log2 fold changes (X)        
+#'   log2FC = c(1.2, -1.5, 0.3, -0.7, 2.3,    
+#'              -2.0, 0.1, 0.5, -1.0, 1.8,
+#'              -0.4, 0.7, -1.4, 1.5, 0.9,
+#'              -2.1, 0.2, 1.0, -0.3, -1.8),
+#'   
+#'   # P-values (Y)
+#'   pvalue = c(0.001, 0.02, 0.3, 0.04, 0.0005, 
+#'              0.01, 0.7, 0.5, 0.02, 0.0008,
+#'              0.15, 0.06, 0.01, 0.005, 0.3,
+#'              0.02, 0.8, 0.04, 0.12, 0.03),
+#'   
+#'   # Mean (relative) abundance for point sizing
+#'   rel_abun = runif(20, 0.01, 0.1)            
+#' )
+#' 
+#' volcano_plot(
+#'   data = mock_volcano_data,
+#'   logfold_col = "log2FC",
+#'   pvalue_col = "pvalue",
+#'   abundance_col = "rel_abun",
+#'   feature_rank = "Feature",
+#' )
 #' @export
 
 volcano_plot <- function(data,
-                         X,
-                         Y,
+                         logfold_col,
+                         pvalue_col,
                          feature_rank,
+                         abundance_col,
                          pvalue.threshold = 0.05,
                          logfold.threshold = 0.6,
                          label_A = "A",
@@ -25,19 +62,25 @@ volcano_plot <- function(data,
   ## Error handling
   #--------------------------------------------------------------------#
 
-  if (!inherits(data, "data.frame") || !inherits(data, "data.table"))
-    cli::cli_abort("Data must be a data.frame or data.table.")
+  if (!inherits(data, "data.table"))
+    cli::cli_abort("Data must be a data.table.")
 
-  if (!is.character(X) && length(X) != 1) {
-    cli::cli_abort("{X} needs to contain characters with length of 1.")
-  } else if (!column_exists(X, data)) {
-    cli::cli_abort("The {X} column does not exist in the provided data.")
+  if (!is.character(logfold_col) && length(logfold_col) != 1) {
+    cli::cli_abort("{logfold_col} needs to contain characters with length of 1.")
+  } else if (!column_exists(logfold_col, data)) {
+    cli::cli_abort("The {logfold_col} column does not exist in the provided data.")
   }
 
-  if (!is.character(Y) && length(Y) != 1) {
-    cli::cli_abort("{Y} needs to contain characters with length of 1.")
-  } else if (!column_exists(Y, data)) {
-    cli::cli_abort("The {Y} column does not exist in the provided data.")
+  if (!is.character(pvalue_col) && length(pvalue_col) != 1) {
+    cli::cli_abort("{pvalue_col} needs to contain characters with length of 1.")
+  } else if (!column_exists(pvalue_col, data)) {
+    cli::cli_abort("The {pvalue_col} column does not exist in the provided data.")
+  }
+
+  if (!is.character(abundance_col) && length(abundance_col) != 1) {
+    cli::cli_abort("{abundance_col} needs to contain characters with length of 1.")
+  } else if (!column_exists(abundance_col, data)) {
+    cli::cli_abort("The {abundance_col} column does not exist in the provided data.")
   }
 
   if (!is.character(feature_rank) && length(feature_rank) != 1) {
@@ -65,19 +108,19 @@ volcano_plot <- function(data,
   tmpdt <- data.table::copy(data)
 
   # Creates labels for significant and non-significant differential expression
-  tmpdt[, (Y) := -log10(base::get(Y))]
-  tmpdt[, diffexpressed := ifelse(base::get(X) > logfold.threshold & base::get(Y) > -log10(pvalue.threshold), "Upregulated",
-                                   ifelse(base::get(X) < -logfold.threshold & base::get(Y) > -log10(pvalue.threshold), "Downregulated", "non-significant"))]
+  tmpdt[, (pvalue_col) := -log10(base::get(pvalue_col))]
+  tmpdt[, diffexpressed := ifelse(base::get(logfold_col) > logfold.threshold & base::get(pvalue_col) > -log10(pvalue.threshold), "Upregulated",
+                                   ifelse(base::get(logfold_col) < -logfold.threshold & base::get(pvalue_col) > -log10(pvalue.threshold), "Downregulated", "non-significant"))]
   tmpdt[, diffexpressed_labels := ifelse(diffexpressed != "non-significant", base::get(feature_rank), "")]
 
-  max_pvalue <- max(tmpdt[[ Y ]])
+  max_pvalue <- max(tmpdt[[ pvalue_col ]])
 
   return(
     tmpdt %>%
-      ggplot(mapping = aes(x = .data [[ X ]],
-                           y = .data [[ Y ]],
+      ggplot(mapping = aes(x = .data [[ logfold_col ]],
+                           y = .data [[ pvalue_col ]],
                            label = diffexpressed_labels,
-                           color = .data [[ X ]])) +
+                           color = .data [[ logfold_col ]])) +
       theme_bw() +
       theme(axis.text.x = element_text(angle = 45, hjust = 1, size=12),
             axis.text.y = element_text(size=12),
@@ -86,18 +129,6 @@ volcano_plot <- function(data,
             legend.text = element_text(size=12),
             legend.title = element_text(size=14),
             strip.background = element_rect(fill = "#EEEEEE", color = "#FFFFFF")) +
-      # geom_rect(aes(xmin = -logfold.threshold, xmax = -Inf,
-      #               ymin = -log10(pvalue.threshold), ymax = Inf),
-      #           fill = "#C8E7F1", alpha = 0.1, color = NA) +
-      # geom_rect(aes(xmin = logfold.threshold, xmax = Inf,
-      #               ymin = -log10(pvalue.threshold), ymax = Inf),
-      #           fill = "#FFF1F3", alpha = 0.1, color = NA) +
-      # annotate("text", x = -logfold.threshold*4 , y = max_pvalue+1.5,
-      #          label = "Significant\ndecrease",
-      #          vjust = 2, size = 5, color = "black") +
-      # annotate("text", x = logfold.threshold*4 , y = max_pvalue+1.5,
-      #          label = "Significant\nincrease",
-      #          vjust = 2, size = 5, color = "black") +
       geom_vline(xintercept = c(-logfold.threshold, logfold.threshold),
                  col = "black", linetype = 'dashed') +
       geom_hline(yintercept = -log10(pvalue.threshold),
@@ -110,12 +141,10 @@ volcano_plot <- function(data,
       ggrepel::geom_label_repel(show.legend = FALSE,
                                 max.overlaps = getOption("ggrepel.max.overlaps", default = Inf),
                                 color = "black") +
-      geom_point(aes(size = ifelse(diffexpressed != "non-significant", rel_abun, 0)),
+      geom_point(aes(size = ifelse(diffexpressed != "non-significant", abundance_col, 0)),
                  shape = 16, alpha = 0.5) +
       scale_size_continuous(name = "Mean Rel. Abun.") +
       labs(x = paste0("Fold Change log2( ",label_A," / ",label_B," )"),
-           y = paste0("-log10( ", Y ," )"))
-    # +
-    #   ylim(0, max_pvalue + 1.5)
+           y = paste0("-log10( ", pvalue_col ," )"))
   )
 }

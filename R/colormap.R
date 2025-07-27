@@ -1,4 +1,4 @@
-#' Fetch palette(s)
+#' Create color map based on a variable
 #'
 #' @description Creates an object of hexcode colors with names.
 #' This function is built into the \code{ordination} method from the abstract class \link[OmicFlow]{omics} and inherited by other omics classes, such as;
@@ -10,17 +10,26 @@
 #' @return An object of names and hexcolors
 #' @seealso \link[stats]{setNames}
 #'
+#' @examples 
+#' library("data.table")
+#' dt <- data.table(
+#'   "SAMPLE_ID" = c("sample_1", "sample_2", "sample_3"),
+#'   "treatment" = c("healthy", "tumor", NA)
+#' )
+#'
+#' colors <- colormap(data = dt,
+#'                    col_name = "treatment")
 #' @export
 
-fetch_palette <- function(data,
-                          col_name,
-                          Brewer.palID = "Set2") {
+colormap <- function(data,
+                     col_name,
+                     Brewer.palID = "Set2") {
 
   ## Error handling
   #--------------------------------------------------------------------#
 
-  if (!inherits(data, "data.frame") || !inherits(data, "data.table"))
-    cli::cli_abort("data must be a data.frame or data.table.")
+  if (!inherits(data, "data.frame") && !inherits(data, "data.table"))
+    cli::cli_abort("Data must be a data.frame or data.table.")
 
   if (!is.character(col_name) && length(col_name) != 1) {
     cli::cli_abort("Column name: {col_name} needs to contain characters with length of 1.")

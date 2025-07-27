@@ -7,16 +7,43 @@
 #' \link[OmicFlow]{metagenomics} and \link[OmicFlow]{proteomics}.
 #'
 #' @param x A \link[base]{matrix} or \link[Matrix]{sparseMatrix}.
-#' @param method A character variable for method; shannon, simpson or invsimpson.
+#' @param metric A character variable for metric; shannon, simpson or invsimpson.
 #' @param normalize A boolean variable for sample normalization by column sums.
 #' @param base Input for \link[base]{log} to use natural logarithmic scale, log2, log10 or other.
 #' @return A numeric vector with type double.
 #' @seealso \link[vegan]{diversity}
+#' @examples 
+#' library("Matrix")
+#' 
+#' n_row <- 1000
+#' n_col <- 100
+#' density <- 0.2
+#' num_entries <- n_row * n_col
+#' num_nonzero <- round(num_entries * density)
 #'
+#' set.seed(123)
+#' positions <- sample(num_entries, num_nonzero, replace=FALSE)
+#' row_idx <- ((positions - 1) %% n_row) + 1
+#' col_idx <- ((positions - 1) %/% n_row) + 1
+#'
+#' values <- runif(num_nonzero, min = 0, max = 1)
+#' sparse_mat <- sparseMatrix(
+#'   i = row_idx,
+#'   j = col_idx,
+#'   x = values,
+#'   dims = c(n_row, n_col)
+#' )
+#'
+#' # Alpha diversity is computed on column level
+#' ## If your samples are rows you need to transpose it first with ``t(sparse_mat)`` from Matrix R package.
+#' result <- OmicFlow::diversity(
+#'   x = sparse_mat,
+#'   metric = "shannon"
+#' ) 
 #' @export
 
 diversity <- function(x,
-                      method = c("shannon", "simpson", "invsimpson"),
+                      metric = c("shannon", "simpson", "invsimpson"),
                       normalize = TRUE,
                       base = exp(1)) {
 
@@ -31,10 +58,10 @@ diversity <- function(x,
     cli::cli_abort("input data must be non-negative")
 
   OPTIONS <- c("shannon", "simpson", "invsimpson")
-  if (!is.character(method) && length(method) != 1) {
-    cli::cli_abort("{method} needs to contain characters with length of 1.")
-  } else if (!method %in% OPTIONS) {
-    cli::cli_abort("{method} is not a valid method. Valid options: {OPTIONS}")
+  if (!is.character(metric) && length(metric) != 1) {
+    cli::cli_abort("{metric} needs to contain characters with length of 1.")
+  } else if (!metric %in% OPTIONS) {
+    cli::cli_abort("{metric} is not a valid metric. Valid options: {OPTIONS}")
   }
 
   ## MAIN
@@ -45,7 +72,7 @@ diversity <- function(x,
     x@x <- x@x / total
   }
 
-  if (method == "shannon") {
+  if (metric == "shannon") {
     x@x <- -x@x * log(x@x, base)
   } else {
     x@x <- x@x * x@x
@@ -53,9 +80,9 @@ diversity <- function(x,
   if (length(dim(x)) > 1) {
     H <- Matrix::colSums(x, na.rm = TRUE)
   }
-  if (method == "simpson") {
+  if (metric == "simpson") {
     H <- 1 - H
-  } else if (method == "invsimpson") {
+  } else if (metric == "invsimpson") {
     H <- 1/H
   }
   ## check NA in data

@@ -11,6 +11,48 @@
 #' @param p.adjust.method A character variable to specify the p.adjust.method to be used (Default: fdr).
 #' @return A \link[ggplot2]{ggplot2} object to be further modified
 #'
+#' @examples
+#' library("Matrix")
+#' library("data.table")
+#'  
+#' n_row <- 1000
+#' n_col <- 100
+#' density <- 0.2
+#' num_entries <- n_row * n_col
+#' num_nonzero <- round(num_entries * density)
+#' 
+#' set.seed(123)
+#' positions <- sample(num_entries, num_nonzero, replace=FALSE)
+#' row_idx <- ((positions - 1) %% n_row) + 1
+#' col_idx <- ((positions - 1) %/% n_row) + 1
+#' 
+#' values <- runif(num_nonzero, min = 0, max = 1)
+#' sparse_mat <- sparseMatrix(
+#'    i = row_idx,
+#'    j = col_idx,
+#'    x = values,
+#'    dims = c(n_row, n_col)
+#'  )
+#' 
+#' div <- OmicFlow::diversity(
+#'   x = sparse_mat,
+#'   metric = "shannon"
+#' )
+#' 
+#' dt <- data.table(
+#'   "values" = div,
+#'   "treatment" = c(rep("healthy", n_col / 2), rep("tumor", n_col / 2))
+#' )
+#' 
+#' diversity_plot(
+#'   data = dt,
+#'   values = "values",
+#'   col_name = "treatment",
+#'   palette = colors,
+#'   method = "shannon",
+#'   paired = FALSE,
+#'   p.adjust.method = "fdr"
+#' )
 #' @export
 
 diversity_plot <- function(data,
@@ -24,7 +66,7 @@ diversity_plot <- function(data,
   ## Error handling
   #--------------------------------------------------------------------#
 
-  if (!inherits(data, "data.frame") || !inherits(data, "data.table"))
+  if (!inherits(data, "data.frame") && !inherits(data, "data.table"))
     cli::cli_abort("data must be a data.frame or data.table.")
 
   if (!is.character(palette))
