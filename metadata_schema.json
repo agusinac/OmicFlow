@@ -8,27 +8,27 @@
         "properties": {
             "SAMPLE_ID": {
                 "type": "string",
-                "pattern": "^\\S+$"
+                "pattern": "^(\\S*)$"
             },
             "FEATURE_ID": {
                 "type": "string",
-                "pattern": "^\\S+$"
+                "pattern": "^(\\S*)$"
             },
             "SAMPLEPAIR_ID": {
                 "type": "string",
-                "pattern": "^\\S+$"
+                "pattern": "^(\\S*)$"
             }
         },
         "patternProperties": {
           "^CONTRAST_": {
             "anyOf": [
-                { "type": "string", "pattern": "^\\S+$" },
+                { "type": "string", "pattern": "^(\\S*)$" },
                 { "type": "number" }
               ]
             },
           "^VARIABLE_": {
             "anyOf": [
-              { "type": "string", "pattern": "^\\S+$" },
+              { "type": "string", "pattern": "^(\\S*)$" },
               { "type": "number" }
             ]
           }
