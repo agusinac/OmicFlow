@@ -6,7 +6,7 @@
 \usage{
 diversity(
   x,
-  method = c("shannon", "simpson", "invsimpson"),
+  metric = c("shannon", "simpson", "invsimpson"),
   normalize = TRUE,
   base = exp(1)
 )
@@ -14,7 +14,7 @@ diversity(
 \arguments{
 \item{x}{A \link[base]{matrix} or \link[Matrix]{sparseMatrix}.}
 
-\item{method}{A character variable for method; shannon, simpson or invsimpson.}
+\item{metric}{A character variable for metric; shannon, simpson or invsimpson.}
 
 \item{normalize}{A boolean variable for sample normalization by column sums.}
 
@@ -29,6 +29,35 @@ Code is adapted from \link[vegan]{diversity} and uses \link[Matrix]{sparseMatrix
 The code is much faster and memory efficient, while still being mathematical correct.
 This function is built into the \code{alpha_diversity} method from the abstract class \link[OmicFlow]{omics} and inherited by other omics classes, such as;
 \link[OmicFlow]{metagenomics} and \link[OmicFlow]{proteomics}.
+}
+\examples{
+library("Matrix")
+
+n_row <- 1000
+n_col <- 100
+density <- 0.2
+num_entries <- n_row * n_col
+num_nonzero <- round(num_entries * density)
+
+set.seed(123)
+positions <- sample(num_entries, num_nonzero, replace=FALSE)
+row_idx <- ((positions - 1) \%\% n_row) + 1
+col_idx <- ((positions - 1) \%/\% n_row) + 1
+
+values <- runif(num_nonzero, min = 0, max = 1)
+sparse_mat <- sparseMatrix(
+  i = row_idx,
+  j = col_idx,
+  x = values,
+  dims = c(n_row, n_col)
+)
+
+# Alpha diversity is computed on column level
+## If your samples are rows you need to transpose it first with ``t(sparse_mat)`` from Matrix R package.
+result <- OmicFlow::diversity(
+  x = sparse_mat,
+  metric = "shannon"
+) 
 }
 \seealso{
 \link[vegan]{diversity}

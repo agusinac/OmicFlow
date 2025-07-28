@@ -23,6 +23,33 @@ Computes the hill numbers for q is 0, 1 or 2.
 Code is adapted from \link[hillR]{hill_taxa} and uses \link[Matrix]{sparseMatrix} in triplet format over the dense matrix.
 The code is much faster and memory efficient, while still being mathematical correct.
 }
+\examples{
+library("Matrix")
+
+n_row <- 1000
+n_col <- 100
+density <- 0.2
+num_entries <- n_row * n_col
+num_nonzero <- round(num_entries * density)
+
+set.seed(123)
+positions <- sample(num_entries, num_nonzero, replace=FALSE)
+row_idx <- ((positions - 1) \%\% n_row) + 1
+col_idx <- ((positions - 1) \%/\% n_row) + 1
+
+values <- runif(num_nonzero, min = 0, max = 1)
+sparse_mat <- sparseMatrix(
+  i = row_idx,
+  j = col_idx,
+  x = values,
+  dims = c(n_row, n_col)
+)
+
+result <- OmicFlow::hill_taxa(
+ x = sparse_mat,
+ q = 2
+)
+}
 \seealso{
 \link[hillR]{hill_taxa}
 }

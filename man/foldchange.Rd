@@ -6,7 +6,6 @@
 \usage{
 foldchange(
   data,
-  sample.id,
   feature_rank,
   condition_A,
   condition_B,
@@ -16,8 +15,6 @@ foldchange(
 }
 \arguments{
 \item{data}{A \link[data.table]{data.table}.}
-
-\item{sample.id}{A column name of a categorical variable containing sample IDs.}
 
 \item{feature_rank}{A character variable of the feature level (e.g. "Genus" in taxonomy).}
 
@@ -34,4 +31,94 @@ A \link[data.table]{data.table}
 Computes (non-)paired Log2(A) - Log2(B) Fold Change.
 This function is built into the \code{differential_feature_expression} method from the abstract class \link[OmicFlow]{omics} and inherited by other omics classes, such as;
 \link[OmicFlow]{metagenomics} and \link[OmicFlow]{proteomics}.
+}
+\examples{
+#-------------------------#
+##      NON-PAIRED       ##
+#-------------------------#
+# Load required library
+library(data.table)
+
+# Define parameters and variables
+sample_ids <- c("S1_A", "S2_A", "S3_A", "S4_B", "S5_B", "S6_B")
+feature_ids <- c("Feature1", "Feature2", "Feature3")
+
+# Simulated abundance matrix (features x samples)
+abundances <- matrix(
+  c(
+    # Feature1 (e.g. GenusA)
+    100, 120, 110,  55, 60, 65,
+    # Feature2 (e.g. GenusB)
+    50, 65, 60,    130, 120, 125,
+    # Feature3 (e.g. GenusC)
+    80, 85, 90,     80, 85, 90
+  ),
+  nrow = 3, byrow = TRUE,
+  dimnames = list(feature_ids, sample_ids)
+)
+
+# A wide table with columns as samples, rows as features
+# And an additional column as the feature_rank, a column for feature comparison.
+mock_data <- data.table(
+  Genus = feature_ids,  # feature_rank column (e.g. "Genus")
+  S1_A = abundances[ , 1],
+  S2_A = abundances[ , 2],
+  S3_A = abundances[ , 3],
+  S4_B = abundances[ , 4],
+  S5_B = abundances[ , 5],
+  S6_B = abundances[ , 6]
+)
+print(mock_data)
+
+# It uses substring matching, and multiple conditions can be used
+res <- foldchange(
+  data = mock_data,
+  feature_rank = "Genus",
+  condition_A = c("_A", "_B"),
+  condition_B = c("_B", "_A"),
+
+  # This can also be a column wherein, conditions A and B are present
+  condition_labels = sample_ids, 
+  paired = FALSE
+)
+print(res)
+
+#---------------------#
+##      PAIRED       ##
+#---------------------#
+library(data.table)
+
+# Define paired sample ids for 3 pairs:
+paired_ids <- paste0("Pair", 1:3)
+
+# Features:
+feature_ids <- c("Feature1", "Feature2", "Feature3")
+
+# Simulate abundances for each paired sample:
+# For each pair, we have two samples: condition A and condition B.
+# Make sure the length of condition A and condition B are the same!
+
+# Construct the data.table with features as rows
+mock_data_paired <- data.table(
+  Genus = feature_ids,
+  Pair1_A = c(100, 50, 80),
+  Pair1_B = c(60, 130, 75),
+  Pair2_A = c(120, 65, 85),
+  Pair2_B = c(60, 120, 90),
+  Pair3_A = c(110, 60, 90),
+  Pair3_B = c(65, 125, 85) 
+)
+
+res <- foldchange(
+  data = mock_data_paired,
+  feature_rank = "Genus",
+  condition_A = c("_A", "_B"),
+  condition_B = c("_B", "_A"),
+
+  # This can also be a column wherein, conditions A and B are present
+  condition_labels = names(mock_data_paired)[-1], 
+  paired = TRUE
+)
+print(res)
+
 }

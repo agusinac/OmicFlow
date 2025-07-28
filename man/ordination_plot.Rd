@@ -4,16 +4,24 @@
 \alias{ordination_plot}
 \title{Ordination plot with ggplot2}
 \usage{
-ordination_plot(df_pcs, pcs, pair, dist.metric)
+ordination_plot(
+  data,
+  col_name,
+  pair,
+  dist_explained = NULL,
+  dist_metric = NULL
+)
 }
 \arguments{
-\item{df_pcs}{A \code{data.frame} or \code{data.table} of Principal Components as columns and rows as loading scores.}
+\item{data}{A \code{data.frame} or \code{data.table} of Principal Components as columns and rows as loading scores.}
 
-\item{pcs}{A nested list as output from \link[vegan]{wcmdscale} or \link[vegan]{metaMDS}.}
+\item{col_name}{A categorical variable to color the contrasts (e.g. "groups").}
 
 \item{pair}{A vector of character variables indicating what dimension names (e.g. PC1, NMDS2).}
 
-\item{dist.metric}{A character variable indicating what metric is used (e.g. unifrac, bray-curtis).}
+\item{dist_explained}{A vector of numeric values of the percentage dissimilarity explained for the dimension pairs, default is NULL.}
+
+\item{dist_metric}{A character variable indicating what metric is used (e.g. unifrac, bray-curtis), default is NULL.}
 }
 \value{
 A \link[ggplot2]{ggplot2} object to be further modified
@@ -21,4 +29,32 @@ A \link[ggplot2]{ggplot2} object to be further modified
 \description{
 Creates an ordination plot of a distance matrix. This function is built into the \code{ordination} method from the abstract class \link[OmicFlow]{omics} and inherited by other omics classes, such as;
 \link[OmicFlow]{metagenomics} and \link[OmicFlow]{proteomics}.
+}
+\examples{
+library(ggplot2)
+
+# Mock principal component scores
+set.seed(123)
+mock_data <- data.frame(
+  SampleID = paste0("Sample", 1:10),
+  PC1 = rnorm(10, mean = 0, sd = 1),
+  PC2 = rnorm(10, mean = 0, sd = 1),
+  groups = rep(c("Group1", "Group2"), each = 5)
+)
+
+# Basic usage
+ordination_plot(
+  data = mock_data,
+  col_name = "groups",
+  pair = c("PC1", "PC2")
+)
+
+# Adding variance/dissimilarity explained.
+ordination_plot(
+  data = mock_data,
+  col_name = "groups",
+  pair = c("PC1", "PC2"),
+  dist_explained = c(45, 22),
+  dist_metric = "bray-curtis"
+)
 }

@@ -180,7 +180,7 @@ paired <- obj$differential_feature_expression(feature_rank = "Genus",
 
 \link[OmicFlow]{composition_plot}
 
-\link[OmicFlow]{ordination_plot}, \link[OmicFlow]{stats_plot}, \link[OmicFlow]{pairwise_anosim}, \link[OmicFlow]{pairwise_adonis}
+\link[OmicFlow]{ordination_plot}, \link[OmicFlow]{plot_pairwise_stats}, \link[OmicFlow]{pairwise_anosim}, \link[OmicFlow]{pairwise_adonis}
 
 \link[OmicFlow]{volcano_plot}, \link[OmicFlow]{ViolinBoxPlot}, \link[OmicFlow]{paired_fold}, \link[OmicFlow]{unpaired_fold}
 }
@@ -546,7 +546,7 @@ Alpha diversity based on \link[OmicFlow]{diversity}
 
 \item{\code{method}}{Diversity metric such as "shannon", "invsimpson" or "simpson"}
 
-\item{\code{Brewer.palID}}{Palette set to be applied, see \link[RColorBrewer]{brewer.pal} or \link[OmicFlow]{fetch_palette}.}
+\item{\code{Brewer.palID}}{Palette set to be applied, see \link[RColorBrewer]{brewer.pal} or \link[OmicFlow]{colormap}.}
 
 \item{\code{evenness}}{A boolean wether to divide diversity by number of species, see \link[vegan]{specnumber}.}
 
@@ -599,7 +599,7 @@ Visualization of compositional data.
 
 \item{\code{feature_top}}{Integer of the top features to visualize, the max is 15, due to a limit of palettes.}
 
-\item{\code{Brewer.palID}}{Palette set to be applied, see \link[RColorBrewer]{brewer.pal} or \link[OmicFlow]{fetch_palette}.}
+\item{\code{Brewer.palID}}{Palette set to be applied, see \link[RColorBrewer]{brewer.pal} or \link[OmicFlow]{colormap}.}
 }
 \if{html}{\out{</div>}}
 }

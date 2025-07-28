@@ -33,6 +33,23 @@ Computes pairwise \link[vegan]{adonis2}, given a distance matrix and a vector of
 This function is built into the \code{ordination} method from the abstract class \link[OmicFlow]{omics} and inherited by other omics classes, such as;
 \link[OmicFlow]{metagenomics} and \link[OmicsFLow]{proteomics}.
 }
+\examples{
+# Create random data
+set.seed(42)
+mock_data <- matrix(rnorm(15 * 10), nrow = 15, ncol = 10)
+
+# Create euclidean dissimilarity matrix
+mock_dist <- dist(mock_data, method = "euclidean")
+
+# Define group labels, should be equal to number of columns and rows to dist
+mock_groups <- rep(c("A", "B", "C"), each = 5)
+
+# Compute pairwise adonis (PERMANOVA)
+result <- pairwise_adonis(x = mock_dist, 
+                          groups = mock_groups, 
+                          p.adjust.method = "bonferroni", 
+                          perm = 99)
+}
 \seealso{
 \link[vegan]{adonis2}
 }

@@ -4,12 +4,25 @@
 \name{OmicFlow-package}
 \alias{OmicFlow}
 \alias{OmicFlow-package}
-\title{OmicFlow: What the Package Does (One Line, Title Case)}
+\title{OmicFlow: Fast and Efficient (automated) analysis of sparse omics data.}
 \description{
-What the package does (one paragraph).
+Something to be written
+}
+\seealso{
+Useful links:
+\itemize{
+  \item \url{https://github.com/agusinac/OmicFlow}
+}
+
 }
 \author{
-\strong{Maintainer}: Alem Gusinac \email{alem.gusinac@gmail.com} (\href{https://orcid.org/YOUR-ORCID-ID}{ORCID})
+\strong{Maintainer}: Alem Gusinac \email{alem.gusinac@gmail.com} (\href{https://orcid.org/0009-0006-1896-4176}{ORCID})
+
+Authors:
+\itemize{
+  \item Thomas Ederveen (\href{https://orcid.org/0000-0003-0068-1275}{ORCID})
+  \item Annemarie Boleij (\href{https://orcid.org/0000-0003-4495-5880}{ORCID}) [funder]
+}
 
 }
 \keyword{internal}
