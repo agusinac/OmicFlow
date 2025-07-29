@@ -228,7 +228,13 @@ omics <- R6::R6Class(
     #' obj$feature_subset(rank1 %in% c("Streptococcus", "uncultured"))
     #'
     feature_subset = function(...) {
-      rows_to_keep <- self$featureData[, ...]
+      # Replace all NAs by empty string
+      features <- data.table::copy(self$featureData)
+      features[, names(features) := lapply(.SD, function(x) {
+        if (is.character(x)) ifelse(is.na(x), "", x) else x
+      })]
+
+      rows_to_keep <- features[, ...]
       self$featureData <- self$featureData[rows_to_keep, ]
       self$countData <- self$countData[rows_to_keep, ]
       self$removeZeros()
@@ -913,7 +919,7 @@ omics <- R6::R6Class(
       return(plot_list)
     },
     #' @description
-    #' Differential feature expression using the \link[OmicFlow]{foldchange} for both paired and non-paired samples.
+    #' Differential feature expression (DFE) using the \link[OmicFlow]{foldchange} for both paired and non-paired samples.
     #' @param feature_rank A character value or vector of columns to aggregate from the `featureData`.
     #' @param feature_filter A character value or vector of characters to remove features via regex pattern (Default: NULL).
     #' @param paired A Boolean value, the paired is only applicable when a `SAMPLEPAIR_ID` column exists within the `metaData`. See \link[stats]{wilcox.test}
@@ -922,19 +928,20 @@ omics <- R6::R6Class(
     #' @param condition_B A character value or vector of characters.
     #' @param pvalue.threshold An Integer value, a P-value threshold to label and color significant features (Default: 0.05).
     #' @param foldchange.threshold An Integer value, a fold-change threshold to label and color significantly expressed features (Default: 0.06).
+    #' @param abundance.threshold An abundance threshold (default: 0.01).
     #' @param normalize A Boolean value, whether to [`normalize()`](#method-normalize) by total sample sums (Default: TRUE).
     #' @examples
     #' obj <- omics$new(countData = "counts.csv",
     #'                  featureData = "features.txt",
     #'                  metaData = "metadata.tsv"
     #'
-    #' unpaired <- obj$differential_feature_expression(feature_rank = "Genus",
+    #' unpaired <- obj$DFE(feature_rank = "Genus",
     #'                                                 paired = FALSE,
     #'                                                 condition.group = "treatment",
     #'                                                 condition_A = c("H"),
     #'                                                 condition_B = c("T"))
     #'
-    #' paired <- obj$differential_feature_expression(feature_rank = "Genus",
+    #' paired <- obj$DFE(feature_rank = "Genus",
     #'                                               paired = TRUE,
     #'                                               condition.group = "cycle",
     #'                                               condition_A = c("t2", "t3"),
@@ -944,16 +951,17 @@ omics <- R6::R6Class(
     #' * A list of \link[ggplot2]{ggplot} object.
     #' * A long \link[data.table]{data.table} table.
     #' @seealso \link[OmicFlow]{volcano_plot}, \link[OmicFlow]{ViolinBoxPlot}, \link[OmicFlow]{paired_fold}, \link[OmicFlow]{unpaired_fold}
-    differential_feature_expression = function(feature_rank,
-                                               feature_filter = NULL,
-                                               paired = FALSE,
-                                               normalize = TRUE,
-                                               condition.group,
-                                               condition_A,
-                                               condition_B,
-                                               pvalue.threshold = 0.05,
-                                               foldchange.threshold = 0.06
-                                               ) {
+    DFE = function(feature_rank,
+                   feature_filter = NULL,
+                   paired = FALSE,
+                   normalize = TRUE,
+                   condition.group,
+                   condition_A,
+                   condition_B,
+                   pvalue.threshold = 0.05,
+                   foldchange.threshold = 0.06,
+                   abundance.threshold = 0
+                   ) {
 
       ## Error handling
       #--------------------------------------------------------------------#
@@ -1027,7 +1035,7 @@ omics <- R6::R6Class(
                                                 cols = c(self$.sample_id, condition.group))[[ condition.group ]]
 
       # paired samples
-      DFE <- foldchange(
+      dfe <- foldchange(
         data = dt,
         condition_A = condition_A,
         condition_B = condition_B,
@@ -1041,14 +1049,14 @@ omics <- R6::R6Class(
         #----------------------#
 
         # Add relative abundance, and save data as output list
-        DFE <- DFE[, "rel_abun" := rel_abun]
-        plot_list$data <- DFE
+        dfe <- dfe[, "rel_abun" := rel_abun]
+        plot_list$data <- dfe
 
         # Create & save volcano plot
-        n_diff_columns <- sum(grepl("^Log2FC_", colnames(DFE)))
+        n_diff_columns <- sum(grepl("^Log2FC_", colnames(dfe)))
 
         plot_list$volcano_plot <- lapply(1:n_diff_columns, function(i) {
-          volcano_plot(data = DFE,
+          volcano_plot(data = dfe,
                        logfold_col = paste0("Log2FC_", i),
                        pvalue_col = paste0("pvalue_", i),
                        feature_rank = feature_rank,
@@ -1524,12 +1532,12 @@ omics <- R6::R6Class(
             #   condition_A <- unique_groups[1, ]
             #   condition_B <- unique_groups[2, ]
             #
-            #   Log2FC_plots[[i, j]] <- self$differential_feature_expression(feature_rank = feature_ranks[j],
-            #                                                                sample.id = "SAMPLE-ID",
-            #                                                                condition.group = col_name,
-            #                                                                condition_A = condition_A,
-            #                                                                condition_B = condition_B,
-            #                                                                feature_filter = feature_filter)[["volcano_plot"]][[1]]
+            #   Log2FC_plots[[i, j]] <- self$DFE(feature_rank = feature_ranks[j],
+            #                                    sample.id = "SAMPLE-ID",
+            #                                    condition.group = col_name,
+            #                                    condition_A = condition_A,
+            #                                    condition_B = condition_B,
+            #                                    feature_filter = feature_filter)[["volcano_plot"]][[1]]
             # }
 
 

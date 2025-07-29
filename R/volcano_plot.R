@@ -1,6 +1,6 @@
 #' Volcano plot with ggplot2
 #'
-#' @description Creates a Volcano plot. This function is built into the \code{differential_feature_expression} method from the abstract class \link[OmicFlow]{omics} and inherited by other omics classes, such as;
+#' @description Creates a Volcano plot. This function is built into the \code{DFE} method from the abstract class \link[OmicFlow]{omics} and inherited by other omics classes, such as;
 #' \link[OmicFlow]{metagenomics} and \link[OmicsFLow]{proteomics}.
 #'
 #' @param data A \code{data.table}.
@@ -10,6 +10,7 @@
 #' @param feature_rank A character variable of the feature column.
 #' @param logfold.threshold A Log2(A/B) Fold Change threshold (default: 0.6).
 #' @param pvalue.threshold A P-value threshold (default: 0.05).
+#' @param abundance.threshold An abundance threshold (default: 0.01).
 #' @param label_A A character to describe condition A.
 #' @param label_B A character to describe condition B.
 #' 
@@ -56,6 +57,7 @@ volcano_plot <- function(data,
                          abundance_col,
                          pvalue.threshold = 0.05,
                          logfold.threshold = 0.6,
+                         abundance.threshold = 0.01,
                          label_A = "A",
                          label_B = "B") {
 
@@ -95,6 +97,9 @@ volcano_plot <- function(data,
   if (!is.numeric(logfold.threshold))
     cli::cli_abort("{logfold.threshold} need to be numeric.")
 
+  if (!is.numeric(abundance.threshold))
+    cli::cli_abort("{abundance.threshold} need to be numeric.")
+
   if (!is.character(label_A))
     cli::cli_abort("{label_A} needs to contain characters.")
 
@@ -109,8 +114,19 @@ volcano_plot <- function(data,
 
   # Creates labels for significant and non-significant differential expression
   tmpdt[, (pvalue_col) := -log10(base::get(pvalue_col))]
-  tmpdt[, diffexpressed := ifelse(base::get(logfold_col) > logfold.threshold & base::get(pvalue_col) > -log10(pvalue.threshold), "Upregulated",
-                                   ifelse(base::get(logfold_col) < -logfold.threshold & base::get(pvalue_col) > -log10(pvalue.threshold), "Downregulated", "non-significant"))]
+  tmpdt[, diffexpressed := ifelse(
+    base::get(logfold_col) > logfold.threshold &
+    base::get(pvalue_col) > -log10(pvalue.threshold) &
+    base::get(abundance_col) >= abundance.threshold, 
+    "Upregulated",
+    ifelse(
+      base::get(logfold_col) < -logfold.threshold &
+      base::get(pvalue_col) > -log10(pvalue.threshold) &
+      base::get(abundance_col) >= abundance.threshold, 
+      "Downregulated", 
+      "non-significant"
+      )
+    )]
   tmpdt[, diffexpressed_labels := ifelse(diffexpressed != "non-significant", base::get(feature_rank), "")]
 
   return(
@@ -142,7 +158,7 @@ volcano_plot <- function(data,
       geom_point(aes(size = as.numeric(ifelse(diffexpressed != "non-significant", .data[[ abundance_col ]], 0))),
                  shape = 16, alpha = 0.5) +
       scale_size_continuous(name = "Mean Rel. Abun.") +
-      labs(x = paste0("Fold Change log2( ",label_A," / ",label_B," )"),
+      labs(x = paste0("Fold Change log2( ", label_A," / ", label_B," )"),
            y = paste0("-log10( ", pvalue_col ," )"))
   )
 }

@@ -148,20 +148,12 @@ foldchange <- function(data,
     mat_A <- as.matrix(dt_A)
     mat_B <- as.matrix(dt_B)
 
-    # Convert to sparse matrix (dgCMatrix)
-    sparse_A <- as(mat_A, "dgCMatrix") 
-    sparse_B <- as(mat_B, "dgCMatrix")
-
-    # Log2 transformation
-    sparse_A@x <- log2(sparse_A@x)
-    sparse_B@x <- log2(sparse_B@x)
-
-    # Compute rowMeans for sparse matrices efficiently
-    row_means_A <- Matrix::rowSums(sparse_A) / ncol(sparse_A)
-    row_means_B <- Matrix::rowSums(sparse_B) / ncol(sparse_B)
+    # Feature means per condition
+    row_means_A <- Matrix::rowMeans(mat_A)
+    row_means_B <- Matrix::rowMeans(mat_B)
 
     # Compute log2 fold change
-    result <- row_means_A - row_means_B
+    result <- log2(row_means_A) - log2(row_means_B)
 
     # Combines to final foldchange data table
     foldchange_dt <- cbind(foldchange_dt, result)
