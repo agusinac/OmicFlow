@@ -171,8 +171,7 @@ paired <- obj$differential_feature_expression(feature_rank = "Genus",
                                               paired = TRUE,
                                               condition.group = "cycle",
                                               condition_A = c("t2", "t3"),
-                                              condition_B = c("t1", "t2"),
-                                              feature_top = 20)
+                                              condition_B = c("t1", "t2"))
 
 }
 \seealso{
@@ -697,7 +696,6 @@ Differential feature expression using the \link[OmicFlow]{foldchange} for both p
 \if{html}{\out{<div class="r">}}\preformatted{omics$differential_feature_expression(
   feature_rank,
   feature_filter = NULL,
-  feature_top = NULL,
   paired = FALSE,
   normalize = TRUE,
   condition.group,
@@ -714,8 +712,6 @@ Differential feature expression using the \link[OmicFlow]{foldchange} for both p
 \item{\code{feature_rank}}{A character value or vector of columns to aggregate from the \code{featureData}.}
 
 \item{\code{feature_filter}}{A character value or vector of characters to remove features via regex pattern (Default: NULL).}
-
-\item{\code{feature_top}}{Integer of the top features to visualize (Default: NULL, everything will be used).}
 
 \item{\code{paired}}{A Boolean value, the paired is only applicable when a \code{SAMPLEPAIR_ID} column exists within the \code{metaData}. See \link[stats]{wilcox.test}}
 
@@ -755,8 +751,7 @@ paired <- obj$differential_feature_expression(feature_rank = "Genus",
                                               paired = TRUE,
                                               condition.group = "cycle",
                                               condition_A = c("t2", "t3"),
-                                              condition_B = c("t1", "t2"),
-                                              feature_top = 20)
+                                              condition_B = c("t1", "t2"))
 
 }
 \if{html}{\out{</div>}}

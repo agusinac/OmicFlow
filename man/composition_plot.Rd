@@ -7,9 +7,9 @@
 composition_plot(
   data,
   palette,
-  feature_rank = "Genus",
+  feature_rank,
   title_name = NULL,
-  group_by = FALSE
+  group_by = NULL
 )
 }
 \arguments{
@@ -21,7 +21,7 @@ composition_plot(
 
 \item{title_name}{A character variable to set the \code{ggtitle} of the ggplot (Default: NULL).}
 
-\item{group_by}{A character variable to aggregate the stacked bars by group.}
+\item{group_by}{A character variable to aggregate the stacked bars by group (Default: NULL).}
 }
 \value{
 A \link[ggplot2]{ggplot2} object to be further modified

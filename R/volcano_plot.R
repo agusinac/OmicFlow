@@ -113,8 +113,6 @@ volcano_plot <- function(data,
                                    ifelse(base::get(logfold_col) < -logfold.threshold & base::get(pvalue_col) > -log10(pvalue.threshold), "Downregulated", "non-significant"))]
   tmpdt[, diffexpressed_labels := ifelse(diffexpressed != "non-significant", base::get(feature_rank), "")]
 
-  max_pvalue <- max(tmpdt[[ pvalue_col ]])
-
   return(
     tmpdt %>%
       ggplot(mapping = aes(x = .data [[ logfold_col ]],
@@ -141,7 +139,7 @@ volcano_plot <- function(data,
       ggrepel::geom_label_repel(show.legend = FALSE,
                                 max.overlaps = getOption("ggrepel.max.overlaps", default = Inf),
                                 color = "black") +
-      geom_point(aes(size = ifelse(diffexpressed != "non-significant", abundance_col, 0)),
+      geom_point(aes(size = as.numeric(ifelse(diffexpressed != "non-significant", .data[[ abundance_col ]], 0))),
                  shape = 16, alpha = 0.5) +
       scale_size_continuous(name = "Mean Rel. Abun.") +
       labs(x = paste0("Fold Change log2( ",label_A," / ",label_B," )"),

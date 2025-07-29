@@ -6,7 +6,7 @@
 #' @param palette An object with names and hexcode or color names, see \link[OmicFlow]{colormap}.
 #' @param feature_rank A character variable of the feature column (Default: `"Genus"`).
 #' @param title_name A character variable to set the \code{ggtitle} of the ggplot (Default: NULL).
-#' @param group_by A character variable to aggregate the stacked bars by group.
+#' @param group_by A character variable to aggregate the stacked bars by group (Default: NULL).
 #' @return A \link[ggplot2]{ggplot2} object to be further modified
 #'
 #' @examples
@@ -66,9 +66,9 @@
 
 composition_plot <- function(data,
                              palette,
-                             feature_rank = "Genus",
+                             feature_rank,
                              title_name = NULL,
-                             group_by = FALSE) {
+                             group_by = NULL) {
   ## Error handling
   #--------------------------------------------------------------------#
 
@@ -84,6 +84,14 @@ composition_plot <- function(data,
   if (!is.null(title_name) && !is.character(title_name))
     cli::cli_abort("{title_name} needs to be of type character.")
 
+  if (!is.null(group_by)) {
+    if (!is.character(group_by) && length(group_by) != 1) {
+      cli::cli_abort("{group_by} must be a character and of length 1")
+    } else if (!column_exists(group_by, data)) {
+      cli::cli_abort("The specified {group_by} does not exist in the metaData.")
+    }
+  }
+
   if (!column_exists("SAMPLE_ID", data))
     cli::cli_abort("SAMPLE_ID needs to exist within the provided data.frame/data.table.")
 
@@ -91,11 +99,11 @@ composition_plot <- function(data,
   #--------------------------------------------------------------------#
 
   # Generates a stacked barplot as base with custome palette
-  if (group_by != FALSE) {
+  if (!is.null(group_by)) {
     plt <- data %>%
       ggplot(mapping = aes(y = value,
-                           x = base::get(group_by, data),
-                           fill = base::get(feature_rank, data)))
+                           x = as.factor(.data[[ group_by ]]),
+                           fill = .data[[ feature_rank ]]))
   } else {
     plt <- data %>%
       ggplot(mapping = aes(y = value,
@@ -104,10 +112,12 @@ composition_plot <- function(data,
   }
   # Required for stacked barplot
   plt <- plt +
-    geom_bar(position = "fill",
-             stat = "identity")
+    geom_bar(
+      position = "fill",
+      stat = "identity"
+    )
 
-  if (group_by == FALSE) {
+  if (is.null(group_by)) {
     plt <- plt +
       coord_flip()
   }
@@ -126,7 +136,7 @@ composition_plot <- function(data,
       axis.text.y = element_text(colour = "black", size = 12)
     )
 
-  if (group_by == FALSE) {
+  if (is.null(group_by)) {
     plt <- plt +
       scale_x_discrete(limits = rev(levels(as.factor(data$SAMPLE_ID))))
   }

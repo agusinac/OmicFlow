@@ -114,7 +114,7 @@ foldchange <- function(data,
   if (!inherits(data, "data.frame") && !inherits(data, "data.table"))
     cli::cli_abort("data must be a data.frame or data.table.")
 
-  if (!is.character(feature_rank) && length(values) != 1) {
+  if (!is.character(feature_rank) && length(feature_rank) != 1) {
     cli::cli_abort("Column name: {feature_rank} needs to contain characters with length of 1.")
   } else if (!column_exists(feature_rank, data)) {
     cli::cli_abort("The {feature_rank} column does not exist in the provided data.")
@@ -140,19 +140,34 @@ foldchange <- function(data,
   # Computing for multiple conditions
   for (i in seq_along(condition_A)) {
     # Subset by condition_A value
+    ## TODO: convert dt_A to a sparseMatrix
     dt_A <- tmp_dt[, .SD, .SDcols = colnames(tmp_dt)[grepl(condition_A[i], condition_labels)]]
     dt_B <- tmp_dt[, .SD, .SDcols = colnames(tmp_dt)[grepl(condition_B[i], condition_labels)]]
 
-    # Creates mean foldchange for condition pair
-    result <- base::rowMeans(dt_A) - base::rowMeans(dt_B)
+    # Convert to dense matrix
+    mat_A <- as.matrix(dt_A)
+    mat_B <- as.matrix(dt_B)
+
+    # Convert to sparse matrix (dgCMatrix)
+    sparse_A <- as(mat_A, "dgCMatrix") 
+    sparse_B <- as(mat_B, "dgCMatrix")
+
+    # Log2 transformation
+    sparse_A@x <- log2(sparse_A@x)
+    sparse_B@x <- log2(sparse_B@x)
+
+    # Compute rowMeans for sparse matrices efficiently
+    row_means_A <- Matrix::rowSums(sparse_A) / ncol(sparse_A)
+    row_means_B <- Matrix::rowSums(sparse_B) / ncol(sparse_B)
+
+    # Compute log2 fold change
+    result <- row_means_A - row_means_B
 
     # Combines to final foldchange data table
     foldchange_dt <- cbind(foldchange_dt, result)
     colnames(foldchange_dt)[grepl("result", colnames(foldchange_dt))] <- paste0("Log2FC_", i)
 
     # Compute pvalues with wilcox test
-    mat_A <- as.matrix(dt_A)
-    mat_B <- as.matrix(dt_B)
     for (k in seq_along(feature_labels)) {
       # save p-values in data.table
       foldchange_dt[

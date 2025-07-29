@@ -349,7 +349,7 @@ omics <- R6::R6Class(
       self$featureData <- self$featureData[ base::order(base::match(self$featureData$FEATURE_ID, grouped_ids$ID_first)) ]
       self$countData <- counts_glom
 
-
+      # Replaces strings matching feature_filter with NAs
       if (!is.na(feature_filter)) {
         regex_pattern <- paste(feature_filter, collapse = "|")
         for (col in feature_rank) {
@@ -389,7 +389,7 @@ omics <- R6::R6Class(
       ## MAIN
       #--------------------------------------------------------------------#
 
-      self$countData@x <- fun(self$countData@x)
+      self$countData@x <- FUN(self$countData@x)
       invisible(self)
     },
     #' @description
@@ -579,10 +579,12 @@ omics <- R6::R6Class(
       ## Error handling
       #--------------------------------------------------------------------#
 
-      if (!is.null(col_name) && !is.character(col_name) && length(col_name) != 1) {
-        cli::cli_abort("{col_name} must be a character and of length 1")
-      } else if (!column_exists(col_name, self$metaData)) {
-        cli::cli_abort("The specified {col_name} does not exist in the metaData.")
+      if (!is.null(col_name)) {
+        if (!is.character(col_name) && length(col_name) != 1) {
+          cli::cli_abort("{col_name} must be a character and of length 1")
+        } else if (!column_exists(col_name, self$metaData)) {
+          cli::cli_abort("The specified {col_name} does not exist in the metaData.")
+        }
       }
 
       if (!is.wholenumber(feature_top)) {
@@ -605,18 +607,18 @@ omics <- R6::R6Class(
         .treeData = self$treeData
       )
 
-      # Agglomerate by feature_rank
-      self$feature_glom(feature_rank = feature_rank, feature_filter = feature_filter)
-
       # Normalizes sample counts
       self$normalize()
+
+      # Agglomerate by feature_rank
+      self$feature_glom(feature_rank = feature_rank, feature_filter = feature_filter)
 
       # Remove NAs when col_name is specified
       if (!is.null(col_name))
         self$removeNAs(col_name)
 
       # Convert sparse matrix to data.table (safe since feature_glom shrinks the sparse matrix)
-      counts <- data.table::data.table(as.matrix(self$countData))
+      counts <- sparse_to_dtable(self$countData)
 
       # Fetch unfiltered and filtered features
       dt <- counts[, (feature_rank) := self$featureData[[feature_rank]]]
@@ -914,7 +916,6 @@ omics <- R6::R6Class(
     #' Differential feature expression using the \link[OmicFlow]{foldchange} for both paired and non-paired samples.
     #' @param feature_rank A character value or vector of columns to aggregate from the `featureData`.
     #' @param feature_filter A character value or vector of characters to remove features via regex pattern (Default: NULL).
-    #' @param feature_top Integer of the top features to visualize (Default: NULL, everything will be used).
     #' @param paired A Boolean value, the paired is only applicable when a `SAMPLEPAIR_ID` column exists within the `metaData`. See \link[stats]{wilcox.test}
     #' @param condition.group A string value for an existing column name in `metaData`, wherein the conditions A and B are located.
     #' @param condition_A A character value or vector of characters.
@@ -937,8 +938,7 @@ omics <- R6::R6Class(
     #'                                               paired = TRUE,
     #'                                               condition.group = "cycle",
     #'                                               condition_A = c("t2", "t3"),
-    #'                                               condition_B = c("t1", "t2"),
-    #'                                               feature_top = 20)
+    #'                                               condition_B = c("t1", "t2"))
     #'
     #' @return
     #' * A list of \link[ggplot2]{ggplot} object.
@@ -946,7 +946,6 @@ omics <- R6::R6Class(
     #' @seealso \link[OmicFlow]{volcano_plot}, \link[OmicFlow]{ViolinBoxPlot}, \link[OmicFlow]{paired_fold}, \link[OmicFlow]{unpaired_fold}
     differential_feature_expression = function(feature_rank,
                                                feature_filter = NULL,
-                                               feature_top = NULL,
                                                paired = FALSE,
                                                normalize = TRUE,
                                                condition.group,
@@ -999,58 +998,30 @@ omics <- R6::R6Class(
         .treeData = self$treeData
       )
 
-      # Subset by samplepair completion
-      if ( paired && !is.null(self$.samplepair_id) )
-        self$samplepair_subset()
+      # normalization if applicable
+      if (normalize)
+        self$normalize()
 
       # Subset by missing values
       self$removeNAs(condition.group)
+
+      # Subset by samplepair completion
+      if (paired && !is.null(self$.samplepair_id))
+        self$samplepair_subset()
 
       # Agglomerate taxa by feature rank and filter unwanted taxa
       self$feature_glom(feature_rank = feature_rank,
                         feature_filter = feature_filter)
 
-      # normalization if applicable
-      if (normalize)
-        self$normalize()
-
-      # Check how many features to select (depended if volcano is desired)
-      if (!is.null(feature_top)) {
-        feature_top <- feature_top
-      } else {
-        feature_top <- nrow(self$featureData)
-      }
-
-      # Extract relative abundance
-      rel_abun <- as.matrix(Matrix::rowMeans(self$countData[1:feature_top,]))
+      # Extract mean relative abundance
+      rel_abun <- as.matrix(Matrix::rowSums(self$countData) / ncol(self$countData))
       rownames(rel_abun) <- self$featureData[[ feature_rank ]]
 
-      # Creates long table of relative abundance
+      # Get data.table format relative abundances
       dt <- sparse_to_dtable(self$countData)[, (feature_rank) := self$featureData[[feature_rank]]]
-      stats_dt <- base::merge(data.table::melt(dt,
-                                               measure.vars = colnames(dt)[!grepl(feature_rank, colnames(dt))],
-                                               variable.name = self$.sample_id,
-                                               value.name = "values"),
-                              self$metaData[, .SD, .SDcols = c(self$.sample_id, condition.group)],
-                              by = self$.sample_id)
-
-      # Create row_sums
-      dt[, row_sum := rowSums(.SD), .SDcols = !c(feature_rank)]
-
-      # Orders by row_sum in descending order
-      countTable <- data.table::setorder(dt, -row_sum)[1:feature_top, .SD, .SDcols = !c("row_sum")]
-      features <- countTable[[ feature_rank ]]
-      self$countData <- as(as.matrix(countTable[, .SD, .SDcols = !c(feature_rank)]), "sparseMatrix")
-
-      # Log2 transform taxa
-      self$transform(log2)
-
-      # Subset by top features
-      stats_dt <- stats_dt[stats_dt[[feature_rank]] %in% features]
-      dt <- sparse_to_dtable(self$countData)[, (feature_rank) := features]
 
       # Compute 2-fold expression based on (un)paired samples
-      # Computes on equation oflog2(A) - log2(B)
+      # Computes on equation of log2(A) - log2(B)
       # Supports multiple inputs for A and B.
       condition.labels <- data.table::setorderv(self$metaData,
                                                 cols = c(self$.sample_id, condition.group))[[ condition.group ]]
