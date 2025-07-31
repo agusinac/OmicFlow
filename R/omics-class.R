@@ -156,7 +156,8 @@ omics <- R6::R6Class(
       writeLines(json_data, tmp_json)
 
       self$.valid_schema <- jsonvalidate::json_validate(
-        tmp_json, "metadata_schema.json",
+        tmp_json,
+        system.file("metadata_schema.json", package = "OmicFlow"),
         engine = "ajv",
         verbose = TRUE,
         error = FALSE,
@@ -305,7 +306,7 @@ omics <- R6::R6Class(
     #' obj$feature_glom(feature_rank = c("Kingdom", "Phylum"))
     #' obj$feature_glom(feature_rank = "Genus", feature_filter = c("uncultured", "metagenome"))
     #'
-    feature_glom = function(feature_rank, feature_filter = NA) {
+    feature_glom = function(feature_rank, feature_filter = NULL) {
 
       ## Error handling
       #--------------------------------------------------------------------#
@@ -313,7 +314,7 @@ omics <- R6::R6Class(
       if (!is.character(feature_rank))
         cli::cli_abort("{feature_rank} needs to be a character or vector containing characters")
 
-      if (!is.na(feature_filter) && !is.character(feature_filter))
+      if (!is.null(feature_filter) && !is.character(feature_filter))
         cli::cli_abort("{feature_filter} needs to be a character or vector containing characters")
 
       ## MAIN
@@ -356,7 +357,7 @@ omics <- R6::R6Class(
       self$countData <- counts_glom
 
       # Replaces strings matching feature_filter with NAs
-      if (!is.na(feature_filter)) {
+      if (!is.null(feature_filter)) {
         regex_pattern <- paste(feature_filter, collapse = "|")
         for (col in feature_rank) {
           self$featureData[
@@ -472,7 +473,7 @@ omics <- R6::R6Class(
     #' @description
     #' Alpha diversity based on \link[OmicFlow]{diversity}
     #' @param col_name The metaData column of categorical variables to create a ggplot object.
-    #' @param method Diversity metric such as "shannon", "invsimpson" or "simpson"
+    #' @param metric Diversity metric such as "shannon", "invsimpson" or "simpson"
     #' @param Brewer.palID Palette set to be applied, see \link[RColorBrewer]{brewer.pal} or \link[OmicFlow]{colormap}.
     #' @param evenness A boolean wether to divide diversity by number of species, see \link[vegan]{specnumber}.
     #' @param paired A boolean value to perform paired analysis in \link[stats]{wilcox.test} and samplepair subsetting via \link[OmicFlow]{samplepair_subset}
@@ -487,7 +488,7 @@ omics <- R6::R6Class(
     #' @return A \link[ggplot2]{ggplot} object.
     #' @seealso \link[OmicFlow]{diversity_plot}
     alpha_diversity = function(col_name,
-                               method = c("shannon", "invsimpson", "simpson"),
+                               metric = c("shannon", "invsimpson", "simpson"),
                                Brewer.palID = "Set2",
                                evenness = FALSE,
                                paired = FALSE,
@@ -527,8 +528,8 @@ omics <- R6::R6Class(
       if ( paired && !is.null(self$.samplepair_id) )
         self$samplepair_subset()
 
-      # Alpha diversity based on 'method'
-      div <- data.table::data.table(diversity(x = self$countData, method=method))
+      # Alpha diversity based on 'metric'
+      div <- data.table::data.table(diversity(x = self$countData, metric=metric))
       div[, (col_name) := self$metaData[, .SD, .SDcols = c(col_name)]]
       # Adjusts for evenness
       if (evenness) div$V1 <- div$V1 / log(vegan::specnumber(div$V1))
@@ -542,7 +543,7 @@ omics <- R6::R6Class(
                                       values = "V1",
                                       col_name = col_name,
                                       palette = colors,
-                                      method = method,
+                                      method = metric,
                                       paired = paired,
                                       p.adjust.method = p.adjust.method)
 
@@ -974,7 +975,6 @@ omics <- R6::R6Class(
       } else if (!column_exists(condition.group, self$metaData)) {
         cli::cli_abort("{condition.group} does not exist in the metaData or is empty.")
       }
-
       if (!is.character(condition_A))
         cli::cli_abort("{condition_A} needs to be a character.")
 
@@ -1063,6 +1063,7 @@ omics <- R6::R6Class(
                        abundance_col = "rel_abun",
                        pvalue.threshold = pvalue.threshold,
                        logfold.threshold = foldchange.threshold,
+                       abundance.threshold = abundance.threshold,
                        label_A = condition_A,
                        label_B = condition_B)
         })

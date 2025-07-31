@@ -310,7 +310,7 @@ metagenomics <- R6::R6Class(
       counts_per_col <- base::tabulate(x[,2] + 1L, nbins = ncol(self$countData))
       indptr <- c(0L, cumsum(counts_per_col))
 
-      rhdf5::h5writeDataset(obj = base::colnames(counts),
+      rhdf5::h5writeDataset(obj = base::colnames(self$countData),
                             h5loc = h5,
                             name = 'sample/ids')
       rhdf5::h5writeDataset(obj = as.numeric(x[,3]),
