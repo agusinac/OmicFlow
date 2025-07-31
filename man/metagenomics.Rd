@@ -107,10 +107,10 @@ taxa$write_biom(file = "output.biom")
 \if{html}{\out{
 <details><summary>Inherited methods</summary>
 <ul>
+<li><span class="pkg-link" data-pkg="OmicFlow" data-topic="omics" data-id="DFE"><a href='../../OmicFlow/html/omics.html#method-omics-DFE'><code>OmicFlow::omics$DFE()</code></a></span></li>
 <li><span class="pkg-link" data-pkg="OmicFlow" data-topic="omics" data-id="alpha_diversity"><a href='../../OmicFlow/html/omics.html#method-omics-alpha_diversity'><code>OmicFlow::omics$alpha_diversity()</code></a></span></li>
 <li><span class="pkg-link" data-pkg="OmicFlow" data-topic="omics" data-id="autoFlow"><a href='../../OmicFlow/html/omics.html#method-omics-autoFlow'><code>OmicFlow::omics$autoFlow()</code></a></span></li>
 <li><span class="pkg-link" data-pkg="OmicFlow" data-topic="omics" data-id="composition"><a href='../../OmicFlow/html/omics.html#method-omics-composition'><code>OmicFlow::omics$composition()</code></a></span></li>
-<li><span class="pkg-link" data-pkg="OmicFlow" data-topic="omics" data-id="differential_feature_expression"><a href='../../OmicFlow/html/omics.html#method-omics-differential_feature_expression'><code>OmicFlow::omics$differential_feature_expression()</code></a></span></li>
 <li><span class="pkg-link" data-pkg="OmicFlow" data-topic="omics" data-id="feature_glom"><a href='../../OmicFlow/html/omics.html#method-omics-feature_glom'><code>OmicFlow::omics$feature_glom()</code></a></span></li>
 <li><span class="pkg-link" data-pkg="OmicFlow" data-topic="omics" data-id="feature_subset"><a href='../../OmicFlow/html/omics.html#method-omics-feature_subset'><code>OmicFlow::omics$feature_subset()</code></a></span></li>
 <li><span class="pkg-link" data-pkg="OmicFlow" data-topic="omics" data-id="normalize"><a href='../../OmicFlow/html/omics.html#method-omics-normalize'><code>OmicFlow::omics$normalize()</code></a></span></li>

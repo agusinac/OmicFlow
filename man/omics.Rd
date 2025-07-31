@@ -154,20 +154,20 @@ pcoa_plots
 
 
 ## ------------------------------------------------
-## Method `omics$differential_feature_expression`
+## Method `omics$DFE`
 ## ------------------------------------------------
 
 obj <- omics$new(countData = "counts.csv",
                  featureData = "features.txt",
                  metaData = "metadata.tsv"
 
-unpaired <- obj$differential_feature_expression(feature_rank = "Genus",
+unpaired <- obj$DFE(feature_rank = "Genus",
                                                 paired = FALSE,
                                                 condition.group = "treatment",
                                                 condition_A = c("H"),
                                                 condition_B = c("T"))
 
-paired <- obj$differential_feature_expression(feature_rank = "Genus",
+paired <- obj$DFE(feature_rank = "Genus",
                                               paired = TRUE,
                                               condition.group = "cycle",
                                               condition_A = c("t2", "t3"),
@@ -219,7 +219,7 @@ paired <- obj$differential_feature_expression(feature_rank = "Genus",
 \item \href{#method-omics-alpha_diversity}{\code{omics$alpha_diversity()}}
 \item \href{#method-omics-composition}{\code{omics$composition()}}
 \item \href{#method-omics-ordination}{\code{omics$ordination()}}
-\item \href{#method-omics-differential_feature_expression}{\code{omics$differential_feature_expression()}}
+\item \href{#method-omics-DFE}{\code{omics$DFE()}}
 \item \href{#method-omics-autoFlow}{\code{omics$autoFlow()}}
 }
 }
@@ -688,12 +688,12 @@ pcoa_plots
 
 }
 \if{html}{\out{<hr>}}
-\if{html}{\out{<a id="method-omics-differential_feature_expression"></a>}}
-\if{latex}{\out{\hypertarget{method-omics-differential_feature_expression}{}}}
-\subsection{Method \code{differential_feature_expression()}}{
-Differential feature expression using the \link[OmicFlow]{foldchange} for both paired and non-paired samples.
+\if{html}{\out{<a id="method-omics-DFE"></a>}}
+\if{latex}{\out{\hypertarget{method-omics-DFE}{}}}
+\subsection{Method \code{DFE()}}{
+Differential feature expression (DFE) using the \link[OmicFlow]{foldchange} for both paired and non-paired samples.
 \subsection{Usage}{
-\if{html}{\out{<div class="r">}}\preformatted{omics$differential_feature_expression(
+\if{html}{\out{<div class="r">}}\preformatted{omics$DFE(
   feature_rank,
   feature_filter = NULL,
   paired = FALSE,
@@ -702,7 +702,8 @@ Differential feature expression using the \link[OmicFlow]{foldchange} for both p
   condition_A,
   condition_B,
   pvalue.threshold = 0.05,
-  foldchange.threshold = 0.06
+  foldchange.threshold = 0.06,
+  abundance.threshold = 0
 )}\if{html}{\out{</div>}}
 }
 
@@ -726,6 +727,8 @@ Differential feature expression using the \link[OmicFlow]{foldchange} for both p
 \item{\code{pvalue.threshold}}{An Integer value, a P-value threshold to label and color significant features (Default: 0.05).}
 
 \item{\code{foldchange.threshold}}{An Integer value, a fold-change threshold to label and color significantly expressed features (Default: 0.06).}
+
+\item{\code{abundance.threshold}}{An abundance threshold (default: 0.01).}
 }
 \if{html}{\out{</div>}}
 }
@@ -741,13 +744,13 @@ Differential feature expression using the \link[OmicFlow]{foldchange} for both p
                  featureData = "features.txt",
                  metaData = "metadata.tsv"
 
-unpaired <- obj$differential_feature_expression(feature_rank = "Genus",
+unpaired <- obj$DFE(feature_rank = "Genus",
                                                 paired = FALSE,
                                                 condition.group = "treatment",
                                                 condition_A = c("H"),
                                                 condition_B = c("T"))
 
-paired <- obj$differential_feature_expression(feature_rank = "Genus",
+paired <- obj$DFE(feature_rank = "Genus",
                                               paired = TRUE,
                                               condition.group = "cycle",
                                               condition_A = c("t2", "t3"),

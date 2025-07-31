@@ -1,0 +1,42 @@
+{
+    "$schema": "https://json-schema.org/draft/2020-12/schema",
+    "title": "OmicFlow metadata schema",
+    "description": "General metadata template for omics data",
+    "type": "array",
+    "items": {
+        "type": "object",
+        "properties": {
+            "SAMPLE_ID": {
+                "type": "string",
+                "pattern": "^(\\S*)$"
+            },
+            "FEATURE_ID": {
+                "type": "string",
+                "pattern": "^(\\S*)$"
+            },
+            "SAMPLEPAIR_ID": {
+                "type": "string",
+                "pattern": "^(\\S*)$"
+            }
+        },
+        "patternProperties": {
+          "^CONTRAST_": {
+            "anyOf": [
+                { "type": "string", "pattern": "^(\\S*)$" },
+                { "type": "number" }
+              ]
+            },
+          "^VARIABLE_": {
+            "anyOf": [
+              { "type": "string", "pattern": "^(\\S*)$" },
+              { "type": "number" }
+            ]
+          }
+        },
+        "additionalProperties": true,
+        "required": ["SAMPLE_ID"],
+        "dependentRequired": {
+        "SAMPLEPAIR_ID": ["SAMPLE_ID"]
+      }
+    }
+}

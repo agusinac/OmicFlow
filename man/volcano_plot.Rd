@@ -12,6 +12,7 @@ volcano_plot(
   abundance_col,
   pvalue.threshold = 0.05,
   logfold.threshold = 0.6,
+  abundance.threshold = 0.01,
   label_A = "A",
   label_B = "B"
 )
@@ -31,6 +32,8 @@ volcano_plot(
 
 \item{logfold.threshold}{A Log2(A/B) Fold Change threshold (default: 0.6).}
 
+\item{abundance.threshold}{An abundance threshold (default: 0.01).}
+
 \item{label_A}{A character to describe condition A.}
 
 \item{label_B}{A character to describe condition B.}
@@ -39,7 +42,7 @@ volcano_plot(
 A \link[ggplot2]{ggplot2} object to be further modified.
 }
 \description{
-Creates a Volcano plot. This function is built into the \code{differential_feature_expression} method from the abstract class \link[OmicFlow]{omics} and inherited by other omics classes, such as;
+Creates a Volcano plot. This function is built into the \code{DFE} method from the abstract class \link[OmicFlow]{omics} and inherited by other omics classes, such as;
 \link[OmicFlow]{metagenomics} and \link[OmicsFLow]{proteomics}.
 }
 \examples{
