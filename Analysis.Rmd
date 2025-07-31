@@ -6,7 +6,7 @@ output: pdf_document
 ---
 
 ```{r setup, include=FALSE} 
-knitr::opts_chunk$set(warning = FALSE, message = FALSE, echo = FALSE) 
+knitr::opts_chunk$set(warning = TRUE, message = TRUE, echo = FALSE) 
 ```
 
 ## Required Library's
@@ -14,42 +14,792 @@ knitr::opts_chunk$set(warning = FALSE, message = FALSE, echo = FALSE)
 ```{r, warning=FALSE}
 library("Matrix")
 library("ggplot2")
-library("OmicFlow")
-library("ggtree")
 library("patchwork")
+devtools::load_all()
+
+taxa <- metagenomics$new(metaData = "../../../Pathology/projects/PRELEDE/data/metagenomics/metadata.tsv",
+                         biomData = "../../../Pathology/projects/PRELEDE/data/metagenomics/contig_annotation/CAT_with_taxonomy.biom")
+
+dt <- sparse_to_dtable(taxa$countData)
+OTU_ID <- taxa$featureData$V1
+
+dt1 <- cbind(OTU_ID, dt)
+colnames(dt1) <- c("#OTU ID", colnames(dt1)[-1])
+
+data.table::fwrite(x = dt1,
+                   file = "abundance.tsv", sep = "\t")
 ```
 
-# Investigating HBS and BaCo on contamination
+```{r}
+bench::mark(
+taxa <- metagenomics$new(biomData = "../../../RTC/projects/lowlands_16s/results/biom_with_taxonomy.biom",
+                         metaData = "../../../RTC/projects/lowlands_16s/results/metadata.tsv")
+)
+# taxa <- metagenomics$new(biomData = "../../../Pathology/projects/FFPE_breast_microbiome/data/biom_with_taxonomy.biom",
+#                          metaData = "../../../Pathology/projects/FFPE_breast_microbiome/data/metadata.tsv")
+
+taxa$feature_subset(Kingdom == "Bacteria")
+
+res <- taxa$composition(
+  feature_rank = "Genus",
+  feature_filter = c("uncultured"),
+  col_name = "attraction_score",
+  feature_top = 10
+)
+
+comp_plt <- composition_plot(
+  data = res$data,
+  palette = res$palette,
+  feature_rank = "Genus"
+  )
+
+ggsave(
+  filename = "../../../RTC/projects/lowlands_16s/results/lowlands_composition_attractionscore.png",
+  plot = comp_plt,
+  scaling = 1,
+  width = 7,
+  height = 6,
+  dpi = 400
+  )
+
+data.table::fwrite(
+  x = res$data,
+  file = "../../../RTC/projects/lowlands_16s/results/lowlands_composition.tsv",
+  sep = "\t"
+)
+
+dfe <- taxa$DFE(
+  feature_rank = "Genus",
+  feature_filter = c("uncultured"),
+  paired = FALSE,
+  condition.group = "response",
+  condition_A = c("high-responders"),
+  condition_B = c("adjuvant")
+)
+
+dfe$volcano_plot[[1]]
+View(dfe$data)
+
+plt <- volcano_plot(
+  data = dfe$data,
+  logfold_col = "Log2FC_1",
+  pvalue_col = "pvalue_1",
+  feature_rank = "Genus",
+  abundance_col = "rel_abun",
+  logfold.threshold = 1.5,
+  abundance.threshold = 0.001,
+  label_A = "1",
+  label_B = "0"
+)
+
+ggsave(
+  filename = "../../../RTC/projects/lowlands_16s/results/lowlands_volcano.png",
+  plot = plt,
+  scaling = 1,
+  width = 7,
+  height = 7,
+  dpi = 400
+  )
+
+data.table::fwrite(
+  x = dfe$data,
+  file = "../../../RTC/projects/lowlands_16s/results/lowlands_foldchange.tsv",
+  sep = "\t"
+)
+
+```
+## Finalize autoFlow.R
+```{r}
+bench::mark(
+taxa <- metagenomics$new(biomData = "../../../RTC/projects/dedication/data/biom_with_taxonomy.biom",
+                         metaData = "../../../RTC/projects/dedication/data/metadata.tsv",
+                         treeData = "../../../RTC/projects/dedication/data/rooted_tree.newick")
+)
+res <- taxa$alpha_diversity(col_name = "CONTRAST_progressionT0",
+                     method = "shannon",
+                     paired = TRUE)
+
+feature_contrast = c("Phylum", "Family", "Genus")
+feature_filter = c("uncultured")
+distance_metrics = c("unifrac")
+dist_matrix = NULL
+alpha_div_table = NULL
+cpus = 1
+feature_ranks = c("Kingdom", "Phylum", "Class", "Order", "Family", "Genus", "Species")
+
+# Nested function
+is_empty = function(obj) {
+  if (length(obj) == 0) {
+    return(NULL)
+  } else {
+    return(obj)
+  }
+}
+
+# Plot results as list
+plots <- list()
+
+# Collect columns: CONTRAST_ and VARIABLE_
+metacols <- colnames(taxa$metaData)
+CONTRAST_data <- taxa$metaData[, .SD, .SDcols = grepl("CONTRAST_", metacols)]
+VARIABLE_data <- taxa$metaData[, .SD, .SDcols = grepl("VARIABLE_", metacols)]
+
+
+# # Ensure CONTRAST are character
+# CONTRAST_colnames <- colnames(CONTRAST_data)
+# taxa$metaData[, (CONTRAST_colnames) := lapply(.SD, as.character), .SDcols = CONTRAST_colnames]
+
+#
+#---------------------------------------------#
+# Perform standard visualizations             #
+#---------------------------------------------#
+#
+# CONTRAST
+#
+feature_nrow <- length(feature_contrast)
+CONTRAST_ncol <- length(CONTRAST_data)
+VARIABLE_ncol <- length(VARIABLE_data)
+#
+# Object manipulation
+#
+taxa$feature_subset(Kingdom == "Bacteria")
+# Standard rank stats
+plots$rankstat_plot <- taxa$rankstat(feature_ranks)
+
+# Main loop
+if (CONTRAST_ncol > 0) {
+
+  # Load custom distance matrix if supplied
+  if (!is.null(dist_matrix)) {
+    dist_matrix <- read_tsv_matrix(filename = dist_matrix)
+    dist_matrix <- dist_matrix[self$metaData[[self$.sample_id]], self$metaData[[self$.sample_id]]]
+  }
+
+  # Load custom rarefraction alpha diversity table if supplied
+  if (!is.null(alpha_div_table)) {
+    alpha_div_table <- read_rarefraction_qiime(filename = alpha_div_table)
+  }
+
+  # Initialize plot containers
+  composition_plots <- matrix(list(), CONTRAST_ncol, feature_nrow)
+  correlation_plots <- list()
+  Log2FC_plots <- matrix(list(), CONTRAST_ncol, feature_nrow)
+  alpha_div_plots <- list()
+  metrics_nrow <- length(distance_metrics)
+  pcoa_plots <- matrix(list(), CONTRAST_ncol, metrics_nrow)
+  nmds_plots <- matrix(list(), CONTRAST_ncol, metrics_nrow)
+  RDA_plots <- matrix(list(), CONTRAST_ncol, 2)
+
+  for (i in 1:CONTRAST_ncol) {
+    col_name <- colnames(CONTRAST_data)[i]
+    cat(paste0("Processing ... column: ", col_name, " \n"))
+
+    #--------------------------------------------------------------------#
+    ## Alpha diversity
+    #--------------------------------------------------------------------#
+    if (inherits(alpha_div_table, "data.table")) {
+      dt_final <- base::merge(alpha_div_table,
+                              self$metaData[, .SD, .SDcols = c(self$.sample_id, col_name)],
+                              by = self$.sample_id,
+                              all.x = TRUE) %>%
+        na.omit(cols = col_name)
+
+       res <- diversity_plot(data = dt_final,
+                             values = "alpha_div",
+                             col_name = col_name,
+                             palette = fetch_palette(dt_final, col_name, "Set2"),
+                             method = "custom")
+    } else {
+      res <- tryCatch(
+        {
+          # Default attempt
+          taxa$alpha_diversity(
+            col_name = col_name,
+            method = "shannon",
+            paired = ifelse(!is.null(taxa$.samplepair_id), TRUE, FALSE)
+          )
+        },
+        error = function(e) {
+          cli::cli_alert_warning("alpha_diversity with paired=TRUE failed. Retrying with paired=FALSE.")
+          taxa$alpha_diversity(
+            col_name = col_name,
+            method = "shannon",
+            paired = FALSE
+          )
+        }
+      )
+    }
+    
+    ## Save plots and identify significant groups for composition plots & volcano plots
+    alpha_div_plots[[i]] <- res$plot
+    signif_pairs <- res$stats[c("group1", "group2")] #[grepl("\\ns", res$stats$p.adj.signif) ,]
+    if (nrow(signif_pairs) > 0)
+      conditions <- signif_pairs
+      
+    #--------------------------------------------------------------------#
+    ## Beta diversity
+    #--------------------------------------------------------------------#
+    
+    for (j in 1:metrics_nrow) {
+      if (inherits(dist_matrix, "Matrix")) {
+        res <- self$ordination(distmat = dist_matrix,
+                               method = "pcoa",
+                               group_by = col_name)
+      } else {
+        res <- taxa$ordination(metric = distance_metrics[j],
+                               method = "pcoa",
+                               group_by = col_name,
+                               normalize = TRUE,
+                               weighted = TRUE,
+                               cpus = cpus)
+      }
+      
+      ## Save plots and identify significant groups for composition plots & volcano plots
+      signif_pairs <- res$anova_data[res$anova_data$p.value < 0.9, ]
+      if (nrow(signif_pairs) > 0) {
+        pairs_split <- strsplit(as.character(signif_pairs$pairs), " vs ")
+        
+        # Create group1 and group2 columns from split
+        signif_pairs$group1 <- sapply(pairs_split, `[`, 1)
+        signif_pairs$group2 <- sapply(pairs_split, `[`, 2)
+        
+        signif_pairs <- signif_pairs[c("group1", "group2")]
+        
+        conditions <- combine_conditions(conditions, signif_pairs)
+      }
+      
+      pcoa_plots[[i, j]] <- patchwork::wrap_plots(res[c("scree_plot", "anova_plot", "scores_plot")],
+                                                  nrow = 1) +
+        plot_layout(widths = c(rep(5, 3)),
+                    guides = "collect")
+
+      # Creates temporary plot results for NMDS
+      if (inherits(dist_matrix, "Matrix")) {
+        res <- self$ordination(distmat = dist_matrix,
+                                    method = "nmds",
+                                    group_by = col_name)
+      } else {
+        res <- taxa$ordination(metric = distance_metrics[j],
+                               method = "nmds",
+                               group_by = col_name,
+                               weighted = TRUE)
+      }
+
+      ## Save plots and identify significant groups for composition plots & volcano plots
+      signif_pairs <- res$anova_data[res$anova_data$p.value < 0.95, ]
+      if (nrow(signif_pairs) > 0) {
+        pairs_split <- strsplit(as.character(signif_pairs$pairs), " vs ")
+        
+        # Create group1 and group2 columns from split
+        signif_pairs$group1 <- sapply(pairs_split, `[`, 1)
+        signif_pairs$group2 <- sapply(pairs_split, `[`, 2)
+        
+        signif_pairs <- signif_pairs[c("group1", "group2")]
+        
+        conditions <- combine_conditions(conditions, signif_pairs)
+      }      
+
+      nmds_plots[[i, j]] <- patchwork::wrap_plots(res[c("anova_plot", "scores_plot")],
+                                                  nrow = 1) +
+        plot_layout(widths = c(rep(5, 3)),
+                    guides = "collect")
+    }
+    
+    #--------------------------------------------------------------------#
+    ## Feature composition & FOLDCHANGE
+    #--------------------------------------------------------------------#
+    for (j in 1:feature_nrow) {
+      # Creates composition long table
+      res <- self$composition(feature_rank = feature_ranks[j],
+                              feature_filter = feature_filter,
+                              col_name = col_name)
+
+      # Creates composition ggplot as list
+      composition_plots[[i, j]] <- composition_plot(data = res$data,
+                                                    palette = res$palette,
+                                                    feature_rank = feature_ranks[j],
+                                                    group_by = col_name)
+
+      # Creates correlation ggplot as list
+      if (i == 1 & length(CORRELATION_data) > 0) {
+        correlation_plots[[j]] <- self$correlation(feature_rank = feature_ranks[j],
+                                                   feature_filter = feature_filter,
+                                                   cor_columns = colnames(CORRELATION_data))
+      }
+
+
+      # # Creates Log2 Fold-Change (FC) ggplot as list
+      # unique_groups <- unique(na.omit(RANKSTAT_data[, .SD, .SDcols = col_name]))
+      # if (nrow(unique_groups) == 2) {
+      #   condition_A <- unique_groups[1, ]
+      #   condition_B <- unique_groups[2, ]
+      #
+      #   Log2FC_plots[[i, j]] <- self$differential_feature_expression(feature_rank = feature_ranks[j],
+      #                                                                sample.id = "SAMPLE-ID",
+      #                                                                condition.group = col_name,
+      #                                                                condition_A = condition_A,
+      #                                                                condition_B = condition_B,
+      #                                                                feature_filter = feature_filter)[["volcano_plot"]][[1]]
+      # }
+
+
+    }
+
+  }
+  plots$alpha_div_plots <- is_empty(alpha_div_plots)
+  plots$correlation_plots <- is_empty(correlation_plots)
+  plots$composition_plots <- is_empty(composition_plots)
+  plots$Log2FC_plots <- is_empty(Log2FC_plots)
+  plots$pcoa_plots <- is_empty(pcoa_plots)
+  plots$nmds_plots <- is_empty(nmds_plots)
+  plots$rda_plots <- is_empty(RDA_plots)
+}
+
+```
+
+
+## BaCo quick lookup
+```{r}
+taxa <- metagenomics$new(biomData = "../../../Pathology/projects/BaCo/data/WGS_baco_tissue/CAT_with_taxonomy.biom",
+                          metaData = "../../../Pathology/projects/BaCo/data/metadata/metadata.tsv")
+
+taxa$feature_glom(feature_rank = c("Kingdom", "Phylum", "Class", "Order", "Family", "Genus", "Species"))
+
+taxa <- readRDS(file = "../../../Pathology/projects/BaCo/data/WGS_baco_tissue/omicflow_aggregated.rds")
+
+metadata <- data.table::fread("../../../Pathology/projects/BaCo/data/metadata/metadata.tsv")
+taxa$metaData <- metadata
+rows_to_keep <- taxa$metaData[, `SAMPLE-ID` %in% colnames(taxa$countData)]
+taxa$metaData <- taxa$metaData[rows_to_keep,]
+
+taxa$feature_subset(Kingdom == "Bacteria")
+# taxa$sample_subset(group == "colitis")
+
+plt <- taxa$ordination(metric = "bray",
+                       method = "pcoa",
+                       group_by = "fixative",
+                       normalize = TRUE,
+                       weighted = TRUE)
+
+alpha_plt <- taxa$alpha_diversity(col_name = "side",
+                                  method = "shannon",
+                                  paired = FALSE)$diversity
+
+res <- taxa$differential_feature_expression(sample.id = "SAMPLE-ID",
+                                     paired.id = "PATIENT-ID",
+                                     feature_rank = "Species",
+                                     paired = FALSE,
+                                     normalize = TRUE,
+                                     condition.group = "group",
+                                     condition_A = "colitis",
+                                     condition_B = "control")
+
+res$data[["p.adjust"]] <- p.adjust(res$data$pvalue, method="fdr")
+
+volcano_plot(dt = res$data,
+             X = "Log2FC_1",
+             Y = "p.adjust",
+             feature_rank = "Species",
+             pvalue.threshold = 0.05,
+             logfold.threshold = 2,
+             label_A = c("colitis"),
+             label_B = c("control"))
+
+ggsave(filename = "../../../Pathology/projects/BaCo/results/biofilm_shannon.png",
+       plot = alpha_plt,
+       width = 10,
+       height = 5,
+       dpi = 400,
+       scaling = 1)
+
+
+ggsave(filename = "../../../Pathology/projects/BaCo/results/fixative_pcoa.png",
+       plot = patchwork::wrap_plots(plt[c("anova_plot","scores_plot")], nrow = 1),
+       width = 10,
+       height = 5,
+       dpi = 400,
+       scaling = 1)
+
+```
+
+
+## Daves biom:
+```{r}
+taxa <- metagenomics$new(metaData = "../../../RTC/projects/MIDLOC/metadata/metadata.tsv",
+                           biomData = "../../../RTC/projects/MIDLOC/preprocessed/read_annotation/metaphlan_with_taxonomy.biom")
+
+taxa$reset()
+taxa$feature_subset(Kingdom == "k__Bacteria")
+taxa$normalize()
+
+taxa$ordination(metric = "bray",
+                      method = "pcoa",
+                      group_by = "constipation",
+                      weighted = TRUE)
+
+ggsave(filename = "../../../RTC/projects/MIDLOC/results/pcoa_time.png",
+       plot = patchwork::wrap_plots(res[c("anova_plot", "scores_plot")], nrow=1), 
+       width = 8, 
+       height = 5, 
+       dpi = 400, 
+       scaling = 1)
+
+taxa$alpha_diversity(col_name = "Time",
+                     method = "shannon")$diversity
+
+
+taxa$countData
+
+res <- taxa$differential_feature_expression(sample.id = "SAMPLE-ID",
+                                            paired.id = "PATIENT-ID",
+                                            feature_rank = "Genus",
+                                            paired = TRUE,
+                                            normalize = TRUE,
+                                            condition.group = "timepoint" ,
+                                            condition_A = c("prior"),
+                                            condition_B = c("after"))
+
+### Investigating relative abundance differences
+significant_bacteria <- res$data[res$data[, pvalue_1 <= 0.05],][["Genus"]]
+
+taxa$feature_glom(feature_rank = "Genus")
+
+      final_dt <- rbind(dt[, .SD, .SDcols = !c("row_sum")],
+                        dt[1:nrow(dt)][, lapply(.SD, function(x) sum(x)),
+                                                                 .SDcols = !c(feature_rank, "row_sum")],
+                        fill = TRUE)
+
+res_1 <- composition_final[composition_final[, Genus %in% significant_bacteria], ]
+
+plt_1 <- res_1 %>% 
+  ggplot(mapping = aes(x = Genus,
+                       y = value)) +
+  geom_boxplot() +
+  facet_wrap(~timepoint) +
+  theme_bw() +
+  theme(
+    plot.title = element_text(size = 14, face = "bold"),
+    plot.subtitle = element_text(size = 13),
+    axis.text.x = element_text(angle = 90, size = 12,
+                               vjust = 0.5, hjust=1,
+                               colour = "black"),
+    axis.title.y = element_text(size = 12),
+    axis.title.x = element_text(size = 12, vjust=0.5),
+    legend.title = element_text(size = 14, face = "bold"),
+    legend.text = element_text(size = 12, colour = "black"),
+    axis.text.y = element_text(colour = "black", size = 12)) +
+  labs(y = "rel. abun.")
+
+
+ggsave(filename = "../../../RTC/projects/MIDLOC/results/volcano_timepoint.png",
+       plot = res$volcano_plot[[1]], 
+       width = 8, 
+       height = 5, 
+       dpi = 400, 
+       scaling = 1)
+
+
+### Two-way ANOVE with repeated measures
+counts <- data.table::data.table(as.matrix(taxa$countData))
+long_counts <- data.table::melt(
+  counts,
+  measure.vars = data.table::patterns("^MIDLOC"),
+  variable.name = "sample",
+  value.name = "counts"
+)
+
+long_counts[, c("patient", "timepoint") := data.table::tstrsplit(sample, "T", perl=TRUE)]
+final_dt <- merge()
+
+## Testing for normality
+final_dt$patient <- as.factor(final_dt$patient)
+final_dt$timepoint <- as.factor(final_dt$timepoint)
+
+library(stats)
+
+anova_res <- aov(div ~ timepoint + Error(patient/timepoint), data = div)
+
+summary(anova_res)
+
+
+# Instead of looking at relative abundance, what about alpha diversity ?
+res <- taxa$alpha_diversity(col_name = "Time",
+                            method = "shannon")
+
+# Fit generalized linear mixed model
+M1 <- glmmTMB::glmmTMB(
+  counts ~ timepoint + (1|patient),
+  ziformula = ~ timepoint,
+  family = glmmTMB::beta_family(),
+  data = final_dt
+)
+
+# Fit generalized linear mixed model using Bayesian
+fit <- brms::brm(
+  brms::bf(counts ~ timepoint + (1 | patient)), 
+  family = brms::zero_inflated_beta(), 
+  data = final_dt,
+  chains = 4, iter = 5000, warmup = 1000, seed = 4445
+)
+
+
+confint(M1, parm = "beta_")
+
+## QQ plot for mixed models
+# Generate simulated residuals
+sim_residuals <- DHARMa::simulateResiduals(M1)
+plot(sim_residuals)
+
+# Fit linear mixed-effects model
+M2 <- lme4::lmer(div ~ timepoint + (1|patient),
+                 data = div,
+                 REML = FALSE)
+
+# test for singularity:
+lme4::isSingular(M2)
+
+# Diagnostic plot
+## residuals
+plot(M2)
+
+## summary 
+summary(M2)
+
+## QQ plot base R
+qqnorm(resid(M2))
+qqline(resid(M2))
+
+## QQ plot for mixed models
+# Generate simulated residuals
+sim_residuals <- DHARMa::simulateResiduals(M2)
+plot(sim_residuals)
+
+anova(M2)
+
+
+```
+
+## Test case
+```{r}
+taxa <- metagenomics$new(metaData = "../../../Pathology/projects/PRELEDE/data/metagenomics/metadata.tsv",
+                           biomData = "../../../Pathology/projects/PRELEDE/data/metagenomics/CAT_with_taxonomy.biom")
+
+colnames(taxa$featureData) <- c("ID", "feature_id", "probability", "Kingdom", "Phylum", "Class", "Order", "Family", "Genus", "Species")
+
+taxa$rankstat()
+
+taxa$feature_subset(Kingdom == "Bacteria")
+
+res <- taxa$alpha_diversity(col_name = "tissue_type",
+                     method = "shannon")
+
+res <- taxa$ordination(metric = "bray",
+                method = "pcoa",
+                group_by = "tissue_type")
+
+
+```
+
+# Benchmark of sub-sampling
+```{r}
+taxa <- metataxonomics$new(metaData = "../../../RTC/projects/NGID_16S/data/metadata.tsv",
+                           biomData = "../../../RTC/projects/NGID_16S/data/MERGE-CP1393-CP1394_curated_table.biom")
+
+taxa$feature_subset(Kingdom == "Bacteria")
+
+contrast <- colnames(taxa$metaData)[5]
+
+res <- taxa$triplot(feature_rank = "Genus",
+                    feature_filter = NA,
+                    metadata.col = contrast,
+                    pairwise = FALSE,
+                    choice_dim = c("RDA1", "PC1"))
+
+vegan::permutest(res$model, permutations = 999, pairwise = FALSE)
+
+
+distmat <- data.table::fread("../../../Pathology/projects/HEREDITARY/novaseq_benchmark/subsamples/weighted-unifrac-100k-base.tsv",
+                             header = TRUE)
+mat <- as.matrix(distmat[,.SD, .SDcols = !c("V1")])
+
+alpha_div <- taxa$alpha_diversity(col_name = "type", method = "shannon")
+beta_div <- taxa$ordination(metric = "unifrac", 
+                            method = "pcoa",
+                            group_by = "type",
+                            distmat = as.dist(mat))
+
+main_panel <- patchwork::wrap_plots(alpha_div, nrow=1) / (patchwork::wrap_plots(beta_div, nrow=1))
+
+ggsave(filename = "../../../Pathology/projects/HEREDITARY/novaseq_benchmark/subsamples/results/100k_base.png",
+       plot = main_panel,
+       dpi = 400,
+       scale = 0.9,
+       width = 30,
+       height = 20,
+       units = "cm")
+
+
+# Splitting biom by sample in tsv files
+taxa$feature_subset(Kingdom == "Bacteria")
+taxa$sample_subset(study_group == "HBS")
+
+taxa$feature_glom(feature_rank = "Genus")
+taxa$normalize()
+
+dimnames(taxa$countData)[[1]] <- taxa$featureData$Genus
+col_labels <- colnames(taxa$countData)
+
+for (i in 1:ncol(taxa$countData)) {
+  column_data <- as.data.frame(taxa$countData[, i], row.names = rownames(taxa$countData))
+  colnames(column_data) <- col_labels[i]
+  write.csv(column_data, 
+            file = paste0("../../../Pathology/projects/HEREDITARY/data/HBS/samples_genus/", col_labels[i], ".csv"), 
+            row.names = TRUE)
+}
+
+```
+
+# HEREDITARY Exploration Data Analysis
 ```{r}
 taxa <- metataxonomics$new(metaData = "../../../Pathology/projects/HEREDITARY/data/metadata.tsv",
-                               biomData = "../../../Pathology/projects/HEREDITARY/data/biom_with_taxonomy.biom",
-                               treeData = "../../../Pathology/projects/HEREDITARY/data/rooted_tree.newick")
+                           biomData = "../../../Pathology/projects/HEREDITARY/data/biom_with_taxonomy_mod4.biom",
+                           treeData = "../../../Pathology/projects/HEREDITARY/data/rooted_tree_mod4.newick")
 taxa$reset()
 
-taxa$feature_subset(Domain == "Bacteria")
-taxa$feature_glom(feature_rank = "Species")
+taxa$feature_subset(Kingdom == "Bacteria")
 
-pcoa <- taxa$ordination(metric = "bray", 
-                method = "pcoa", 
-                group_by = "study_group", 
-                weighted = TRUE, 
-                normalize = TRUE,
-                parallel = TRUE,
-                cpus = 4)
+read_stats <- data.table::fread("../../../Pathology/projects/HEREDITARY/data/read_stats.tsv")
+
+read_stats_perc <- read_stats[, .SD, .SDcols = c("input", "trimmed%", "assembled%", "denoised%", "filtered%", "nonchim%")]
+read_stats_perc$input <- 100
+
+read_stats_long <- data.table::melt(data = read_stats_perc,
+                                   measure.vars = colnames(read_stats_perc),
+                                   variable.name = "conditions",
+                                   variable.factor = FALSE,
+                                   value.name = "values")
+
+read_stats_long[, conditions := factor(conditions, levels = c("input", "trimmed%", "assembled%", "filtered%", "denoised%", "nonchim%"))]
 
 
-ggsave(filename = "../../../Pathology/projects/HEREDITARY/results/nmds_genus.png",
-       plot = patchwork::wrap_plots(nmds$anova_plot, nmds$scores_plot),
+
+read_stats_long %>% 
+  ggplot(mapping = aes(x = conditions,
+                       y = values)) +
+  geom_boxplot() +
+  
+
+
+```
+
+# PCoA
+```{r}
+distmat <- data.table::fread("../../../RTC/projects/dedication/data/distance_matrices/weighted_unifrac_distance_matrix.qza.txt",
+                             header = TRUE)
+
+rownames <- distmat[[1]]
+colnames <- names(distmat)[-1]
+values <- as.matrix(distmat[, -1, with = FALSE])
+
+sparse_matrix <- sparseMatrix(
+  i = rep(1:nrow(values), ncol(values)),
+  j = rep(1:ncol(values), each = nrow(values)),
+  x = as.vector(values)
+)
+rownames(sparse_matrix) <- rownames
+colnames(sparse_matrix) <- colnames
+
+# Subset by study_group
+taxa$reset()
+taxa$feature_subset(Kingdom == "Bacteria")
+
+# Subset distance matrix
+subset_mat <- sparse_matrix[taxa$metaData[["SAMPLE-ID"]], taxa$metaData[["SAMPLE-ID"]]]
+
+pcoa <- taxa$ordination(distmat = subset_mat, 
+                        method = "pcoa",
+                        group_by = "RANKSTAT_inclusionsite")
+
+ggsave(filename = "../../../Pathology/projects/HEREDITARY/results/BaCo_pcoa_mod4.png",
+       plot = patchwork::wrap_plots(pcoa, nrow=1),
        units = "cm",
        width = 20,
-       height = 10,
+       height = 7,
        limitsize = FALSE,
        dpi = 400,
        scaling = 0.5)
 
-taxa$alpha_diversity(col_name = "study_group", method = "shannon")
+pcoa
 
 ```
+
+# Shannon
+```{r}
+df_shannon <- data.table::fread("../../../Pathology/projects/HEREDITARY/data/shannon_mod4.csv")
+
+# Pivot into long table
+shannon_long <- data.table::melt(data = df_shannon,
+                                 measure.vars = colnames(df_shannon)[grepl("depth-", colnames(df_shannon))], 
+                                 variable.name = "iters",
+                                 variable.factor = FALSE,
+                                 value.name = "alpha_div")
+# Corrects colnames
+colnames(shannon_long) <- c("SAMPLE-ID", "iters", "alpha_div")
+# Adds new column
+shannon_final <- base::merge(shannon_long, 
+                             taxa$metaData[, .SD, .SDcols = c("SAMPLE-ID", "type", "study_group")], 
+                             by = "SAMPLE-ID", 
+                             all.x = TRUE)
+
+HBS_rows <- shannon_final[, study_group == "HBS"]
+HBS <- shannon_final[HBS_rows, ] 
+
+BaCo_rows <- shannon_final[, study_group == "BaCo"]
+BaCo <- shannon_final[BaCo_rows, ]
+
+plt2 <- diversity_plot(dt = HBS,
+                      values = "alpha_div",
+                      col_name = "type",
+                      palette = fetch_palette(HBS, "type", "Set2"),
+                      method = "shannon")
+
+ggsave(filename = "../../../Pathology/projects/HEREDITARY/results/HBS_shannon_mod4.png",
+       plot = plt2,
+       units = "cm",
+       width = 10,
+       height = 7,
+       limitsize = FALSE,
+       dpi = 400,
+       scaling = 0.5)
+
+plt2
+plt1
+
+```
+
+## Volcano plots
+```{r}
+taxa$reset()
+taxa$feature_subset(Kingdom == "Bacteria")
+
+plt1 <- taxa$differential_feature_expression(feature_rank = "Genus",
+                                             sample.id = "SAMPLE-ID",
+                                             condition.group = "RANKSTAT_smoking",
+                                             condition_A ="quit",
+                                             condition_B = "active",
+                                             feature_filter = c("uncultured", "unidentified", "metagenome"),
+                                             pvalue.threshold = 0.05)
+
+ggsave(filename = "../../../RTC/projects/dedication/result/volcano_smoking.png",
+       plot = plt1$volcano_plot[[1]],
+       width = 7,
+       height = 5,
+       limitsize = FALSE,
+       dpi = 400,
+       scaling = 1)
+plt2
+```
+
 ## PANEL
 ```{r}
 main_panel_1 <- (wrap_elements(plt_1) + 
@@ -69,167 +819,99 @@ ggsave(filename = "../../../Pathology/projects/HEREDITARY/results/studygroups_co
 
 ```
 
-# Improving countData with TsparseMatrix
+## Assesing confounders in (longitudional) sample data
 ```{r}
-# TO DO:
-  # Replace tools basic fread to sparse matrix load
-  # Change methods accordingly:
-    # rankstat [DONE]
-    # alpha_diversity
-      # - NOTE: vegan converts sparse to matrix, this will explode in computation time, find an alternative package
-    # composition [DONE]
-    # ordination [DONE] 
-      # - NOTE: 137k features seems to be a limit
-    # differential_feature_expression
-    # correlation
+# library("tmle") # for non longitudional data
+library("ltmle")
+
+data(sampleDataForLtmleMSM)
+Anodes <- grep("^A", names(sampleDataForLtmleMSM$data))
+Lnodes <- c("CD4_1", "CD4_2")
+Ynodes <- grep("^Y", names(sampleDataForLtmleMSM$data))
+msm.weights <- matrix(1:12, nrow=4, ncol=3) #just an example (can also use a 200x3x4 array),
+#or NULL (for no weights), or "empirical" (the default)
+result2 <- ltmleMSM(
+  sampleDataForLtmleMSM$data, 
+  Anodes=Anodes,
+  Lnodes=Lnodes, 
+  Ynodes=Ynodes,
+  survivalOutcome=TRUE,
+  regimes=sampleDataForLtmleMSM$regimes,
+  summary.measures=sampleDataForLtmleMSM$summary.measures, 
+  final.Ynodes=Ynodes,
+  working.msm="Y ~ male + time + I(pmax(time - switch.time, 0))",
+  msm.weights="empirical", 
+  estimate.time=FALSE)
 
 
-large_dd <- metataxonomics$new(metaData = "../../../Pathology/projects/HEREDITARY/data/metadata.tsv",
-                           biomData = "../../../Pathology/projects/HEREDITARY/data/biom_with_taxonomy.biom",
-                           treeData = "../../../Pathology/projects/HEREDITARY/data/rooted_tree.newick")
-
-large_dd$feature_subset(Domain == "Bacteria")
+summary(result2, )
 
 
-result <- large_dd$composition(feature_rank = "Genus",
-                                 feature_filter = c("uncultured"),
-                                 feature_top = 10)
+library("tmle")
+n <- 250
+W <- matrix(rnorm(n*3), ncol=3)
+colnames(W) <- paste("W",1:3, sep="")
+A <- rbinom(n,1, plogis(0.6*W[,1] +0.4*W[,2] + 0.5*W[,3]))
+Y <- rbinom(n,1, plogis(A + 0.2*W[,1] + 0.1*W[,2] + 0.2*W[,3]^2 ))
 
-composition_plot(data = result$data,
-                 palette = result$palette,
-                 feature_rank = "Genus")
+result2 <- tmle(Y,A,W, family="binomial", Qform="Y~A+W1+W2+W3", gform="A~W1+W2+W3")
 
-large_dd$feature_glom(feature_rank = "Genus")
-
-pcoa_plots <- large_dd$ordination(metric = "unifrac",
-                                    method = "pcoa",
-                                    group_by = "SAMPLE-ID", 
-                                    weighted = TRUE,
-                                    parallel = TRUE,
-                                    normalize = TRUE)
-
-```
-
-
-## Specify data paths
-
-## Constructing metataxonomics class
-```{r, eval=FALSE}
-taxa <- metataxonomics$new(metaData = "tests/testthat/input/metataxonomics/metadata.tsv",
-                           biomData = "tests/testthat/input/metataxonomics/biom_with_taxonomy.biom",
-                           treeData = "tests/testthat/input/metataxonomics/rooted_tree.newick")
-
-
-taxa$feature_subset(Domain == "Bacteria")
-taxa$normalize()
-taxa$transform(log2)
-
-shannon <- taxa$alpha_diversity(col_name = "BMI", method = "shannon")
-
-
-
-result <- taxa$composition(feature_rank = "Genus",
-                                 feature_filter = c("uncultured"),
-                                 feature_top = 10)
-
-composition_plot(data = result$data,
-                 palette = result$palette,
-                 feature_rank = "Genus")
+summary(result2)
 
 
 ```
 
-# General analysis flow
-## Rankstat
-### Classified ASVs per taxonomic rank
-
+## Causal inference: Generalized propensity scores (GPS)
 ```{r}
-rankstat_plot <- taxa$rankstat()
+model <- lm(T ~ X1 + X2 + X3, data = yourdata)
 
-```
+# Predicted mean for each subject
+mu_hat <- predict(model)
+# Residual standard deviation
+sigma_hat <- summary(model)$sigma
+# For each subject: GPS = density at their observed treatment value
+library(stats)
+yourdata$gps <- dnorm(yourdata$T, mean = mu_hat, sd = sigma_hat)
 
-## Proportion of classified ASVs per taxonomic rank for each sample
-
-```{r}
-taxa_class$feature_subset(Domain == "Bacteria")
-result <- taxa_class$composition(feature_rank = "Genus",
-                                 feature_filter = c("uncultured"),
-                                 feature_top = 10)
-taxa_class$reset()
-
-composition_plot(data = result$data,
-                 palette = result$palette,
-                 feature_rank = "Genus")
-
-```
-
-## Alpha diversity 
-### Shannon index graph: data from nextflow run
-```{r}
-df_shannon <- data.table::fread(paste0(current_path, "/data/shannon.csv"))
-
-# Pivot into long table
-shannon_long <- data.table::melt(data = df_shannon,
-                                 measure.vars = colnames(df_shannon)[grepl("depth-", colnames(df_shannon))], 
-                                 variable.name = "iters",
-                                 variable.factor = FALSE,
-                                 value.name = "alpha_div")
-# Corrects colnames
-colnames(shannon_long) <- c("SAMPLE-ID", "iters", "alpha_div")
-# Adds new column
-shannon_final <- base::merge(shannon_long, 
-                             taxa$metaData[, .SD, .SDcols = c("SAMPLE-ID", col_name)], 
-                             by = "SAMPLE-ID", 
-                             all.x = TRUE)
-
-taxa$shannon(custom_div = shannon_final)
-
-taxa_class$feature_subset(Domain == "Bacteria")
-shannon_plot <- taxa$shannon(df_shannon = df_shannon,
-                                   col_name = "RANKSTAT_treatment")
-taxa_class$reset()
+# Video tutorial: https://www.practicalpropensityscore.com/continuous.html
 
 ```
 
 
-## Principal Coordinate Analysis with Weighted Unifrac distances
+## Causal inference, discovery of confounding effects
 ```{r}
-# normalized by bacterial domain
-taxa_class$feature_subset(Domain == "Bacteria")
-pcoa_plots <- taxa$ordination(metric = "unifrac",
-                                    method = "pcoa",
-                                    group_by = "SAMPLE-ID", 
-                                    weighted = TRUE,
-                                    parallel = TRUE,
-                                    normalize = TRUE)
-taxa_class$reset()
+## Binary treatment T -> Y with confounder covariate matrix W -> T and W -> Y
+library(DoubleML)
 
-ggsave("results/pcoa_test.png",
-       plot = comb_plot,
-       width = 15,
-       height = 5)
+# Prepare data: X (confounders), y (outcome), d (treatment)
+dml_data <- DoubleMLData$new(data, y_col = "Y", d_cols = "T", x_cols = confounders)
 
-```
+# Specify learner models for nuisance functions
+learner <- mlr3::lrn("regr.ranger")  # random forest regression
+learner_binary <- mlr3::lrn("classif.ranger", predict_type = "prob")  # for PS if binary
 
-## TREE with extra layers
-```{r}
+# Initialize DoubleML PLR object (Partial Linear Regression - binary treatment)
+dml_plr <- DoubleMLPLR$new(dml_data, ml_g = learner, ml_m = learner_binary)
 
-feature_rank = "Genus"
-feature_filter = c("uncultured")
-
-cor_columns = c("BMI", "Weight")
-
-taxa$correlation(feature_rank = "Genus",
-                 feature_filter = c("uncultured"),
-                 cor_method = "spearman",
-                 cor_columns = c("BMI", "Weight"))
-
-```
-
-# Clustering methods
-```{r}
+# Fit model and get treatment effect
+dml_plr$fit()
+dml_plr$coef
 
 
+## Longitudional data, M1 -> M2 -> M3, where (candidate) confounder covariate matrix W -> M1, W -> M2, W -> M3.
+library(DoubleML)
+
+# Example at time t=1
+dml_data_t1 <- DoubleMLData$new(data, y_col = "M2", d_cols = "M1", x_cols = c("Age", "Sex", W0_covariates))
+
+# Fit DML model for effect of M1 on M2
+ml_l <- mlr3::lrn("regr.ranger")
+ml_m <- mlr3::lrn("regr.ranger")
+dml_plr_t1 <- DoubleMLPLR$new(dml_data_t1, ml_l = ml_l, ml_m = ml_m)
+dml_plr_t1$fit()
+print(dml_plr_t1)
+
+# Repeat for (M2 → M3), controlling for prior treatments and covariates
 
 ```
 
@@ -261,117 +943,6 @@ model_step = step(model,
                   direction = "both", k= 2) 
                   # direction = c("both", "backward", "forward")
                   # k=2 for AIC; k=log(nrow(train_data)) for BIC
-
-
-```
-
-
-# Creating transcriptomics class
-```{r}
-#' Sub-class metataxonomics
-#'
-#' @description This is a sub-class for 16S metagenomics data, called metataxonomics.
-#' It inherits all methods from the abstract class \link[OmicFlow]{tools} and only adapts the \code{initialize} function.
-#'
-#' @export
-
-transcriptomics <- R6::R6Class(
-  classname = "transcriptomics",
-  cloneable = FALSE,
-  inherit = tools,
-  public = list(
-    countData = NULL,
-    featureData = NULL,
-    metaData = NULL,
-    scRNA = FALSE,
-
-    #' @description
-    #' Initializes the transcriptomics class object with \code{transcriptomics$new()}
-    initialize = function(countData = NA, metaData = NA, featureData = NA, cells = NA) {
-      # Checking what file format it is
-      if (tools::file_ext(countData) == "gz") tmp_ext_file = sub(".gz", "", countData)
-      else if (tools::file_ext(tmp_ext_file) == "mtx") {
-        # Reading matrix and converts to data.table
-        self$countData <- Matrix::readMM(countData)
-
-      } else if (self$scRNA) {
-        self$featureData <- data.table::fread(featureData)
-        cellsData <- data.table::data.table(cells)
-        dimnames(self$countData) <- list(self$featureData$V2, cellsData$v1)
-      } else super$initialize()
-      
-      # saves data for reset function
-      private$original_data = list(
-        counts = self$countData,
-        features = self$featureData,
-        metadata = self$metaData
-      )
-      api_test/EMBL-GENBANK-DDBJ_CDS.tsv
-      12538
-    },
-    #' @description
-    #' Displays parameters of the `metataxonomics` object via stdout.
-    #' @examples
-    #' taxa <- metataxonomics$new(metaData = "metadata.tsv",
-    #'                            biomData = "biom_with_taxonomy.biom",
-    #'                            treeData = "rooted_tree.newick")
-    #'
-    #' # method 1 to call print function
-    #' taxa
-    #'
-    #' # method 2 to call print function
-    #' taxa$print()
-    #'
-    print = function() {
-      if (self$scRNA) {
-        cat("## scRNA-class object \n")
-        if (length(self$countData) > 0) cat(paste0("## countData:\t[ ", ncol(self$countData), " cells and ", nrow(self$countData), " Genes\t] \n"))
-      } else {
-        cat("## transcriptomic-class object \n")
-        if (length(self$countData) > 0) cat(paste0("## countData:\t[ ", ncol(self$countData), " Samples and ", nrow(self$countData), " Features\t] \n"))
-        if (length(self$metaData) > 0) cat(paste0("## metaData:\t[ ", ncol(self$metaData), " Variables and ", nrow(self$metaData), " Samples\t] \n"))
-        if (length(self$featureData) > 0) cat(paste0("## taxData:\t[ ", ncol(self$featureData)-1, " Ranks and ", nrow(self$featureData), " Taxa\t] \n"))
-      }
-    },
-    #' @description
-    #' Upon creation of a new `metataxonomics` object a small backup of the original data is created.
-    #' Since modification of the object is done by reference and duplicates are not made, it is possible to `reset` changes to the class.
-    #' The methods from the abstract class `tools` also contain a private method to prevent any changes to the original object. Such cases are ordination, alpha_diversity, differential_feature_expression.
-    #' @examples
-    #' taxa <- metataxonomics$new(metaData = "metadata.tsv",
-    #'                            biomData = "biom_with_taxonomy.biom",
-    #'                            treeData = "rooted_tree.newick")
-    #'
-    #' # Performs modifications
-    #' taxa$transform(log2)
-    #'
-    #' # resets
-    #' taxa$reset()
-    #'
-    #' # An inbuilt reset function prevents unwanted modification to the taxa object.
-    #' taxa$rankstat()
-    #'
-    reset = function() {
-      if (self$scRNA) {
-        self$countData = private$original_data$counts
-      } else {
-        self$countData = private$original_data$counts
-        self$featureData = private$original_data$features
-        self$metaData = private$original_data$metadata
-      }
-      invisible(self)
-    },
-  ),
-  private = list(
-    original_data = list()
-  )
-)
-
-
-counts <- Matrix::readMM("./tests/testthat/transcriptomics/input/matrix.mtx.gz")
-features <- data.table::fread("./tests/testthat/transcriptomics/input/features.tsv.gz", header=FALSE)
-cells <- data.table::fread("./tests/testthat/transcriptomics/input/barcodes.tsv.gz", header=FALSE)
-
 
 
 ```
