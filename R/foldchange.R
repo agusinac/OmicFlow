@@ -152,8 +152,18 @@ foldchange <- function(data,
     row_means_A <- Matrix::rowMeans(mat_A)
     row_means_B <- Matrix::rowMeans(mat_B)
 
+    # Empty vector
+    result <- numeric(length(row_means_A))
+
+    # Find zero's to prevent Inf
+    both_zero <- row_means_A == 0 & row_means_B == 0
+    one_zero <- (row_means_A == 0 & row_means_B != 0) | (row_means_A != 0 & row_means_B == 0)
+    both_non_zero <- row_means_A != 0 & row_means_B != 0
+
     # Compute log2 fold change
-    result <- log2(row_means_A) - log2(row_means_B)
+    result[both_zero] <- 0
+    result[one_zero] <- 0
+    result[both_non_zero] <- log2(row_means_A[both_non_zero]) - log2(row_means_B[both_non_zero])
 
     # Combines to final foldchange data table
     foldchange_dt <- cbind(foldchange_dt, result)
