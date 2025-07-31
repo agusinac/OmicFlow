@@ -1,7 +1,7 @@
 ---
-title: "Data analysis report"
+title: "Initial analysis report"
 date: "`r Sys.Date()`"
-author: "RTC Bioinformatics"
+author: "Gusinac A"
 
 output:
   html_document:
@@ -9,12 +9,6 @@ output:
     toc_float: true
     css: styles.css
 ---
-
-<!-- New class for icon, see styles.css -->
-<div class="icon-container">
-  <img src="radboud_logo.png" alt="Icon" class="icon">
-</div>
-
 
 ```{r setup, include=FALSE} 
 knitr::opts_chunk$set(warning = FALSE, 
@@ -47,18 +41,6 @@ plot_tabs <- function(plots, method, label_col, label_row) {
     }
   }
 }
-
-```
-
-```{r}
-# if (!is.null(preprocess_stats)) {
-#   cat("# Preprocessing step \n")
-#   cat("Refer to published paper regarding pipeline\n")
-#   preprocess_stats %>%
-#     kableExtra::kbl(caption = "Table 1: Stats from cutadapt and DADA2 denoising") %>%
-#     kableExtra::kable_classic(full_width = TRUE, html_font = "Calibri")
-# }
-
 ```
 
 # Automated Analysis
@@ -205,4 +187,9 @@ DT::datatable(
 )
 
 
+```
+
+```{r}
+cat("### Thanks for using OmicFlow! If you use this package in your research, please cite us.\n\n")
+print(utils::citation("OmicFlow"))
 ```
