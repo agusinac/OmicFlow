@@ -123,9 +123,12 @@ diversity_plot <- function(data,
                                label = "p.adj",
                                step.increase = 0.05) +
     labs(title = NULL,
-         subtitle = paste0("Attribute: ", col_name, ", test: Mann-whitney, p.adjusted by ", p.adjust.method),
+         subtitle = paste0(
+          "Attribute: ", col_name,
+          ", test: ", ifelse(paired, "Wilcox signed rank test", "Wilcoxon rank sum test"),
+          ", p.adjusted by ", p.adjust.method),
          x = "sample groups",
-         y = paste0("Alpha diversity: ", method))
+         y = paste0("Alpha diversity metric: ", method))
 
   result <- list(
     plot = plt,
