@@ -317,6 +317,9 @@ omics <- R6::R6Class(
       if (!is.null(feature_filter) && !is.character(feature_filter))
         cli::cli_abort("{feature_filter} needs to be a character or vector containing characters")
 
+      if (!column_exists(feature_rank, self$featureData))
+        cli::cli_abort("{feature_rank} does not exist in featureData!")
+
       ## MAIN
       #--------------------------------------------------------------------#
 
@@ -561,6 +564,7 @@ omics <- R6::R6Class(
     #' @param feature_filter Removes features by name, works on single strings or vector of strings.
     #' @param col_name Optional, a string or vector of strings to add to the final compositional data output.
     #' @param feature_top Integer of the top features to visualize, the max is 15, due to a limit of palettes.
+    #' @param normalize A Boolean value, whether to [`normalize()`](#method-normalize) by total sample sums (Default: TRUE).
     #' @param Brewer.palID Palette set to be applied, see \link[RColorBrewer]{brewer.pal} or \link[OmicFlow]{colormap}.
     #' @examples
     #' obj <- omics$new(countData = "counts.csv",
@@ -580,6 +584,7 @@ omics <- R6::R6Class(
     composition = function(feature_rank,
                            feature_filter = NA,
                            col_name = NULL,
+                           normalize = TRUE,
                            feature_top = c(10, 15),
                            Brewer.palID = "RdYlBu") {
 
@@ -615,7 +620,8 @@ omics <- R6::R6Class(
       )
 
       # Normalizes sample counts
-      self$normalize()
+      if (normalize)
+        self$normalize()
 
       # Agglomerate by feature_rank
       self$feature_glom(feature_rank = feature_rank, feature_filter = feature_filter)
@@ -1394,205 +1400,302 @@ omics <- R6::R6Class(
     # },
     #' @description
     #' Automated Omics Analysis based on metadata template.
-    #' For now only works with headers "RANKSTAT_" and "CORRELATION_".
-    #' Samples should be as "SAMPLE-ID" upper or lower case.
-    #' @param feature_ranks A character vector of features to use, default \code{c("Phylum", "Family", "Genus")}.
+    #' For now only works with headers "CONTRAST_". 
+    #' @param feature_ranks A character vector as input to [`rankstat()`](#method-rankstat)
+    #' @param feature_contrast A character vector of feature columns to aggregate from the `featureData` and visualize in univariate analysis.
     #' @param feature_filter A character vector of to filter unwanted taxa, default \code{c("uncultured")}
     #' @param distance_metrics A character vector specifying what (dis)similarity metrics to use, default \code{c("unifrac")}
-    #' @param dist_matrix A path to pre-computed distance matrix, expects tsv/csv/txt file from qiime2.
+    #' @param beta_div_table A path to pre-computed distance matrix, expects tsv/csv/txt file from qiime2.
     #' @param alpha_div_table A path to pre-computed alpha diversity with rarefraction depth, expects tsv/csv/txt from qiime2.
     #' @param cpus Number of cores to use, only used in \link[omics]{ordination} when dist_matrix is not supplied.
+    #' @param filename A character to name the HTML report, it can also be a filepath (e.g. \code{"/path/to/report.html"}). Default: "report.html" in your current work directory.
     #'
     #' @return A nested list of \link[ggplot2]{ggplot} objects.
-    autoFlow = function(feature_ranks = c("Phylum", "Family", "Genus"),
+    autoFlow = function(feature_ranks = c("Kingdom", "Phylum", "Class", "Order", "Family", "Genus", "Species"),
+                        feature_contrast = c("Phylum", "Family", "Genus"),
                         feature_filter = c("uncultured"),
                         distance_metrics = c("unifrac"),
-                        dist_matrix = NULL,
+                        beta_div_table = NULL,
                         alpha_div_table = NULL,
-                        cpus = 1) {
+                        cpus = 1,
+                        filename = paste0(getwd(),"/report.html")
+                      ) {
+    ## Error handling
+    #--------------------------------------------------------------------#
 
-      # Nested function
-      is_empty = function(obj) {
-        if (length(obj) == 0) {
-          return(NULL)
-        } else {
-          return(obj)
-        }
-      }
-
-      # Plot results as list
-      plots <- list()
-
-      # Collect columns
-      metacols <- colnames(self$metaData)
-      RANKSTAT_data <- self$metaData[, .SD, .SDcols = grepl("RANKSTAT_", metacols)]
-      RANKSTAT_colnames <- colnames(RANKSTAT_data)
-      self$metaData[, (RANKSTAT_colnames) := lapply(.SD, as.character), .SDcols = RANKSTAT_colnames]
-      CORRELATION_data <- self$metaData[, .SD, .SDcols = grepl("CORRELATION_", metacols)]
-
-      #
-      #---------------------------------------------#
-      # Perform standard visualizations             #
-      #---------------------------------------------#
-      #
-      # RANKSTAT
-      #
-      feature_nrow <- length(feature_ranks)
-      RANKSTAT_ncol <- length(RANKSTAT_data)
-      #
-      # Object manipulation
-      #
-      self$feature_subset(Kingdom == "Bacteria")
-      # Standard rank stats
-      plots$rankstat_plot <- self$rankstat()
-
-      # Main loop
-      if (RANKSTAT_ncol > 0) {
-
-        # Load custom distance matrix if supplied
-        if (!is.null(dist_matrix)) {
-          dist_matrix <- read_tsv_matrix(filename = dist_matrix)
-          dist_matrix <- dist_matrix[self$metaData[["SAMPLE-ID"]], self$metaData[["SAMPLE-ID"]]]
-        }
-
-        # Load custom rarefraction alpha diversity table if supplied
-        if (!is.null(alpha_div_table)) {
-          alpha_div_table <- read_rarefraction_qiime(filename = alpha_div_table)
-        }
-
-        # Initialize plot containers
-        composition_plots <- matrix(list(), RANKSTAT_ncol, feature_nrow)
-        correlation_plots <- list()
-        Log2FC_plots <- matrix(list(), RANKSTAT_ncol, feature_nrow)
-        alpha_div_plots <- list()
-        metrics_nrow <- length(distance_metrics)
-        pcoa_plots <- matrix(list(), RANKSTAT_ncol, metrics_nrow)
-        nmds_plots <- matrix(list(), RANKSTAT_ncol, metrics_nrow)
-        RDA_plots <- matrix(list(), RANKSTAT_ncol, 2)
-
-        for (i in 1:RANKSTAT_ncol) {
-          col_name <- colnames(RANKSTAT_data)[i]
-          cat(paste0("Processing ... ", col_name, " \n"))
-
-          # Alpha diversity: Shannon index
-          if (inherits(alpha_div_table, "data.table")) {
-            dt_final <- base::merge(alpha_div_table,
-                                    self$metaData[, .SD, .SDcols = c("SAMPLE-ID", col_name)],
-                                    by = "SAMPLE-ID",
-                                    all.x = TRUE) %>%
-              na.omit(cols = col_name)
-
-            alpha_div_plots[[i]] <- diversity_plot(dt = dt_final,
-                                                   values = "alpha_div",
-                                                   col_name = col_name,
-                                                   palette = colormap(dt_final, col_name, "Set2"),
-                                                   method = "custom")$diversity
-          } else {
-            alpha_div_plots[[i]] <- self$alpha_diversity(col_name = col_name, method = "shannon")$diversity
-          }
-
-          # Create RDA1 vs PC1 triplot
-          RDA_plots[[i, 1]] <- self$triplot(feature_rank = "Genus",
-                                            feature_filter = feature_filter,
-                                            metadata.col = col_name,
-                                            pairwise = FALSE,
-                                            choice_dim = c("RDA1", "PC1"))$plot
-
-          # Create PC1 vs PC2 triplot
-          RDA_plots[[i, 2]] <- self$triplot(feature_rank = "Genus",
-                                            feature_filter = feature_filter,
-                                            metadata.col = col_name,
-                                            pairwise = FALSE,
-                                            choice_dim = c("PC1", "PC2"))$plot
-
-
-          # Microbiome composition by all samples
-          for (j in 1:feature_nrow) {
-            # Creates composition long table
-            res <- self$composition(feature_rank = feature_ranks[j],
-                                    feature_filter = feature_filter,
-                                    col_name = col_name)
-
-            # Creates composition ggplot as list
-            composition_plots[[i, j]] <- composition_plot(data = res$data,
-                                                          palette = res$palette,
-                                                          feature_rank = feature_ranks[j],
-                                                          group_by = col_name)
-
-            # Creates correlation ggplot as list
-            if (i == 1 & length(CORRELATION_data) > 0) {
-              correlation_plots[[j]] <- self$correlation(feature_rank = feature_ranks[j],
-                                                         feature_filter = feature_filter,
-                                                         cor_columns = colnames(CORRELATION_data))
-            }
-
-
-            # # Creates Log2 Fold-Change (FC) ggplot as list
-            # unique_groups <- unique(na.omit(RANKSTAT_data[, .SD, .SDcols = col_name]))
-            # if (nrow(unique_groups) == 2) {
-            #   condition_A <- unique_groups[1, ]
-            #   condition_B <- unique_groups[2, ]
-            #
-            #   Log2FC_plots[[i, j]] <- self$DFE(feature_rank = feature_ranks[j],
-            #                                    sample.id = "SAMPLE-ID",
-            #                                    condition.group = col_name,
-            #                                    condition_A = condition_A,
-            #                                    condition_B = condition_B,
-            #                                    feature_filter = feature_filter)[["volcano_plot"]][[1]]
-            # }
-
-
-          }
-          for (j in 1:metrics_nrow) {
-            if (inherits(dist_matrix, "Matrix")) {
-              tmp_plts <- self$ordination(distmat = dist_matrix,
-                                          method = "pcoa",
-                                          group_by = col_name)
-            } else {
-              # Creates temporary plot results for PCoA
-              tmp_plts <- self$ordination(metric = distance_metrics[j],
-                                          method = "pcoa",
-                                          group_by = col_name,
-                                          weighted = TRUE,
-                                          parallel = TRUE,
-                                          cpus = cpus)
-            }
-
-            pcoa_plots[[i, j]] <- patchwork::wrap_plots(tmp_plts[c("scree_plot", "anova_plot", "scores_plot")],
-                                                        nrow = 1) +
-              plot_layout(widths = c(rep(5, length(tmp_plts))),
-                          guides = "collect")
-
-            # Creates temporary plot results for NMDS
-            if (inherits(dist_matrix, "Matrix")) {
-              tmp_plts <- self$ordination(distmat = dist_matrix,
-                                          method = "nmds",
-                                          group_by = col_name)
-            } else {
-              tmp_plts <- self$ordination(metric = distance_metrics[j],
-                                          method = "nmds",
-                                          group_by = col_name,
-                                          weighted = TRUE)
-            }
-
-
-            nmds_plots[[i, j]] <- patchwork::wrap_plots(tmp_plts[c("anova_plot", "scores_plot")],
-                                                        nrow = 1) +
-              plot_layout(widths = c(rep(5, length(tmp_plts))),
-                          guides = "collect")
-          }
-        }
-        plots$alpha_div_plots <- is_empty(alpha_div_plots)
-        plots$correlation_plots <- is_empty(correlation_plots)
-        plots$composition_plots <- is_empty(composition_plots)
-        plots$Log2FC_plots <- is_empty(Log2FC_plots)
-        plots$pcoa_plots <- is_empty(pcoa_plots)
-        plots$nmds_plots <- is_empty(nmds_plots)
-        plots$rda_plots <- is_empty(RDA_plots)
-      }
-
-      return(plots)
+    if (!is.character(filename) && length(filename) != 1) {
+      cli::cli_abort("{filename} needs to be a character with a lenght of 1")
+    } else if (file.exists(filename)) {
+      cli::cli_abort("{filename} already exists!")
     }
+      
+    if (!is.character(feature_contrast) && length(feature_contrast) != 1) {
+      cli::cli_abort("{feature_contrast} needs to be a character with a lenght of 1")
+    } else if (!column_exists(feature_contrast, self$featureData)) {
+      cli::cli_abort("{feature_contrast} does not exist in featureData!")
+    }
+
+    if (!is.null(beta_div_table) && !is.character(beta_div_table) && length(beta_div_table) != 1) {
+      cli::cli_abort("{beta_div_table} needs to be a character with a lenght of 1")
+    
+      if (file.exists(beta_div_table))
+        cli::cli_abort("{beta_div_table} already exists!")
+    }
+
+    if (!is.null(alpha_div_table) && !is.character(alpha_div_table) && length(alpha_div_table) != 1) {
+      cli::cli_abort("{alpha_div_table} needs to be a character with a lenght of 1")
+
+      if (file.exists(alpha_div_table))
+        cli::cli_abort("{alpha_div_table} already exists!")
+    }
+
+    ## MAIN
+    #--------------------------------------------------------------------#
+    is_empty = function(obj) {
+      if (length(obj) == 0) {
+        return(NULL)
+      } else {
+        return(obj)
+      }
+    }
+
+    # Plot results as list
+    plots <- list()
+
+    # Collect columns: CONTRAST_ and VARIABLE_
+    metacols <- colnames(self$metaData)
+
+    CONTRAST_data <- self$metaData[, .SD, .SDcols = grepl("CONTRAST_", metacols)]
+    CONTRAST_names <- colnames(CONTRAST_data)
+
+    VARIABLE_data <- self$metaData[, .SD, .SDcols = grepl("VARIABLE_", metacols)]
+    VARIABLE_names <- colnames(VARIABLE_data)
+
+    #
+    #---------------------------------------------#
+    # Perform standard visualizations             #
+    #---------------------------------------------#
+    #
+    # CONTRAST
+    #
+    feature_nrow <- length(feature_contrast)
+    CONTRAST_ncol <- length(CONTRAST_data)
+    VARIABLE_ncol <- length(VARIABLE_data)
+    #
+    # Object manipulation
+    #
+    self$feature_subset(Kingdom == "Bacteria")
+    # Standard rank stats
+    plots$rankstat_plot <- self$rankstat(feature_ranks)
+
+    # Main loop
+    if (CONTRAST_ncol > 0) {
+
+      # Load custom distance matrix if supplied
+      if (!is.null(beta_div_table)) {
+        dist_matrix <- read_tsv_matrix(filename = beta_div_table)
+        dist_matrix <- dist_matrix[self$metaData[[self$.sample_id]], self$metaData[[self$.sample_id]]]
+      }
+
+      # Load custom rarefraction alpha diversity table if supplied
+      if (!is.null(alpha_div_table)) {
+        alpha_div_table <- read_rarefraction_qiime(filename = alpha_div_table)
+      }
+
+      # Initialize plot containers
+      composition_plots <- matrix(list(), CONTRAST_ncol, feature_nrow)
+      Log2FC_plots <- matrix(list(), CONTRAST_ncol, feature_nrow)
+      alpha_div_plots <- list()
+      metrics_nrow <- length(distance_metrics)
+      pcoa_plots <- matrix(list(), CONTRAST_ncol, metrics_nrow)
+      nmds_plots <- matrix(list(), CONTRAST_ncol, metrics_nrow)
+      conditions <- NULL
+
+      for (i in 1:CONTRAST_ncol) {
+        col_name <- CONTRAST_names[i]
+        cat(paste0("Processing ... column: ", col_name, " \n"))
+
+        #--------------------------------------------------------------------#
+        ## Alpha diversity
+        #--------------------------------------------------------------------#
+        if (inherits(alpha_div_table, "data.table")) {
+          dt_final <- base::merge(alpha_div_table,
+                                  self$metaData[, .SD, .SDcols = c(self$.sample_id, col_name)],
+                                  by = self$.sample_id,
+                                  all.x = TRUE) %>%
+            na.omit(cols = col_name)
+
+          res <- diversity_plot(data = dt_final,
+                                values = "alpha_div",
+                                col_name = col_name,
+                                palette = fetch_palette(dt_final, col_name, "Set2"),
+                                method = "custom")
+        } else {
+          res <- tryCatch(
+            {
+              # Default attempt
+              self$alpha_diversity(
+                col_name = col_name,
+                metric = "shannon",
+                paired = ifelse(!is.null(self$.samplepair_id), TRUE, FALSE)
+              )
+            },
+            error = function(e) {
+              cli::cli_alert_warning("alpha_diversity with paired=TRUE failed. Retrying with paired=FALSE.")
+              self$alpha_diversity(
+                col_name = col_name,
+                metric = "shannon",
+                paired = FALSE
+              )
+            }
+          )
+        }
+        
+        ## Save plots and identify significant groups for composition plots & volcano plots
+        alpha_div_plots[[i]] <- res$plot
+        signif_pairs <- res$stats[c("group1", "group2")] #[grepl("\\*+", res$stats$p.adj.signif) ,]
+        if (nrow(signif_pairs) > 0)
+          conditions <- signif_pairs
+          
+        #--------------------------------------------------------------------#
+        ## Beta diversity
+        #--------------------------------------------------------------------#
+        
+        for (j in 1:metrics_nrow) {
+          if (inherits(dist_matrix, "Matrix")) {
+            res <- self$ordination(distmat = dist_matrix,
+                                  method = "pcoa",
+                                  group_by = col_name)
+          } else {
+            res <- self$ordination(metric = distance_metrics[j],
+                                  method = "pcoa",
+                                  group_by = col_name,
+                                  normalize = TRUE,
+                                  weighted = TRUE,
+                                  cpus = cpus)
+          }
+          
+          ## Save plots and identify significant groups for composition plots & volcano plots
+          signif_pairs <- res$anova_data[res$anova_data$p.adj < 0.9, ]
+          if (nrow(signif_pairs) > 0) {
+            pairs_split <- strsplit(as.character(signif_pairs$pairs), " vs ")
+            
+            # Create group1 and group2 columns from split
+            signif_pairs$group1 <- sapply(pairs_split, `[`, 1)
+            signif_pairs$group2 <- sapply(pairs_split, `[`, 2)
+            
+            signif_pairs <- signif_pairs[c("group1", "group2")]
+            
+            conditions <- combine_conditions(conditions, signif_pairs)
+          }
+          
+          pcoa_plots[[i, j]] <- patchwork::wrap_plots(res[c("scree_plot", "anova_plot", "scores_plot")],
+                                                      nrow = 1) +
+            plot_layout(widths = c(rep(5, 3)),
+                        guides = "collect")
+
+          # Creates temporary plot results for NMDS
+          if (inherits(dist_matrix, "Matrix")) {
+            res <- self$ordination(distmat = dist_matrix,
+                                        method = "nmds",
+                                        group_by = col_name)
+          } else {
+            res <- self$ordination(metric = distance_metrics[j],
+                                  method = "nmds",
+                                  group_by = col_name,
+                                  weighted = TRUE)
+          }
+
+          ## Save plots and identify significant groups for composition plots & volcano plots
+          signif_pairs <- res$anova_data[res$anova_data$p.adj <= 1, ]
+          if (nrow(signif_pairs) > 0) {
+            pairs_split <- strsplit(as.character(signif_pairs$pairs), " vs ")
+            
+            # Create group1 and group2 columns from split
+            signif_pairs$group1 <- sapply(pairs_split, `[`, 1)
+            signif_pairs$group2 <- sapply(pairs_split, `[`, 2)
+            
+            signif_pairs <- signif_pairs[c("group1", "group2")]
+            
+            conditions <- combine_conditions(conditions, signif_pairs)
+          }      
+
+          nmds_plots[[i, j]] <- patchwork::wrap_plots(res[c("anova_plot", "scores_plot")],
+                                                      nrow = 1) +
+            plot_layout(widths = c(rep(5, 3)),
+                        guides = "collect")
+        }
+        
+        #--------------------------------------------------------------------#
+        ## Feature composition & FOLDCHANGE
+        #--------------------------------------------------------------------#
+
+        for (j in 1:feature_nrow) {
+          # Creates composition long table
+          res <- self$composition(
+            feature_rank = feature_contrast[j],
+            feature_filter = feature_filter,
+            feature_top = 15,
+            col_name = col_name)
+
+          # Creates composition ggplot as list
+          composition_plots[[i, j]] <- composition_plot(
+            data = res$data,
+            palette = res$palette,
+            feature_rank = feature_contrast[j],
+            group_by = col_name
+            )
+          
+          if (!is.null(conditions) & nrow(conditions) > 0) {
+            dfe <- tryCatch(
+              {
+              # Default attempt
+              self$DFE(
+                feature_rank = feature_contrast[j],
+                feature_filter = feature_filter,
+                paired = ifelse(!is.null(self$.samplepair_id), TRUE, FALSE),
+                condition.group = col_name,
+                condition_A = c(conditions$group1),
+                condition_B = c(conditions$group2)
+                )
+              },
+              error = function(e) {
+                cli::cli_alert_warning("DFE with paired=TRUE failed. Retrying with paired=FALSE.")
+                self$DFE(
+                  feature_rank = feature_contrast[j],
+                  feature_filter = feature_filter,
+                  paired = FALSE,
+                  condition.group = col_name,
+                  condition_A = c(conditions$group1),
+                  condition_B = c(conditions$group2)
+                  )
+              }
+            )   
+            Log2FC_plots[[i, j]] <- patchwork::wrap_plots(dfe$volcano_plot, nrow=1)
+          }
+        }
+      }
+      plots$alpha_div_plots <- is_empty(alpha_div_plots)
+      plots$composition_plots <- is_empty(composition_plots)
+      plots$Log2FC_plots <- is_empty(Log2FC_plots)
+      plots$pcoa_plots <- is_empty(pcoa_plots)
+      plots$nmds_plots <- is_empty(nmds_plots)
+    }
+
+    #--------------------------------------------------------------------#
+    ## CREATING REPORT
+    #--------------------------------------------------------------------#
+
+    # Locate the template Rmd and CSS within the installed package
+    rmd_path <- system.file("report.Rmd", package = "OmicFlow")
+    css_path <- system.file("styles.css", package = "OmicFlow")
+
+    rmarkdown::render(
+      input = rmd_path,
+      output_file = filename,
+      output_options = list(css = css_path)
+    )
+  }
   ),
   private = list(
     # Creates a temporary save of self components
