@@ -53,36 +53,33 @@ if (!is.null(plots$rankstat_plot)) {
 }
 ```
 
-
 ```{r}
 if (!is.null(plots$alpha_div_plots)) {
   cat("## Alpha diversity {.tabset} \n")
   plot_tabs(plots$alpha_div, 
             method = "vector", 
-            label_col = rankstat_labels)
+            label_col = CONTRAST_names)
 }
 
 ```
-
 
 ```{r}
 if (!is.null(plots$pcoa_plots)) {
   cat("## Beta Diversity: Principal Coordinate Analysis (PCoA) {.tabset}")
   plot_tabs(plots$pcoa_plots, 
             method = "matrix", 
-            label_col = rankstat_labels,
+            label_col = CONTRAST_names,
             label_row = distance_metrics)
 }
 
 ```
-
 
 ```{r}
 if (!is.null(plots$nmds_plots)) {
   cat("## Beta Diversity: NMDS {.tabset} \n")
   plot_tabs(plots$nmds_plots, 
             method = "matrix",
-            label_col = rankstat_labels,
+            label_col = CONTRAST_names,
             label_row = distance_metrics)
 }
 ```
@@ -92,7 +89,7 @@ if (!is.null(plots$rda_plots)) {
   cat("## Redundancy Analysis (RDA) {.tabset} \n")
   plot_tabs(plots$rda_plots,
             method = "matrix",
-            label_col = rankstat_labels,
+            label_col = CONTRAST_names,
             label_row = c("RDA", "PCA"))
 }
 
@@ -103,39 +100,24 @@ if (!is.null(plots$composition_plots)) {
   cat("## Composition {.tabset} \n")
   plot_tabs(plots$composition_plots, 
             method = "matrix", 
-            label_col = rankstat_labels, 
-            label_row = feature_ranks)
+            label_col = CONTRAST_names, 
+            label_row = feature_contrast)
 }
 
 ```
 
-
 ```{r}
-if (!is.null(plots$correlation_plots)) {
-  cat("## Correlations {.tabset} \n")
-  plot_tabs(plots$correlation_plots,
-            method = "vector",
-            label_col = feature_ranks)
+if (!is.null(plots$Log2FC_plots)) {
+  cat("## Log2 FoldChanges {.tabset} \n")
+  plot_tabs(plots$Log2FC_plots, 
+            method = "matrix", 
+            label_col = CONTRAST_names, 
+            label_row = feature_contrast)
 }
 
 ```
 
-
-```{r}
-# Unnaming the plot list and saving as a new list
-# if (!is.null(plots$Log2FC_plots)) {
-#   cat("## Log2 Fold-Change {.tabset} \n")
-#   plot_tabs(plots$Log2FC_plots, 
-#             method = "matrix", 
-#             label_col = rankstat_labels, 
-#             label_row = feature_ranks)
-# }
-
-```
-
-## Downloadable content
-
-```{r}
+<!-- ```{r}
 # Function to save content to a temporary file and return the path
 save_content <- function(data, extension) {
   temp_file <- tempfile(fileext = extension)
@@ -187,7 +169,7 @@ DT::datatable(
 )
 
 
-```
+``` -->
 
 ```{r}
 cat("### Thanks for using OmicFlow! If you use this package in your research, please cite us.\n\n")
