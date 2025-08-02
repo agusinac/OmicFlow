@@ -208,8 +208,15 @@ is.wholenumber <- function(x, tol = .Machine$double.eps^0.5) {
 
 combine_conditions <- function(condition1, condition2) {
   # Combine to strings for easy comparison
-  cond1_str <- paste(condition1$group1, condition1$group2, sep = "_")
-  cond2_str <- paste(condition2$group1, condition2$group2, sep = "_")
+  cond1_str <- paste(
+    pmin(condition1$group1, condition1$group2),
+    pmax(condition1$group1, condition1$group2), 
+    sep = "_")
+
+  cond2_str <- paste(
+    pmin(condition2$group1, condition2$group2),
+    pmax(condition2$group1, condition2$group2), 
+    sep = "_")
 
   # Find which condition2 are NOT already in condition1
   new_pairs_idx <- !cond2_str %in% cond1_str
@@ -217,11 +224,11 @@ combine_conditions <- function(condition1, condition2) {
   if (any(new_pairs_idx)) {
     # There are new pairs in condition2 not in condition1;
     # append only the new ones
-    new_rows <- signif_pairs[new_pairs_idx, ]
-    updated_conditions <- rbind(conditions, new_rows)
+    new_rows <- condition2[new_pairs_idx, ]
+    updated_conditions <- rbind(condition1, new_rows)
   } else {
     # All pairs in condition2 are already included
-    updated_conditions <- conditions
+    updated_conditions <- condition1
   }
 
   return(updated_conditions)
