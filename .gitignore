@@ -8,8 +8,7 @@
 
 # User-specific files
 .Ruserdata
-./test
-./OmicFlow.Rproj
+./dev
 
 # Example code in package build process
 *-Ex.R
