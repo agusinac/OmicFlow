@@ -1,5 +1,5 @@
 ---
-title: "Initial analysis report"
+title: "Automated Flow (autoFlow)"
 date: "`r Sys.Date()`"
 author: "Gusinac A"
 
@@ -21,9 +21,8 @@ knitr::opts_chunk$set(warning = FALSE,
                       ) 
 ```
 
-
 ```{r}
-plot_tabs <- function(plots, method, label_col, label_row) {
+create_plot_tabs <- function(plots, method, label_col, label_row) {
   if (method == "matrix") {
     for(i in 1:nrow(plots)) {
       for(j in 1:ncol(plots)) {
@@ -43,9 +42,6 @@ plot_tabs <- function(plots, method, label_col, label_row) {
 }
 ```
 
-# Automated Analysis
-
-
 ```{r}
 if (!is.null(plots$rankstat_plot)) {
   cat("## Rank stats \n")
@@ -56,9 +52,11 @@ if (!is.null(plots$rankstat_plot)) {
 ```{r}
 if (!is.null(plots$alpha_div_plots)) {
   cat("## Alpha diversity {.tabset} \n")
-  plot_tabs(plots$alpha_div, 
-            method = "vector", 
-            label_col = CONTRAST_names)
+  create_plot_tabs(
+    plots$alpha_div, 
+    method = "vector", 
+    label_col = CONTRAST_names
+    )
 }
 
 ```
@@ -66,10 +64,12 @@ if (!is.null(plots$alpha_div_plots)) {
 ```{r}
 if (!is.null(plots$pcoa_plots)) {
   cat("## Beta Diversity: Principal Coordinate Analysis (PCoA) {.tabset}")
-  plot_tabs(plots$pcoa_plots, 
-            method = "matrix", 
-            label_col = CONTRAST_names,
-            label_row = distance_metrics)
+  create_plot_tabs(
+    plots$pcoa_plots, 
+    method = "matrix", 
+    label_col = CONTRAST_names,
+    label_row = distance_metrics
+    )
 }
 
 ```
@@ -77,31 +77,24 @@ if (!is.null(plots$pcoa_plots)) {
 ```{r}
 if (!is.null(plots$nmds_plots)) {
   cat("## Beta Diversity: NMDS {.tabset} \n")
-  plot_tabs(plots$nmds_plots, 
-            method = "matrix",
-            label_col = CONTRAST_names,
-            label_row = distance_metrics)
+  create_plot_tabs(
+    plots$nmds_plots, 
+    method = "matrix",
+    label_col = CONTRAST_names,
+    label_row = distance_metrics
+    )
 }
-```
-
-```{r}
-if (!is.null(plots$rda_plots)) {
-  cat("## Redundancy Analysis (RDA) {.tabset} \n")
-  plot_tabs(plots$rda_plots,
-            method = "matrix",
-            label_col = CONTRAST_names,
-            label_row = c("RDA", "PCA"))
-}
-
 ```
 
 ```{r}
 if (!is.null(plots$composition_plots)) {
   cat("## Composition {.tabset} \n")
-  plot_tabs(plots$composition_plots, 
-            method = "matrix", 
-            label_col = CONTRAST_names, 
-            label_row = feature_contrast)
+  create_plot_tabs(
+    plots$composition_plots, 
+    method = "matrix", 
+    label_col = CONTRAST_names, 
+    label_row = feature_contrast
+    )
 }
 
 ```
@@ -109,12 +102,19 @@ if (!is.null(plots$composition_plots)) {
 ```{r}
 if (!is.null(plots$Log2FC_plots)) {
   cat("## Log2 FoldChanges {.tabset} \n")
-  plot_tabs(plots$Log2FC_plots, 
-            method = "matrix", 
-            label_col = CONTRAST_names, 
-            label_row = feature_contrast)
+  create_plot_tabs(
+    plots$Log2FC_plots, 
+    method = "matrix", 
+    label_col = CONTRAST_names, 
+    label_row = feature_contrast
+    )
 }
 
+```
+
+```{r}
+cat("## Thanks for using OmicFlow!\n")
+utils::citation("OmicFlow")
 ```
 
 <!-- ```{r}
@@ -170,8 +170,3 @@ DT::datatable(
 
 
 ``` -->
-
-```{r}
-cat("### Thanks for using OmicFlow! If you use this package in your research, please cite us.\n\n")
-print(utils::citation("OmicFlow"))
-```

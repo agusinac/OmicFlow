@@ -129,29 +129,47 @@ column_exists <- function(column, table) {
 }
 
 parse_commandline <- function() {
-  option_list <- list (optparse::make_option(c("-m", "--metadata"),
-                                             action = "store",
-                                             help="tab seperated file"),
-                       optparse::make_option(c("-b", "--biom"),
-                                             action = "store",
-                                             help="biom format file"),
-                       optparse::make_option(c("-t", "--tree"),
-                                             action = "store",
-                                             help="Phylogenetic tree in newick format"),
-                       optparse::make_option(c("-c", "--cpus"),
-                                             action = "store",
-                                             help="Number of cores",
-                                             default = 4),
-                       optparse::make_option(c("-o", "--outdir"),
-                                             action = "store",
-                                             help="Output directory",
-                                             default = normalizePath(getwd())),
-                       optparse::make_option(c("--i-beta-div"),
-                                             action = "store",
-                                             help="custom beta diversity from qiime2"),
-                       optparse::make_option(c("--i-alpha-div"),
-                                             action = "store",
-                                             help="custom alpha diversity with rarefraction from qiime2")
+  option_list <- list (
+    optparse::make_option("--omics",
+                          action = "store",
+                          type = "character",
+                          default = "metagenomics",
+                          help="tab seperated file"),
+    optparse::make_option(c("-m", "--metadata"),
+                          action = "store",
+                          type = "character",
+                          help="tab seperated file"),
+    optparse::make_option(c("-b", "--biom"),
+                          action = "store",
+                          type = "character",
+                          help="biom format file"),
+    optparse::make_option(c("-t", "--tree"),
+                          action = "store",
+                          type = "character",
+                          help="Phylogenetic tree in newick format"),
+    optparse::make_option(c("-c", "--cpus"),
+                          action = "store",
+                          type = "numeric",
+                          help="Number of cores",
+                          default = 4),
+    optparse::make_option(c("-o", "--outdir"),
+                          action = "store",
+                          type = "character",
+                          help="Output directory",
+                          default = normalizePath(getwd())),
+    optparse::make_option(c("-f", "--filename"),
+                          action = "store",
+                          type = "character",
+                          help="Name of the HTML report",
+                          default = "report.html"),
+    optparse::make_option(c("--i-beta-div"),
+                          action = "store",
+                          type = "character",
+                          help="custom beta diversity from qiime2"),
+    optparse::make_option(c("--i-alpha-div"),
+                          action = "store",
+                          type = "character",
+                          help="custom alpha diversity with rarefraction from qiime2")
   )
 
   parser <- optparse::OptionParser(option_list = option_list)
@@ -207,6 +225,14 @@ is.wholenumber <- function(x, tol = .Machine$double.eps^0.5) {
 }
 
 combine_conditions <- function(condition1, condition2) {
+  if (!is.null(condition1) && !is.null(condition2)) {
+    if (!inherits(condition1, "data.frame") && !inherits(condition1, "data.table"))
+      cli::cli_abort("condition1 must be a data.frame or data.table.")
+
+    if (!inherits(condition2, "data.frame") && !inherits(condition2, "data.table"))
+      cli::cli_abort("condition2 must be a data.frame or data.table.")
+  }
+
   # Combine to strings for easy comparison
   cond1_str <- paste(
     pmin(condition1$group1, condition1$group2),
@@ -233,4 +259,3 @@ combine_conditions <- function(condition1, condition2) {
 
   return(updated_conditions)
 }
-
