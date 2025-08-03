@@ -1,5 +1,2 @@
-^OmicFlow\.Rproj$
-^\.Rproj\.user$
-^src
-^to_implement
-^Analysis_*
+^.gitignore
+^.docker
