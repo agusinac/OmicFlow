@@ -39,68 +39,72 @@ metagenomics <- R6::R6Class(
     #'                          treeData = "rooted_tree.newick")
     #'
     #' @return A new `metagenomics` object.
-    initialize = function(countData = NA,
-                          metaData = NA,
-                          featureData = NA,
-                          treeData = NA,
-                          biomData = NA,
+    initialize = function(countData = NULL,
+                          metaData = NULL,
+                          featureData = NULL,
+                          treeData = NULL,
+                          biomData = NULL,
                           feature_names = c("Kingdom", "Phylum", "Class", "Order", "Family", "Genus", "Species")) {
 
       super$initialize(countData = countData,
                        featureData = featureData,
                        metaData = metaData)
 
-      if (!is.na(biomData) & tools::file_ext(biomData) == "biom") {
+      if (!is.null(biomData)) {
 
-        #---------------------#
-        ###  biomData HDF5  ###
-        #---------------------#
+        if (tools::file_ext(biomData) == "biom") {
+          
+          #---------------------#
+          ###  biomData HDF5  ###
+          #---------------------#
 
-        if (rhdf5::H5Fis_hdf5(biomData)) {
+          if (rhdf5::H5Fis_hdf5(biomData)) {
 
-          hdf5_contents <- data.table::data.table(rhdf5::h5ls(biomData))
-          hdf5_contents[, content := paste(group, name, sep = "/")]
+            hdf5_contents <- data.table::data.table(rhdf5::h5ls(biomData))
+            hdf5_contents[, content := paste(group, name, sep = "/")]
 
-          expected_content <- c(
-            "/observation/matrix/data",
-            "/observation/matrix/indptr",
-            "/observation/matrix/indices",
-            "/observation/ids",
-            "/sample/ids")
+            expected_content <- c(
+              "/observation/matrix/data",
+              "/observation/matrix/indptr",
+              "/observation/matrix/indices",
+              "/observation/ids",
+              "/sample/ids")
 
-          missing <- base::setdiff(expected_content, hdf5_contents$content)
+            missing <- base::setdiff(expected_content, hdf5_contents$content)
 
-          if (length(missing) > 0 ) {
-            cli::cli_abort(
-              "Expected content is missing",
-              "i" = "\n{ paste(missing, collapse = ',')}"
-            )
+            if (length(missing) > 0 ) {
+              cli::cli_abort(
+                "Expected content is missing",
+                "i" = "\n{ paste(missing, collapse = ',')}"
+              )
+            }
+
+            # Checks if data contains any dimensions
+            list_of_dimensions <- hdf5_contents$dim[grepl(paste(expected_content, collapse="|"), hdf5_contents$content)]
+            if (!all(as.numeric(list_of_dimensions) > 0)) {
+              cli::cli_abort(
+                "Expected content does not contain any dimensions",
+                "i" = "\n{ paste(expected_content, collapse = ',')}"
+              )
+            }
+
+            # Loads data in memory
+            self$biomData <- rhdf5::h5read(biomData, "/", read.attributes = TRUE)
+            private$construct_hdf5_featureData()
+            private$construct_hdf5_countData()
+
+            #---------------------#
+            ###  biomData JSON  ###
+            #---------------------#
+
+          } else if (yyjsonr::validate_json_file(biomData)) {
+            
+            private$construct_json_featureData(feature_names)
+            private$construct_json_countDa
+
+          } else {
+            cli::cli_abort("biomData could not be loaded. Not a valid JSON or HDF5 format!")
           }
-
-          # Checks if data contains any dimensions
-          list_of_dimensions <- hdf5_contents$dim[grepl(paste(expected_content, collapse="|"), hdf5_contents$content)]
-          if (!all(as.numeric(list_of_dimensions) > 0)) {
-            cli::cli_abort(
-              "Expected content does not contain any dimensions",
-              "i" = "\n{ paste(expected_content, collapse = ',')}"
-            )
-          }
-
-          # Loads data in memory
-          self$biomData <- rhdf5::h5read(biomData, "/", read.attributes = TRUE)
-          private$construct_hdf5_featureData()
-          private$construct_hdf5_countData()
-
-        #---------------------#
-        ###  biomData JSON  ###
-        #---------------------#
-
-        } else if (yyjsonr::validate_json_file(biomData)) {
-          private$construct_json_featureData(feature_names)
-          private$construct_json_countDa
-
-        } else {
-          cli::cli_abort("biomData could not be loaded. Not a valid JSON or HDF5 format!")
         }
       }
 
@@ -108,9 +112,16 @@ metagenomics <- R6::R6Class(
       ###   treeData    ###
       #-------------------#
 
-      if (!is.na(treeData)) {
-        self$treeData <- ape::read.tree(treeData)
-        cli::cli_alert_success("treeData is loaded.")
+      if (!is.null(treeData)) {
+        if (is.character(treeData) && length(treeData) == 1 && file.exists(treeData)) {
+          self$treeData <- ape::read.tree(treeData)
+          cli::cli_alert_success("treeData is loaded.")
+        } else if (inherits(treeData, "phylo")) {
+          self$treeData <- treeData
+          cli::cli_alert_success("treeData is loaded.")
+        } else {
+          cli::cli_alert_warning("The provided TreeData could not be loaded. Make sure the tree is supported by `ape::read.tree`")
+        }
       }
 
       #-------------------#

@@ -12,19 +12,18 @@ sparse_to_dtable <- function(sparsemat) {
   return(data.table::data.table(as.matrix(sparsemat)))
 }
 
-read_tsv_matrix <- function(filename) {
+read_tsv_matrix <- function(filepath) {
 
   ## Error handling
   #--------------------------------------------------------------------#
 
-  if (!file.exists(filename))
-    cli::cli_abort("{filename} does not exist.")
+  if (!file.exists(filepath))
+    cli::cli_abort("{filepath} does not exist.")
 
   ## MAIN
   #--------------------------------------------------------------------#
 
-  distmat <- data.table::fread(filename,
-                               header = TRUE)
+  distmat <- check_input(filepath)
 
   rownames <- distmat[[1]]
   colnames <- names(distmat)[-1]
@@ -41,18 +40,18 @@ read_tsv_matrix <- function(filename) {
   return(sparse_matrix)
 }
 
-read_rarefraction_qiime <- function(filename) {
+read_rarefraction_qiime <- function(filepath) {
 
   ## Error handling
   #--------------------------------------------------------------------#
 
-  if (!file.exists(filename))
-    cli::cli_abort("{filename} does not exist.")
+  if (!file.exists(filepath))
+    cli::cli_abort("{filepath} does not exist.")
 
   ## MAIN
   #--------------------------------------------------------------------#
 
-  df_shannon <- data.table::fread(filename)
+  df_shannon <- data.table::fread(filepath)
 
   # Pivot into long table
   shannon_long <- data.table::melt(data = df_shannon,
@@ -64,40 +63,6 @@ read_rarefraction_qiime <- function(filename) {
   colnames(shannon_long) <- c("SAMPLE_ID", "iters", "alpha_div")
 
   return(shannon_long)
-}
-
-read_sparseTable <- function(filename) {
-
-  ## Error handling
-  #--------------------------------------------------------------------#
-
-  if (!file.exists(filename))
-    cli::cli_abort("{filename} does not exist.")
-
-  ## MAIN
-  #--------------------------------------------------------------------#
-
-  # Read text file, supports csv, excel and tsv formats
-  dt <- data.table::fread(filename)
-  dt[, (names(dt)) := lapply(.SD, function(x) {
-    x <- gsub("\\s+", "", x)                      # Removes spaces between strings
-    x <- gsub("^[A-Za-z]*", "", x)                # Removes letters
-    })]
-
-  # Convert to matrix format
-  mat_1 <- as.matrix(dt,
-                     rownames = rownames(dt),
-                     colnames = colnames(dt))
-
-  # Change character values to numeric
-  mat_2 <- matrix(data = as.numeric(mat_1),
-                  ncol = ncol(dt))
-  colnames(mat_2) <- colnames(dt)
-
-  mat_2[is.na(mat_2) | mat_2 == ""] <- 0          # Empty strings from cleaning step
-
-  # Return sparseMatrix
-  return(as(mat_2, "sparseMatrix"))
 }
 
 column_exists <- function(column, table) {

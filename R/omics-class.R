@@ -43,12 +43,12 @@ omics <- R6::R6Class(
     #' @param metaData A path to an existing file, data.table or data.frame.
     #' @return A new `omics` object.
     #'
-    initialize = function(countData = NA, featureData = NA, metaData = NA) {
+    initialize = function(countData = NULL, featureData = NULL, metaData = NULL) {
       #-------------------#
       ###   metaData    ###
       #-------------------#
-      if (!is.na(metaData)) {
-        self$metaData <- data.table::fread(metaData, header = TRUE)
+      if (!is.null(metaData)) {
+        self$metaData <- private$check_table(metaData)
         self$validate()
 
         if (self$.valid_schema) {
@@ -93,17 +93,16 @@ omics <- R6::R6Class(
         }
 
       } else {
-        cli::cli_abort(c(
-          "metaData cannot be empty, please provide a tab or comma separated file"
-        ))
+        cli::cli_abort(
+          "metaData cannot be empty, please provide a data.frame, data.table or filepath"
+        )
       }
 
       #-------------------#
       ###  featureData  ###
       #-------------------#
-      if (!is.na(featureData)) {
-        self$featureData <- data.table::fread(featureData,
-                                              header = TRUE)
+      if (!is.null(featureData)) {
+        self$featureData <- private$check_table(featureData)
 
         if (column_exists(self$.feature_id, self$metaData)) {
           FEATURE_ID <- self$metaData[[self$.feature_id]]
@@ -120,8 +119,8 @@ omics <- R6::R6Class(
       #-------------------#
       ###   countData   ###
       #-------------------#
-      if (!is.na(countData)) {
-        self$countData <- read_sparseTable(countData)
+      if (!is.null(countData)) {
+        self$countData <- private$check_matrix(countData)
         rownames(self$countData) <- self$featureData$FEATURE_ID
         cli::cli_alert_success("countData is loaded.")
       }
@@ -1716,33 +1715,59 @@ omics <- R6::R6Class(
       if (!is.null(private$tmp_store$.treeData)) self$treeData <- private$tmp_store$.treeData
       return(invisible(self))
     },
-    eigen_80 = function(eig_explained) {
-      sum_variance = 0
-      counter = 1
-      for (i in 1:length(eig_explained)) {
-        sum_variance <- sum_variance + eig_explained[i]
-        counter <- counter + 1
-        if (sum_variance >= 80) break
-      }
+    check_table = function(data) {
+    #
+    # Creates a data.table from given filepath, data.frame or data.table
+    #
+    if (is.character(data) && length(data) == 1 && file.exists(data))
+      return(data.table::fread(data, header = TRUE))
 
-      return(counter)
-    },
-    subset_by_dimensions = function(model, dimensions) {
-      perc_explained <- round(100*(summary(model)$cont$importance[2, dimensions]),2)
-      n_dim_pairs <- dimensions[1:eigen_80(perc_explained)]
-      return(perc_explained)
-    },
+    if (inherits(data, "data.table"))
+      return(data)
 
-    subset_by_species = function(model, scores_species, pc) {
-      species_explained <- utils::head(base::sort(round(100*scores_species[, pc]^2, 3), decreasing = TRUE))
-      scores_species_explained <- scores_species[rownames(scores_species) %in% names(species_explained),]
+    if (is.data.frame(data))
+      return(data.table::as.data.table(data))
 
-      result <- list(
-        scores = scores_species_explained,
-        explained_PC1 = species_explained
-      )
+    stop("Input must be a filepath, data.frame, or data.table.")
+  },
+  check_matrix = function(data) {
+    #
+    # Creates a sparseMatrix from given filepath, matrix or sparseMatrix
+    #
+    if (is.character(data) && length(data) == 1 && file.exists(data)) {
+      # 
+      # If filepath originates from an excel file, it may contain trailing spaces, or letters, which are removed.
+      #
+      dt <- data.table::fread(data, header = TRUE)
+      dt[, (names(dt)) := lapply(.SD, function(x) {
+      x <- gsub("\\s+", "", x)                      # Removes spaces between strings
+      x <- gsub("^[A-Za-z]*", "", x)                # Removes letters
+      })]
 
-      return(result)
+      # Convert to matrix format
+      mat_1 <- as.matrix(dt,
+                        rownames = rownames(dt),
+                        colnames = colnames(dt))
+
+      # Change character values to numeric
+      mat_2 <- matrix(data = as.numeric(mat_1),
+                      ncol = ncol(dt))
+      colnames(mat_2) <- colnames(dt)
+
+      mat_2[is.na(mat_2) | mat_2 == ""] <- 0
+      
+      # Return sparseMatrix
+      return(as(mat_2, "sparseMatrix"))
+    }
+
+    if (inherits(data, "sparseMatrix"))
+      return(data)
+
+    if (is.matrix(data))
+      sp_mat <- Matrix::Matrix(data, sparse = TRUE)
+      return(sp_mat)
+
+    stop("Input must be a filepath, matrix, or sparseMatrix.")
     }
   )
 )
