@@ -1436,11 +1436,8 @@ omics <- R6::R6Class(
     ## Error handling
     #--------------------------------------------------------------------#
 
-    if (!is.character(filename) && length(filename) != 1) {
+    if (!is.character(filename) && length(filename) != 1)
       cli::cli_abort("{filename} needs to be a character with a lenght of 1")
-    } else if (file.exists(filename)) {
-      cli::cli_abort("{filename} already exists!")
-    }
       
     if (!is.character(feature_contrast) && length(feature_contrast) != 1) {
       cli::cli_abort("{feature_contrast} needs to be a character with a lenght of 1")

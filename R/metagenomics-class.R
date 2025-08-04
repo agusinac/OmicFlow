@@ -99,8 +99,9 @@ metagenomics <- R6::R6Class(
 
           } else if (yyjsonr::validate_json_file(biomData)) {
             
+            self$biomData <- jsonlite::read_json(biomData)
             private$construct_json_featureData(feature_names)
-            private$construct_json_countDa
+            private$construct_json_countData()
 
           } else {
             cli::cli_abort("biomData could not be loaded. Not a valid JSON or HDF5 format!")
@@ -394,7 +395,7 @@ metagenomics <- R6::R6Class(
       self$featureData <- data.table::data.table(matrix(NA_character_,
                                                         nrow = length(self$biomData$rows),
                                                         ncol = length(c(self$.feature_id, feature_names))))
-      setnames(featureData, c(self$.feature_id, feature_names))
+      setNames(self$featureData, c(self$.feature_id, feature_names))
 
       # Fill first column with $id values
       self$featureData[["FEATURE_ID"]] <- vapply(self$biomData$rows, function(x) as.character(x$id), character(1))
