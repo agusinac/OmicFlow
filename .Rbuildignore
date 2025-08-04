@@ -1,3 +1,5 @@
 ^.gitignore
 ^docker
 ^dev
+^.Rhistory
+^\.github$
