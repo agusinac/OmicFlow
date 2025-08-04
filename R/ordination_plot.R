@@ -2,7 +2,7 @@
 #'
 #' @description Creates an ordination plot of a distance matrix. This function is built into the \code{ordination} method from the abstract class \link[OmicFlow]{omics} and inherited by other omics classes, such as;
 #' \link[OmicFlow]{metagenomics} and \link[OmicFlow]{proteomics}.
-#'
+#' 
 #' @param data A \code{data.frame} or \code{data.table} of Principal Components as columns and rows as loading scores.
 #' @param col_name A categorical variable to color the contrasts (e.g. "groups").
 #' @param pair A vector of character variables indicating what dimension names (e.g. PC1, NMDS2).

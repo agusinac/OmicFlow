@@ -7,7 +7,7 @@
 #' @param x A distance matrix in the form of \link[stats]{dist}.
 #' Obtained from a dissimilarity metric, in the case of similarity metric please use \code{1-dist}
 #' @param groups A vector (column from a table) of labels.
-#' @param p.adjust.m P adjust method see \link[stats]{p.adjust}
+#' @param p.adjust.method P adjust method see \link[stats]{p.adjust}
 #' @param perm  Number of permutations to compare against the null hypothesis of adonis2 (default: \code{perm=999}).
 #' @seealso \link[vegan]{adonis2}
 #' @return A \code{data.frame} of

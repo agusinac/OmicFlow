@@ -7,64 +7,6 @@
 This is a sub-class for proteomics data, called proteomics.
 It inherits all methods from the abstract class \link[OmicFlow]{omics} and only adapts the \code{initialize} function.
 }
-\examples{
-
-## ------------------------------------------------
-## Method `proteomics$new`
-## ------------------------------------------------
-
-prot <- proteomics$new(metaData = "metadata.tsv",
-                       counts   = "intensities.tsv"
-                       treeData = "rooted_tree.newick")
-
-
-## ------------------------------------------------
-## Method `proteomics$print`
-## ------------------------------------------------
-
-prot <- proteomics$new(metaData = "metadata.tsv",
-                       counts   = "intensities.tsv"
-                       treeData = "rooted_tree.newick")
-
-# method 1 to call print function
-prot
-
-# method 2 to call print function
-prot$print()
-
-
-## ------------------------------------------------
-## Method `proteomics$reset`
-## ------------------------------------------------
-
-prot <- proteomics$new(metaData = "metadata.tsv",
-                       counts   = "intensities.tsv"
-                       treeData = "rooted_tree.newick")
-
-# Performs modifications
-prot$transform(log2)
-
-# resets
-prot$reset()
-
-# An inbuilt reset function prevents unwanted modification to the taxa object.
-prot$rankstat()
-
-
-## ------------------------------------------------
-## Method `proteomics$removeZeros`
-## ------------------------------------------------
-
-prot <- proteomics$new(metaData = "metadata.tsv",
-                       counts   = "intensities.tsv"
-                       treeData = "rooted_tree.newick")
-
-# Sample subset induces empty features
-prot$sample_subset(cycle == "t1")
-
-# Remove empty features from countData and treeData
-prot$removeZeros()
-}
 \section{Super class}{
 \code{\link[OmicFlow:omics]{OmicFlow::omics}} -> \code{proteomics}
 }
@@ -135,17 +77,6 @@ Initializes the proteomics class object with \code{proteomics$new()}
 \subsection{Returns}{
 A new \code{proteomics} object.
 }
-\subsection{Examples}{
-\if{html}{\out{<div class="r example copy">}}
-\preformatted{prot <- proteomics$new(metaData = "metadata.tsv",
-                       counts   = "intensities.tsv"
-                       treeData = "rooted_tree.newick")
-
-}
-\if{html}{\out{</div>}}
-
-}
-
 }
 \if{html}{\out{<hr>}}
 \if{html}{\out{<a id="method-proteomics-print"></a>}}
@@ -154,23 +85,6 @@ A new \code{proteomics} object.
 Displays parameters of the \code{proteomics} object via stdout.
 \subsection{Usage}{
 \if{html}{\out{<div class="r">}}\preformatted{proteomics$print()}\if{html}{\out{</div>}}
-}
-
-\subsection{Examples}{
-\if{html}{\out{<div class="r example copy">}}
-\preformatted{prot <- proteomics$new(metaData = "metadata.tsv",
-                       counts   = "intensities.tsv"
-                       treeData = "rooted_tree.newick")
-
-# method 1 to call print function
-prot
-
-# method 2 to call print function
-prot$print()
-
-}
-\if{html}{\out{</div>}}
-
 }
 
 }
@@ -185,26 +99,6 @@ The methods from the abstract class \code{omics} also contain a private method t
 \if{html}{\out{<div class="r">}}\preformatted{proteomics$reset()}\if{html}{\out{</div>}}
 }
 
-\subsection{Examples}{
-\if{html}{\out{<div class="r example copy">}}
-\preformatted{prot <- proteomics$new(metaData = "metadata.tsv",
-                       counts   = "intensities.tsv"
-                       treeData = "rooted_tree.newick")
-
-# Performs modifications
-prot$transform(log2)
-
-# resets
-prot$reset()
-
-# An inbuilt reset function prevents unwanted modification to the taxa object.
-prot$rankstat()
-
-}
-\if{html}{\out{</div>}}
-
-}
-
 }
 \if{html}{\out{<hr>}}
 \if{html}{\out{<a id="method-proteomics-removeZeros"></a>}}
@@ -213,22 +107,6 @@ prot$rankstat()
 Removes empty (zero) values by row, column and tips.
 \subsection{Usage}{
 \if{html}{\out{<div class="r">}}\preformatted{proteomics$removeZeros()}\if{html}{\out{</div>}}
-}
-
-\subsection{Examples}{
-\if{html}{\out{<div class="r example copy">}}
-\preformatted{prot <- proteomics$new(metaData = "metadata.tsv",
-                       counts   = "intensities.tsv"
-                       treeData = "rooted_tree.newick")
-
-# Sample subset induces empty features
-prot$sample_subset(cycle == "t1")
-
-# Remove empty features from countData and treeData
-prot$removeZeros()
-}
-\if{html}{\out{</div>}}
-
 }
 
 }

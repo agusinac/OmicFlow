@@ -7,5 +7,5 @@ OmicFlow
 ## Installation
 At the moment only via github.
 ```R
-pak::pkg_install("usethis")
+pak::pkg_install("OmicFlow")
 ```

@@ -7,7 +7,7 @@
 #' @param x  A distance matrix in the form of \link[stats]{dist}.
 #' Obtained from a dissimilarity metric, in the case of similarity metric please use \code{1-dist}
 #' @param groups  A vector (column from a table) of labels.
-#' @param p.adjust.m P adjust method see \link[stats]{p.adjust}
+#' @param p.adjust.method P adjust method see \link[stats]{p.adjust}
 #' @param perm  Number of permutations to compare against the null hypothesis of anosim (default: \code{perm=999}).
 #' @seealso \link[vegan]{anosim}
 #' @return A \code{data.frame} of
@@ -16,7 +16,7 @@
 #'  * p value of F^p > F
 #'  * p adjusted
 #' @examples 
-#' Create random data
+#' # Create random data
 #' set.seed(42)
 #' mock_data <- matrix(rnorm(15 * 10), nrow = 15, ncol = 10)
 #' 

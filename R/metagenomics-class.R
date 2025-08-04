@@ -33,11 +33,6 @@ metagenomics <- R6::R6Class(
     #' @param treeData A path to an existing newick file or class "phylo", see \link[ape]{read.tree}.
     #' @param biomData A path to an existing biom file, version 2.1.0, see \link[rhdf5]{h5read}.
     #' @param feature_names A character vector to name the feature names that fit the supplied `featureData` (Default: \code[c("Kingdom", "Phylum", "Class", "Order", "Family", "Genus", "Species")]).
-    #' @examples
-    #' taxa <- metagenomics$new(metaData = "metadata.tsv",
-    #'                          biomData = "biom_with_taxonomy.biom",
-    #'                          treeData = "rooted_tree.newick")
-    #'
     #' @return A new `metagenomics` object.
     initialize = function(countData = NULL,
                           metaData = NULL,
@@ -155,15 +150,14 @@ metagenomics <- R6::R6Class(
     #' @description
     #' Displays parameters of the `metagenomics` object via stdout.
     #' @examples
-    #' taxa <- metagenomics$new(metaData = "metadata.tsv",
-    #'                            biomData = "biom_with_taxonomy.biom",
-    #'                            treeData = "rooted_tree.newick")
+    #' taxa_path <- system.file("extdata", "mock_taxa.rds", package = "OmicFlow", mustWork = TRUE)
+    #' taxa <- readRDS(taxa_path)
     #'
     #' # method 1 to call print function
     #' taxa
     #'
     #' # method 2 to call print function
-    #' self$print()
+    #' taxa$print()
     #'
     print = function() {
       cat("## metagenomics-class object \n")
@@ -177,18 +171,19 @@ metagenomics <- R6::R6Class(
     #' Since modification of the object is done by reference and duplicates are not made, it is possible to `reset` changes to the class.
     #' The methods from the abstract class `omics` also contain a private method to prevent any changes to the original object. Such cases are ordination, alpha_diversity, differential_feature_expression.
     #' @examples
-    #' taxa <- metagenomics$new(metaData = "metadata.tsv",
-    #'                          biomData = "biom_with_taxonomy.biom",
-    #'                          treeData = "rooted_tree.newick")
-    #'
+    #' library(ggplot2)
+    #' 
+    #' taxa_path <- system.file("extdata", "mock_taxa.rds", package = "OmicFlow", mustWork = TRUE)
+    #' taxa <- readRDS(taxa_path)
+    #' 
     #' # Performs modifications
-    #' self$transform(log2)
+    #' taxa$transform(log2)
     #'
     #' # resets
-    #' self$reset()
+    #' taxa$reset()
     #'
     #' # An inbuilt reset function prevents unwanted modification to the taxa object.
-    #' self$rankstat()
+    #' taxa$rankstat(feature_ranks = c("Kingdom", "Phylum", "Family", "Genus", "Species"))
     #'
     reset = function() {
       self$countData = private$original_data$counts
@@ -200,15 +195,14 @@ metagenomics <- R6::R6Class(
     #' @description
     #' Removes empty (zero) values by row, column and tips.
     #' @examples
-    #' taxa <- metagenomics$new(metaData = "metadata.tsv",
-    #'                            biomData = "biom_with_taxonomy.biom",
-    #'                            treeData = "rooted_tree.newick")
-    #'
+    #' taxa_path <- system.file("extdata", "mock_taxa.rds", package = "OmicFlow", mustWork = TRUE)
+    #' taxa <- readRDS(taxa_path)
+    #' 
     #' # Sample subset induces empty features
-    #' self$sample_subset(cycle == "t1")
+    #' taxa$sample_subset(treatment == "tumor")
     #'
     #' # Remove empty features from countData and treeData
-    #' self$removeZeros()
+    #' taxa$removeZeros()
     removeZeros = function() {
       super$removeZeros()
       if (!is.null(self$treeData)) self$treeData <- ape::keep.tip(self$treeData, self$featureData$FEATURE_ID)
@@ -218,11 +212,10 @@ metagenomics <- R6::R6Class(
     #' Creates a BIOM file in HDF5 format of the loaded items via ['new()']{#method-new}, which is compatible to the python biom-format version 2.1.
     #' @param filename A character variable of either the full path of filename of the biom file (e.g. `output.biom`)
     #' @examples
-    #' taxa <- metagenomics$new(metaData = "metadata.tsv",
-    #'                          biomData = "biom_with_taxonomy.biom",
-    #'                          treeData = "rooted_tree.newick")
-    #'
-    #' taxa$write_biom(file = "output.biom")
+    #' taxa_path <- system.file("extdata", "mock_taxa.rds", package = "OmicFlow", mustWork = TRUE)
+    #' taxa <- readRDS(taxa_path)
+    #' 
+    #' taxa$write_biom(filename = "output.biom")
     #'
     write_biom = function (filename) {
 
@@ -245,9 +238,8 @@ metagenomics <- R6::R6Class(
         'sample/group-metadata'
       )
 
-      for (group in groups) {
+      for (group in groups)
         invisible(rhdf5::h5createGroup(filename, group))
-      }
 
       h5 <- try(
         rhdf5::H5Fopen(name = filename,
@@ -255,9 +247,8 @@ metagenomics <- R6::R6Class(
                        native = TRUE),
         silent = TRUE
       )
-      if (!inherits(h5, "H5IdComponent")) {
-        cli::cli_abort("Can't open HDF5 file {.file {file}}: {h5}")
-      }
+      if (!inherits(h5, "H5IdComponent"))
+        cli::cli_abort("Can't open HDF5 file {.filename {filename}}: {h5}")
 
       # convert countData to triplet matrix
       triplets <- Matrix::summary(self$countData)

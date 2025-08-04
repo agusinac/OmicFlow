@@ -1,57 +1,54 @@
 Package: OmicFlow
 Title: Fast and Efficient (automated) analysis of sparse omics data.
 Version: 1.0.0
-Authors@R: c(
-    person(
-      "Alem", "Gusinac",
-      email = "alem.gusinac@gmail.com",
-      role = c("aut", "cre"),
-      comment = c(ORCID = "0009-0006-1896-4176")
-      ),
-    person(
-      "Thomas", "Ederveen",
-      role = c("aut"),
-      comment = c(ORCID = "0000-0003-0068-1275")
-      ),
-    person(
-      "Annemarie", "Boleij",
-      role = c("aut", "fnd"),
-      comment = c(ORCID = "0000-0003-4495-5880")
-      )
-    )
-Description: Something to be written
-URL: https://github.com/agusinac/OmicFlow
 Date: 2025-07-24
+Authors@R: c(
+    person("Alem", "Gusinac", , "alem.gusinac@gmail.com", role = c("aut", "cre"),
+           comment = c(ORCID = "0009-0006-1896-4176")),
+    person("Thomas", "Ederveen", role = "aut",
+           comment = c(ORCID = "0000-0003-0068-1275")),
+    person("Annemarie", "Boleij", role = c("aut", "fnd"),
+           comment = c(ORCID = "0000-0003-4495-5880"))
+  )
+Description: Something to be written
 License: LICENSE
-Depends: R (>= 4.3.3)
-Encoding: UTF-8
-Roxygen: list(markdown = TRUE)
-RoxygenNote: 7.3.2
+URL: https://github.com/agusinac/OmicFlow
+Depends: 
+    R (>= 4.3.3)
 Imports: 
     ape,
+    cli,
     data.table,
-    doParallel,
+    desc,
     foreach,
-    dplyr,
     gghalves,
-    ggplot2,
+    ggpubr,
     ggrepel,
+    grDevices,
+    jsonlite,
+    jsonvalidate,
     magrittr,
     Matrix,
     optparse,
-    parallel,
     patchwork,
     purrr,
     R6,
     rbiom,
     RColorBrewer,
     rhdf5,
+    rmarkdown,
+    rstatix,
+    slam,
     stats,
+    tools,
     utils,
     vegan,
     viridis,
-    rstatix,
-    cli
+    yyjsonr
 Suggests: 
+    ggplot2,
     testthat (>= 3.0.0)
 Config/testthat/edition: 3
+Encoding: UTF-8
+Roxygen: list(markdown = TRUE)
+RoxygenNote: 7.3.2

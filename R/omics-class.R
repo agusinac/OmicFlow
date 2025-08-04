@@ -169,9 +169,9 @@ omics <- R6::R6Class(
     #' @description
     #' Removes empty (zero) values by row and column from the `countData`
     #' @examples
-    #' obj <- omics$new(countData = "counts.csv",
-    #'                  featureData = "features.txt",
-    #'                  metaData = "metadata.tsv"
+    #' obj_path <- system.file("extdata", "mock_taxa.rds", package = "OmicFlow", mustWork = TRUE)
+    #' obj <- readRDS(obj_path)
+    #' 
     #' obj$removeZeros()
     #'
     removeZeros = function() {
@@ -190,9 +190,9 @@ omics <- R6::R6Class(
     #' Remove NAs from metaData and updates the countData object fields.
     #' @param column The column from where NAs should be removed, this can be either integers or strings.
     #' @examples
-    #' obj <- omics$new(countData = "counts.csv",
-    #'                  featureData = "features.txt",
-    #'                  metaData = "metadata.tsv"
+    #' obj_path <- system.file("extdata", "mock_taxa.rds", package = "OmicFlow", mustWork = TRUE)
+    #' obj <- readRDS(obj_path)
+    #' 
     #' obj$removeNAs(column = "treatment")
     #'
     removeNAs = function(column) {
@@ -221,11 +221,10 @@ omics <- R6::R6Class(
     #' @param ... Expressions that return a logical value, and are defined in terms of the variables in `featureData`.
     #' Only rows for which all conditions evaluate to TRUE are kept.
     #' @examples
-    #' obj <- omics$new(countData = "counts.csv",
-    #'                  featureData = "features.txt",
-    #'                  metaData = "metadata.tsv"
-    #' obj$feature_subset(rank1 == "Streptococcus")
-    #' obj$feature_subset(rank1 %in% c("Streptococcus", "uncultured"))
+    #' obj_path <- system.file("extdata", "mock_taxa.rds", package = "OmicFlow", mustWork = TRUE)
+    #' obj <- readRDS(obj_path)
+    #' 
+    #' obj$feature_subset(Genus == "Streptococcus")
     #'
     feature_subset = function(...) {
       # Replace all NAs by empty string
@@ -245,11 +244,10 @@ omics <- R6::R6Class(
     #' @param ... Expressions that return a logical value, and are defined in terms of the variables in `metaData`.
     #' Only rows for which all conditions evaluate to TRUE are kept.
     #' @examples
-    #' obj <- omics$new(countData = "counts.csv",
-    #'                  featureData = "features.txt",
-    #'                  metaData = "metadata.tsv"
-    #' obj$sample_subset(cycle == "t1")
-    #' obj$sample_subset(cycle %in% c("t1", "t5"))
+    #' obj_path <- system.file("extdata", "mock_taxa.rds", package = "OmicFlow", mustWork = TRUE)
+    #' obj <- readRDS(obj_path)
+    #' 
+    #' obj$sample_subset(treatment == "tumor")
     #'
     sample_subset = function(...) {
       # set order of columns
@@ -265,13 +263,6 @@ omics <- R6::R6Class(
     #' @description
     #' Samplepair subset (based on metaData), automatically applies \code{removeZeros}
     #' @param num_unique_pairs An integer value to define the number of pairs to subset. The default is NULL, meaning the maximum number of unique pairs will be used to subset the data. Let's say you have three samples for each pair, then the `num_unique_pairs` will be set to 3.
-    #' @examples
-    #' obj <- omics$new(countData = "counts.csv",
-    #'                  featureData = "features.txt",
-    #'                  metaData = "metadata.tsv"
-    #' obj$samplepair_subset()
-    #' obj$samplepair_subset(num_unique_pairs = 2)
-    #'
     samplepair_subset = function(num_unique_pairs = NULL) {
 
       ## Error handling
@@ -299,9 +290,9 @@ omics <- R6::R6Class(
     #' @param feature_rank A character value or vector of columns to aggregate from the `featureData`.
     #' @param feature_filter A character value or vector of characters to remove features via regex pattern.
     #' @examples
-    #' obj <- omics$new(countData = "counts.csv",
-    #'                  featureData = "features.txt",
-    #'                  metaData = "metadata.tsv"
+    #' obj_path <- system.file("extdata", "mock_taxa.rds", package = "OmicFlow", mustWork = TRUE)
+    #' obj <- readRDS(obj_path)
+    #' 
     #' obj$feature_glom(feature_rank = c("Kingdom", "Phylum"))
     #' obj$feature_glom(feature_rank = "Genus", feature_filter = c("uncultured", "metagenome"))
     #'
@@ -382,9 +373,9 @@ omics <- R6::R6Class(
     #' Performs transformation on countData as a Triplet sparse matrix \link[Matrix]{uniqTsparse}
     #' @param FUN A function such as \code{log2}, \code{log}
     #' @examples
-    #' obj <- omics$new(countData = "counts.csv",
-    #'                  featureData = "features.txt",
-    #'                  metaData = "metadata.tsv"
+    #' obj_path <- system.file("extdata", "mock_taxa.rds", package = "OmicFlow", mustWork = TRUE)
+    #' obj <- readRDS(obj_path)
+    #' 
     #' obj$transform(log2)
     #'
     transform = function(FUN) {
@@ -404,9 +395,9 @@ omics <- R6::R6Class(
     #' @description
     #' Relative abundance computation by column sums.
     #' @examples
-    #' obj <- omics$new(countData = "counts.csv",
-    #'                  featureData = "features.txt",
-    #'                  metaData = "metadata.tsv"
+    #' obj_path <- system.file("extdata", "mock_taxa.rds", package = "OmicFlow", mustWork = TRUE)
+    #' obj <- readRDS(obj_path)
+    #' 
     #' obj$normalize()
     #'
     normalize = function() {
@@ -419,10 +410,12 @@ omics <- R6::R6Class(
     #' Counts the number of features identified for each column, for example in case of 16S metagenomics it would be the number of OTUs or ASVs on different taxonomy levels.
     #' @param feature_ranks A vector of characters or integers that match the `featureData`.
     #' @examples
-    #' obj <- omics$new(countData = "counts.csv",
-    #'                  featureData = "features.txt",
-    #'                  metaData = "metadata.tsv"
-    #' plt <- obj$rankstat()
+    #' library(ggplot2)
+    #' 
+    #' obj_path <- system.file("extdata", "mock_taxa.rds", package = "OmicFlow", mustWork = TRUE)
+    #' obj <- readRDS(obj_path)
+    #' 
+    #' plt <- obj$rankstat(feature_ranks = c("Kingdom", "Phylum", "Family", "Genus", "Species"))
     #' plt
     #' @return A \link[ggplot2]{ggplot} object.
     #'
@@ -481,11 +474,13 @@ omics <- R6::R6Class(
     #' @param paired A boolean value to perform paired analysis in \link[stats]{wilcox.test} and samplepair subsetting via \link[OmicFlow]{samplepair_subset}
     #' @param p.adjust.method A character variable to specify the p.adjust.method to be used, default is 'fdr'.
     #' @examples
-    #' obj <- omics$new(countData = "counts.csv",
-    #'                  featureData = "features.txt",
-    #'                  metaData = "metadata.tsv"
+    #' library(ggplot2)
+    #' 
+    #' obj_path <- system.file("extdata", "mock_taxa.rds", package = "OmicFlow", mustWork = TRUE)
+    #' obj <- readRDS(obj_path)
+    #' 
     #' plt <- obj$alpha_diversity(col_name = "treatment",
-    #'                            method = "shannon")
+    #'                            metric = "shannon")
     #'
     #' @return A \link[ggplot2]{ggplot} object.
     #' @seealso \link[OmicFlow]{diversity_plot}
@@ -566,9 +561,10 @@ omics <- R6::R6Class(
     #' @param normalize A Boolean value, whether to [`normalize()`](#method-normalize) by total sample sums (Default: TRUE).
     #' @param Brewer.palID Palette set to be applied, see \link[RColorBrewer]{brewer.pal} or \link[OmicFlow]{colormap}.
     #' @examples
-    #' obj <- omics$new(countData = "counts.csv",
-    #'                  featureData = "features.txt",
-    #'                  metaData = "metadata.tsv"
+    #' library(ggplot2)
+    #' 
+    #' obj_path <- system.file("extdata", "mock_taxa.rds", package = "OmicFlow", mustWork = TRUE)
+    #' obj <- readRDS(obj_path)
     #'
     #' result <- obj$composition(feature_rank = "Genus",
     #'                           feature_filter = c("uncultured"),
@@ -707,15 +703,15 @@ omics <- R6::R6Class(
     #' @param cpus An Integer value, indicating the number of processes to spawn (Default: 1).
     #' @param perm An integer value, number of permutations to compare against the null hypothesis of adonis2 (default: \code{perm=999}).
     #' @examples
-    #' obj <- omics$new(countData = "counts.csv",
-    #'                  featureData = "features.txt",
-    #'                  metaData = "metadata.tsv"
+    #' library(ggplot2)
+    #' 
+    #' obj_path <- system.file("extdata", "mock_taxa.rds", package = "OmicFlow", mustWork = TRUE)
+    #' obj <- readRDS(obj_path)
     #'
     #' pcoa_plots <- obj$ordination(metric = "bray",
     #'                              method = "pcoa",
     #'                              group_by = "treatment",
     #'                              weighted = TRUE,
-    #'                              parallel = TRUE,
     #'                              normalize = TRUE)
     #' pcoa_plots
     #'
@@ -937,21 +933,16 @@ omics <- R6::R6Class(
     #' @param abundance.threshold An abundance threshold (default: 0.01).
     #' @param normalize A Boolean value, whether to [`normalize()`](#method-normalize) by total sample sums (Default: TRUE).
     #' @examples
-    #' obj <- omics$new(countData = "counts.csv",
-    #'                  featureData = "features.txt",
-    #'                  metaData = "metadata.tsv"
+    #' library(ggplot2)
+    #' 
+    #' obj_path <- system.file("extdata", "mock_taxa.rds", package = "OmicFlow", mustWork = TRUE)
+    #' obj <- readRDS(obj_path)
     #'
     #' unpaired <- obj$DFE(feature_rank = "Genus",
-    #'                                                 paired = FALSE,
-    #'                                                 condition.group = "treatment",
-    #'                                                 condition_A = c("H"),
-    #'                                                 condition_B = c("T"))
-    #'
-    #' paired <- obj$DFE(feature_rank = "Genus",
-    #'                                               paired = TRUE,
-    #'                                               condition.group = "cycle",
-    #'                                               condition_A = c("t2", "t3"),
-    #'                                               condition_B = c("t1", "t2"))
+    #'                     paired = FALSE,
+    #'                     condition.group = "treatment",
+    #'                     condition_A = c("healthy"),
+    #'                     condition_B = c("tumor"))
     #'
     #' @return
     #' * A list of \link[ggplot2]{ggplot} object.

@@ -1,19 +1,18 @@
 #' Diversity plot with ggplot2
-#'
+#' 
 #' @description Creates an Alpha diversity plot. This function is built into the \code{alpha_diversity} method from the abstract class \link[OmicFlow]{omics} and inherited by other omics classes, such as;
 #' \link[OmicFlow]{metagenomics} and \link[OmicFlow]{proteomics}.
-#'
 #' @param data A \link[base]{data.frame} or \link[data.table]{data.table} computed from \link[OmicFlow]{diversity}.
 #' @param values A column name of a continuous variable.
 #' @param col_name A column name of a categorical variable.
-#' @param palette An object with names and hexcode or color names, see \link[OmicFlow]{fetch_palette} or \link[stats]{setNames}.
+#' @param palette An object with names and hexcode or color names, see \link[OmicFlow]{colormap} or \link[stats]{setNames}.
 #' @param method A character variable indicating what method is used to compute the diversity.
+#' @param paired A boolean value to perform paired analysis in \link[stats]{wilcox.test}.
 #' @param p.adjust.method A character variable to specify the p.adjust.method to be used (Default: fdr).
 #' @return A \link[ggplot2]{ggplot2} object to be further modified
 #'
 #' @examples
-#' library("Matrix")
-#' library("data.table")
+#' library("ggplot2")
 #'  
 #' n_row <- 1000
 #' n_col <- 100
@@ -27,7 +26,7 @@
 #' col_idx <- ((positions - 1) %/% n_row) + 1
 #' 
 #' values <- runif(num_nonzero, min = 0, max = 1)
-#' sparse_mat <- sparseMatrix(
+#' sparse_mat <- Matrix::sparseMatrix(
 #'    i = row_idx,
 #'    j = col_idx,
 #'    x = values,
@@ -39,10 +38,12 @@
 #'   metric = "shannon"
 #' )
 #' 
-#' dt <- data.table(
+#' dt <- data.table::data.table(
 #'   "values" = div,
 #'   "treatment" = c(rep("healthy", n_col / 2), rep("tumor", n_col / 2))
 #' )
+#' 
+#' colors <- OmicFlow::colormap(dt, "treatment")
 #' 
 #' diversity_plot(
 #'   data = dt,

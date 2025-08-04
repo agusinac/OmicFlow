@@ -28,11 +28,6 @@ proteomics <- R6::R6Class(
     #' @param featureData A path to an existing file, data.table or data.frame.
     #' @param metaData A path to an existing file, data.table or data.frame.
     #' @param treeData A path to an existing newick file or class "phylo", see \link[ape]{read.tree}.
-    #' @examples
-    #' prot <- proteomics$new(metaData = "metadata.tsv",
-    #'                        counts   = "intensities.tsv"
-    #'                        treeData = "rooted_tree.newick")
-    #'
     #' @return A new `proteomics` object.
     initialize = function(countData = NA, metaData = NA, featureData = NA, treeData = NA) {
       super$initialize(countData = countData,
@@ -53,17 +48,6 @@ proteomics <- R6::R6Class(
     },
     #' @description
     #' Displays parameters of the `proteomics` object via stdout.
-    #' @examples
-    #' prot <- proteomics$new(metaData = "metadata.tsv",
-    #'                        counts   = "intensities.tsv"
-    #'                        treeData = "rooted_tree.newick")
-    #'
-    #' # method 1 to call print function
-    #' prot
-    #'
-    #' # method 2 to call print function
-    #' prot$print()
-    #'
     print = function() {
       cat("## proteomics-class object \n")
       if (length(self$countData) > 0) cat(paste0("## countData:\t[ ", ncol(self$countData), " Samples and ", nrow(self$countData), " Features\t] \n"))
@@ -75,20 +59,6 @@ proteomics <- R6::R6Class(
     #' Upon creation of a new `proteomics` object a small backup of the original data is created.
     #' Since modification of the object is done by reference and duplicates are not made, it is possible to `reset` changes to the class.
     #' The methods from the abstract class `omics` also contain a private method to prevent any changes to the original object. Such cases are ordination, alpha_diversity, differential_feature_expression.
-    #' @examples
-    #' prot <- proteomics$new(metaData = "metadata.tsv",
-    #'                        counts   = "intensities.tsv"
-    #'                        treeData = "rooted_tree.newick")
-    #'
-    #' # Performs modifications
-    #' prot$transform(log2)
-    #'
-    #' # resets
-    #' prot$reset()
-    #'
-    #' # An inbuilt reset function prevents unwanted modification to the taxa object.
-    #' prot$rankstat()
-    #'
     reset = function() {
       self$countData = private$original_data$counts
       self$featureData = private$original_data$features
@@ -98,16 +68,6 @@ proteomics <- R6::R6Class(
     },
     #' @description
     #' Removes empty (zero) values by row, column and tips.
-    #' @examples
-    #' prot <- proteomics$new(metaData = "metadata.tsv",
-    #'                        counts   = "intensities.tsv"
-    #'                        treeData = "rooted_tree.newick")
-    #'
-    #' # Sample subset induces empty features
-    #' prot$sample_subset(cycle == "t1")
-    #'
-    #' # Remove empty features from countData and treeData
-    #' prot$removeZeros()
     removeZeros = function() {
       super$removeZeros()
       if (!is.null(self$treeData)) self$treeData <- ape::keep.tip(self$treeData, self$featureData$FEATURE_ID)

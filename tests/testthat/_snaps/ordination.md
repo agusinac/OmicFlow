@@ -2,6 +2,9 @@
 
     Code
       res$anova_data
+    Output
+                 pairs Df  SumsOfSqs   F.Model         R2   p.value     p.adj
+      1 male vs female  1 0.01153988 0.2067667 0.09369667 0.6666667 0.6666667
 
 ---
 

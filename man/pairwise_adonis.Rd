@@ -12,9 +12,9 @@ Obtained from a dissimilarity metric, in the case of similarity metric please us
 
 \item{groups}{A vector (column from a table) of labels.}
 
-\item{perm}{Number of permutations to compare against the null hypothesis of adonis2 (default: \code{perm=999}).}
+\item{p.adjust.method}{P adjust method see \link[stats]{p.adjust}}
 
-\item{p.adjust.m}{P adjust method see \link[stats]{p.adjust}}
+\item{perm}{Number of permutations to compare against the null hypothesis of adonis2 (default: \code{perm=999}).}
 }
 \value{
 A \code{data.frame} of

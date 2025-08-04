@@ -10,70 +10,59 @@ It inherits all methods from the abstract class \link[OmicFlow]{omics} and only 
 \examples{
 
 ## ------------------------------------------------
-## Method `metagenomics$new`
-## ------------------------------------------------
-
-taxa <- metagenomics$new(metaData = "metadata.tsv",
-                         biomData = "biom_with_taxonomy.biom",
-                         treeData = "rooted_tree.newick")
-
-
-## ------------------------------------------------
 ## Method `metagenomics$print`
 ## ------------------------------------------------
 
-taxa <- metagenomics$new(metaData = "metadata.tsv",
-                           biomData = "biom_with_taxonomy.biom",
-                           treeData = "rooted_tree.newick")
+taxa_path <- system.file("extdata", "mock_taxa.rds", package = "OmicFlow", mustWork = TRUE)
+taxa <- readRDS(taxa_path)
 
 # method 1 to call print function
 taxa
 
 # method 2 to call print function
-self$print()
+taxa$print()
 
 
 ## ------------------------------------------------
 ## Method `metagenomics$reset`
 ## ------------------------------------------------
 
-taxa <- metagenomics$new(metaData = "metadata.tsv",
-                         biomData = "biom_with_taxonomy.biom",
-                         treeData = "rooted_tree.newick")
+library(ggplot2)
+
+taxa_path <- system.file("extdata", "mock_taxa.rds", package = "OmicFlow", mustWork = TRUE)
+taxa <- readRDS(taxa_path)
 
 # Performs modifications
-self$transform(log2)
+taxa$transform(log2)
 
 # resets
-self$reset()
+taxa$reset()
 
 # An inbuilt reset function prevents unwanted modification to the taxa object.
-self$rankstat()
+taxa$rankstat(feature_ranks = c("Kingdom", "Phylum", "Family", "Genus", "Species"))
 
 
 ## ------------------------------------------------
 ## Method `metagenomics$removeZeros`
 ## ------------------------------------------------
 
-taxa <- metagenomics$new(metaData = "metadata.tsv",
-                           biomData = "biom_with_taxonomy.biom",
-                           treeData = "rooted_tree.newick")
+taxa_path <- system.file("extdata", "mock_taxa.rds", package = "OmicFlow", mustWork = TRUE)
+taxa <- readRDS(taxa_path)
 
 # Sample subset induces empty features
-self$sample_subset(cycle == "t1")
+taxa$sample_subset(treatment == "tumor")
 
 # Remove empty features from countData and treeData
-self$removeZeros()
+taxa$removeZeros()
 
 ## ------------------------------------------------
 ## Method `metagenomics$write_biom`
 ## ------------------------------------------------
 
-taxa <- metagenomics$new(metaData = "metadata.tsv",
-                         biomData = "biom_with_taxonomy.biom",
-                         treeData = "rooted_tree.newick")
+taxa_path <- system.file("extdata", "mock_taxa.rds", package = "OmicFlow", mustWork = TRUE)
+taxa <- readRDS(taxa_path)
 
-taxa$write_biom(file = "output.biom")
+taxa$write_biom(filename = "output.biom")
 
 }
 \section{Super class}{
@@ -160,17 +149,6 @@ Initializes the metagenomics class object with \code{metagenomics$new()}
 \subsection{Returns}{
 A new \code{metagenomics} object.
 }
-\subsection{Examples}{
-\if{html}{\out{<div class="r example copy">}}
-\preformatted{taxa <- metagenomics$new(metaData = "metadata.tsv",
-                         biomData = "biom_with_taxonomy.biom",
-                         treeData = "rooted_tree.newick")
-
-}
-\if{html}{\out{</div>}}
-
-}
-
 }
 \if{html}{\out{<hr>}}
 \if{html}{\out{<a id="method-metagenomics-print"></a>}}
@@ -183,15 +161,14 @@ Displays parameters of the \code{metagenomics} object via stdout.
 
 \subsection{Examples}{
 \if{html}{\out{<div class="r example copy">}}
-\preformatted{taxa <- metagenomics$new(metaData = "metadata.tsv",
-                           biomData = "biom_with_taxonomy.biom",
-                           treeData = "rooted_tree.newick")
+\preformatted{taxa_path <- system.file("extdata", "mock_taxa.rds", package = "OmicFlow", mustWork = TRUE)
+taxa <- readRDS(taxa_path)
 
 # method 1 to call print function
 taxa
 
 # method 2 to call print function
-self$print()
+taxa$print()
 
 }
 \if{html}{\out{</div>}}
@@ -212,18 +189,19 @@ The methods from the abstract class \code{omics} also contain a private method t
 
 \subsection{Examples}{
 \if{html}{\out{<div class="r example copy">}}
-\preformatted{taxa <- metagenomics$new(metaData = "metadata.tsv",
-                         biomData = "biom_with_taxonomy.biom",
-                         treeData = "rooted_tree.newick")
+\preformatted{library(ggplot2)
+
+taxa_path <- system.file("extdata", "mock_taxa.rds", package = "OmicFlow", mustWork = TRUE)
+taxa <- readRDS(taxa_path)
 
 # Performs modifications
-self$transform(log2)
+taxa$transform(log2)
 
 # resets
-self$reset()
+taxa$reset()
 
 # An inbuilt reset function prevents unwanted modification to the taxa object.
-self$rankstat()
+taxa$rankstat(feature_ranks = c("Kingdom", "Phylum", "Family", "Genus", "Species"))
 
 }
 \if{html}{\out{</div>}}
@@ -242,15 +220,14 @@ Removes empty (zero) values by row, column and tips.
 
 \subsection{Examples}{
 \if{html}{\out{<div class="r example copy">}}
-\preformatted{taxa <- metagenomics$new(metaData = "metadata.tsv",
-                           biomData = "biom_with_taxonomy.biom",
-                           treeData = "rooted_tree.newick")
+\preformatted{taxa_path <- system.file("extdata", "mock_taxa.rds", package = "OmicFlow", mustWork = TRUE)
+taxa <- readRDS(taxa_path)
 
 # Sample subset induces empty features
-self$sample_subset(cycle == "t1")
+taxa$sample_subset(treatment == "tumor")
 
 # Remove empty features from countData and treeData
-self$removeZeros()
+taxa$removeZeros()
 }
 \if{html}{\out{</div>}}
 
@@ -275,11 +252,10 @@ Creates a BIOM file in HDF5 format of the loaded items via ['new()']{#method-new
 }
 \subsection{Examples}{
 \if{html}{\out{<div class="r example copy">}}
-\preformatted{taxa <- metagenomics$new(metaData = "metadata.tsv",
-                         biomData = "biom_with_taxonomy.biom",
-                         treeData = "rooted_tree.newick")
+\preformatted{taxa_path <- system.file("extdata", "mock_taxa.rds", package = "OmicFlow", mustWork = TRUE)
+taxa <- readRDS(taxa_path)
 
-taxa$write_biom(file = "output.biom")
+taxa$write_biom(filename = "output.biom")
 
 }
 \if{html}{\out{</div>}}

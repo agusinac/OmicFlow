@@ -18,9 +18,9 @@ The method by reference is very efficient when dealing with big data.
 ## Method `omics$removeZeros`
 ## ------------------------------------------------
 
-obj <- omics$new(countData = "counts.csv",
-                 featureData = "features.txt",
-                 metaData = "metadata.tsv"
+obj_path <- system.file("extdata", "mock_taxa.rds", package = "OmicFlow", mustWork = TRUE)
+obj <- readRDS(obj_path)
+
 obj$removeZeros()
 
 
@@ -28,9 +28,9 @@ obj$removeZeros()
 ## Method `omics$removeNAs`
 ## ------------------------------------------------
 
-obj <- omics$new(countData = "counts.csv",
-                 featureData = "features.txt",
-                 metaData = "metadata.tsv"
+obj_path <- system.file("extdata", "mock_taxa.rds", package = "OmicFlow", mustWork = TRUE)
+obj <- readRDS(obj_path)
+
 obj$removeNAs(column = "treatment")
 
 
@@ -38,42 +38,29 @@ obj$removeNAs(column = "treatment")
 ## Method `omics$feature_subset`
 ## ------------------------------------------------
 
-obj <- omics$new(countData = "counts.csv",
-                 featureData = "features.txt",
-                 metaData = "metadata.tsv"
-obj$feature_subset(rank1 == "Streptococcus")
-obj$feature_subset(rank1 \%in\% c("Streptococcus", "uncultured"))
+obj_path <- system.file("extdata", "mock_taxa.rds", package = "OmicFlow", mustWork = TRUE)
+obj <- readRDS(obj_path)
+
+obj$feature_subset(Genus == "Streptococcus")
 
 
 ## ------------------------------------------------
 ## Method `omics$sample_subset`
 ## ------------------------------------------------
 
-obj <- omics$new(countData = "counts.csv",
-                 featureData = "features.txt",
-                 metaData = "metadata.tsv"
-obj$sample_subset(cycle == "t1")
-obj$sample_subset(cycle \%in\% c("t1", "t5"))
+obj_path <- system.file("extdata", "mock_taxa.rds", package = "OmicFlow", mustWork = TRUE)
+obj <- readRDS(obj_path)
 
-
-## ------------------------------------------------
-## Method `omics$samplepair_subset`
-## ------------------------------------------------
-
-obj <- omics$new(countData = "counts.csv",
-                 featureData = "features.txt",
-                 metaData = "metadata.tsv"
-obj$samplepair_subset()
-obj$samplepair_subset(num_unique_pairs = 2)
+obj$sample_subset(treatment == "tumor")
 
 
 ## ------------------------------------------------
 ## Method `omics$feature_glom`
 ## ------------------------------------------------
 
-obj <- omics$new(countData = "counts.csv",
-                 featureData = "features.txt",
-                 metaData = "metadata.tsv"
+obj_path <- system.file("extdata", "mock_taxa.rds", package = "OmicFlow", mustWork = TRUE)
+obj <- readRDS(obj_path)
+
 obj$feature_glom(feature_rank = c("Kingdom", "Phylum"))
 obj$feature_glom(feature_rank = "Genus", feature_filter = c("uncultured", "metagenome"))
 
@@ -82,9 +69,9 @@ obj$feature_glom(feature_rank = "Genus", feature_filter = c("uncultured", "metag
 ## Method `omics$transform`
 ## ------------------------------------------------
 
-obj <- omics$new(countData = "counts.csv",
-                 featureData = "features.txt",
-                 metaData = "metadata.tsv"
+obj_path <- system.file("extdata", "mock_taxa.rds", package = "OmicFlow", mustWork = TRUE)
+obj <- readRDS(obj_path)
+
 obj$transform(log2)
 
 
@@ -92,9 +79,9 @@ obj$transform(log2)
 ## Method `omics$normalize`
 ## ------------------------------------------------
 
-obj <- omics$new(countData = "counts.csv",
-                 featureData = "features.txt",
-                 metaData = "metadata.tsv"
+obj_path <- system.file("extdata", "mock_taxa.rds", package = "OmicFlow", mustWork = TRUE)
+obj <- readRDS(obj_path)
+
 obj$normalize()
 
 
@@ -102,30 +89,35 @@ obj$normalize()
 ## Method `omics$rankstat`
 ## ------------------------------------------------
 
-obj <- omics$new(countData = "counts.csv",
-                 featureData = "features.txt",
-                 metaData = "metadata.tsv"
-plt <- obj$rankstat()
+library(ggplot2)
+
+obj_path <- system.file("extdata", "mock_taxa.rds", package = "OmicFlow", mustWork = TRUE)
+obj <- readRDS(obj_path)
+
+plt <- obj$rankstat(feature_ranks = c("Kingdom", "Phylum", "Family", "Genus", "Species"))
 plt
 
 ## ------------------------------------------------
 ## Method `omics$alpha_diversity`
 ## ------------------------------------------------
 
-obj <- omics$new(countData = "counts.csv",
-                 featureData = "features.txt",
-                 metaData = "metadata.tsv"
+library(ggplot2)
+
+obj_path <- system.file("extdata", "mock_taxa.rds", package = "OmicFlow", mustWork = TRUE)
+obj <- readRDS(obj_path)
+
 plt <- obj$alpha_diversity(col_name = "treatment",
-                           method = "shannon")
+                           metric = "shannon")
 
 
 ## ------------------------------------------------
 ## Method `omics$composition`
 ## ------------------------------------------------
 
-obj <- omics$new(countData = "counts.csv",
-                 featureData = "features.txt",
-                 metaData = "metadata.tsv"
+library(ggplot2)
+
+obj_path <- system.file("extdata", "mock_taxa.rds", package = "OmicFlow", mustWork = TRUE)
+obj <- readRDS(obj_path)
 
 result <- obj$composition(feature_rank = "Genus",
                           feature_filter = c("uncultured"),
@@ -140,15 +132,15 @@ plt <- composition_plot(data = result$data,
 ## Method `omics$ordination`
 ## ------------------------------------------------
 
-obj <- omics$new(countData = "counts.csv",
-                 featureData = "features.txt",
-                 metaData = "metadata.tsv"
+library(ggplot2)
+
+obj_path <- system.file("extdata", "mock_taxa.rds", package = "OmicFlow", mustWork = TRUE)
+obj <- readRDS(obj_path)
 
 pcoa_plots <- obj$ordination(metric = "bray",
                              method = "pcoa",
                              group_by = "treatment",
                              weighted = TRUE,
-                             parallel = TRUE,
                              normalize = TRUE)
 pcoa_plots
 
@@ -157,21 +149,16 @@ pcoa_plots
 ## Method `omics$DFE`
 ## ------------------------------------------------
 
-obj <- omics$new(countData = "counts.csv",
-                 featureData = "features.txt",
-                 metaData = "metadata.tsv"
+library(ggplot2)
+
+obj_path <- system.file("extdata", "mock_taxa.rds", package = "OmicFlow", mustWork = TRUE)
+obj <- readRDS(obj_path)
 
 unpaired <- obj$DFE(feature_rank = "Genus",
-                                                paired = FALSE,
-                                                condition.group = "treatment",
-                                                condition_A = c("H"),
-                                                condition_B = c("T"))
-
-paired <- obj$DFE(feature_rank = "Genus",
-                                              paired = TRUE,
-                                              condition.group = "cycle",
-                                              condition_A = c("t2", "t3"),
-                                              condition_B = c("t1", "t2"))
+                    paired = FALSE,
+                    condition.group = "treatment",
+                    condition_A = c("healthy"),
+                    condition_B = c("tumor"))
 
 }
 \seealso{
@@ -271,9 +258,9 @@ Removes empty (zero) values by row and column from the \code{countData}
 
 \subsection{Examples}{
 \if{html}{\out{<div class="r example copy">}}
-\preformatted{obj <- omics$new(countData = "counts.csv",
-                 featureData = "features.txt",
-                 metaData = "metadata.tsv"
+\preformatted{obj_path <- system.file("extdata", "mock_taxa.rds", package = "OmicFlow", mustWork = TRUE)
+obj <- readRDS(obj_path)
+
 obj$removeZeros()
 
 }
@@ -300,9 +287,9 @@ Remove NAs from metaData and updates the countData object fields.
 }
 \subsection{Examples}{
 \if{html}{\out{<div class="r example copy">}}
-\preformatted{obj <- omics$new(countData = "counts.csv",
-                 featureData = "features.txt",
-                 metaData = "metadata.tsv"
+\preformatted{obj_path <- system.file("extdata", "mock_taxa.rds", package = "OmicFlow", mustWork = TRUE)
+obj <- readRDS(obj_path)
+
 obj$removeNAs(column = "treatment")
 
 }
@@ -330,11 +317,10 @@ Only rows for which all conditions evaluate to TRUE are kept.}
 }
 \subsection{Examples}{
 \if{html}{\out{<div class="r example copy">}}
-\preformatted{obj <- omics$new(countData = "counts.csv",
-                 featureData = "features.txt",
-                 metaData = "metadata.tsv"
-obj$feature_subset(rank1 == "Streptococcus")
-obj$feature_subset(rank1 \%in\% c("Streptococcus", "uncultured"))
+\preformatted{obj_path <- system.file("extdata", "mock_taxa.rds", package = "OmicFlow", mustWork = TRUE)
+obj <- readRDS(obj_path)
+
+obj$feature_subset(Genus == "Streptococcus")
 
 }
 \if{html}{\out{</div>}}
@@ -361,11 +347,10 @@ Only rows for which all conditions evaluate to TRUE are kept.}
 }
 \subsection{Examples}{
 \if{html}{\out{<div class="r example copy">}}
-\preformatted{obj <- omics$new(countData = "counts.csv",
-                 featureData = "features.txt",
-                 metaData = "metadata.tsv"
-obj$sample_subset(cycle == "t1")
-obj$sample_subset(cycle \%in\% c("t1", "t5"))
+\preformatted{obj_path <- system.file("extdata", "mock_taxa.rds", package = "OmicFlow", mustWork = TRUE)
+obj <- readRDS(obj_path)
+
+obj$sample_subset(treatment == "tumor")
 
 }
 \if{html}{\out{</div>}}
@@ -389,19 +374,6 @@ Samplepair subset (based on metaData), automatically applies \code{removeZeros}
 }
 \if{html}{\out{</div>}}
 }
-\subsection{Examples}{
-\if{html}{\out{<div class="r example copy">}}
-\preformatted{obj <- omics$new(countData = "counts.csv",
-                 featureData = "features.txt",
-                 metaData = "metadata.tsv"
-obj$samplepair_subset()
-obj$samplepair_subset(num_unique_pairs = 2)
-
-}
-\if{html}{\out{</div>}}
-
-}
-
 }
 \if{html}{\out{<hr>}}
 \if{html}{\out{<a id="method-omics-feature_glom"></a>}}
@@ -423,9 +395,9 @@ Agglomerates features by column, automatically applies \code{removeZeros}.
 }
 \subsection{Examples}{
 \if{html}{\out{<div class="r example copy">}}
-\preformatted{obj <- omics$new(countData = "counts.csv",
-                 featureData = "features.txt",
-                 metaData = "metadata.tsv"
+\preformatted{obj_path <- system.file("extdata", "mock_taxa.rds", package = "OmicFlow", mustWork = TRUE)
+obj <- readRDS(obj_path)
+
 obj$feature_glom(feature_rank = c("Kingdom", "Phylum"))
 obj$feature_glom(feature_rank = "Genus", feature_filter = c("uncultured", "metagenome"))
 
@@ -453,9 +425,9 @@ Performs transformation on countData as a Triplet sparse matrix \link[Matrix]{un
 }
 \subsection{Examples}{
 \if{html}{\out{<div class="r example copy">}}
-\preformatted{obj <- omics$new(countData = "counts.csv",
-                 featureData = "features.txt",
-                 metaData = "metadata.tsv"
+\preformatted{obj_path <- system.file("extdata", "mock_taxa.rds", package = "OmicFlow", mustWork = TRUE)
+obj <- readRDS(obj_path)
+
 obj$transform(log2)
 
 }
@@ -475,9 +447,9 @@ Relative abundance computation by column sums.
 
 \subsection{Examples}{
 \if{html}{\out{<div class="r example copy">}}
-\preformatted{obj <- omics$new(countData = "counts.csv",
-                 featureData = "features.txt",
-                 metaData = "metadata.tsv"
+\preformatted{obj_path <- system.file("extdata", "mock_taxa.rds", package = "OmicFlow", mustWork = TRUE)
+obj <- readRDS(obj_path)
+
 obj$normalize()
 
 }
@@ -511,10 +483,12 @@ A \link[ggplot2]{ggplot} object.
 }
 \subsection{Examples}{
 \if{html}{\out{<div class="r example copy">}}
-\preformatted{obj <- omics$new(countData = "counts.csv",
-                 featureData = "features.txt",
-                 metaData = "metadata.tsv"
-plt <- obj$rankstat()
+\preformatted{library(ggplot2)
+
+obj_path <- system.file("extdata", "mock_taxa.rds", package = "OmicFlow", mustWork = TRUE)
+obj <- readRDS(obj_path)
+
+plt <- obj$rankstat(feature_ranks = c("Kingdom", "Phylum", "Family", "Genus", "Species"))
 plt
 }
 \if{html}{\out{</div>}}
@@ -560,11 +534,13 @@ A \link[ggplot2]{ggplot} object.
 }
 \subsection{Examples}{
 \if{html}{\out{<div class="r example copy">}}
-\preformatted{obj <- omics$new(countData = "counts.csv",
-                 featureData = "features.txt",
-                 metaData = "metadata.tsv"
+\preformatted{library(ggplot2)
+
+obj_path <- system.file("extdata", "mock_taxa.rds", package = "OmicFlow", mustWork = TRUE)
+obj <- readRDS(obj_path)
+
 plt <- obj$alpha_diversity(col_name = "treatment",
-                           method = "shannon")
+                           metric = "shannon")
 
 }
 \if{html}{\out{</div>}}
@@ -610,9 +586,10 @@ A long \link[data.table]{data.table} table.
 }
 \subsection{Examples}{
 \if{html}{\out{<div class="r example copy">}}
-\preformatted{obj <- omics$new(countData = "counts.csv",
-                 featureData = "features.txt",
-                 metaData = "metadata.tsv"
+\preformatted{library(ggplot2)
+
+obj_path <- system.file("extdata", "mock_taxa.rds", package = "OmicFlow", mustWork = TRUE)
+obj <- readRDS(obj_path)
 
 result <- obj$composition(feature_rank = "Genus",
                           feature_filter = c("uncultured"),
@@ -672,15 +649,15 @@ A list of \link[ggplot2]{ggplot} object.
 }
 \subsection{Examples}{
 \if{html}{\out{<div class="r example copy">}}
-\preformatted{obj <- omics$new(countData = "counts.csv",
-                 featureData = "features.txt",
-                 metaData = "metadata.tsv"
+\preformatted{library(ggplot2)
+
+obj_path <- system.file("extdata", "mock_taxa.rds", package = "OmicFlow", mustWork = TRUE)
+obj <- readRDS(obj_path)
 
 pcoa_plots <- obj$ordination(metric = "bray",
                              method = "pcoa",
                              group_by = "treatment",
                              weighted = TRUE,
-                             parallel = TRUE,
                              normalize = TRUE)
 pcoa_plots
 
@@ -743,21 +720,16 @@ Differential feature expression (DFE) using the \link[OmicFlow]{foldchange} for 
 }
 \subsection{Examples}{
 \if{html}{\out{<div class="r example copy">}}
-\preformatted{obj <- omics$new(countData = "counts.csv",
-                 featureData = "features.txt",
-                 metaData = "metadata.tsv"
+\preformatted{library(ggplot2)
+
+obj_path <- system.file("extdata", "mock_taxa.rds", package = "OmicFlow", mustWork = TRUE)
+obj <- readRDS(obj_path)
 
 unpaired <- obj$DFE(feature_rank = "Genus",
-                                                paired = FALSE,
-                                                condition.group = "treatment",
-                                                condition_A = c("H"),
-                                                condition_B = c("T"))
-
-paired <- obj$DFE(feature_rank = "Genus",
-                                              paired = TRUE,
-                                              condition.group = "cycle",
-                                              condition_A = c("t2", "t3"),
-                                              condition_B = c("t1", "t2"))
+                    paired = FALSE,
+                    condition.group = "treatment",
+                    condition_A = c("healthy"),
+                    condition_B = c("tumor"))
 
 }
 \if{html}{\out{</div>}}

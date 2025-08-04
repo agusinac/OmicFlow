@@ -21,9 +21,11 @@ diversity_plot(
 
 \item{col_name}{A column name of a categorical variable.}
 
-\item{palette}{An object with names and hexcode or color names, see \link[OmicFlow]{fetch_palette} or \link[stats]{setNames}.}
+\item{palette}{An object with names and hexcode or color names, see \link[OmicFlow]{colormap} or \link[stats]{setNames}.}
 
 \item{method}{A character variable indicating what method is used to compute the diversity.}
+
+\item{paired}{A boolean value to perform paired analysis in \link[stats]{wilcox.test}.}
 
 \item{p.adjust.method}{A character variable to specify the p.adjust.method to be used (Default: fdr).}
 }
@@ -35,8 +37,7 @@ Creates an Alpha diversity plot. This function is built into the \code{alpha_div
 \link[OmicFlow]{metagenomics} and \link[OmicFlow]{proteomics}.
 }
 \examples{
-library("Matrix")
-library("data.table")
+library("ggplot2")
  
 n_row <- 1000
 n_col <- 100
@@ -50,7 +51,7 @@ row_idx <- ((positions - 1) \%\% n_row) + 1
 col_idx <- ((positions - 1) \%/\% n_row) + 1
 
 values <- runif(num_nonzero, min = 0, max = 1)
-sparse_mat <- sparseMatrix(
+sparse_mat <- Matrix::sparseMatrix(
    i = row_idx,
    j = col_idx,
    x = values,
@@ -62,10 +63,12 @@ div <- OmicFlow::diversity(
   metric = "shannon"
 )
 
-dt <- data.table(
+dt <- data.table::data.table(
   "values" = div,
   "treatment" = c(rep("healthy", n_col / 2), rep("tumor", n_col / 2))
 )
+
+colors <- OmicFlow::colormap(dt, "treatment")
 
 diversity_plot(
   data = dt,

@@ -12,9 +12,9 @@ Obtained from a dissimilarity metric, in the case of similarity metric please us
 
 \item{groups}{A vector (column from a table) of labels.}
 
-\item{perm}{Number of permutations to compare against the null hypothesis of anosim (default: \code{perm=999}).}
+\item{p.adjust.method}{P adjust method see \link[stats]{p.adjust}}
 
-\item{p.adjust.m}{P adjust method see \link[stats]{p.adjust}}
+\item{perm}{Number of permutations to compare against the null hypothesis of anosim (default: \code{perm=999}).}
 }
 \value{
 A \code{data.frame} of
@@ -31,7 +31,7 @@ This function is built into the \code{ordination} method from the abstract class
 \link[OmicFlow]{metagenomics} and \link[OmicsFLow]{proteomics}.
 }
 \examples{
-Create random data
+# Create random data
 set.seed(42)
 mock_data <- matrix(rnorm(15 * 10), nrow = 15, ncol = 10)
 
