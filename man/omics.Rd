@@ -231,7 +231,7 @@ Wrapper function that is inherited and adapted for each omics class.
 The omics classes requires a metadata samplesheet, that is validated by the metadata_schema.json. It requires a column \code{SAMPLE_ID} and optionally a \code{SAMPLEPAIR_ID} or \code{FEATURE_ID} can be supplied. The \code{SAMPLE_ID} will be used to link the metaData to the countData, and will act as the key during subsetting of other columns.
 To create a new object use \code{omics$new()}
 \subsection{Usage}{
-\if{html}{\out{<div class="r">}}\preformatted{omics$new(countData = NA, featureData = NA, metaData = NA)}\if{html}{\out{</div>}}
+\if{html}{\out{<div class="r">}}\preformatted{omics$new(countData = NULL, featureData = NULL, metaData = NULL)}\if{html}{\out{</div>}}
 }
 
 \subsection{Arguments}{
@@ -409,7 +409,7 @@ obj$samplepair_subset(num_unique_pairs = 2)
 \subsection{Method \code{feature_glom()}}{
 Agglomerates features by column, automatically applies \code{removeZeros}.
 \subsection{Usage}{
-\if{html}{\out{<div class="r">}}\preformatted{omics$feature_glom(feature_rank, feature_filter = NA)}\if{html}{\out{</div>}}
+\if{html}{\out{<div class="r">}}\preformatted{omics$feature_glom(feature_rank, feature_filter = NULL)}\if{html}{\out{</div>}}
 }
 
 \subsection{Arguments}{
@@ -530,7 +530,7 @@ Alpha diversity based on \link[OmicFlow]{diversity}
 \subsection{Usage}{
 \if{html}{\out{<div class="r">}}\preformatted{omics$alpha_diversity(
   col_name,
-  method = c("shannon", "invsimpson", "simpson"),
+  metric = c("shannon", "invsimpson", "simpson"),
   Brewer.palID = "Set2",
   evenness = FALSE,
   paired = FALSE,
@@ -543,7 +543,7 @@ Alpha diversity based on \link[OmicFlow]{diversity}
 \describe{
 \item{\code{col_name}}{The metaData column of categorical variables to create a ggplot object.}
 
-\item{\code{method}}{Diversity metric such as "shannon", "invsimpson" or "simpson"}
+\item{\code{metric}}{Diversity metric such as "shannon", "invsimpson" or "simpson"}
 
 \item{\code{Brewer.palID}}{Palette set to be applied, see \link[RColorBrewer]{brewer.pal} or \link[OmicFlow]{colormap}.}
 
@@ -580,8 +580,9 @@ Visualization of compositional data.
 \subsection{Usage}{
 \if{html}{\out{<div class="r">}}\preformatted{omics$composition(
   feature_rank,
-  feature_filter = NA,
+  feature_filter = NULL,
   col_name = NULL,
+  normalize = TRUE,
   feature_top = c(10, 15),
   Brewer.palID = "RdYlBu"
 )}\if{html}{\out{</div>}}
@@ -595,6 +596,8 @@ Visualization of compositional data.
 \item{\code{feature_filter}}{Removes features by name, works on single strings or vector of strings.}
 
 \item{\code{col_name}}{Optional, a string or vector of strings to add to the final compositional data output.}
+
+\item{\code{normalize}}{A Boolean value, whether to \href{#method-normalize}{\code{normalize()}} by total sample sums (Default: TRUE).}
 
 \item{\code{feature_top}}{Integer of the top features to visualize, the max is 15, due to a limit of palettes.}
 
@@ -767,33 +770,50 @@ paired <- obj$DFE(feature_rank = "Genus",
 \if{latex}{\out{\hypertarget{method-omics-autoFlow}{}}}
 \subsection{Method \code{autoFlow()}}{
 Automated Omics Analysis based on metadata template.
-For now only works with headers "RANKSTAT_" and "CORRELATION_".
-Samples should be as "SAMPLE-ID" upper or lower case.
+For now only works with headers "CONTRAST_".
 \subsection{Usage}{
 \if{html}{\out{<div class="r">}}\preformatted{omics$autoFlow(
-  feature_ranks = c("Phylum", "Family", "Genus"),
+  feature_ranks = c("Kingdom", "Phylum", "Class", "Order", "Family", "Genus", "Species"),
+  feature_contrast = c("Phylum", "Family", "Genus"),
   feature_filter = c("uncultured"),
   distance_metrics = c("unifrac"),
-  dist_matrix = NULL,
+  beta_div_table = NULL,
   alpha_div_table = NULL,
-  cpus = 1
+  normalize = TRUE,
+  weighted = TRUE,
+  pvalue.threshold = 0.05,
+  perm = 999,
+  cpus = 1,
+  filename = paste0(getwd(), "/report.html")
 )}\if{html}{\out{</div>}}
 }
 
 \subsection{Arguments}{
 \if{html}{\out{<div class="arguments">}}
 \describe{
-\item{\code{feature_ranks}}{A character vector of features to use, default \code{c("Phylum", "Family", "Genus")}.}
+\item{\code{feature_ranks}}{A character vector as input to \href{#method-rankstat}{\code{rankstat()}}}
+
+\item{\code{feature_contrast}}{A character vector of feature columns to aggregate from the \code{featureData} and visualize in univariate analysis.}
 
 \item{\code{feature_filter}}{A character vector of to filter unwanted taxa, default \code{c("uncultured")}}
 
 \item{\code{distance_metrics}}{A character vector specifying what (dis)similarity metrics to use, default \code{c("unifrac")}}
 
-\item{\code{dist_matrix}}{A path to pre-computed distance matrix, expects tsv/csv/txt file from qiime2.}
+\item{\code{beta_div_table}}{A path to pre-computed distance matrix, expects tsv/csv/txt file from qiime2.}
 
 \item{\code{alpha_div_table}}{A path to pre-computed alpha diversity with rarefraction depth, expects tsv/csv/txt from qiime2.}
 
-\item{\code{cpus}}{Number of cores to use, only used in \link[omics]{ordination} when dist_matrix is not supplied.}
+\item{\code{normalize}}{A Boolean value, whether to \href{#method-normalize}{\code{normalize()}} by total sample sums (Default: TRUE).}
+
+\item{\code{weighted}}{A Boolean value, whether to compute weighted or unweighted dissimilarities (Default: TRUE).}
+
+\item{\code{pvalue.threshold}}{A numeric value, the p-value is used to include/exclude composition and foldchanges plots coming from alpha- and beta diversity analysis (Default: 0.05).}
+
+\item{\code{perm}}{An integer value, number of permutations to compare against the null hypothesis of adonis2 (default: \code{perm=999}).}
+
+\item{\code{cpus}}{Number of cores to use, only used in \link[omics]{ordination} when beta_div_table is not supplied.}
+
+\item{\code{filename}}{A character to name the HTML report, it can also be a filepath (e.g. \code{"/path/to/report.html"}). Default: "report.html" in your current work directory.}
 }
 \if{html}{\out{</div>}}
 }

@@ -131,11 +131,11 @@ taxa$write_biom(file = "output.biom")
 Initializes the metagenomics class object with \code{metagenomics$new()}
 \subsection{Usage}{
 \if{html}{\out{<div class="r">}}\preformatted{metagenomics$new(
-  countData = NA,
-  metaData = NA,
-  featureData = NA,
-  treeData = NA,
-  biomData = NA,
+  countData = NULL,
+  metaData = NULL,
+  featureData = NULL,
+  treeData = NULL,
+  biomData = NULL,
   feature_names = c("Kingdom", "Phylum", "Class", "Order", "Family", "Genus", "Species")
 )}\if{html}{\out{</div>}}
 }

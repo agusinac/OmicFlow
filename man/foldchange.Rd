@@ -23,6 +23,8 @@ foldchange(
 \item{condition_B}{A vector of categorical characters, it is possible to specify multiple labels.}
 
 \item{condition_labels}{A vector characters wherein \code{condition_A} and \code{condition_B} are present.}
+
+\item{paired}{A Boolean value to perform paired or non-paired test, see \link[stats]{wilcox.test}.}
 }
 \value{
 A \link[data.table]{data.table}
