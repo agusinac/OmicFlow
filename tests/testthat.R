@@ -9,5 +9,6 @@
 library(testthat)
 library(ggplot2)
 library(OmicFlow)
+library(patchwork)
 
 test_check("OmicFlow")
