@@ -125,7 +125,7 @@ diversity_plot <- function(data,
     labs(title = NULL,
          subtitle = paste0(
           "Attribute: ", col_name,
-          ", test: ", ifelse(paired, "Wilcox signed rank test", "Wilcoxon rank sum test"),
+          ", test: ", ifelse(paired, "Wilcox signed rank test", "Mann-Whitney U test"),
           ", p.adjusted by ", p.adjust.method),
          x = "sample groups",
          y = paste0("Alpha diversity metric: ", method))

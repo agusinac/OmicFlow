@@ -155,9 +155,9 @@ volcano_plot <- function(data,
       ggrepel::geom_label_repel(show.legend = FALSE,
                                 max.overlaps = getOption("ggrepel.max.overlaps", default = Inf),
                                 color = "black") +
-      geom_point(aes(size = as.numeric(ifelse(diffexpressed != "non-significant", .data[[ abundance_col ]], 0))),
+      geom_point(aes(size = as.numeric(ifelse(diffexpressed != "non-significant", .data[[ abundance_col ]]*100, 0))),
                  shape = 16, alpha = 0.5) +
-      scale_size_continuous(name = "Mean Rel. Abun.") +
+      scale_size_continuous(name = "Mean Abundance (%)") +
       labs(x = paste0("Fold Change log2( ", label_A," / ", label_B," )"),
            y = paste0("-log10( ", pvalue_col ," )"))
   )

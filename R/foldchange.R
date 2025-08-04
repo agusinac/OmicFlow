@@ -9,6 +9,7 @@
 #' @param condition_A A vector of categorical characters, it is possible to specify multiple labels.
 #' @param condition_B A vector of categorical characters, it is possible to specify multiple labels.
 #' @param condition_labels A vector characters wherein `condition_A` and `condition_B` are present.
+#' @param paired A Boolean value to perform paired or non-paired test, see \link[stats]{wilcox.test}.
 #' @return A \link[data.table]{data.table}
 #' @examples 
 #' #-------------------------#
@@ -157,12 +158,14 @@ foldchange <- function(data,
 
     # Find zero's to prevent Inf
     both_zero <- row_means_A == 0 & row_means_B == 0
-    one_zero <- (row_means_A == 0 & row_means_B != 0) | (row_means_A != 0 & row_means_B == 0)
+    row_means_A_zero <- row_means_A == 0 & row_means_B != 0
+    row_means_B_zero <- row_means_A != 0 & row_means_B == 0
     both_non_zero <- row_means_A != 0 & row_means_B != 0
 
     # Compute log2 fold change
     result[both_zero] <- 0
-    result[one_zero] <- 0
+    result[row_means_A_zero] <- row_means_A[row_means_A_zero] - log2(row_means_B[row_means_A_zero])
+    result[row_means_B_zero] <- log2(row_means_A[row_means_B_zero]) - row_means_B[row_means_B_zero]
     result[both_non_zero] <- log2(row_means_A[both_non_zero]) - log2(row_means_B[both_non_zero])
 
     # Combines to final foldchange data table
