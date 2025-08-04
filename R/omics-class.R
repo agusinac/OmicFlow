@@ -521,6 +521,9 @@ omics <- R6::R6Class(
         .metaData = self$metaData,
         .treeData = self$treeData
       )
+      
+      # Restores omics class components
+      on.exit(private$tmp_restore(), add = TRUE)
 
       # Remove NAs when col_name is specified
       if (!is.null(col_name))
@@ -552,9 +555,6 @@ omics <- R6::R6Class(
       plot_list$stats <- as.data.frame(diversity_plt$stats)
       plot_list$plot <- diversity_plt$plot
 
-      # Restores omics class components
-      private$tmp_restore()
-
       return(plot_list)
     },
     #' @description
@@ -581,7 +581,7 @@ omics <- R6::R6Class(
     #' @return A long \link[data.table]{data.table} table.
     #' @seealso \link[OmicFlow]{composition_plot}
     composition = function(feature_rank,
-                           feature_filter = NA,
+                           feature_filter = NULL,
                            col_name = NULL,
                            normalize = TRUE,
                            feature_top = c(10, 15),
@@ -617,6 +617,9 @@ omics <- R6::R6Class(
         .metaData = self$metaData,
         .treeData = self$treeData
       )
+      
+      # Restores omics class components
+      on.exit(private$tmp_restore(), add = TRUE)
 
       # Normalizes sample counts
       if (normalize)
@@ -652,7 +655,7 @@ omics <- R6::R6Class(
       df_taxa_len <- length(final_dt[[feature_rank]])
       if (Brewer.palID == FALSE) {
         chosen_palette <- viridis::viridis(df_taxa_len - 1)
-      } else if (df_taxa_len-1 <= 15 & df_taxa_len-1 > 10) {
+      } else if (df_taxa_len-1 <= 15 && df_taxa_len-1 > 10) {
         chosen_palette <- c("#000000","#004949","#009292","#ff6db6","#ffb6db",
                             "#490092","#006ddb","#b66dff","#6db6ff","#b6dbff",
                             "#920000","#924900","#db6d00","#24ff24","#ffff6d")[1:df_taxa_len-1]
@@ -684,9 +687,6 @@ omics <- R6::R6Class(
       # Factors the melted data.table by the original order of Taxa
       # Important for scale_fill_manual taxa order
       composition_final[[feature_rank]] <- factor(composition_final[[feature_rank]], levels = final_dt[[feature_rank]])
-
-      # Restores omics class components
-      private$tmp_restore()
 
       # returns results as list
       return(
@@ -769,6 +769,9 @@ omics <- R6::R6Class(
         .metaData = self$metaData,
         .treeData = self$treeData
       )
+      
+      # Restores omics class components
+      on.exit(private$tmp_restore(), add = TRUE)
 
       # Subset by missing values
       self$removeNAs(group_by)
@@ -919,9 +922,6 @@ omics <- R6::R6Class(
         )
       }
 
-      # Restores omics class components
-      private$tmp_restore()
-
       return(plot_list)
     },
     #' @description
@@ -1010,6 +1010,9 @@ omics <- R6::R6Class(
         .metaData = self$metaData,
         .treeData = self$treeData
       )
+      
+      # Restores omics class components
+      on.exit(private$tmp_restore(), add = TRUE)
 
       # normalization if applicable
       if (normalize)
@@ -1070,16 +1073,19 @@ omics <- R6::R6Class(
                        logfold.threshold = foldchange.threshold,
                        abundance.threshold = abundance.threshold,
                        label_A = condition_A,
-                       label_B = condition_B)
+                       label_B = condition_B) +
+            labs(
+              subtitle = paste0(
+                "Attribute: ", condition.group,
+                ", test: ", ifelse(paired, "Wilcox signed rank test", "Mann-Whitney U test")
+                )
+            )
         })
-
-      # Restores omics class components
-      private$tmp_restore()
 
       return(plot_list)
     },
     # triplot = function(feature_rank,
-    #                    feature_filter = NA,
+    #                    feature_filter = NULL,
     #                    sample.id = self$.sample_id,
     #                    metadata.col = NA,
     #                    choice_dim = c("RDA1", "PC1"),
@@ -1244,7 +1250,7 @@ omics <- R6::R6Class(
     #   data.table::setDT(df_hull)
     #
     #   # Restores omics class components
-    #   private$tmp_restore()
+    #   on.exit(private$tmp_restore(), add = TRUE)
     #
     #
     #   results$plot <- ggplot() +
@@ -1300,7 +1306,7 @@ omics <- R6::R6Class(
     #
     #     return(results)
     # },
-    # correlation = function(feature_rank, feature_filter = NA, sample.id = "SAMPLE-ID",
+    # correlation = function(feature_rank, feature_filter = NULL, sample.id = "SAMPLE-ID",
     #                        cor_method = "spearman", cor_columns = c("BMI", "Weight"), cor_threshold = 0.6, normalize = TRUE) {
     #   # Copies object to prevent modification of omics class components
     #   private$tmp_link(
@@ -1337,7 +1343,7 @@ omics <- R6::R6Class(
     #   filter_NAs <- rownames(logical_mat)[!grepl("^NA", rownames(logical_mat))]
     #
     #   # Restores omics class components
-    #   private$tmp_restore()
+    #   on.exit(private$tmp_restore(), add = TRUE)
     #
     #   # Only visuakizes taxa meeting the correlation threshold
     #   if (length(filter_NAs > 0)) {
@@ -1406,7 +1412,11 @@ omics <- R6::R6Class(
     #' @param distance_metrics A character vector specifying what (dis)similarity metrics to use, default \code{c("unifrac")}
     #' @param beta_div_table A path to pre-computed distance matrix, expects tsv/csv/txt file from qiime2.
     #' @param alpha_div_table A path to pre-computed alpha diversity with rarefraction depth, expects tsv/csv/txt from qiime2.
-    #' @param cpus Number of cores to use, only used in \link[omics]{ordination} when dist_matrix is not supplied.
+    #' @param normalize A Boolean value, whether to [`normalize()`](#method-normalize) by total sample sums (Default: TRUE).
+    #' @param weighted A Boolean value, whether to compute weighted or unweighted dissimilarities (Default: TRUE).
+    #' @param pvalue.threshold A numeric value, the p-value is used to include/exclude composition and foldchanges plots coming from alpha- and beta diversity analysis (Default: 0.05).
+    #' @param perm An integer value, number of permutations to compare against the null hypothesis of adonis2 (default: \code{perm=999}).
+    #' @param cpus Number of cores to use, only used in \link[omics]{ordination} when beta_div_table is not supplied.
     #' @param filename A character to name the HTML report, it can also be a filepath (e.g. \code{"/path/to/report.html"}). Default: "report.html" in your current work directory.
     #'
     #' @return A nested list of \link[ggplot2]{ggplot} objects.
@@ -1416,6 +1426,10 @@ omics <- R6::R6Class(
                         distance_metrics = c("unifrac"),
                         beta_div_table = NULL,
                         alpha_div_table = NULL,
+                        normalize = TRUE,
+                        weighted = TRUE,
+                        pvalue.threshold = 0.05,
+                        perm = 999,
                         cpus = 1,
                         filename = paste0(getwd(),"/report.html")
                       ) {
@@ -1460,6 +1474,17 @@ omics <- R6::R6Class(
 
     # Plot results as list
     plots <- list()
+    
+    # Save omics class components
+    private$tmp_link(
+      .countData = self$countData,
+      .featureData = self$featureData,
+      .metaData = self$metaData,
+      .treeData = self$treeData
+    )
+    
+    # Restores omics class components
+    on.exit(private$tmp_restore(), add = TRUE)
 
     # Collect columns: CONTRAST_ and VARIABLE_
     metacols <- colnames(self$metaData)
@@ -1480,10 +1505,7 @@ omics <- R6::R6Class(
     feature_nrow <- length(feature_contrast)
     CONTRAST_ncol <- length(CONTRAST_data)
     VARIABLE_ncol <- length(VARIABLE_data)
-    #
-    # Object manipulation
-    #
-    self$feature_subset(Kingdom == "Bacteria")
+
     # Standard rank stats
     plots$rankstat_plot <- self$rankstat(feature_ranks)
 
@@ -1492,8 +1514,8 @@ omics <- R6::R6Class(
 
       # Load custom distance matrix if supplied
       if (!is.null(beta_div_table)) {
-        dist_matrix <- read_tsv_matrix(filename = beta_div_table)
-        dist_matrix <- dist_matrix[self$metaData[[self$.sample_id]], self$metaData[[self$.sample_id]]]
+        beta_div_table <- read_tsv_matrix(filename = beta_div_table)
+        beta_div_table <- beta_div_table[self$metaData[[self$.sample_id]], self$metaData[[self$.sample_id]]]
       }
 
       # Load custom rarefraction alpha diversity table if supplied
@@ -1508,11 +1530,11 @@ omics <- R6::R6Class(
       metrics_nrow <- length(distance_metrics)
       pcoa_plots <- matrix(list(), CONTRAST_ncol, metrics_nrow)
       nmds_plots <- matrix(list(), CONTRAST_ncol, metrics_nrow)
-      conditions <- NULL
 
       for (i in 1:CONTRAST_ncol) {
         col_name <- CONTRAST_names[i]
-        cat(paste0("Processing ... column: ", col_name, " \n"))
+        conditions <- NULL
+        cli::cli_alert_info(paste0("Processing ... column: ", col_name, " \n"))
 
         #--------------------------------------------------------------------#
         ## Alpha diversity
@@ -1524,11 +1546,13 @@ omics <- R6::R6Class(
                                   all.x = TRUE) %>%
             na.omit(cols = col_name)
 
-          res <- diversity_plot(data = dt_final,
-                                values = "alpha_div",
-                                col_name = col_name,
-                                palette = fetch_palette(dt_final, col_name, "Set2"),
-                                method = "custom")
+          res <- diversity_plot(
+            data = dt_final,
+            values = "alpha_div",
+            col_name = col_name,
+            palette = colormap(dt_final, col_name, "Set2"),
+            method = "custom"
+            )
         } else {
           res <- tryCatch(
             {
@@ -1552,7 +1576,7 @@ omics <- R6::R6Class(
         
         ## Save plots and identify significant groups for composition plots & volcano plots
         alpha_div_plots[[i]] <- res$plot
-        signif_pairs <- res$stats[c("group1", "group2")] #[grepl("\\*+", res$stats$p.adj.signif) ,]
+        signif_pairs <- res$stats[res$stats$p.adj < pvalue.threshold, ][c("group1", "group2")]
         if (nrow(signif_pairs) > 0)
           conditions <- signif_pairs
           
@@ -1561,21 +1585,27 @@ omics <- R6::R6Class(
         #--------------------------------------------------------------------#
         
         for (j in 1:metrics_nrow) {
-          if (inherits(dist_matrix, "Matrix")) {
-            res <- self$ordination(distmat = dist_matrix,
-                                  method = "pcoa",
-                                  group_by = col_name)
+          if (inherits(beta_div_table, "Matrix")) {
+            res <- self$ordination(
+              distmat = beta_div_table,
+              method = "pcoa",
+              perm = perm,
+              group_by = col_name
+              )
           } else {
-            res <- self$ordination(metric = distance_metrics[j],
-                                  method = "pcoa",
-                                  group_by = col_name,
-                                  normalize = TRUE,
-                                  weighted = TRUE,
-                                  cpus = cpus)
+            res <- self$ordination(
+              metric = distance_metrics[j],
+              method = "pcoa",
+              group_by = col_name,
+              normalize = normalize,
+              weighted = weighted,
+              perm = perm,
+              cpus = cpus
+              )
           }
           
           ## Save plots and identify significant groups for composition plots & volcano plots
-          signif_pairs <- res$anova_data[res$anova_data$p.adj < 0.9, ]
+          signif_pairs <- res$anova_data[res$anova_data$p.adj < pvalue.threshold, ]
           if (nrow(signif_pairs) > 0) {
             pairs_split <- strsplit(as.character(signif_pairs$pairs), " vs ")
             
@@ -1594,19 +1624,26 @@ omics <- R6::R6Class(
                         guides = "collect")
 
           # Creates temporary plot results for NMDS
-          if (inherits(dist_matrix, "Matrix")) {
-            res <- self$ordination(distmat = dist_matrix,
-                                        method = "nmds",
-                                        group_by = col_name)
+          if (inherits(beta_div_table, "Matrix")) {
+            res <- self$ordination(
+              distmat = beta_div_table,
+              method = "nmds",
+              group_by = col_name,
+              perm = perm
+              )
           } else {
-            res <- self$ordination(metric = distance_metrics[j],
-                                  method = "nmds",
-                                  group_by = col_name,
-                                  weighted = TRUE)
+            res <- self$ordination(
+              metric = distance_metrics[j],
+              method = "nmds",
+              group_by = col_name,
+              weighted = weighted,
+              normalize = normalize,
+              perm = perm
+              )
           }
 
           ## Save plots and identify significant groups for composition plots & volcano plots
-          signif_pairs <- res$anova_data[res$anova_data$p.adj <= 1, ]
+          signif_pairs <- res$anova_data[res$anova_data$p.adj < pvalue.threshold, ]
           if (nrow(signif_pairs) > 0) {
             pairs_split <- strsplit(as.character(signif_pairs$pairs), " vs ")
             
@@ -1624,7 +1661,7 @@ omics <- R6::R6Class(
             plot_layout(widths = c(rep(5, 3)),
                         guides = "collect")
         }
-        
+      
         #--------------------------------------------------------------------#
         ## Feature composition & FOLDCHANGE
         #--------------------------------------------------------------------#
@@ -1635,8 +1672,9 @@ omics <- R6::R6Class(
             feature_rank = feature_contrast[j],
             feature_filter = feature_filter,
             feature_top = 15,
-            col_name = col_name)
-
+            normalize = normalize,
+            col_name = col_name
+            )
           # Creates composition ggplot as list
           composition_plots[[i, j]] <- composition_plot(
             data = res$data,
@@ -1645,7 +1683,8 @@ omics <- R6::R6Class(
             group_by = col_name
             )
           
-          if (!is.null(conditions) & nrow(conditions) > 0) {
+          if (!is.null(conditions) && nrow(conditions) > 0) {
+
             dfe <- tryCatch(
               {
               # Default attempt
@@ -1653,6 +1692,7 @@ omics <- R6::R6Class(
                 feature_rank = feature_contrast[j],
                 feature_filter = feature_filter,
                 paired = ifelse(!is.null(self$.samplepair_id), TRUE, FALSE),
+                normalize = normalize,
                 condition.group = col_name,
                 condition_A = c(conditions$group1),
                 condition_B = c(conditions$group2)
@@ -1664,6 +1704,7 @@ omics <- R6::R6Class(
                   feature_rank = feature_contrast[j],
                   feature_filter = feature_filter,
                   paired = FALSE,
+                  normalize = normalize,
                   condition.group = col_name,
                   condition_A = c(conditions$group1),
                   condition_B = c(conditions$group2)
@@ -1674,13 +1715,14 @@ omics <- R6::R6Class(
           }
         }
       }
+      
       plots$alpha_div_plots <- is_empty(alpha_div_plots)
       plots$composition_plots <- is_empty(composition_plots)
       plots$Log2FC_plots <- is_empty(Log2FC_plots)
       plots$pcoa_plots <- is_empty(pcoa_plots)
       plots$nmds_plots <- is_empty(nmds_plots)
     }
-
+    
     #--------------------------------------------------------------------#
     ## CREATING REPORT
     #--------------------------------------------------------------------#

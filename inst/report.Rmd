@@ -26,17 +26,21 @@ create_plot_tabs <- function(plots, method, label_col, label_row) {
   if (method == "matrix") {
     for(i in 1:nrow(plots)) {
       for(j in 1:ncol(plots)) {
-        cat(paste0("\n\n### Plot: ", label_col[i], "-", label_row[j], "\n"))
-        print(plots[[i,j]])
-        cat("\n")
+        if (!is.null(plots[[i, j]])) {
+          cat(paste0("\n\n### Plot: ", label_col[i], "-", label_row[j], "\n"))
+          print(plots[[i,j]])
+          cat("\n")
+        }
       }
     }
   }
   if (method == "vector") {
     for (i in 1:length(plots)) {
-      cat(paste0("\n\n### Plot: ", label_col[i], "\n"))
-      print(plots[[i]])
-      cat("\n")
+      if (!is.null(plots[[i]])) {
+        cat(paste0("\n\n### Plot: ", label_col[i], "\n"))
+        print(plots[[i]])
+        cat("\n")
+      }
     }
   }
 }
