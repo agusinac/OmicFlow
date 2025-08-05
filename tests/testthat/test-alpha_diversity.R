@@ -6,28 +6,31 @@ test_that("Testing Alpha diversity", {
   )
   
   ## Testing Shannon
-  res_shannon <- taxa$alpha_diversity(
-    metric = "shannon",
-    col_name = "CONTRAST_sex",
-  )
+  res_shannon <- suppressWarnings(
+    taxa$alpha_diversity(
+      metric = "shannon",
+      col_name = "CONTRAST_sex",
+    ))
   
   expect_snapshot(res_shannon$data)
   expect_snapshot(res_shannon$stats)
   
   ## Testing inverse simpson
-  res_invsimpson <- taxa$alpha_diversity(
-    metric = "invsimpson",
-    col_name = "CONTRAST_sex",
-  )
+  res_invsimpson <- suppressWarnings(
+    taxa$alpha_diversity(
+      metric = "invsimpson",
+      col_name = "CONTRAST_sex",
+    ))
   
   expect_snapshot(res_invsimpson$data)
   expect_snapshot(res_invsimpson$stats)
   
   ## Testing simpson
-  res_simpson <- taxa$alpha_diversity(
-    metric = "simpson",
-    col_name = "CONTRAST_sex",
-  )
+  res_simpson <- suppressWarnings(
+    taxa$alpha_diversity(
+      metric = "simpson",
+      col_name = "CONTRAST_sex",
+    ))
   
   expect_snapshot(res_simpson$data)
   expect_snapshot(res_simpson$stats)

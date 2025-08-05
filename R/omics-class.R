@@ -261,7 +261,7 @@ omics <- R6::R6Class(
       invisible(self)
     },
     #' @description
-    #' Samplepair subset (based on metaData), automatically applies \link{removeZeros}
+    #' Samplepair subset (based on metaData), automatically applies [`removeZeros()`](#method-removeZeros).
     #' @param num_unique_pairs An integer value to define the number of pairs to subset. The default is NULL, meaning the maximum number of unique pairs will be used to subset the data. Let's say you have three samples for each pair, then the `num_unique_pairs` will be set to 3.
     samplepair_subset = function(num_unique_pairs = NULL) {
 
@@ -1407,7 +1407,7 @@ omics <- R6::R6Class(
     #' @param weighted A Boolean value, whether to compute weighted or unweighted dissimilarities (Default: TRUE).
     #' @param pvalue.threshold A numeric value, the p-value is used to include/exclude composition and foldchanges plots coming from alpha- and beta diversity analysis (Default: 0.05).
     #' @param perm An integer value, number of permutations to compare against the null hypothesis of adonis2 (default: \code{perm=999}).
-    #' @param cpus Number of cores to use, only used in \link{ordination} when beta_div_table is not supplied.
+    #' @param cpus Number of cores to use, only used in [`ordination()`](#method-ordination) when beta_div_table is not supplied.
     #' @param filename A character to name the HTML report, it can also be a filepath (e.g. \code{"/path/to/report.html"}). Default: "report.html" in your current work directory.
     #'
     #' @return A nested list of \link[ggplot2]{ggplot} objects.

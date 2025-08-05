@@ -362,7 +362,7 @@ obj$sample_subset(treatment == "tumor")
 \if{html}{\out{<a id="method-omics-samplepair_subset"></a>}}
 \if{latex}{\out{\hypertarget{method-omics-samplepair_subset}{}}}
 \subsection{Method \code{samplepair_subset()}}{
-Samplepair subset (based on metaData), automatically applies \link{removeZeros}
+Samplepair subset (based on metaData), automatically applies \href{#method-removeZeros}{\code{removeZeros()}}.
 \subsection{Usage}{
 \if{html}{\out{<div class="r">}}\preformatted{omics$samplepair_subset(num_unique_pairs = NULL)}\if{html}{\out{</div>}}
 }
@@ -783,7 +783,7 @@ For now only works with headers "CONTRAST_".
 
 \item{\code{perm}}{An integer value, number of permutations to compare against the null hypothesis of adonis2 (default: \code{perm=999}).}
 
-\item{\code{cpus}}{Number of cores to use, only used in \link{ordination} when beta_div_table is not supplied.}
+\item{\code{cpus}}{Number of cores to use, only used in \href{#method-ordination}{\code{ordination()}} when beta_div_table is not supplied.}
 
 \item{\code{filename}}{A character to name the HTML report, it can also be a filepath (e.g. \code{"/path/to/report.html"}). Default: "report.html" in your current work directory.}
 }

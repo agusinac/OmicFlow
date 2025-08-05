@@ -1,6 +1,5 @@
 test_that("Tests autoFlow report creation", {
-    output_file <- "report.html"
-    output_file <- normalizePath(output_file)
+    output_file <- paste0(getwd(),"/report.html")
 
     taxa <- metagenomics$new(
         biomData = "input/metagenomics/biom_with_taxonomy_hdf5.biom",
