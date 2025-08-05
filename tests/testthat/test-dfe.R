@@ -5,14 +5,15 @@ test_that("Testing Log2 Foldchanges", {
     treeData = "input/metagenomics/rooted_tree.newick"
   )
   
-  dfe <- taxa$DFE(
-    feature_rank = "Genus",
-    feature_filter = c("uncultured"),
-    paired = FALSE,
-    condition.group = "CONTRAST_sex",
-    condition_A = c("male"),
-    condition_B = c("female")
-  )
+  suppressWarnings(
+    dfe <- taxa$DFE(
+      feature_rank = "Genus",
+      feature_filter = c("uncultured"),
+      paired = FALSE,
+      condition.group = "CONTRAST_sex",
+      condition_A = c("male"),
+      condition_B = c("female")
+    ))
   
   expect_snapshot(dfe$data)
 })

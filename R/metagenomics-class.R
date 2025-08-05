@@ -1,7 +1,7 @@
 #' Sub-class metagenomics
 #'
 #' @description This is a sub-class for 16S metagenomics data, called metagenomics.
-#' It inherits all methods from the abstract class \link[OmicFlow]{omics} and only adapts the \code{initialize} function.
+#' It inherits all methods from the abstract class \link{omics} and only adapts the \code{initialize} function.
 #'
 #' @export
 
@@ -32,7 +32,7 @@ metagenomics <- R6::R6Class(
     #' @param metaData A path to an existing file, data.table or data.frame.
     #' @param treeData A path to an existing newick file or class "phylo", see \link[ape]{read.tree}.
     #' @param biomData A path to an existing biom file, version 2.1.0, see \link[rhdf5]{h5read}.
-    #' @param feature_names A character vector to name the feature names that fit the supplied `featureData` (Default: \code[c("Kingdom", "Phylum", "Class", "Order", "Family", "Genus", "Species")]).
+    #' @param feature_names A character vector to name the feature names that fit the supplied `featureData`, Default: character vector containing Kingdom, Phylum, Class, Order, Family, Genus, Species.
     #' @return A new `metagenomics` object.
     initialize = function(countData = NULL,
                           metaData = NULL,
@@ -148,7 +148,7 @@ metagenomics <- R6::R6Class(
       )
     },
     #' @description
-    #' Displays parameters of the `metagenomics` object via stdout.
+    #' Displays parameters of the metagenomics object via stdout.
     #' @examples
     #' taxa_path <- system.file("extdata", "mock_taxa.rds", package = "OmicFlow", mustWork = TRUE)
     #' taxa <- readRDS(taxa_path)

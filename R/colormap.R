@@ -1,10 +1,10 @@
 #' Create color map based on a variable
 #'
 #' @description Creates an object of hexcode colors with names.
-#' This function is built into the \code{ordination} method from the abstract class \link[OmicFlow]{omics} and inherited by other omics classes, such as;
-#' \link[OmicFlow]{metagenomics} and \link[OmicFlow]{proteomics}.
+#' This function is built into the \code{ordination} method from the abstract class \link{omics} and inherited by other omics classes, such as;
+#' \link{metagenomics} and \link{proteomics}.
 #'
-#' @param data A \link[base]{data.frame} or \link[data.table]{data.table} computed from \link[OmicFlow]{diversity}.
+#' @param data A \link[base]{data.frame} or \link[data.table]{data.table} computed from \link{diversity}.
 #' @param col_name A column name of a categorical variable.
 #' @param Brewer.palID A character name that exists in \link[RColorBrewer]{brewer.pal} (Default: \code{"Set2"}).
 #' @return An object of names and hexcolors

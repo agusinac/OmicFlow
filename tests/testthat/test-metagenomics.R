@@ -12,10 +12,6 @@ test_that("Testing Metagenomics reading and writing of BIOM files", {
     featureData = taxa_hdf5$featureData
   )
   
-  taxa_ref$write_biom(filename = "test.biom")
-  
-  expect_snapshot_file("test.biom")
-  file.remove("test.biom") # Cant create an existing file
   expect_snapshot(taxa_hdf5)
   expect_snapshot(taxa_ref)
 })

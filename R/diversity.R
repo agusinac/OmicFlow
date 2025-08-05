@@ -3,8 +3,8 @@
 #' @description Computes the alpha diversity based on Shannon index, simpson or invsimpson.
 #' Code is adapted from \link[vegan]{diversity} and uses \link[Matrix]{sparseMatrix} in triplet format over the dense matrix.
 #' The code is much faster and memory efficient, while still being mathematical correct.
-#' This function is built into the \code{alpha_diversity} method from the abstract class \link[OmicFlow]{omics} and inherited by other omics classes, such as;
-#' \link[OmicFlow]{metagenomics} and \link[OmicFlow]{proteomics}.
+#' This function is built into the \code{alpha_diversity} method from the abstract class \link{omics} and inherited by other omics classes, such as;
+#' \link{metagenomics} and \link{proteomics}.
 #'
 #' @param x A \link[base]{matrix} or \link[Matrix]{sparseMatrix}.
 #' @param metric A character variable for metric; shannon, simpson or invsimpson.
@@ -35,7 +35,7 @@
 #' )
 #'
 #' # Alpha diversity is computed on column level
-#' ## If your samples are rows you need to transpose it first with ``t(sparse_mat)`` from Matrix R package.
+#' ## Transpose the sparseMatrix if required with t() from Matrix R package.
 #' result <- OmicFlow::diversity(
 #'   x = sparse_mat,
 #'   metric = "shannon"

@@ -1,7 +1,7 @@
 #' Abstract 'omics' class
 #'
 #' @description This is the abstract class 'omics', contains a variety of methods that are inherited and applied in the omics classes:
-#' \link[OmicFlow]{metagenomics}, proteomics and metabolomics.
+#' \link{metagenomics}, proteomics and metabolomics.
 #'
 #' @details
 #' Every class is created with the \link[R6]{R6Class} method. Methods are either public or private, and only the public components are inherited by other omics classes.
@@ -261,7 +261,7 @@ omics <- R6::R6Class(
       invisible(self)
     },
     #' @description
-    #' Samplepair subset (based on metaData), automatically applies \code{removeZeros}
+    #' Samplepair subset (based on metaData), automatically applies \link{removeZeros}
     #' @param num_unique_pairs An integer value to define the number of pairs to subset. The default is NULL, meaning the maximum number of unique pairs will be used to subset the data. Let's say you have three samples for each pair, then the `num_unique_pairs` will be set to 3.
     samplepair_subset = function(num_unique_pairs = NULL) {
 
@@ -466,12 +466,12 @@ omics <- R6::R6Class(
                     y = "Number of ASVs classified"))
     },
     #' @description
-    #' Alpha diversity based on \link[OmicFlow]{diversity}
+    #' Alpha diversity based on \link{diversity}
     #' @param col_name The metaData column of categorical variables to create a ggplot object.
     #' @param metric Diversity metric such as "shannon", "invsimpson" or "simpson"
-    #' @param Brewer.palID Palette set to be applied, see \link[RColorBrewer]{brewer.pal} or \link[OmicFlow]{colormap}.
+    #' @param Brewer.palID Palette set to be applied, see \link[RColorBrewer]{brewer.pal} or \link{colormap}.
     #' @param evenness A boolean wether to divide diversity by number of species, see \link[vegan]{specnumber}.
-    #' @param paired A boolean value to perform paired analysis in \link[stats]{wilcox.test} and samplepair subsetting via \link[OmicFlow]{samplepair_subset}
+    #' @param paired A boolean value to perform paired analysis in \link[stats]{wilcox.test} and samplepair subsetting via [`samplepair_subset()`](#method-samplepair_subset)
     #' @param p.adjust.method A character variable to specify the p.adjust.method to be used, default is 'fdr'.
     #' @examples
     #' library(ggplot2)
@@ -483,7 +483,7 @@ omics <- R6::R6Class(
     #'                            metric = "shannon")
     #'
     #' @return A \link[ggplot2]{ggplot} object.
-    #' @seealso \link[OmicFlow]{diversity_plot}
+    #' @seealso \link{diversity_plot}
     alpha_diversity = function(col_name,
                                metric = c("shannon", "invsimpson", "simpson"),
                                Brewer.palID = "Set2",
@@ -559,7 +559,7 @@ omics <- R6::R6Class(
     #' @param col_name Optional, a string or vector of strings to add to the final compositional data output.
     #' @param feature_top Integer of the top features to visualize, the max is 15, due to a limit of palettes.
     #' @param normalize A Boolean value, whether to [`normalize()`](#method-normalize) by total sample sums (Default: TRUE).
-    #' @param Brewer.palID Palette set to be applied, see \link[RColorBrewer]{brewer.pal} or \link[OmicFlow]{colormap}.
+    #' @param Brewer.palID Palette set to be applied, see \link[RColorBrewer]{brewer.pal} or \link{colormap}.
     #' @examples
     #' library(ggplot2)
     #' 
@@ -575,7 +575,7 @@ omics <- R6::R6Class(
     #'                         feature_rank = "Genus")
     #'
     #' @return A long \link[data.table]{data.table} table.
-    #' @seealso \link[OmicFlow]{composition_plot}
+    #' @seealso \link{composition_plot}
     composition = function(feature_rank,
                            feature_filter = NULL,
                            col_name = NULL,
@@ -716,7 +716,7 @@ omics <- R6::R6Class(
     #' pcoa_plots
     #'
     #' @return A list of \link[ggplot2]{ggplot} object.
-    #' @seealso \link[OmicFlow]{ordination_plot}, \link[OmicFlow]{plot_pairwise_stats}, \link[OmicFlow]{pairwise_anosim}, \link[OmicFlow]{pairwise_adonis}
+    #' @seealso \link{ordination_plot}, \link{plot_pairwise_stats}, \link{pairwise_anosim}, \link{pairwise_adonis}
     ordination = function(metric = c("bray", "jaccard", "unifrac"),
                           method = c("pcoa", "nmds"),
                           group_by,
@@ -921,7 +921,7 @@ omics <- R6::R6Class(
       return(plot_list)
     },
     #' @description
-    #' Differential feature expression (DFE) using the \link[OmicFlow]{foldchange} for both paired and non-paired samples.
+    #' Differential feature expression (DFE) using the \link{foldchange} for both paired and non-paired samples.
     #' @param feature_rank A character value or vector of columns to aggregate from the `featureData`.
     #' @param feature_filter A character value or vector of characters to remove features via regex pattern (Default: NULL).
     #' @param paired A Boolean value, the paired is only applicable when a `SAMPLEPAIR_ID` column exists within the `metaData`. See \link[stats]{wilcox.test}
@@ -947,7 +947,7 @@ omics <- R6::R6Class(
     #' @return
     #' * A list of \link[ggplot2]{ggplot} object.
     #' * A long \link[data.table]{data.table} table.
-    #' @seealso \link[OmicFlow]{volcano_plot}, \link[OmicFlow]{ViolinBoxPlot}, \link[OmicFlow]{paired_fold}, \link[OmicFlow]{unpaired_fold}
+    #' @seealso \link{volcano_plot}, \link{foldchange}
     DFE = function(feature_rank,
                    feature_filter = NULL,
                    paired = FALSE,
@@ -1407,7 +1407,7 @@ omics <- R6::R6Class(
     #' @param weighted A Boolean value, whether to compute weighted or unweighted dissimilarities (Default: TRUE).
     #' @param pvalue.threshold A numeric value, the p-value is used to include/exclude composition and foldchanges plots coming from alpha- and beta diversity analysis (Default: 0.05).
     #' @param perm An integer value, number of permutations to compare against the null hypothesis of adonis2 (default: \code{perm=999}).
-    #' @param cpus Number of cores to use, only used in \link[omics]{ordination} when beta_div_table is not supplied.
+    #' @param cpus Number of cores to use, only used in \link{ordination} when beta_div_table is not supplied.
     #' @param filename A character to name the HTML report, it can also be a filepath (e.g. \code{"/path/to/report.html"}). Default: "report.html" in your current work directory.
     #'
     #' @return A nested list of \link[ggplot2]{ggplot} objects.
@@ -1502,13 +1502,13 @@ omics <- R6::R6Class(
 
       # Load custom distance matrix if supplied
       if (!is.null(beta_div_table)) {
-        beta_div_table <- read_tsv_matrix(filename = beta_div_table)
+        beta_div_table <- check_matrix(filepath = beta_div_table)
         beta_div_table <- beta_div_table[self$metaData[[self$.sample_id]], self$metaData[[self$.sample_id]]]
       }
 
       # Load custom rarefraction alpha diversity table if supplied
       if (!is.null(alpha_div_table)) {
-        alpha_div_table <- read_rarefraction_qiime(filename = alpha_div_table)
+        alpha_div_table <- read_rarefraction_qiime(filepath = alpha_div_table)
       }
 
       # Initialize plot containers

@@ -1,3 +1,10 @@
+#' sparseMatrix to data.table conversion
+#'
+#' @description Wrapper function that converts a sparseMatrix to data.table
+#'
+#' @param sparsemat A \link[Matrix]{sparseMatrix} class.
+#' @return A \link[data.table]{data.table} class.
+#' @export
 sparse_to_dtable <- function(sparsemat) {
 
   ## Error handling
@@ -12,34 +19,13 @@ sparse_to_dtable <- function(sparsemat) {
   return(data.table::data.table(as.matrix(sparsemat)))
 }
 
-read_tsv_matrix <- function(filepath) {
-
-  ## Error handling
-  #--------------------------------------------------------------------#
-
-  if (!file.exists(filepath))
-    cli::cli_abort("{filepath} does not exist.")
-
-  ## MAIN
-  #--------------------------------------------------------------------#
-
-  distmat <- check_input(filepath)
-
-  rownames <- distmat[[1]]
-  colnames <- names(distmat)[-1]
-  values <- as.matrix(distmat[, -1, with = FALSE])
-
-  sparse_matrix <- sparseMatrix(
-    i = rep(1:nrow(values), ncol(values)),
-    j = rep(1:ncol(values), each = nrow(values)),
-    x = as.vector(values)
-  )
-  rownames(sparse_matrix) <- rownames
-  colnames(sparse_matrix) <- colnames
-
-  return(sparse_matrix)
-}
-
+#' Parse a rarefaction qiime format
+#'
+#' @description Parses a QIIME2 table of rarefied data into a data.table as input to \link{diversity_plot}
+#'
+#' @param filepath A character value, filename or filepath to existing file.
+#' @return A \link[data.table]{data.table} class.
+#' @export
 read_rarefraction_qiime <- function(filepath) {
 
   ## Error handling
@@ -65,6 +51,14 @@ read_rarefraction_qiime <- function(filepath) {
   return(shannon_long)
 }
 
+#' Checks if column exists in table
+#'
+#' @description Mainly used within \link{omics} and other functions to check if given column name does exist in the table and is not completely empty, containing NAs.
+#'
+#' @param column A character.
+#' @param table A \link[data.table]{data.table} or \link[base]{data.frame}.
+#' @return A boolean value.
+#' @export
 column_exists <- function(column, table) {
 
   ## Error handling

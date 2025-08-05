@@ -15,7 +15,7 @@ composition_plot(
 \arguments{
 \item{data}{A \link[base]{data.frame} or \link[data.table]{data.table}.}
 
-\item{palette}{An object with names and hexcode or color names, see \link[OmicFlow]{colormap}.}
+\item{palette}{An object with names and hexcode or color names, see \link{colormap}.}
 
 \item{feature_rank}{A character variable of the feature column (Default: \code{"Genus"}).}
 
@@ -27,7 +27,7 @@ composition_plot(
 A \link[ggplot2]{ggplot2} object to be further modified
 }
 \description{
-Creates a composition of features works on the output of \link[OmicFlow]{metagenomics} with method \code{composition} from abstract class \link[OmicFlow]{omics}
+Creates a composition of features works on the output of \link{metagenomics} with method \code{composition} from abstract class \link{omics}
 }
 \examples{
 library("ggplot2")
@@ -48,8 +48,10 @@ mock_data <- data.frame(
     0.4088, 0.0573, 0.0155, 0.2888, 0.2296,      # Sample9
     0.4941, 0.0722, 0.2331, 0.1023, 0.0983       # Sample10
   ),
-  Group = rep(c("Group1","Group2","Group1","Group1","Group2","Group2","Group1","Group1","Group1","Group2"),
-              each = 5)
+  Group = rep(c("Group1","Group2","Group1",
+                "Group1","Group2","Group2",
+                 "Group1","Group1","Group1","Group2"),
+               each = 5)
 )
 
 # Create a colormap

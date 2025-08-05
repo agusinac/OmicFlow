@@ -5,7 +5,7 @@
 \title{Abstract 'omics' class}
 \description{
 This is the abstract class 'omics', contains a variety of methods that are inherited and applied in the omics classes:
-\link[OmicFlow]{metagenomics}, proteomics and metabolomics.
+\link{metagenomics}, proteomics and metabolomics.
 }
 \details{
 Every class is created with the \link[R6]{R6Class} method. Methods are either public or private, and only the public components are inherited by other omics classes.
@@ -162,13 +162,13 @@ unpaired <- obj$DFE(feature_rank = "Genus",
 
 }
 \seealso{
-\link[OmicFlow]{diversity_plot}
+\link{diversity_plot}
 
-\link[OmicFlow]{composition_plot}
+\link{composition_plot}
 
-\link[OmicFlow]{ordination_plot}, \link[OmicFlow]{plot_pairwise_stats}, \link[OmicFlow]{pairwise_anosim}, \link[OmicFlow]{pairwise_adonis}
+\link{ordination_plot}, \link{plot_pairwise_stats}, \link{pairwise_anosim}, \link{pairwise_adonis}
 
-\link[OmicFlow]{volcano_plot}, \link[OmicFlow]{ViolinBoxPlot}, \link[OmicFlow]{paired_fold}, \link[OmicFlow]{unpaired_fold}
+\link{volcano_plot}, \link{foldchange}
 }
 \section{Public fields}{
 \if{html}{\out{<div class="r6-fields">}}
@@ -362,7 +362,7 @@ obj$sample_subset(treatment == "tumor")
 \if{html}{\out{<a id="method-omics-samplepair_subset"></a>}}
 \if{latex}{\out{\hypertarget{method-omics-samplepair_subset}{}}}
 \subsection{Method \code{samplepair_subset()}}{
-Samplepair subset (based on metaData), automatically applies \code{removeZeros}
+Samplepair subset (based on metaData), automatically applies \link{removeZeros}
 \subsection{Usage}{
 \if{html}{\out{<div class="r">}}\preformatted{omics$samplepair_subset(num_unique_pairs = NULL)}\if{html}{\out{</div>}}
 }
@@ -500,7 +500,7 @@ plt
 \if{html}{\out{<a id="method-omics-alpha_diversity"></a>}}
 \if{latex}{\out{\hypertarget{method-omics-alpha_diversity}{}}}
 \subsection{Method \code{alpha_diversity()}}{
-Alpha diversity based on \link[OmicFlow]{diversity}
+Alpha diversity based on \link{diversity}
 \subsection{Usage}{
 \if{html}{\out{<div class="r">}}\preformatted{omics$alpha_diversity(
   col_name,
@@ -519,11 +519,11 @@ Alpha diversity based on \link[OmicFlow]{diversity}
 
 \item{\code{metric}}{Diversity metric such as "shannon", "invsimpson" or "simpson"}
 
-\item{\code{Brewer.palID}}{Palette set to be applied, see \link[RColorBrewer]{brewer.pal} or \link[OmicFlow]{colormap}.}
+\item{\code{Brewer.palID}}{Palette set to be applied, see \link[RColorBrewer]{brewer.pal} or \link{colormap}.}
 
 \item{\code{evenness}}{A boolean wether to divide diversity by number of species, see \link[vegan]{specnumber}.}
 
-\item{\code{paired}}{A boolean value to perform paired analysis in \link[stats]{wilcox.test} and samplepair subsetting via \link[OmicFlow]{samplepair_subset}}
+\item{\code{paired}}{A boolean value to perform paired analysis in \link[stats]{wilcox.test} and samplepair subsetting via \href{#method-samplepair_subset}{\code{samplepair_subset()}}}
 
 \item{\code{p.adjust.method}}{A character variable to specify the p.adjust.method to be used, default is 'fdr'.}
 }
@@ -577,7 +577,7 @@ Visualization of compositional data.
 
 \item{\code{feature_top}}{Integer of the top features to visualize, the max is 15, due to a limit of palettes.}
 
-\item{\code{Brewer.palID}}{Palette set to be applied, see \link[RColorBrewer]{brewer.pal} or \link[OmicFlow]{colormap}.}
+\item{\code{Brewer.palID}}{Palette set to be applied, see \link[RColorBrewer]{brewer.pal} or \link{colormap}.}
 }
 \if{html}{\out{</div>}}
 }
@@ -671,7 +671,7 @@ pcoa_plots
 \if{html}{\out{<a id="method-omics-DFE"></a>}}
 \if{latex}{\out{\hypertarget{method-omics-DFE}{}}}
 \subsection{Method \code{DFE()}}{
-Differential feature expression (DFE) using the \link[OmicFlow]{foldchange} for both paired and non-paired samples.
+Differential feature expression (DFE) using the \link{foldchange} for both paired and non-paired samples.
 \subsection{Usage}{
 \if{html}{\out{<div class="r">}}\preformatted{omics$DFE(
   feature_rank,
@@ -783,7 +783,7 @@ For now only works with headers "CONTRAST_".
 
 \item{\code{perm}}{An integer value, number of permutations to compare against the null hypothesis of adonis2 (default: \code{perm=999}).}
 
-\item{\code{cpus}}{Number of cores to use, only used in \link[omics]{ordination} when beta_div_table is not supplied.}
+\item{\code{cpus}}{Number of cores to use, only used in \link{ordination} when beta_div_table is not supplied.}
 
 \item{\code{filename}}{A character to name the HTML report, it can also be a filepath (e.g. \code{"/path/to/report.html"}). Default: "report.html" in your current work directory.}
 }

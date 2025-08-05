@@ -1,8 +1,8 @@
 #' Computes Log2(A) - Log2(B) Fold Change of (non-) paired data.
 #'
 #' @description Computes (non-)paired Log2(A) - Log2(B) Fold Change.
-#' This function is built into the \code{differential_feature_expression} method from the abstract class \link[OmicFlow]{omics} and inherited by other omics classes, such as;
-#' \link[OmicFlow]{metagenomics} and \link[OmicFlow]{proteomics}.
+#' This function is built into the \code{differential_feature_expression} method from the abstract class \link{omics} and inherited by other omics classes, such as;
+#' \link{metagenomics} and \link{proteomics}.
 #'
 #' @param data A \link[data.table]{data.table}.
 #' @param feature_rank A character variable of the feature level (e.g. "Genus" in taxonomy).

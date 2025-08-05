@@ -1,7 +1,7 @@
 #' Sub-class proteomics
 #'
 #' @description This is a sub-class for proteomics data, called proteomics.
-#' It inherits all methods from the abstract class \link[OmicFlow]{omics} and only adapts the \code{initialize} function.
+#' It inherits all methods from the abstract class \link{omics} and only adapts the \code{initialize} function.
 #'
 #' @export
 

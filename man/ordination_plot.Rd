@@ -27,8 +27,8 @@ ordination_plot(
 A \link[ggplot2]{ggplot2} object to be further modified
 }
 \description{
-Creates an ordination plot of a distance matrix. This function is built into the \code{ordination} method from the abstract class \link[OmicFlow]{omics} and inherited by other omics classes, such as;
-\link[OmicFlow]{metagenomics} and \link[OmicFlow]{proteomics}.
+Creates an ordination plot of a distance matrix. This function is built into the \code{ordination} method from the abstract class \link{omics} and inherited by other omics classes, such as;
+\link{metagenomics} and \link{proteomics}.
 }
 \examples{
 library(ggplot2)

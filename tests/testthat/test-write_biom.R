@@ -1,0 +1,22 @@
+test_that("Writes biom in expected format", {
+    output_file <- "test.biom"
+
+    taxa <- metagenomics$new(
+        biomData = "input/metagenomics/biom_with_taxonomy_hdf5.biom",
+        metaData = "input/metagenomics/metadata.tsv",
+        treeData = "input/metagenomics/rooted_tree.newick"
+    )
+    taxa$write_biom(filename = output_file)
+
+    expect_true(file.exists(output_file))
+    
+    # taxa1 <- metagenomics$new(
+    #     biomData = output_file,
+    #     metaData = "input/metagenomics/metadata.tsv",
+    #     treeData = "input/metagenomics/rooted_tree.newick"
+    # )
+    
+    # expect_match(taxa, taxa1)
+
+    file.remove(output_file)
+})

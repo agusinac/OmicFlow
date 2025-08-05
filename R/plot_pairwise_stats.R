@@ -1,7 +1,7 @@
 #' Create pairwise stats plot with ggplot2
 #'
-#' @description Creates a pairwise stats plot of \link[OmicFlow]{pairwise_adonis} or \link[OmicFlow]{pairwise_anosim} results. This function is built into the \code{ordination} method from the abstract class \link[OmicFlow]{omics} and inherited by other omics classes, such as;
-#' \link[OmicFlow]{metagenomics} and \link[OmicsFLow]{proteomics}.
+#' @description Creates a pairwise stats plot of \link{pairwise_adonis} or \link{pairwise_anosim} results. This function is built into the \code{ordination} method from the abstract class \link{omics} and inherited by other omics classes, such as;
+#' \link{metagenomics} and \link{proteomics}.
 #'
 #' @param data A \code{data.frame} or \code{data.table}.
 #' @param stats_col A column name of a continuous variable.

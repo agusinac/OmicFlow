@@ -1,8 +1,8 @@
 #' Pairwise anosim (ANOSIM) computation
 #'
 #' @description Computes pairwise \link[vegan]{anosim}, given a distance matrix and a vector of labels.
-#' This function is built into the \code{ordination} method from the abstract class \link[OmicFlow]{omics} and inherited by other omics classes, such as;
-#' \link[OmicFlow]{metagenomics} and \link[OmicsFLow]{proteomics}.
+#' This function is built into the \code{ordination} method from the abstract class \link{omics} and inherited by other omics classes, such as;
+#' \link{metagenomics} and \link{proteomics}.
 #'
 #' @param x  A distance matrix in the form of \link[stats]{dist}.
 #' Obtained from a dissimilarity metric, in the case of similarity metric please use \code{1-dist}

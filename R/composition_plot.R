@@ -1,9 +1,9 @@
 #' Composition plot with ggplot2
 #'
-#' @description Creates a composition of features works on the output of \link[OmicFlow]{metagenomics} with method \code{composition} from abstract class \link[OmicFlow]{omics}
+#' @description Creates a composition of features works on the output of \link{metagenomics} with method \code{composition} from abstract class \link{omics}
 #'
 #' @param data A \link[base]{data.frame} or \link[data.table]{data.table}.
-#' @param palette An object with names and hexcode or color names, see \link[OmicFlow]{colormap}.
+#' @param palette An object with names and hexcode or color names, see \link{colormap}.
 #' @param feature_rank A character variable of the feature column (Default: `"Genus"`).
 #' @param title_name A character variable to set the \code{ggtitle} of the ggplot (Default: NULL).
 #' @param group_by A character variable to aggregate the stacked bars by group (Default: NULL).
@@ -28,8 +28,10 @@
 #'     0.4088, 0.0573, 0.0155, 0.2888, 0.2296,      # Sample9
 #'     0.4941, 0.0722, 0.2331, 0.1023, 0.0983       # Sample10
 #'   ),
-#'   Group = rep(c("Group1","Group2","Group1","Group1","Group2","Group2","Group1","Group1","Group1","Group2"),
-#'               each = 5)
+#'   Group = rep(c("Group1","Group2","Group1",
+#'                 "Group1","Group2","Group2",
+#'                  "Group1","Group1","Group1","Group2"),
+#'                each = 5)
 #' )
 #' 
 #' # Create a colormap

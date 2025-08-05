@@ -1,7 +1,7 @@
 #' Volcano plot with ggplot2
 #'
-#' @description Creates a Volcano plot. This function is built into the \code{DFE} method from the abstract class \link[OmicFlow]{omics} and inherited by other omics classes, such as;
-#' \link[OmicFlow]{metagenomics} and \link[OmicsFLow]{proteomics}.
+#' @description Creates a Volcano plot. This function is built into the \code{DFE} method from the abstract class \link{omics} and inherited by other omics classes, such as;
+#' \link{metagenomics} and {proteomics}.
 #'
 #' @param data A \code{data.table}.
 #' @param logfold_col A column name of a continuous variable.

@@ -30,8 +30,8 @@ A \code{data.frame} of
 }
 \description{
 Computes pairwise \link[vegan]{adonis2}, given a distance matrix and a vector of labels.
-This function is built into the \code{ordination} method from the abstract class \link[OmicFlow]{omics} and inherited by other omics classes, such as;
-\link[OmicFlow]{metagenomics} and \link[OmicsFLow]{proteomics}.
+This function is built into the \code{ordination} method from the abstract class \link{omics} and inherited by other omics classes, such as;
+\link{metagenomics} and \link{proteomics}.
 }
 \examples{
 # Create random data

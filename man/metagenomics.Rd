@@ -5,7 +5,7 @@
 \title{Sub-class metagenomics}
 \description{
 This is a sub-class for 16S metagenomics data, called metagenomics.
-It inherits all methods from the abstract class \link[OmicFlow]{omics} and only adapts the \code{initialize} function.
+It inherits all methods from the abstract class \link{omics} and only adapts the \code{initialize} function.
 }
 \examples{
 
@@ -142,7 +142,7 @@ Initializes the metagenomics class object with \code{metagenomics$new()}
 
 \item{\code{biomData}}{A path to an existing biom file, version 2.1.0, see \link[rhdf5]{h5read}.}
 
-\item{\code{feature_names}}{A character vector to name the feature names that fit the supplied \code{featureData} (Default: \code\link{c("Kingdom", "Phylum", "Class", "Order", "Family", "Genus", "Species")}).}
+\item{\code{feature_names}}{A character vector to name the feature names that fit the supplied \code{featureData}, Default: character vector containing Kingdom, Phylum, Class, Order, Family, Genus, Species.}
 }
 \if{html}{\out{</div>}}
 }
@@ -154,7 +154,7 @@ A new \code{metagenomics} object.
 \if{html}{\out{<a id="method-metagenomics-print"></a>}}
 \if{latex}{\out{\hypertarget{method-metagenomics-print}{}}}
 \subsection{Method \code{print()}}{
-Displays parameters of the \code{metagenomics} object via stdout.
+Displays parameters of the metagenomics object via stdout.
 \subsection{Usage}{
 \if{html}{\out{<div class="r">}}\preformatted{metagenomics$print()}\if{html}{\out{</div>}}
 }

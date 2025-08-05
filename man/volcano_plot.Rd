@@ -42,8 +42,8 @@ volcano_plot(
 A \link[ggplot2]{ggplot2} object to be further modified.
 }
 \description{
-Creates a Volcano plot. This function is built into the \code{DFE} method from the abstract class \link[OmicFlow]{omics} and inherited by other omics classes, such as;
-\link[OmicFlow]{metagenomics} and \link[OmicsFLow]{proteomics}.
+Creates a Volcano plot. This function is built into the \code{DFE} method from the abstract class \link{omics} and inherited by other omics classes, such as;
+\link{metagenomics} and {proteomics}.
 }
 \examples{
 library(data.table)
