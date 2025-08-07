@@ -1,9 +1,10 @@
-#' Create pairwise stats plot with ggplot2
+#' Create pairwise stats plot
 #'
-#' @description Creates a pairwise stats plot of \link{pairwise_adonis} or \link{pairwise_anosim} results. This function is built into the \code{ordination} method from the abstract class \link{omics} and inherited by other omics classes, such as;
+#' @description Creates a pairwise stats plot from \link{pairwise_adonis} or \link{pairwise_anosim} results. 
+#' This function is built into the class \link{omics} with method \code{ordination()} and inherited by other omics classes, such as;
 #' \link{metagenomics} and \link{proteomics}.
 #'
-#' @param data A \code{data.frame} or \code{data.table}.
+#' @param data A \link[base]{data.frame} or \link[data.table]{data.table}.
 #' @param stats_col A column name of a continuous variable.
 #' @param group_col A column name of a categorical variable.
 #' @param label_col A column name of a categorical variable to label the bars.

@@ -4,9 +4,6 @@
 ## usethis namespace: start
 #' @importFrom magrittr %>%
 #' @importFrom data.table := .SD
-#' @importFrom foreach %dopar% foreach
-#' @importFrom grDevices dev.off pdf
-#' @importFrom stats na.fail na.omit p.adjust
-#' @importFrom utils combn select.list
+#' @importFrom stats na.omit p.adjust
 ## usethis namespace: end
 NULL

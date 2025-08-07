@@ -10,14 +10,14 @@ pairwise_adonis(x, groups, p.adjust.method = "bonferroni", perm = 999)
 \item{x}{A distance matrix in the form of \link[stats]{dist}.
 Obtained from a dissimilarity metric, in the case of similarity metric please use \code{1-dist}}
 
-\item{groups}{A vector (column from a table) of labels.}
+\item{groups}{A character vector (column from a table) of labels.}
 
 \item{p.adjust.method}{P adjust method see \link[stats]{p.adjust}}
 
 \item{perm}{Number of permutations to compare against the null hypothesis of adonis2 (default: \code{perm=999}).}
 }
 \value{
-A \code{data.frame} of
+A \link[base]{data.frame} of
 \itemize{
 \item pairs that are used
 \item Degrees of freedom (Df)
@@ -30,7 +30,7 @@ A \code{data.frame} of
 }
 \description{
 Computes pairwise \link[vegan]{adonis2}, given a distance matrix and a vector of labels.
-This function is built into the \code{ordination} method from the abstract class \link{omics} and inherited by other omics classes, such as;
+This function is built into the class \link{omics} with method \code{ordination()} and inherited by other omics classes, such as;
 \link{metagenomics} and \link{proteomics}.
 }
 \examples{

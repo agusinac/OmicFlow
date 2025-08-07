@@ -2,7 +2,7 @@
 % Please edit documentation in R/utils.R
 \name{read_rarefraction_qiime}
 \alias{read_rarefraction_qiime}
-\title{Parse a rarefaction qiime format}
+\title{Loads a rarefied alpha diversity table from Qiime2}
 \usage{
 read_rarefraction_qiime(filepath)
 }
@@ -10,7 +10,7 @@ read_rarefraction_qiime(filepath)
 \item{filepath}{A character value, filename or filepath to existing file.}
 }
 \value{
-A \link[data.table]{data.table} class.
+A \link[data.table]{data.table}.
 }
 \description{
 Parses a QIIME2 table of rarefied data into a data.table as input to \link{diversity_plot}

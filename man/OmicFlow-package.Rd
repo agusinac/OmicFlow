@@ -6,7 +6,7 @@
 \alias{OmicFlow-package}
 \title{OmicFlow: Fast and Efficient (automated) analysis of sparse omics data}
 \description{
-The OmicFlow is a generalised data structure that is made to be fast and efficient in the loading and data munching of omics related data. Omics data often is large and can be sparse, zero's take up a lot of memory and the OmicFlow uses sparseMatrix and data.table for fast and efficient query of data. The OmicFlow also offers an autoFlow function, that perform initial automated analysis based on a metadata that is validated upon the object creation. This allows efficient automated cleaning of the objects, linkage and paired and non- paired testing of contrast and variables that are linked by the user. At the moment metagenomics class is fully tested and supported, whereas proteomics is experimental and will be finalized and tested soon.
+The OmicFlow is a generalised data structure that is made to be fast and efficient in the loading and data munching of omics related data. Omics data can be very sparse, containing many zero's and consists out of multiple files. This package only requires a metadata filled in by the user, which serves as a guide to connect all the pieces together by aligning them into a single object that is defined as an omics class. The OmicFlow offers simple subsetting and transforming functions, alpha-, beta diversity and differential feature expression computations and visualisations. The autoFlow is capable to create an initial analysis based on the supplied metadata. This toolkit and initial analysis may serve the user to fast and efficiently load and visualize some initial analysis before moving to more complex analysis.
 }
 \seealso{
 Useful links:

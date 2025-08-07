@@ -4,8 +4,59 @@
 \alias{proteomics}
 \title{Sub-class proteomics}
 \description{
-This is a sub-class for proteomics data, called proteomics.
+This is a sub-class that is compatible to preprocessed data obtained from https://fragpipe.nesvilab.org/.
 It inherits all methods from the abstract class \link{omics} and only adapts the \code{initialize} function.
+It supports pre-existing data structures or paths to text files.
+When omics data is very large, data loading becomes very expensive. It is therefore recommended to use the \href{#method-reset}{\code{reset()}} method to reset your changes.
+Every omics class creates an internal memory efficient back-up of the data, the resetting of changes is an instant process.
+}
+\examples{
+
+## ------------------------------------------------
+## Method `proteomics$print`
+## ------------------------------------------------
+
+prot_path <- system.file("extdata", "mock_taxa.rds", package = "OmicFlow", mustWork = TRUE)
+prot <- readRDS(prot_path)
+
+# method 1 to call print function
+prot
+
+# method 2 to call print function
+prot$print()
+
+
+## ------------------------------------------------
+## Method `proteomics$reset`
+## ------------------------------------------------
+
+ 
+prot_path <- system.file("extdata", "mock_taxa.rds", package = "OmicFlow", mustWork = TRUE)
+prot <- readRDS(prot_path)
+
+# Performs modifications
+prot$transform(log2)
+
+# resets
+prot$reset()
+
+
+## ------------------------------------------------
+## Method `proteomics$removeZeros`
+## ------------------------------------------------
+
+prot_path <- system.file("extdata", "mock_taxa.rds", package = "OmicFlow", mustWork = TRUE)
+prot <- readRDS(prot_path)
+
+# Sample subset induces empty features
+prot$sample_subset(treatment == "tumor")
+
+# Remove empty features from countData and treeData
+prot$removeZeros()
+
+}
+\seealso{
+\link{omics}
 }
 \section{Super class}{
 \code{\link[OmicFlow:omics]{OmicFlow::omics}} -> \code{proteomics}
@@ -82,9 +133,28 @@ A new \code{proteomics} object.
 \if{html}{\out{<a id="method-proteomics-print"></a>}}
 \if{latex}{\out{\hypertarget{method-proteomics-print}{}}}
 \subsection{Method \code{print()}}{
-Displays parameters of the \code{proteomics} object via stdout.
+Displays parameters of the proteomics object via stdout.
 \subsection{Usage}{
 \if{html}{\out{<div class="r">}}\preformatted{proteomics$print()}\if{html}{\out{</div>}}
+}
+
+\subsection{Returns}{
+object in place
+}
+\subsection{Examples}{
+\if{html}{\out{<div class="r example copy">}}
+\preformatted{prot_path <- system.file("extdata", "mock_taxa.rds", package = "OmicFlow", mustWork = TRUE)
+prot <- readRDS(prot_path)
+
+# method 1 to call print function
+prot
+
+# method 2 to call print function
+prot$print()
+
+}
+\if{html}{\out{</div>}}
+
 }
 
 }
@@ -94,9 +164,29 @@ Displays parameters of the \code{proteomics} object via stdout.
 \subsection{Method \code{reset()}}{
 Upon creation of a new \code{proteomics} object a small backup of the original data is created.
 Since modification of the object is done by reference and duplicates are not made, it is possible to \code{reset} changes to the class.
-The methods from the abstract class \code{omics} also contain a private method to prevent any changes to the original object. Such cases are ordination, alpha_diversity, differential_feature_expression.
+The methods from the abstract class \link{omics} also contains a private method to prevent any changes to the original object when using methods such as \code{ordination} \code{alpha_diversity} or \code{$DFE}.
 \subsection{Usage}{
 \if{html}{\out{<div class="r">}}\preformatted{proteomics$reset()}\if{html}{\out{</div>}}
+}
+
+\subsection{Returns}{
+object in place
+}
+\subsection{Examples}{
+\if{html}{\out{<div class="r example copy">}}
+\preformatted{ 
+prot_path <- system.file("extdata", "mock_taxa.rds", package = "OmicFlow", mustWork = TRUE)
+prot <- readRDS(prot_path)
+
+# Performs modifications
+prot$transform(log2)
+
+# resets
+prot$reset()
+
+}
+\if{html}{\out{</div>}}
+
 }
 
 }
@@ -104,9 +194,29 @@ The methods from the abstract class \code{omics} also contain a private method t
 \if{html}{\out{<a id="method-proteomics-removeZeros"></a>}}
 \if{latex}{\out{\hypertarget{method-proteomics-removeZeros}{}}}
 \subsection{Method \code{removeZeros()}}{
-Removes empty (zero) values by row, column and tips.
+Removes empty (zero) values by row, column and tips from the \code{countData} and \code{treeData}.
+This method is performed automatically during subsetting of the object.
 \subsection{Usage}{
 \if{html}{\out{<div class="r">}}\preformatted{proteomics$removeZeros()}\if{html}{\out{</div>}}
+}
+
+\subsection{Returns}{
+object in place
+}
+\subsection{Examples}{
+\if{html}{\out{<div class="r example copy">}}
+\preformatted{prot_path <- system.file("extdata", "mock_taxa.rds", package = "OmicFlow", mustWork = TRUE)
+prot <- readRDS(prot_path)
+
+# Sample subset induces empty features
+prot$sample_subset(treatment == "tumor")
+
+# Remove empty features from countData and treeData
+prot$removeZeros()
+
+}
+\if{html}{\out{</div>}}
+
 }
 
 }

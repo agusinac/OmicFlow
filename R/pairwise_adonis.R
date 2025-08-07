@@ -1,16 +1,16 @@
 #' Pairwise adonis2 (PERMANOVA) computation
 #'
 #' @description Computes pairwise \link[vegan]{adonis2}, given a distance matrix and a vector of labels.
-#' This function is built into the \code{ordination} method from the abstract class \link{omics} and inherited by other omics classes, such as;
+#' This function is built into the class \link{omics} with method \code{ordination()} and inherited by other omics classes, such as;
 #' \link{metagenomics} and \link{proteomics}.
 #'
 #' @param x A distance matrix in the form of \link[stats]{dist}.
 #' Obtained from a dissimilarity metric, in the case of similarity metric please use \code{1-dist}
-#' @param groups A vector (column from a table) of labels.
+#' @param groups A character vector (column from a table) of labels.
 #' @param p.adjust.method P adjust method see \link[stats]{p.adjust}
 #' @param perm  Number of permutations to compare against the null hypothesis of adonis2 (default: \code{perm=999}).
 #' @seealso \link[vegan]{adonis2}
-#' @return A \code{data.frame} of
+#' @return A \link[base]{data.frame} of
 #'  * pairs that are used
 #'  * Degrees of freedom (Df)
 #'  * Sums of Squares of H_0
@@ -60,7 +60,7 @@ pairwise_adonis <- function(x,
   #--------------------------------------------------------------------#
 
   # Initialize required parameters
-  co <- combn(unique(as.character(groups)), 2)
+  co <- utils::combn(unique(as.character(groups)), 2)
   n <- ncol(co)
   pairs <- vector(mode = "numeric", length = n)
   p.value <- vector(mode = "numeric", length = n)

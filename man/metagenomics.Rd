@@ -4,8 +4,11 @@
 \alias{metagenomics}
 \title{Sub-class metagenomics}
 \description{
-This is a sub-class for 16S metagenomics data, called metagenomics.
+This is a sub-class that is compatible to data obtained from either 16S rRNA marker-gene sequencing or shot-gun metagenomics sequencing.
 It inherits all methods from the abstract class \link{omics} and only adapts the \code{initialize} function.
+It supports BIOM format data (v2.1.0 from http://biom-format.org/) in both HDF5 and JSON format, also pre-existing data structures can be used or text files.
+When omics data is very large, data loading becomes very expensive. It is therefore recommended to use the \href{#method-reset}{\code{reset()}} method to reset your changes.
+Every omics class creates an internal memory efficient back-up of the data, the resetting of changes is an instant process.
 }
 \examples{
 
@@ -55,6 +58,7 @@ taxa$sample_subset(treatment == "tumor")
 # Remove empty features from countData and treeData
 taxa$removeZeros()
 
+
 ## ------------------------------------------------
 ## Method `metagenomics$write_biom`
 ## ------------------------------------------------
@@ -64,6 +68,9 @@ taxa <- readRDS(taxa_path)
 
 taxa$write_biom(filename = "output.biom")
 
+}
+\seealso{
+\link{omics}
 }
 \section{Super class}{
 \code{\link[OmicFlow:omics]{OmicFlow::omics}} -> \code{metagenomics}
@@ -140,9 +147,9 @@ Initializes the metagenomics class object with \code{metagenomics$new()}
 
 \item{\code{treeData}}{A path to an existing newick file or class "phylo", see \link[ape]{read.tree}.}
 
-\item{\code{biomData}}{A path to an existing biom file, version 2.1.0, see \link[rhdf5]{h5read}.}
+\item{\code{biomData}}{A path to an existing biom file, version 2.1.0 (http://biom-format.org/), see \link[rhdf5]{h5read}.}
 
-\item{\code{feature_names}}{A character vector to name the feature names that fit the supplied \code{featureData}, Default: character vector containing Kingdom, Phylum, Class, Order, Family, Genus, Species.}
+\item{\code{feature_names}}{A character vector to name the feature names that fit the supplied \code{featureData}.}
 }
 \if{html}{\out{</div>}}
 }
@@ -159,6 +166,9 @@ Displays parameters of the metagenomics object via stdout.
 \if{html}{\out{<div class="r">}}\preformatted{metagenomics$print()}\if{html}{\out{</div>}}
 }
 
+\subsection{Returns}{
+object in place
+}
 \subsection{Examples}{
 \if{html}{\out{<div class="r example copy">}}
 \preformatted{taxa_path <- system.file("extdata", "mock_taxa.rds", package = "OmicFlow", mustWork = TRUE)
@@ -182,11 +192,14 @@ taxa$print()
 \subsection{Method \code{reset()}}{
 Upon creation of a new \code{metagenomics} object a small backup of the original data is created.
 Since modification of the object is done by reference and duplicates are not made, it is possible to \code{reset} changes to the class.
-The methods from the abstract class \code{omics} also contain a private method to prevent any changes to the original object. Such cases are ordination, alpha_diversity, differential_feature_expression.
+The methods from the abstract class \link{omics} also contains a private method to prevent any changes to the original object when using methods such as \code{ordination} \code{alpha_diversity} or \code{$DFE}.
 \subsection{Usage}{
 \if{html}{\out{<div class="r">}}\preformatted{metagenomics$reset()}\if{html}{\out{</div>}}
 }
 
+\subsection{Returns}{
+object in place
+}
 \subsection{Examples}{
 \if{html}{\out{<div class="r example copy">}}
 \preformatted{library(ggplot2)
@@ -213,11 +226,15 @@ taxa$rankstat(feature_ranks = c("Kingdom", "Phylum", "Family", "Genus", "Species
 \if{html}{\out{<a id="method-metagenomics-removeZeros"></a>}}
 \if{latex}{\out{\hypertarget{method-metagenomics-removeZeros}{}}}
 \subsection{Method \code{removeZeros()}}{
-Removes empty (zero) values by row, column and tips.
+Removes empty (zero) values by row, column and tips from the \code{countData} and \code{treeData}.
+This method is performed automatically during subsetting of the object.
 \subsection{Usage}{
 \if{html}{\out{<div class="r">}}\preformatted{metagenomics$removeZeros()}\if{html}{\out{</div>}}
 }
 
+\subsection{Returns}{
+object in place
+}
 \subsection{Examples}{
 \if{html}{\out{<div class="r example copy">}}
 \preformatted{taxa_path <- system.file("extdata", "mock_taxa.rds", package = "OmicFlow", mustWork = TRUE)
@@ -228,6 +245,7 @@ taxa$sample_subset(treatment == "tumor")
 
 # Remove empty features from countData and treeData
 taxa$removeZeros()
+
 }
 \if{html}{\out{</div>}}
 
@@ -238,7 +256,7 @@ taxa$removeZeros()
 \if{html}{\out{<a id="method-metagenomics-write_biom"></a>}}
 \if{latex}{\out{\hypertarget{method-metagenomics-write_biom}{}}}
 \subsection{Method \code{write_biom()}}{
-Creates a BIOM file in HDF5 format of the loaded items via ['new()']{#method-new}, which is compatible to the python biom-format version 2.1.
+Creates a BIOM file in HDF5 format of the loaded items via ['new()']{#method-new}, which is compatible to the python biom-format version 2.1, see http://biom-format.org.
 \subsection{Usage}{
 \if{html}{\out{<div class="r">}}\preformatted{metagenomics$write_biom(filename)}\if{html}{\out{</div>}}
 }

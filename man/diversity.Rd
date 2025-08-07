@@ -2,7 +2,7 @@
 % Please edit documentation in R/diversity.R
 \name{diversity}
 \alias{diversity}
-\title{Alpha Diversity}
+\title{Sparse implementation of Alpha Diversity Metrics}
 \usage{
 diversity(
   x,
@@ -27,7 +27,7 @@ A numeric vector with type double.
 Computes the alpha diversity based on Shannon index, simpson or invsimpson.
 Code is adapted from \link[vegan]{diversity} and uses \link[Matrix]{sparseMatrix} in triplet format over the dense matrix.
 The code is much faster and memory efficient, while still being mathematical correct.
-This function is built into the \code{alpha_diversity} method from the abstract class \link{omics} and inherited by other omics classes, such as;
+This function is built into the class \link{omics} with method \code{alpha_diversity()} and inherited by other omics classes, such as;
 \link{metagenomics} and \link{proteomics}.
 }
 \examples{

@@ -17,7 +17,7 @@ Obtained from a dissimilarity metric, in the case of similarity metric please us
 \item{perm}{Number of permutations to compare against the null hypothesis of anosim (default: \code{perm=999}).}
 }
 \value{
-A \code{data.frame} of
+A \link[base]{data.frame} of
 \itemize{
 \item pairs that are used
 \item R2 of H_0
@@ -27,7 +27,7 @@ A \code{data.frame} of
 }
 \description{
 Computes pairwise \link[vegan]{anosim}, given a distance matrix and a vector of labels.
-This function is built into the \code{ordination} method from the abstract class \link{omics} and inherited by other omics classes, such as;
+This function is built into the class \link{omics} with method \code{ordination()} and inherited by other omics classes, such as;
 \link{metagenomics} and \link{proteomics}.
 }
 \examples{

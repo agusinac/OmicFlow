@@ -1,9 +1,10 @@
-#' Ordination plot with ggplot2
+#' Ordination plot
 #'
-#' @description Creates an ordination plot of a distance matrix. This function is built into the \code{ordination} method from the abstract class \link{omics} and inherited by other omics classes, such as;
+#' @description Creates an ordination plot pre-computed principal components from \link[vegan]{wcmdscale}. 
+#' This function is built into the class \link{omics} with method \code{ordination()} and inherited by other omics classes, such as;
 #' \link{metagenomics} and \link{proteomics}.
 #' 
-#' @param data A \code{data.frame} or \code{data.table} of Principal Components as columns and rows as loading scores.
+#' @param data A \link[base]{data.frame} or \link[data.table]{data.table} of Principal Components as columns and rows as loading scores.
 #' @param col_name A categorical variable to color the contrasts (e.g. "groups").
 #' @param pair A vector of character variables indicating what dimension names (e.g. PC1, NMDS2).
 #' @param dist_explained A vector of numeric values of the percentage dissimilarity explained for the dimension pairs, default is NULL.

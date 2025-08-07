@@ -1,9 +1,11 @@
-#' Volcano plot with ggplot2
+#' Volcano plot
 #'
-#' @description Creates a Volcano plot. This function is built into the \code{DFE} method from the abstract class \link{omics} and inherited by other omics classes, such as;
-#' \link{metagenomics} and {proteomics}.
+#' @description Creates a Volcano plot from the output of \link{foldchange}, it plots the foldchanges on the x-axis, 
+#' log10 trasnformed p-values on the y-axis and adjusts the scatter size based on the percentage abundance of the features. 
+#' This function is built into the class \link{omics} with method \code{DFE()} and inherited by other omics classes, such as;
+#' \link{metagenomics} and \link{proteomics}.
 #'
-#' @param data A \code{data.table}.
+#' @param data A \link[data.table]{data.table}.
 #' @param logfold_col A column name of a continuous variable.
 #' @param pvalue_col A column name of a continuous variable.
 #' @param abundance_col A column name of a continuous variable.

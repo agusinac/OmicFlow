@@ -1,11 +1,11 @@
-#' Hill numbers
+#' Sparse implementation of Hill numbers
 #'
 #' @description Computes the hill numbers for q is 0, 1 or 2.
 #' Code is adapted from \link[hillR]{hill_taxa} and uses \link[Matrix]{sparseMatrix} in triplet format over the dense matrix.
 #' The code is much faster and memory efficient, while still being mathematical correct.
 #'
-#' @param x A \code{matrix} or \code{sparseMatrix}.
-#' @param q An integer for 0, 1 or 2, default is 0.
+#' @param x A \link[base]{matrix} or \link[Matrix]{sparseMatrix}.
+#' @param q A wholenumber for 0, 1 or 2, default is 0.
 #' @param normalize A boolean variable for sample normalization by column sums.
 #' @param base Input for \link[base]{log} to use natural logarithmic scale, log2, log10 or other.
 #' @return A numeric vector with type double.
@@ -49,6 +49,9 @@ hill_taxa <- function (x,
   x <- drop(as(x, "sparseMatrix"))
   if (!is.numeric(x@x))
     cli::cli_abort("input data must be numeric")
+
+  if (!is.wholenumber(q) && q %in% c(0, 1, 2)) 
+    cli::cli_abort("{q} needs to be a whole number and either 0, 1 or 2.")
 
   if (any(x@x < 0, na.rm = TRUE))
     cli::cli_abort("input data must be non-negative")

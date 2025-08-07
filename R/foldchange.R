@@ -1,14 +1,14 @@
 #' Computes Log2(A) - Log2(B) Fold Change of (non-) paired data.
 #'
 #' @description Computes (non-)paired Log2(A) - Log2(B) Fold Change.
-#' This function is built into the \code{differential_feature_expression} method from the abstract class \link{omics} and inherited by other omics classes, such as;
-#' \link{metagenomics} and \link{proteomics}.
+#' This function is built into the class \link{omics} with method \code{DFE()} and inherited by other omics classes, such as;
+#' \link{metagenomics} and \link{proteomics}. The function handles zero's, and doesn't return +/- infinites.
 #'
 #' @param data A \link[data.table]{data.table}.
 #' @param feature_rank A character variable of the feature level (e.g. "Genus" in taxonomy).
 #' @param condition_A A vector of categorical characters, it is possible to specify multiple labels.
 #' @param condition_B A vector of categorical characters, it is possible to specify multiple labels.
-#' @param condition_labels A vector characters wherein `condition_A` and `condition_B` are present.
+#' @param condition_labels A vector character wherein \code{condition_A} and \code{condition_B} are present.
 #' @param paired A Boolean value to perform paired or non-paired test, see \link[stats]{wilcox.test}.
 #' @return A \link[data.table]{data.table}
 #' @examples 

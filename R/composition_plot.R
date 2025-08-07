@@ -1,11 +1,12 @@
-#' Composition plot with ggplot2
+#' Compositional plot
 #'
-#' @description Creates a composition of features works on the output of \link{metagenomics} with method \code{composition} from abstract class \link{omics}
+#' @description Creates a stacked barchart of features. It is possible to both show barcharts for each sample or group them by a categorical variable.
+#' The function is compatible with the class \link{omics} method \code{composition()}.
 #'
 #' @param data A \link[base]{data.frame} or \link[data.table]{data.table}.
 #' @param palette An object with names and hexcode or color names, see \link{colormap}.
-#' @param feature_rank A character variable of the feature column (Default: `"Genus"`).
-#' @param title_name A character variable to set the \code{ggtitle} of the ggplot (Default: NULL).
+#' @param feature_rank A character variable of the feature column.
+#' @param title_name A character to set the \code{ggtitle} of the \link[ggplot2]{ggplot}, (Default: NULL).
 #' @param group_by A character variable to aggregate the stacked bars by group (Default: NULL).
 #' @return A \link[ggplot2]{ggplot2} object to be further modified
 #'

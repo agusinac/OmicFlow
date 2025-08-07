@@ -2,7 +2,7 @@
 % Please edit documentation in R/plot_pairwise_stats.R
 \name{plot_pairwise_stats}
 \alias{plot_pairwise_stats}
-\title{Create pairwise stats plot with ggplot2}
+\title{Create pairwise stats plot}
 \usage{
 plot_pairwise_stats(
   data,
@@ -14,7 +14,7 @@ plot_pairwise_stats(
 )
 }
 \arguments{
-\item{data}{A \code{data.frame} or \code{data.table}.}
+\item{data}{A \link[base]{data.frame} or \link[data.table]{data.table}.}
 
 \item{stats_col}{A column name of a continuous variable.}
 
@@ -30,7 +30,8 @@ plot_pairwise_stats(
 A \link[ggplot2]{ggplot2} object to be further modified
 }
 \description{
-Creates a pairwise stats plot of \link{pairwise_adonis} or \link{pairwise_anosim} results. This function is built into the \code{ordination} method from the abstract class \link{omics} and inherited by other omics classes, such as;
+Creates a pairwise stats plot from \link{pairwise_adonis} or \link{pairwise_anosim} results.
+This function is built into the class \link{omics} with method \code{ordination()} and inherited by other omics classes, such as;
 \link{metagenomics} and \link{proteomics}.
 }
 \examples{

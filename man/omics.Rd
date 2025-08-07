@@ -2,14 +2,14 @@
 % Please edit documentation in R/omics-class.R
 \name{omics}
 \alias{omics}
-\title{Abstract 'omics' class}
+\title{Abstract omics class}
 \description{
 This is the abstract class 'omics', contains a variety of methods that are inherited and applied in the omics classes:
 \link{metagenomics}, proteomics and metabolomics.
 }
 \details{
-Every class is created with the \link[R6]{R6Class} method. Methods are either public or private, and only the public components are inherited by other omics classes.
-The omics class by default uses triplet \link[data.table]{data.table} data structures for quick and efficient data manipulation and returns the object by reference, same as the R6 class.
+Every class is created with the \link[R6]{R6Class} method. Methods are either public or private, and only the public components are inherited by other omic classes.
+The omics class by default uses a \link[Matrix]{sparseMatrix} and \link[data.table]{data.table} data structures for quick and efficient data manipulation and returns the object by reference, same as the R6 class.
 The method by reference is very efficient when dealing with big data.
 }
 \examples{
@@ -181,11 +181,11 @@ unpaired <- obj$DFE(feature_rank = "Genus",
 
 \item{\code{.valid_schema}}{Boolean value for schema validation via JSON}
 
-\item{\code{.feature_id}}{String value, default name for the feature identifiers.}
+\item{\code{.feature_id}}{A character, default name for the feature identifiers.}
 
-\item{\code{.sample_id}}{String value, default name for the sample identifiers.}
+\item{\code{.sample_id}}{A character, default name for the sample identifiers.}
 
-\item{\code{.samplepair_id}}{String value, default name for the sample pair identifiers.}
+\item{\code{.samplepair_id}}{A character, default name for the sample pair identifiers.}
 }
 \if{html}{\out{</div>}}
 }
@@ -215,8 +215,12 @@ unpaired <- obj$DFE(feature_rank = "Genus",
 \if{latex}{\out{\hypertarget{method-omics-new}{}}}
 \subsection{Method \code{new()}}{
 Wrapper function that is inherited and adapted for each omics class.
-The omics classes requires a metadata samplesheet, that is validated by the metadata_schema.json. It requires a column \code{SAMPLE_ID} and optionally a \code{SAMPLEPAIR_ID} or \code{FEATURE_ID} can be supplied. The \code{SAMPLE_ID} will be used to link the metaData to the countData, and will act as the key during subsetting of other columns.
-To create a new object use \code{omics$new()}
+The omics classes requires a metadata samplesheet, that is validated by the metadata_schema.json.
+It requires a column \code{SAMPLE_ID} and optionally a \code{SAMPLEPAIR_ID} or \code{FEATURE_ID} can be supplied.
+The \code{SAMPLE_ID} will be used to link the metaData to the countData, and will act as the key during subsetting of other columns.
+To create a new object use \href{#method-new}{\code{new()}} method. Do notice that the abstract class only checks if the metadata is valid!
+The \code{countData} and \code{featureData} will not be checked, these are handles by the sub-classes.
+Using the omics class to load your data is not supported and still experimental.
 \subsection{Usage}{
 \if{html}{\out{<div class="r">}}\preformatted{omics$new(countData = NULL, featureData = NULL, metaData = NULL)}\if{html}{\out{</div>}}
 }
@@ -224,7 +228,7 @@ To create a new object use \code{omics$new()}
 \subsection{Arguments}{
 \if{html}{\out{<div class="arguments">}}
 \describe{
-\item{\code{countData}}{countData A path to an existing file, data.table or data.frame.}
+\item{\code{countData}}{A path to an existing file, data.table or data.frame.}
 
 \item{\code{featureData}}{A path to an existing file, data.table or data.frame.}
 
@@ -240,22 +244,41 @@ A new \code{omics} object.
 \if{html}{\out{<a id="method-omics-validate"></a>}}
 \if{latex}{\out{\hypertarget{method-omics-validate}{}}}
 \subsection{Method \code{validate()}}{
-Validates an input metadata against the JSON schema, see \href{./metadata_schema.json}{\code{metadata_schema.json}}.
-This function is used when a metaData table is supplied and automatically checked during the creation of a new object.
+Validates an input metadata against the JSON schema. The metadata should look as follows and should not contain any empty spaces.
+For example; \code{'sample 1'} is not allowed, whereas \code{'sample1'} is allowed!
+
+Acceptable column headers:
+\itemize{
+\item SAMPLE_ID (required)
+\item SAMPLEPAIR_ID (optional)
+\item FEATURE_ID (optional)
+\item CONTRAST_\if{html}{\out{<name>}} (optional), used for \href{#method-autoFlow}{\code{autoFlow()}}.
+\item VARIABLE_\if{html}{\out{<name>}} (optional), not supported yet.
+}
+
+This function is used during the creation of a new object via \href{#method-new}{\code{new()}} to validate the supplied metadata
+via a filepath or existing \link[data.table]{data.table} or \link[base]{data.frame}.
 \subsection{Usage}{
 \if{html}{\out{<div class="r">}}\preformatted{omics$validate()}\if{html}{\out{</div>}}
 }
 
+\subsection{Returns}{
+None
+}
 }
 \if{html}{\out{<hr>}}
 \if{html}{\out{<a id="method-omics-removeZeros"></a>}}
 \if{latex}{\out{\hypertarget{method-omics-removeZeros}{}}}
 \subsection{Method \code{removeZeros()}}{
-Removes empty (zero) values by row and column from the \code{countData}
+Removes empty (zero) values by row and column from the \code{countData}.
+This method is performed automatically during subsetting of the object.
 \subsection{Usage}{
 \if{html}{\out{<div class="r">}}\preformatted{omics$removeZeros()}\if{html}{\out{</div>}}
 }
 
+\subsection{Returns}{
+object in place
+}
 \subsection{Examples}{
 \if{html}{\out{<div class="r example copy">}}
 \preformatted{obj_path <- system.file("extdata", "mock_taxa.rds", package = "OmicFlow", mustWork = TRUE)
@@ -273,7 +296,7 @@ obj$removeZeros()
 \if{html}{\out{<a id="method-omics-removeNAs"></a>}}
 \if{latex}{\out{\hypertarget{method-omics-removeNAs}{}}}
 \subsection{Method \code{removeNAs()}}{
-Remove NAs from metaData and updates the countData object fields.
+Remove NAs from \code{metaData} and updates the \code{countData}.
 \subsection{Usage}{
 \if{html}{\out{<div class="r">}}\preformatted{omics$removeNAs(column)}\if{html}{\out{</div>}}
 }
@@ -281,9 +304,12 @@ Remove NAs from metaData and updates the countData object fields.
 \subsection{Arguments}{
 \if{html}{\out{<div class="arguments">}}
 \describe{
-\item{\code{column}}{The column from where NAs should be removed, this can be either integers or strings.}
+\item{\code{column}}{The column from where NAs should be removed, this can be either a wholenumbers or characters. Vectors are also supported.}
 }
 \if{html}{\out{</div>}}
+}
+\subsection{Returns}{
+object in place
 }
 \subsection{Examples}{
 \if{html}{\out{<div class="r example copy">}}
@@ -302,7 +328,7 @@ obj$removeNAs(column = "treatment")
 \if{html}{\out{<a id="method-omics-feature_subset"></a>}}
 \if{latex}{\out{\hypertarget{method-omics-feature_subset}{}}}
 \subsection{Method \code{feature_subset()}}{
-Feature subset (based on featureData), automatically applies \code{removeZeros}
+Feature subset (based on \code{featureData}), automatically applies \href{#method-removeZeros}{\code{removeZeros()}}.
 \subsection{Usage}{
 \if{html}{\out{<div class="r">}}\preformatted{omics$feature_subset(...)}\if{html}{\out{</div>}}
 }
@@ -314,6 +340,9 @@ Feature subset (based on featureData), automatically applies \code{removeZeros}
 Only rows for which all conditions evaluate to TRUE are kept.}
 }
 \if{html}{\out{</div>}}
+}
+\subsection{Returns}{
+object in place
 }
 \subsection{Examples}{
 \if{html}{\out{<div class="r example copy">}}
@@ -332,7 +361,7 @@ obj$feature_subset(Genus == "Streptococcus")
 \if{html}{\out{<a id="method-omics-sample_subset"></a>}}
 \if{latex}{\out{\hypertarget{method-omics-sample_subset}{}}}
 \subsection{Method \code{sample_subset()}}{
-Sample subset (based on metaData), automatically applies \code{removeZeros}
+Sample subset (based on \code{metaData}), automatically applies \href{#method-removeZeros}{\code{removeZeros()}}.
 \subsection{Usage}{
 \if{html}{\out{<div class="r">}}\preformatted{omics$sample_subset(...)}\if{html}{\out{</div>}}
 }
@@ -344,6 +373,9 @@ Sample subset (based on metaData), automatically applies \code{removeZeros}
 Only rows for which all conditions evaluate to TRUE are kept.}
 }
 \if{html}{\out{</div>}}
+}
+\subsection{Returns}{
+object in place
 }
 \subsection{Examples}{
 \if{html}{\out{<div class="r example copy">}}
@@ -362,7 +394,7 @@ obj$sample_subset(treatment == "tumor")
 \if{html}{\out{<a id="method-omics-samplepair_subset"></a>}}
 \if{latex}{\out{\hypertarget{method-omics-samplepair_subset}{}}}
 \subsection{Method \code{samplepair_subset()}}{
-Samplepair subset (based on metaData), automatically applies \href{#method-removeZeros}{\code{removeZeros()}}.
+Samplepair subset (based on \code{metaData}), automatically applies \href{#method-removeZeros}{\code{removeZeros()}}.
 \subsection{Usage}{
 \if{html}{\out{<div class="r">}}\preformatted{omics$samplepair_subset(num_unique_pairs = NULL)}\if{html}{\out{</div>}}
 }
@@ -370,16 +402,21 @@ Samplepair subset (based on metaData), automatically applies \href{#method-remov
 \subsection{Arguments}{
 \if{html}{\out{<div class="arguments">}}
 \describe{
-\item{\code{num_unique_pairs}}{An integer value to define the number of pairs to subset. The default is NULL, meaning the maximum number of unique pairs will be used to subset the data. Let's say you have three samples for each pair, then the \code{num_unique_pairs} will be set to 3.}
+\item{\code{num_unique_pairs}}{An integer value to define the number of pairs to subset. The default is NULL,
+meaning the maximum number of unique pairs will be used to subset the data.
+Let's say you have three samples for each pair, then the \code{num_unique_pairs} will be set to 3.}
 }
 \if{html}{\out{</div>}}
+}
+\subsection{Returns}{
+object in place
 }
 }
 \if{html}{\out{<hr>}}
 \if{html}{\out{<a id="method-omics-feature_glom"></a>}}
 \if{latex}{\out{\hypertarget{method-omics-feature_glom}{}}}
 \subsection{Method \code{feature_glom()}}{
-Agglomerates features by column, automatically applies \code{removeZeros}.
+Agglomerates features by column, automatically applies \href{#method-removeZeros}{\code{removeZeros()}}.
 \subsection{Usage}{
 \if{html}{\out{<div class="r">}}\preformatted{omics$feature_glom(feature_rank, feature_filter = NULL)}\if{html}{\out{</div>}}
 }
@@ -392,6 +429,9 @@ Agglomerates features by column, automatically applies \code{removeZeros}.
 \item{\code{feature_filter}}{A character value or vector of characters to remove features via regex pattern.}
 }
 \if{html}{\out{</div>}}
+}
+\subsection{Returns}{
+object in place
 }
 \subsection{Examples}{
 \if{html}{\out{<div class="r example copy">}}
@@ -411,7 +451,7 @@ obj$feature_glom(feature_rank = "Genus", feature_filter = c("uncultured", "metag
 \if{html}{\out{<a id="method-omics-transform"></a>}}
 \if{latex}{\out{\hypertarget{method-omics-transform}{}}}
 \subsection{Method \code{transform()}}{
-Performs transformation on countData as a Triplet sparse matrix \link[Matrix]{uniqTsparse}
+Performs transformation on the positive values from the \code{countData}.
 \subsection{Usage}{
 \if{html}{\out{<div class="r">}}\preformatted{omics$transform(FUN)}\if{html}{\out{</div>}}
 }
@@ -422,6 +462,9 @@ Performs transformation on countData as a Triplet sparse matrix \link[Matrix]{un
 \item{\code{FUN}}{A function such as \code{log2}, \code{log}}
 }
 \if{html}{\out{</div>}}
+}
+\subsection{Returns}{
+object in place
 }
 \subsection{Examples}{
 \if{html}{\out{<div class="r example copy">}}
@@ -440,11 +483,14 @@ obj$transform(log2)
 \if{html}{\out{<a id="method-omics-normalize"></a>}}
 \if{latex}{\out{\hypertarget{method-omics-normalize}{}}}
 \subsection{Method \code{normalize()}}{
-Relative abundance computation by column sums.
+Relative abundance computation by column sums on the \code{countData}.
 \subsection{Usage}{
 \if{html}{\out{<div class="r">}}\preformatted{omics$normalize()}\if{html}{\out{</div>}}
 }
 
+\subsection{Returns}{
+object in place
+}
 \subsection{Examples}{
 \if{html}{\out{<div class="r example copy">}}
 \preformatted{obj_path <- system.file("extdata", "mock_taxa.rds", package = "OmicFlow", mustWork = TRUE)
@@ -515,11 +561,11 @@ Alpha diversity based on \link{diversity}
 \subsection{Arguments}{
 \if{html}{\out{<div class="arguments">}}
 \describe{
-\item{\code{col_name}}{The metaData column of categorical variables to create a ggplot object.}
+\item{\code{col_name}}{A character variable from the \code{metaData}.}
 
-\item{\code{metric}}{Diversity metric such as "shannon", "invsimpson" or "simpson"}
+\item{\code{metric}}{An alpha diversity metric as input to \link{diversity}.}
 
-\item{\code{Brewer.palID}}{Palette set to be applied, see \link[RColorBrewer]{brewer.pal} or \link{colormap}.}
+\item{\code{Brewer.palID}}{A character name for the palette set to be applied, see \link[RColorBrewer]{brewer.pal} or \link{colormap}.}
 
 \item{\code{evenness}}{A boolean wether to divide diversity by number of species, see \link[vegan]{specnumber}.}
 
@@ -552,7 +598,7 @@ plt <- obj$alpha_diversity(col_name = "treatment",
 \if{html}{\out{<a id="method-omics-composition"></a>}}
 \if{latex}{\out{\hypertarget{method-omics-composition}{}}}
 \subsection{Method \code{composition()}}{
-Visualization of compositional data.
+Creates a table most abundant compositional features. Also assigns a color blind friendly palette for visualizations.
 \subsection{Usage}{
 \if{html}{\out{<div class="r">}}\preformatted{omics$composition(
   feature_rank,
@@ -567,17 +613,17 @@ Visualization of compositional data.
 \subsection{Arguments}{
 \if{html}{\out{<div class="arguments">}}
 \describe{
-\item{\code{feature_rank}}{A featureData column name to visualize.}
+\item{\code{feature_rank}}{A character variable in \code{featureData} to aggregate via \href{#method-feature_glom}{\code{feature_glom()}}.}
 
-\item{\code{feature_filter}}{Removes features by name, works on single strings or vector of strings.}
+\item{\code{feature_filter}}{A character or vector of characters to removes features by regex pattern.}
 
-\item{\code{col_name}}{Optional, a string or vector of strings to add to the final compositional data output.}
+\item{\code{col_name}}{Optional, a character or vector of characters to add to the final compositional data output.}
 
-\item{\code{normalize}}{A Boolean value, whether to \href{#method-normalize}{\code{normalize()}} by total sample sums (Default: TRUE).}
+\item{\code{normalize}}{A boolean value, whether to \href{#method-normalize}{\code{normalize()}} by total sample sums (Default: TRUE).}
 
-\item{\code{feature_top}}{Integer of the top features to visualize, the max is 15, due to a limit of palettes.}
+\item{\code{feature_top}}{A wholenumber of the top features to visualize, the max is 15, due to a limit of palettes.}
 
-\item{\code{Brewer.palID}}{Palette set to be applied, see \link[RColorBrewer]{brewer.pal} or \link{colormap}.}
+\item{\code{Brewer.palID}}{A character name for the palette set to be applied, see \link[RColorBrewer]{brewer.pal} or \link{colormap}.}
 }
 \if{html}{\out{</div>}}
 }
@@ -609,7 +655,7 @@ plt <- composition_plot(data = result$data,
 \if{html}{\out{<a id="method-omics-ordination"></a>}}
 \if{latex}{\out{\hypertarget{method-omics-ordination}{}}}
 \subsection{Method \code{ordination()}}{
-Ordination of countData with statistical tests.
+Ordination of \code{countData} with statistical testing.
 \subsection{Usage}{
 \if{html}{\out{<div class="r">}}\preformatted{omics$ordination(
   metric = c("bray", "jaccard", "unifrac"),
@@ -626,21 +672,22 @@ Ordination of countData with statistical tests.
 \subsection{Arguments}{
 \if{html}{\out{<div class="arguments">}}
 \describe{
-\item{\code{metric}}{A dissimilarity or similarity metric to be applied on the \code{countData}, thus far supports 'bray', 'jaccard' and 'unifrac' when a tree is provided via \code{treeData}.}
+\item{\code{metric}}{A dissimilarity or similarity metric to be applied on the \code{countData},
+thus far supports 'bray', 'jaccard' and 'unifrac' when a tree is provided via \code{treeData}, see \link[rbiom]{bdiv_distmat}.}
 
-\item{\code{method}}{Ordination method, supports "pcoa" and "nmds".}
+\item{\code{method}}{Ordination method, supports "pcoa" and "nmds", see \link[vegan]{wcmdscale}.}
 
-\item{\code{group_by}}{A string variable as metaData column to be used for the PERMANOVA or ANOSIM statistical test.}
+\item{\code{group_by}}{A character variable in \code{metaData} to be used for the \link{pairwise_adonis} or \link{pairwise_anosim} statistical test.}
 
 \item{\code{distmat}}{A custom distance matrix in either \link[stats]{dist} or \link[Matrix]{Matrix} format.}
 
-\item{\code{weighted}}{A Boolean value, whether to compute weighted or unweighted dissimilarities (Default: TRUE).}
+\item{\code{weighted}}{A boolean value, whether to compute weighted or unweighted dissimilarities (Default: TRUE).}
 
-\item{\code{normalize}}{A Boolean value, whether to \href{#method-normalize}{\code{normalize()}} by total sample sums (Default: TRUE).}
+\item{\code{normalize}}{A boolean value, whether to \href{#method-normalize}{\code{normalize()}} by total sample sums (Default: TRUE).}
 
-\item{\code{cpus}}{An Integer value, indicating the number of processes to spawn (Default: 1).}
+\item{\code{cpus}}{A wholenumber, indicating the number of processes to spawn (Default: 1) in \link[rbiom]{bdiv_distmat}.}
 
-\item{\code{perm}}{An integer value, number of permutations to compare against the null hypothesis of adonis2 (default: \code{perm=999}).}
+\item{\code{perm}}{A wholenumber, number of permutations to compare against the null hypothesis of \link[vegan]{adonis2} and \link[vegan]{anosim} (default: \code{perm=999}).}
 }
 \if{html}{\out{</div>}}
 }
@@ -671,7 +718,7 @@ pcoa_plots
 \if{html}{\out{<a id="method-omics-DFE"></a>}}
 \if{latex}{\out{\hypertarget{method-omics-DFE}{}}}
 \subsection{Method \code{DFE()}}{
-Differential feature expression (DFE) using the \link{foldchange} for both paired and non-paired samples.
+Differential feature expression (DFE) using the \link{foldchange} for both paired and non-paired test.
 \subsection{Usage}{
 \if{html}{\out{<div class="r">}}\preformatted{omics$DFE(
   feature_rank,
@@ -690,25 +737,25 @@ Differential feature expression (DFE) using the \link{foldchange} for both paire
 \subsection{Arguments}{
 \if{html}{\out{<div class="arguments">}}
 \describe{
-\item{\code{feature_rank}}{A character value or vector of columns to aggregate from the \code{featureData}.}
+\item{\code{feature_rank}}{A character or vector of characters in the \code{featureData} to aggregate via \href{#method-feature_glom}{\code{feature_glom()}}.}
 
-\item{\code{feature_filter}}{A character value or vector of characters to remove features via regex pattern (Default: NULL).}
+\item{\code{feature_filter}}{A character or vector of characters to remove features via regex pattern (Default: NULL).}
 
-\item{\code{paired}}{A Boolean value, the paired is only applicable when a \code{SAMPLEPAIR_ID} column exists within the \code{metaData}. See \link[stats]{wilcox.test}}
+\item{\code{paired}}{A boolean value, the paired is only applicable when a \code{SAMPLEPAIR_ID} column exists within the \code{metaData}. See \link[stats]{wilcox.test} and \href{#method-samplepair_subset}{\code{samplepair_subset()}}.}
 
-\item{\code{normalize}}{A Boolean value, whether to \href{#method-normalize}{\code{normalize()}} by total sample sums (Default: TRUE).}
+\item{\code{normalize}}{A boolean value, whether to \href{#method-normalize}{\code{normalize()}} by total sample sums (Default: TRUE).}
 
-\item{\code{condition.group}}{A string value for an existing column name in \code{metaData}, wherein the conditions A and B are located.}
+\item{\code{condition.group}}{A character variable of an existing column name in \code{metaData}, wherein the conditions A and B are located.}
 
 \item{\code{condition_A}}{A character value or vector of characters.}
 
 \item{\code{condition_B}}{A character value or vector of characters.}
 
-\item{\code{pvalue.threshold}}{An Integer value, a P-value threshold to label and color significant features (Default: 0.05).}
+\item{\code{pvalue.threshold}}{A numeric value used as a p-value threshold to label and color significant features (Default: 0.05).}
 
-\item{\code{foldchange.threshold}}{An Integer value, a fold-change threshold to label and color significantly expressed features (Default: 0.06).}
+\item{\code{foldchange.threshold}}{A numeric value used as a fold-change threshold to label and color significantly expressed features (Default: 0.06).}
 
-\item{\code{abundance.threshold}}{An abundance threshold (default: 0.01).}
+\item{\code{abundance.threshold}}{A numeric value used as an abundance threshold to size the scatter dots based on their mean relative abundance (default: 0.01).}
 }
 \if{html}{\out{</div>}}
 }
@@ -741,8 +788,8 @@ unpaired <- obj$DFE(feature_rank = "Genus",
 \if{html}{\out{<a id="method-omics-autoFlow"></a>}}
 \if{latex}{\out{\hypertarget{method-omics-autoFlow}{}}}
 \subsection{Method \code{autoFlow()}}{
-Automated Omics Analysis based on metadata template.
-For now only works with headers "CONTRAST_".
+Automated Omics Analysis based on the \code{metaData}, see \href{#method-validate}{\code{validate()}}.
+For now only works with headers that start with prefix \code{CONTRAST_}.
 \subsection{Usage}{
 \if{html}{\out{<div class="r">}}\preformatted{omics$autoFlow(
   feature_ranks = c("Kingdom", "Phylum", "Class", "Order", "Family", "Genus", "Species"),
@@ -763,25 +810,25 @@ For now only works with headers "CONTRAST_".
 \subsection{Arguments}{
 \if{html}{\out{<div class="arguments">}}
 \describe{
-\item{\code{feature_ranks}}{A character vector as input to \href{#method-rankstat}{\code{rankstat()}}}
+\item{\code{feature_ranks}}{A character vector as input to \href{#method-rankstat}{\code{rankstat()}}.}
 
-\item{\code{feature_contrast}}{A character vector of feature columns to aggregate from the \code{featureData} and visualize in univariate analysis.}
+\item{\code{feature_contrast}}{A character vector of feature columns in the \code{featureData} to aggregate via \href{#method-feature_glom}{\code{feature_glom()}}.}
 
-\item{\code{feature_filter}}{A character vector of to filter unwanted taxa, default \code{c("uncultured")}}
+\item{\code{feature_filter}}{A character vector to filter unwanted features, default: \code{c("uncultured")}}
 
 \item{\code{distance_metrics}}{A character vector specifying what (dis)similarity metrics to use, default \code{c("unifrac")}}
 
-\item{\code{beta_div_table}}{A path to pre-computed distance matrix, expects tsv/csv/txt file from qiime2.}
+\item{\code{beta_div_table}}{A path to pre-computed distance matrix, expects tsv/csv/txt file.}
 
-\item{\code{alpha_div_table}}{A path to pre-computed alpha diversity with rarefraction depth, expects tsv/csv/txt from qiime2.}
+\item{\code{alpha_div_table}}{A path to pre-computed alpha diversity with rarefraction depth, expects tsv/csv/txt from qiime2, see \link{read_rarefraction_qiime}.}
 
-\item{\code{normalize}}{A Boolean value, whether to \href{#method-normalize}{\code{normalize()}} by total sample sums (Default: TRUE).}
+\item{\code{normalize}}{A boolean value, whether to \href{#method-normalize}{\code{normalize()}} by total sample sums (Default: TRUE).}
 
-\item{\code{weighted}}{A Boolean value, whether to compute weighted or unweighted dissimilarities (Default: TRUE).}
+\item{\code{weighted}}{A boolean value, whether to compute weighted or unweighted dissimilarities (Default: TRUE).}
 
 \item{\code{pvalue.threshold}}{A numeric value, the p-value is used to include/exclude composition and foldchanges plots coming from alpha- and beta diversity analysis (Default: 0.05).}
 
-\item{\code{perm}}{An integer value, number of permutations to compare against the null hypothesis of adonis2 (default: \code{perm=999}).}
+\item{\code{perm}}{A wholenumber, number of permutations to compare against the null hypothesis of \link[vegan]{adonis2} or \link[vegan]{anosim} (default: \code{perm=999}).}
 
 \item{\code{cpus}}{Number of cores to use, only used in \href{#method-ordination}{\code{ordination()}} when beta_div_table is not supplied.}
 

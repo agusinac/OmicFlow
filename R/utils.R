@@ -1,4 +1,4 @@
-#' sparseMatrix to data.table conversion
+#' Converting a sparse matrix to data.table
 #'
 #' @description Wrapper function that converts a sparseMatrix to data.table
 #'
@@ -19,12 +19,12 @@ sparse_to_dtable <- function(sparsemat) {
   return(data.table::data.table(as.matrix(sparsemat)))
 }
 
-#' Parse a rarefaction qiime format
+#' Loads a rarefied alpha diversity table from Qiime2
 #'
 #' @description Parses a QIIME2 table of rarefied data into a data.table as input to \link{diversity_plot}
 #'
 #' @param filepath A character value, filename or filepath to existing file.
-#' @return A \link[data.table]{data.table} class.
+#' @return A \link[data.table]{data.table}.
 #' @export
 read_rarefraction_qiime <- function(filepath) {
 
@@ -53,9 +53,9 @@ read_rarefraction_qiime <- function(filepath) {
 
 #' Checks if column exists in table
 #'
-#' @description Mainly used within \link{omics} and other functions to check if given column name does exist in the table and is not completely empty, containing NAs.
+#' @description Mainly used within \link{omics} and other functions to check if given column name does exist in the table and is not completely empty (containing NAs).
 #'
-#' @param column A character.
+#' @param column A character of length 1.
 #' @param table A \link[data.table]{data.table} or \link[base]{data.frame}.
 #' @return A boolean value.
 #' @export
@@ -75,7 +75,7 @@ column_exists <- function(column, table) {
 
   valid_columns <- column[column %in% colnames(table)]
 
-  if (length(valid_columns) == 0 ) {
+  if (length(valid_columns) == 0) {
     return(FALSE)
   }
 
@@ -85,94 +85,6 @@ column_exists <- function(column, table) {
   }))
 
   return ( length(valid_columns) == length(column) && columns_empty )
-}
-
-parse_commandline <- function() {
-  option_list <- list (
-    optparse::make_option("--omics",
-                          action = "store",
-                          type = "character",
-                          default = "metagenomics",
-                          help="tab seperated file"),
-    optparse::make_option(c("-m", "--metadata"),
-                          action = "store",
-                          type = "character",
-                          help="tab seperated file"),
-    optparse::make_option(c("-b", "--biom"),
-                          action = "store",
-                          type = "character",
-                          help="biom format file"),
-    optparse::make_option(c("-t", "--tree"),
-                          action = "store",
-                          type = "character",
-                          help="Phylogenetic tree in newick format"),
-    optparse::make_option(c("-c", "--cpus"),
-                          action = "store",
-                          type = "numeric",
-                          help="Number of cores",
-                          default = 4),
-    optparse::make_option(c("-o", "--outdir"),
-                          action = "store",
-                          type = "character",
-                          help="Output directory",
-                          default = normalizePath(getwd())),
-    optparse::make_option(c("-f", "--filename"),
-                          action = "store",
-                          type = "character",
-                          help="Name of the HTML report",
-                          default = "report.html"),
-    optparse::make_option(c("--i-beta-div"),
-                          action = "store",
-                          type = "character",
-                          help="custom beta diversity from qiime2"),
-    optparse::make_option(c("--i-alpha-div"),
-                          action = "store",
-                          type = "character",
-                          help="custom alpha diversity with rarefraction from qiime2")
-  )
-
-  parser <- optparse::OptionParser(option_list = option_list)
-  arguments <- optparse::parse_args(parser, positional_arguments=TRUE)
-  return(arguments$options)
-}
-
-update_citations_md <- function() {
-  # Get imported packages from DESCRIPTION
-  imports <- desc::desc_get_deps("DESCRIPTION")
-  imported_pkgs <- imports$package[imports$type == "Imports"]
-
-  # Open output file
-  outfile <- file("CITATION.md", "w")
-  writeLines("# Citations for Imported Packages\n", outfile)
-
-  for (pkg in imported_pkgs) {
-    writeLines(paste0("## ", pkg, "\n"), outfile)
-
-    # Try to get citations
-    cites <- tryCatch(utils::citation(pkg), error = function(e) NA)
-
-    if (is.na(cites)) {
-      writeLines("No citation found.\n", outfile)
-      next
-    }
-
-    # Process each citation entry using BibTeX
-    bibtex_entry <- tryCatch(utils::toBibtex(cites), error = function(e) NA)
-
-    if (all(is.na(bibtex_entry))) {
-      writeLines("Could not generate BibTeX citation.\n", outfile)
-      next
-    }
-
-    # Write in a code block
-    writeLines("```", outfile)
-    writeLines(as.character(bibtex_entry), outfile)
-    writeLines("```", outfile)
-    writeLines("\n", outfile)
-  }
-
-  # Close file
-  close(outfile)
 }
 
 is.wholenumber <- function(x, tol = .Machine$double.eps^0.5) {

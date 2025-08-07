@@ -1,7 +1,7 @@
 #' Pairwise anosim (ANOSIM) computation
 #'
 #' @description Computes pairwise \link[vegan]{anosim}, given a distance matrix and a vector of labels.
-#' This function is built into the \code{ordination} method from the abstract class \link{omics} and inherited by other omics classes, such as;
+#' This function is built into the class \link{omics} with method \code{ordination()} and inherited by other omics classes, such as;
 #' \link{metagenomics} and \link{proteomics}.
 #'
 #' @param x  A distance matrix in the form of \link[stats]{dist}.
@@ -10,7 +10,7 @@
 #' @param p.adjust.method P adjust method see \link[stats]{p.adjust}
 #' @param perm  Number of permutations to compare against the null hypothesis of anosim (default: \code{perm=999}).
 #' @seealso \link[vegan]{anosim}
-#' @return A \code{data.frame} of
+#' @return A \link[base]{data.frame} of
 #'  * pairs that are used
 #'  * R2 of H_0
 #'  * p value of F^p > F
@@ -56,7 +56,7 @@ pairwise_anosim <- function(x,
   ## MAIN
   #--------------------------------------------------------------------#
 
-  co <- combn(unique(as.character(groups)), 2)
+  co <- utils::combn(unique(as.character(groups)), 2)
   n <- ncol(co)
   pairs <- vector(mode = "numeric", length = n)
   anosimR <- vector(mode = "numeric", length = n)

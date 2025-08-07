@@ -2,14 +2,14 @@
 % Please edit documentation in R/hill_taxa.R
 \name{hill_taxa}
 \alias{hill_taxa}
-\title{Hill numbers}
+\title{Sparse implementation of Hill numbers}
 \usage{
 hill_taxa(x, q = 0, normalize = TRUE, base = exp(1))
 }
 \arguments{
-\item{x}{A \code{matrix} or \code{sparseMatrix}.}
+\item{x}{A \link[base]{matrix} or \link[Matrix]{sparseMatrix}.}
 
-\item{q}{An integer for 0, 1 or 2, default is 0.}
+\item{q}{A wholenumber for 0, 1 or 2, default is 0.}
 
 \item{normalize}{A boolean variable for sample normalization by column sums.}
 

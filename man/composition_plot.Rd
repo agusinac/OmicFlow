@@ -2,7 +2,7 @@
 % Please edit documentation in R/composition_plot.R
 \name{composition_plot}
 \alias{composition_plot}
-\title{Composition plot with ggplot2}
+\title{Compositional plot}
 \usage{
 composition_plot(
   data,
@@ -17,9 +17,9 @@ composition_plot(
 
 \item{palette}{An object with names and hexcode or color names, see \link{colormap}.}
 
-\item{feature_rank}{A character variable of the feature column (Default: \code{"Genus"}).}
+\item{feature_rank}{A character variable of the feature column.}
 
-\item{title_name}{A character variable to set the \code{ggtitle} of the ggplot (Default: NULL).}
+\item{title_name}{A character to set the \code{ggtitle} of the \link[ggplot2]{ggplot}, (Default: NULL).}
 
 \item{group_by}{A character variable to aggregate the stacked bars by group (Default: NULL).}
 }
@@ -27,7 +27,8 @@ composition_plot(
 A \link[ggplot2]{ggplot2} object to be further modified
 }
 \description{
-Creates a composition of features works on the output of \link{metagenomics} with method \code{composition} from abstract class \link{omics}
+Creates a stacked barchart of features. It is possible to both show barcharts for each sample or group them by a categorical variable.
+The function is compatible with the class \link{omics} method \code{composition()}.
 }
 \examples{
 library("ggplot2")

@@ -2,7 +2,7 @@
 % Please edit documentation in R/utils.R
 \name{sparse_to_dtable}
 \alias{sparse_to_dtable}
-\title{sparseMatrix to data.table conversion}
+\title{Converting a sparse matrix to data.table}
 \usage{
 sparse_to_dtable(sparsemat)
 }

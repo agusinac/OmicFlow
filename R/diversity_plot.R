@@ -1,11 +1,11 @@
-#' Diversity plot with ggplot2
+#' Diversity plot
 #' 
-#' @description Creates an Alpha diversity plot. This function is built into the \code{alpha_diversity} method from the abstract class \link[OmicFlow]{omics} and inherited by other omics classes, such as;
-#' \link[OmicFlow]{metagenomics} and \link[OmicFlow]{proteomics}.
-#' @param data A \link[base]{data.frame} or \link[data.table]{data.table} computed from \link[OmicFlow]{diversity}.
+#' @description Creates an Alpha diversity plot. This function is built into the class \link{omics} with method \code{alpha_diversity()}.
+#' It computes the pairwise wilcox test, paired or non-paired, given a data frame and adds useful labelling.
+#' @param data A \link[base]{data.frame} or \link[data.table]{data.table} computed from \link{diversity}.
 #' @param values A column name of a continuous variable.
 #' @param col_name A column name of a categorical variable.
-#' @param palette An object with names and hexcode or color names, see \link[OmicFlow]{colormap} or \link[stats]{setNames}.
+#' @param palette An object with names and hexcode or color names, see \link{colormap}.
 #' @param method A character variable indicating what method is used to compute the diversity.
 #' @param paired A boolean value to perform paired analysis in \link[stats]{wilcox.test}.
 #' @param p.adjust.method A character variable to specify the p.adjust.method to be used (Default: fdr).

@@ -10,13 +10,13 @@ test_that("Writes biom in expected format", {
 
     expect_true(file.exists(output_file))
     
-    # taxa1 <- metagenomics$new(
-    #     biomData = output_file,
-    #     metaData = "input/metagenomics/metadata.tsv",
-    #     treeData = "input/metagenomics/rooted_tree.newick"
-    # )
+    taxa1 <- metagenomics$new(
+        biomData = output_file,
+        metaData = "input/metagenomics/metadata.tsv",
+        treeData = "input/metagenomics/rooted_tree.newick"
+    )
     
-    # expect_match(taxa, taxa1)
+    expect_equal(taxa$print(), taxa1$print())
 
     file.remove(output_file)
 })

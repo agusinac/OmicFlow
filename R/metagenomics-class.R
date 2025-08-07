@@ -1,8 +1,11 @@
 #' Sub-class metagenomics
 #'
-#' @description This is a sub-class for 16S metagenomics data, called metagenomics.
+#' @description This is a sub-class that is compatible to data obtained from either 16S rRNA marker-gene sequencing or shot-gun metagenomics sequencing.
 #' It inherits all methods from the abstract class \link{omics} and only adapts the \code{initialize} function.
-#'
+#' It supports BIOM format data (v2.1.0 from http://biom-format.org/) in both HDF5 and JSON format, also pre-existing data structures can be used or text files.
+#' When omics data is very large, data loading becomes very expensive. It is therefore recommended to use the [`reset()`](#method-reset) method to reset your changes.
+#' Every omics class creates an internal memory efficient back-up of the data, the resetting of changes is an instant process.
+#' @seealso \link{omics}
 #' @export
 
 metagenomics <- R6::R6Class(
@@ -31,8 +34,8 @@ metagenomics <- R6::R6Class(
     #' @param featureData A path to an existing file, data.table or data.frame.
     #' @param metaData A path to an existing file, data.table or data.frame.
     #' @param treeData A path to an existing newick file or class "phylo", see \link[ape]{read.tree}.
-    #' @param biomData A path to an existing biom file, version 2.1.0, see \link[rhdf5]{h5read}.
-    #' @param feature_names A character vector to name the feature names that fit the supplied `featureData`, Default: character vector containing Kingdom, Phylum, Class, Order, Family, Genus, Species.
+    #' @param biomData A path to an existing biom file, version 2.1.0 (http://biom-format.org/), see \link[rhdf5]{h5read}.
+    #' @param feature_names A character vector to name the feature names that fit the supplied `featureData`.
     #' @return A new `metagenomics` object.
     initialize = function(countData = NULL,
                           metaData = NULL,
@@ -159,6 +162,7 @@ metagenomics <- R6::R6Class(
     #' # method 2 to call print function
     #' taxa$print()
     #'
+    #' @return object in place
     print = function() {
       cat("## metagenomics-class object \n")
       if (length(self$countData) > 0) cat(paste0("## countData:\t[ ", ncol(self$countData), " Samples and ", nrow(self$countData), " Features\t] \n"))
@@ -169,13 +173,13 @@ metagenomics <- R6::R6Class(
     #' @description
     #' Upon creation of a new `metagenomics` object a small backup of the original data is created.
     #' Since modification of the object is done by reference and duplicates are not made, it is possible to `reset` changes to the class.
-    #' The methods from the abstract class `omics` also contain a private method to prevent any changes to the original object. Such cases are ordination, alpha_diversity, differential_feature_expression.
+    #' The methods from the abstract class \link{omics} also contains a private method to prevent any changes to the original object when using methods such as \code{ordination} \code{alpha_diversity} or \code{$DFE}.
     #' @examples
     #' library(ggplot2)
-    #' 
+    #'
     #' taxa_path <- system.file("extdata", "mock_taxa.rds", package = "OmicFlow", mustWork = TRUE)
     #' taxa <- readRDS(taxa_path)
-    #' 
+    #'
     #' # Performs modifications
     #' taxa$transform(log2)
     #'
@@ -185,6 +189,7 @@ metagenomics <- R6::R6Class(
     #' # An inbuilt reset function prevents unwanted modification to the taxa object.
     #' taxa$rankstat(feature_ranks = c("Kingdom", "Phylum", "Family", "Genus", "Species"))
     #'
+    #' @return object in place
     reset = function() {
       self$countData = private$original_data$counts
       self$featureData = private$original_data$features
@@ -193,7 +198,8 @@ metagenomics <- R6::R6Class(
       invisible(self)
     },
     #' @description
-    #' Removes empty (zero) values by row, column and tips.
+    #' Removes empty (zero) values by row, column and tips from the `countData` and `treeData`.
+    #' This method is performed automatically during subsetting of the object.
     #' @examples
     #' taxa_path <- system.file("extdata", "mock_taxa.rds", package = "OmicFlow", mustWork = TRUE)
     #' taxa <- readRDS(taxa_path)
@@ -203,13 +209,15 @@ metagenomics <- R6::R6Class(
     #'
     #' # Remove empty features from countData and treeData
     #' taxa$removeZeros()
+    #' 
+    #' @return object in place
     removeZeros = function() {
       super$removeZeros()
       if (!is.null(self$treeData)) self$treeData <- ape::keep.tip(self$treeData, self$featureData$FEATURE_ID)
       invisible(self)
     },
     #' @description
-    #' Creates a BIOM file in HDF5 format of the loaded items via ['new()']{#method-new}, which is compatible to the python biom-format version 2.1.
+    #' Creates a BIOM file in HDF5 format of the loaded items via ['new()']{#method-new}, which is compatible to the python biom-format version 2.1, see http://biom-format.org.
     #' @param filename A character variable of either the full path of filename of the biom file (e.g. `output.biom`)
     #' @examples
     #' taxa_path <- system.file("extdata", "mock_taxa.rds", package = "OmicFlow", mustWork = TRUE)
@@ -331,7 +339,7 @@ metagenomics <- R6::R6Class(
       #----------------------------#
       if (all(dim(self$featureData)) > 0) {
         h5path <- 'observation/metadata/taxonomy'
-        features <- t(as.matrix(self$featureData[, .SD, .SDcols = !c("FEATURE_ID")]))
+        features <- as.matrix(self$featureData[, .SD, .SDcols = !c("FEATURE_ID")])
         dimnames(features) <- list(NULL, NULL)
         rhdf5::h5writeDataset(obj = features,
                               h5loc = h5,

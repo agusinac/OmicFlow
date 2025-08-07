@@ -2,7 +2,7 @@
 % Please edit documentation in R/volcano_plot.R
 \name{volcano_plot}
 \alias{volcano_plot}
-\title{Volcano plot with ggplot2}
+\title{Volcano plot}
 \usage{
 volcano_plot(
   data,
@@ -18,7 +18,7 @@ volcano_plot(
 )
 }
 \arguments{
-\item{data}{A \code{data.table}.}
+\item{data}{A \link[data.table]{data.table}.}
 
 \item{logfold_col}{A column name of a continuous variable.}
 
@@ -42,8 +42,10 @@ volcano_plot(
 A \link[ggplot2]{ggplot2} object to be further modified.
 }
 \description{
-Creates a Volcano plot. This function is built into the \code{DFE} method from the abstract class \link{omics} and inherited by other omics classes, such as;
-\link{metagenomics} and {proteomics}.
+Creates a Volcano plot from the output of \link{foldchange}, it plots the foldchanges on the x-axis,
+log10 trasnformed p-values on the y-axis and adjusts the scatter size based on the percentage abundance of the features.
+This function is built into the class \link{omics} with method \code{DFE()} and inherited by other omics classes, such as;
+\link{metagenomics} and \link{proteomics}.
 }
 \examples{
 library(data.table)

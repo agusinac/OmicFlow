@@ -2,7 +2,7 @@
 % Please edit documentation in R/diversity_plot.R
 \name{diversity_plot}
 \alias{diversity_plot}
-\title{Diversity plot with ggplot2}
+\title{Diversity plot}
 \usage{
 diversity_plot(
   data,
@@ -15,13 +15,13 @@ diversity_plot(
 )
 }
 \arguments{
-\item{data}{A \link[base]{data.frame} or \link[data.table]{data.table} computed from \link[OmicFlow]{diversity}.}
+\item{data}{A \link[base]{data.frame} or \link[data.table]{data.table} computed from \link{diversity}.}
 
 \item{values}{A column name of a continuous variable.}
 
 \item{col_name}{A column name of a categorical variable.}
 
-\item{palette}{An object with names and hexcode or color names, see \link[OmicFlow]{colormap} or \link[stats]{setNames}.}
+\item{palette}{An object with names and hexcode or color names, see \link{colormap}.}
 
 \item{method}{A character variable indicating what method is used to compute the diversity.}
 
@@ -33,8 +33,8 @@ diversity_plot(
 A \link[ggplot2]{ggplot2} object to be further modified
 }
 \description{
-Creates an Alpha diversity plot. This function is built into the \code{alpha_diversity} method from the abstract class \link[OmicFlow]{omics} and inherited by other omics classes, such as;
-\link[OmicFlow]{metagenomics} and \link[OmicFlow]{proteomics}.
+Creates an Alpha diversity plot. This function is built into the class \link{omics} with method \code{alpha_diversity()}.
+It computes the pairwise wilcox test, paired or non-paired, given a data frame and adds useful labelling.
 }
 \examples{
 library("ggplot2")

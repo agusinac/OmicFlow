@@ -2,22 +2,22 @@
 % Please edit documentation in R/colormap.R
 \name{colormap}
 \alias{colormap}
-\title{Create color map based on a variable}
+\title{Color map of a variable}
 \usage{
 colormap(data, col_name, Brewer.palID = "Set2")
 }
 \arguments{
-\item{data}{A \link[base]{data.frame} or \link[data.table]{data.table} computed from \link{diversity}.}
+\item{data}{A \link[base]{data.frame} or \link[data.table]{data.table}.}
 
 \item{col_name}{A column name of a categorical variable.}
 
 \item{Brewer.palID}{A character name that exists in \link[RColorBrewer]{brewer.pal} (Default: \code{"Set2"}).}
 }
 \value{
-An object of names and hexcolors
+A \link[stats]{setNames}.
 }
 \description{
-Creates an object of hexcode colors with names.
+Creates an object of hexcode colors with names given a vector of characters.
 This function is built into the \code{ordination} method from the abstract class \link{omics} and inherited by other omics classes, such as;
 \link{metagenomics} and \link{proteomics}.
 }
@@ -30,7 +30,4 @@ dt <- data.table(
 
 colors <- colormap(data = dt,
                    col_name = "treatment")
-}
-\seealso{
-\link[stats]{setNames}
 }
