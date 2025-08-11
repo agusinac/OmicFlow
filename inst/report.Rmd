@@ -11,39 +11,144 @@ output:
 ---
 
 ```{r setup, include=FALSE} 
-knitr::opts_chunk$set(warning = FALSE, 
-                      message = FALSE, 
-                      echo = FALSE, 
+knitr::opts_chunk$set(warning = FALSE,
+                      message = FALSE,
+                      echo = FALSE,
                       results = "asis",
                       fig.width = 10,
                       fig.height = 5,
                       fig.alin = "left"
-                      ) 
+                      )
+# You need this code to conduct the magic dependences attaching...(https://github.com/rstudio/DT/issues/67)
+DT::datatable(matrix())
 ```
 
 ```{r}
-create_plot_tabs <- function(plots, method, label_col, label_row) {
+create_plot_tabs <- function(plots, data = NULL, method, label_col, label_row, show_data = FALSE) {
+  
+  save_content <- function(data, name) {
+    # Save each data frame as CSV with a name-based tempfile
+    temp_file <- tempfile(pattern = name, fileext = ".csv")
+    data.table::fwrite(data, temp_file)
+    return(temp_file)
+  }
+  
   if (method == "matrix") {
-    for(i in 1:nrow(plots)) {
-      for(j in 1:ncol(plots)) {
+    for (i in seq_len(nrow(plots))) {
+      for (j in seq_len(ncol(plots))) {
         if (!is.null(plots[[i, j]])) {
           cat(paste0("\n\n### Plot: ", label_col[i], "-", label_row[j], "\n"))
           print(plots[[i,j]])
           cat("\n")
+          
+          if (show_data && !is.null(data)) {
+            # Expect datas[[i,j]] to be a named list of data.frames
+            data_list <- data[[i, j]]
+            if (is.list(data_list) && length(data_list) > 0) {
+              # table with HTML buttons
+              overview <- data.frame(
+                Dataset = character(),
+                Download = character(),
+                stringsAsFactors = FALSE
+                )
+              for (df_name in names(data_list)) {
+                df <- data_list[[df_name]]
+                file_path <- save_content(df, df_name)
+                
+                button_html <- as.character(
+                  downloadthis::download_file(
+                    path = file_path,
+                    output_name = paste0(label_col[i], "_", label_row[j], "_", df_name, ".csv"),
+                    button_label = "Download",
+                    button_type = "primary",
+                    has_icon = TRUE,
+                    icon = "fa fa-save"
+                  )
+                )
+                ## Add button to overview table
+                overview <- rbind(
+                  overview,
+                  data.frame(
+                    Dataset = df_name,
+                    Download = button_html,
+                    stringsAsFactors = FALSE
+                  )
+                )
+              }
+            }
+          # Display as interactive table
+          cat(knitr::knit_print(DT::datatable(
+            overview,
+            rownames = FALSE,
+            escape = FALSE,
+            height = "100%",
+            width = "100%"
+            )))
+          cat("\n")
+          }
         }
       }
     }
   }
+  
   if (method == "vector") {
-    for (i in 1:length(plots)) {
+    for (i in seq_along(plots)) {
       if (!is.null(plots[[i]])) {
         cat(paste0("\n\n### Plot: ", label_col[i], "\n"))
         print(plots[[i]])
         cat("\n")
+        
+        if (show_data && !is.null(data)) {
+          # Expect datas[[i]] to be a named list of data.frames
+          data_list <- data[[i]]
+          if (is.list(data_list) && length(data_list) > 0) {
+            # table with HTML buttons
+            overview <- data.frame(
+              Dataset = character(),
+              Download = character(),
+              stringsAsFactors = FALSE
+              )
+
+            for (df_name in names(data_list)) {
+              df <- data_list[[df_name]]
+              file_path <- save_content(df, df_name)
+
+              button_html <- as.character(
+                downloadthis::download_file(
+                  path = file_path,
+                  output_name = paste0(label_col[i], "_", df_name, ".csv"),
+                  button_label = "Download",
+                  button_type = "primary",
+                  has_icon = TRUE,
+                  icon = "fa fa-save"
+                )
+              )
+              ## Add button to overview table
+              overview <- rbind(
+                overview,
+                data.frame(
+                  Dataset = df_name,
+                  Download = button_html,
+                  stringsAsFactors = FALSE
+                )
+              )
+            }
+          }
+        # Display as interactive table
+        cat(knitr::knit_print(DT::datatable(
+          overview,
+          escape = FALSE,
+          rownames = FALSE,
+          height = "100%",
+          width = "100%"
+        )))
+        cat("\n")
+        }
       }
     }
   }
 }
+
 ```
 
 ```{r}
@@ -53,13 +158,15 @@ if (!is.null(plots$rankstat_plot)) {
 }
 ```
 
-```{r}
+```{r, results='asis'}
 if (!is.null(plots$alpha_div_plots)) {
   cat("## Alpha diversity {.tabset} \n")
   create_plot_tabs(
-    plots$alpha_div, 
+    plots = plots$alpha_div_plots, 
+    data = data$alpha_div_data,
     method = "vector", 
-    label_col = CONTRAST_names
+    label_col = CONTRAST_names,
+    show_data = TRUE
     )
 }
 
@@ -67,12 +174,14 @@ if (!is.null(plots$alpha_div_plots)) {
 
 ```{r}
 if (!is.null(plots$pcoa_plots)) {
-  cat("## Beta Diversity: Principal Coordinate Analysis (PCoA) {.tabset}")
+  cat("## Beta Diversity: Principal Coordinate Analysis (PCoA) {.tabset} \n")
   create_plot_tabs(
-    plots$pcoa_plots, 
+    plots = plots$pcoa_plots,
+    data = data$pcoa_data,
     method = "matrix", 
     label_col = CONTRAST_names,
-    label_row = distance_metrics
+    label_row = distance_metrics,
+    show_data = TRUE
     )
 }
 
@@ -82,10 +191,12 @@ if (!is.null(plots$pcoa_plots)) {
 if (!is.null(plots$nmds_plots)) {
   cat("## Beta Diversity: NMDS {.tabset} \n")
   create_plot_tabs(
-    plots$nmds_plots, 
+    plots = plots$nmds_plots, 
+    data = data$nmds_data,
     method = "matrix",
     label_col = CONTRAST_names,
-    label_row = distance_metrics
+    label_row = distance_metrics,
+    show_data = TRUE
     )
 }
 ```
@@ -94,23 +205,27 @@ if (!is.null(plots$nmds_plots)) {
 if (!is.null(plots$composition_plots)) {
   cat("## Composition {.tabset} \n")
   create_plot_tabs(
-    plots$composition_plots, 
+    plots = plots$composition_plots, 
+    data = data$composition_data,
     method = "matrix", 
     label_col = CONTRAST_names, 
-    label_row = feature_contrast
+    label_row = feature_contrast,
+    show_data = TRUE
     )
 }
 
 ```
 
 ```{r}
-if (!is.null(plots$Log2FC_plots)) {
+if (!all(plots$Log2FC_plots == NULL)) {
   cat("## Log2 FoldChanges {.tabset} \n")
   create_plot_tabs(
-    plots$Log2FC_plots, 
+    plots = plots$Log2FC_plots, 
+    data = data$Log2FC_data,
     method = "matrix", 
     label_col = CONTRAST_names, 
-    label_row = feature_contrast
+    label_row = feature_contrast,
+    show_data = TRUE
     )
 }
 
@@ -120,57 +235,3 @@ if (!is.null(plots$Log2FC_plots)) {
 cat("## Thanks for using OmicFlow!\n")
 utils::citation("OmicFlow")
 ```
-
-<!-- ```{r}
-# Function to save content to a temporary file and return the path
-save_content <- function(data, extension) {
-  temp_file <- tempfile(fileext = extension)
-  if (extension == ".mtx") {
-    Matrix::writeMM(data, temp_file)
-  } else if (extension == ".tsv") {
-    data.table::fwrite(data, temp_file, sep = "\t")
-  } else if (extension == ".newick") {
-    ape::write.tree(data, temp_file)
-  }
-  return(temp_file)
-}
-
-# Data as content to be used for downloadthis
-content <- list(counts = omics$countData,
-                metadata = omics$metaData, 
-                features = omics$featureData)
-
-# Dataframe to be viewed
-overview <- data.frame(
-  Name = c("counts", "metadata", "features"),
-  data_type = c(".mtx", ".tsv", ".tsv")
-)
-
-overview[["Download"]] <- vapply(1:nrow(overview), function(i) {
-  file_path <- save_content(content[[i]], overview$data_type[i])
-  as.character(
-    downloadthis::download_file(
-      path = file_path,
-      output_name = paste0(overview$Name[[i]], overview$data_type[[i]]),
-      button_label = "Download",
-      button_type = "primary",
-      has_icon = TRUE,
-      icon = "fa fa-save")
-    )
-  }, character(1L)
-)
-
-# Creates interactive table
-DT::datatable(
-  overview,
-  escape = FALSE,
-  options = list(
-    columnDefs = list(
-      list(targets = ncol(overview), orderable = FALSE),
-      list(targets = "_all", className = "dt-center")
-    )
-  )
-)
-
-
-``` -->

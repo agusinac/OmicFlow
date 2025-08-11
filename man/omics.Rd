@@ -3,6 +3,35 @@
 \name{omics}
 \alias{omics}
 \title{Abstract omics class}
+\value{
+A list of components:
+\itemize{
+\item \code{div} A \link[base]{data.frame} from \link{diversity}.
+\item \code{stats} A pairwise statistics from \link[rstatix]{pairwise_wilcox_test}.
+\item \code{plot} A \link[ggplot2]{ggplot} object.
+}
+
+A list of components:
+\itemize{
+\item \code{data} A \link[data.table]{data.table} of feature compositions.
+\item \code{palette} A \link[stats]{setNames} palette from \link{colormap}.
+}
+
+A list of components:
+\itemize{
+\item \code{distmat} A distance dissimilarity in \link[base]{matrix} format.
+\item \code{stats} A statistical test as a \link[base]{data.frame}.
+\item \code{pcs} principal components as a \link[base]{data.frame}.
+\item \code{scree_plot} A \link[ggplot2]{ggplot} object.
+\item \code{anova_plot} A \link[ggplot2]{ggplot} object.
+\item \code{scores_plot} A \link[ggplot2]{ggplot} object.
+}
+
+\itemize{
+\item \code{dfe} A long \link[data.table]{data.table} table.
+\item \code{volcano_plot} A \link[ggplot2]{ggplot} object.
+}
+}
 \description{
 This is the abstract class 'omics', contains a variety of methods that are inherited and applied in the omics classes:
 \link{metagenomics}, proteomics and metabolomics.
@@ -55,14 +84,14 @@ obj$sample_subset(treatment == "tumor")
 
 
 ## ------------------------------------------------
-## Method `omics$feature_glom`
+## Method `omics$feature_merge`
 ## ------------------------------------------------
 
 obj_path <- system.file("extdata", "mock_taxa.rds", package = "OmicFlow", mustWork = TRUE)
 obj <- readRDS(obj_path)
 
-obj$feature_glom(feature_rank = c("Kingdom", "Phylum"))
-obj$feature_glom(feature_rank = "Genus", feature_filter = c("uncultured", "metagenome"))
+obj$feature_merge(feature_rank = c("Kingdom", "Phylum"))
+obj$feature_merge(feature_rank = "Genus", feature_filter = c("uncultured", "metagenome"))
 
 
 ## ------------------------------------------------
@@ -199,7 +228,7 @@ unpaired <- obj$DFE(feature_rank = "Genus",
 \item \href{#method-omics-feature_subset}{\code{omics$feature_subset()}}
 \item \href{#method-omics-sample_subset}{\code{omics$sample_subset()}}
 \item \href{#method-omics-samplepair_subset}{\code{omics$samplepair_subset()}}
-\item \href{#method-omics-feature_glom}{\code{omics$feature_glom()}}
+\item \href{#method-omics-feature_merge}{\code{omics$feature_merge()}}
 \item \href{#method-omics-transform}{\code{omics$transform()}}
 \item \href{#method-omics-normalize}{\code{omics$normalize()}}
 \item \href{#method-omics-rankstat}{\code{omics$rankstat()}}
@@ -413,12 +442,12 @@ object in place
 }
 }
 \if{html}{\out{<hr>}}
-\if{html}{\out{<a id="method-omics-feature_glom"></a>}}
-\if{latex}{\out{\hypertarget{method-omics-feature_glom}{}}}
-\subsection{Method \code{feature_glom()}}{
+\if{html}{\out{<a id="method-omics-feature_merge"></a>}}
+\if{latex}{\out{\hypertarget{method-omics-feature_merge}{}}}
+\subsection{Method \code{feature_merge()}}{
 Agglomerates features by column, automatically applies \href{#method-removeZeros}{\code{removeZeros()}}.
 \subsection{Usage}{
-\if{html}{\out{<div class="r">}}\preformatted{omics$feature_glom(feature_rank, feature_filter = NULL)}\if{html}{\out{</div>}}
+\if{html}{\out{<div class="r">}}\preformatted{omics$feature_merge(feature_rank, feature_filter = NULL)}\if{html}{\out{</div>}}
 }
 
 \subsection{Arguments}{
@@ -438,8 +467,8 @@ object in place
 \preformatted{obj_path <- system.file("extdata", "mock_taxa.rds", package = "OmicFlow", mustWork = TRUE)
 obj <- readRDS(obj_path)
 
-obj$feature_glom(feature_rank = c("Kingdom", "Phylum"))
-obj$feature_glom(feature_rank = "Genus", feature_filter = c("uncultured", "metagenome"))
+obj$feature_merge(feature_rank = c("Kingdom", "Phylum"))
+obj$feature_merge(feature_rank = "Genus", feature_filter = c("uncultured", "metagenome"))
 
 }
 \if{html}{\out{</div>}}
@@ -575,9 +604,6 @@ Alpha diversity based on \link{diversity}
 }
 \if{html}{\out{</div>}}
 }
-\subsection{Returns}{
-A \link[ggplot2]{ggplot} object.
-}
 \subsection{Examples}{
 \if{html}{\out{<div class="r example copy">}}
 \preformatted{library(ggplot2)
@@ -613,7 +639,7 @@ Creates a table most abundant compositional features. Also assigns a color blind
 \subsection{Arguments}{
 \if{html}{\out{<div class="arguments">}}
 \describe{
-\item{\code{feature_rank}}{A character variable in \code{featureData} to aggregate via \href{#method-feature_glom}{\code{feature_glom()}}.}
+\item{\code{feature_rank}}{A character variable in \code{featureData} to aggregate via \href{#method-feature_merge}{\code{feature_merge()}}.}
 
 \item{\code{feature_filter}}{A character or vector of characters to removes features by regex pattern.}
 
@@ -626,9 +652,6 @@ Creates a table most abundant compositional features. Also assigns a color blind
 \item{\code{Brewer.palID}}{A character name for the palette set to be applied, see \link[RColorBrewer]{brewer.pal} or \link{colormap}.}
 }
 \if{html}{\out{</div>}}
-}
-\subsection{Returns}{
-A long \link[data.table]{data.table} table.
 }
 \subsection{Examples}{
 \if{html}{\out{<div class="r example copy">}}
@@ -691,9 +714,6 @@ thus far supports 'bray', 'jaccard' and 'unifrac' when a tree is provided via \c
 }
 \if{html}{\out{</div>}}
 }
-\subsection{Returns}{
-A list of \link[ggplot2]{ggplot} object.
-}
 \subsection{Examples}{
 \if{html}{\out{<div class="r example copy">}}
 \preformatted{library(ggplot2)
@@ -737,7 +757,7 @@ Differential feature expression (DFE) using the \link{foldchange} for both paire
 \subsection{Arguments}{
 \if{html}{\out{<div class="arguments">}}
 \describe{
-\item{\code{feature_rank}}{A character or vector of characters in the \code{featureData} to aggregate via \href{#method-feature_glom}{\code{feature_glom()}}.}
+\item{\code{feature_rank}}{A character or vector of characters in the \code{featureData} to aggregate via \href{#method-feature_merge}{\code{feature_merge()}}.}
 
 \item{\code{feature_filter}}{A character or vector of characters to remove features via regex pattern (Default: NULL).}
 
@@ -758,12 +778,6 @@ Differential feature expression (DFE) using the \link{foldchange} for both paire
 \item{\code{abundance.threshold}}{A numeric value used as an abundance threshold to size the scatter dots based on their mean relative abundance (default: 0.01).}
 }
 \if{html}{\out{</div>}}
-}
-\subsection{Returns}{
-\itemize{
-\item A list of \link[ggplot2]{ggplot} object.
-\item A long \link[data.table]{data.table} table.
-}
 }
 \subsection{Examples}{
 \if{html}{\out{<div class="r example copy">}}
@@ -812,7 +826,7 @@ For now only works with headers that start with prefix \code{CONTRAST_}.
 \describe{
 \item{\code{feature_ranks}}{A character vector as input to \href{#method-rankstat}{\code{rankstat()}}.}
 
-\item{\code{feature_contrast}}{A character vector of feature columns in the \code{featureData} to aggregate via \href{#method-feature_glom}{\code{feature_glom()}}.}
+\item{\code{feature_contrast}}{A character vector of feature columns in the \code{featureData} to aggregate via \href{#method-feature_merge}{\code{feature_merge()}}.}
 
 \item{\code{feature_filter}}{A character vector to filter unwanted features, default: \code{c("uncultured")}}
 
@@ -837,7 +851,7 @@ For now only works with headers that start with prefix \code{CONTRAST_}.
 \if{html}{\out{</div>}}
 }
 \subsection{Returns}{
-A nested list of \link[ggplot2]{ggplot} objects.
+A report in HTML format
 }
 }
 }

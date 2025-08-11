@@ -319,11 +319,11 @@ omics <- R6::R6Class(
     #' obj_path <- system.file("extdata", "mock_taxa.rds", package = "OmicFlow", mustWork = TRUE)
     #' obj <- readRDS(obj_path)
     #' 
-    #' obj$feature_glom(feature_rank = c("Kingdom", "Phylum"))
-    #' obj$feature_glom(feature_rank = "Genus", feature_filter = c("uncultured", "metagenome"))
+    #' obj$feature_merge(feature_rank = c("Kingdom", "Phylum"))
+    #' obj$feature_merge(feature_rank = "Genus", feature_filter = c("uncultured", "metagenome"))
     #'
     #' @return object in place
-    feature_glom = function(feature_rank, feature_filter = NULL) {
+    feature_merge = function(feature_rank, feature_filter = NULL) {
 
       ## Error handling
       #--------------------------------------------------------------------#
@@ -511,7 +511,11 @@ omics <- R6::R6Class(
     #' plt <- obj$alpha_diversity(col_name = "treatment",
     #'                            metric = "shannon")
     #'
-    #' @return A \link[ggplot2]{ggplot} object.
+    #' @returns A list of components:
+    #'  * `div` A \link[base]{data.frame} from \link{diversity}.
+    #'  * `stats` A pairwise statistics from \link[rstatix]{pairwise_wilcox_test}.
+    #'  * `plot` A \link[ggplot2]{ggplot} object.
+    #' 
     #' @seealso \link{diversity_plot}
     alpha_diversity = function(col_name,
                                metric = c("shannon", "invsimpson", "simpson"),
@@ -583,7 +587,7 @@ omics <- R6::R6Class(
     },
     #' @description
     #' Creates a table most abundant compositional features. Also assigns a color blind friendly palette for visualizations.
-    #' @param feature_rank A character variable in `featureData` to aggregate via [`feature_glom()`](#method-feature_glom).
+    #' @param feature_rank A character variable in `featureData` to aggregate via [`feature_merge()`](#method-feature_merge).
     #' @param feature_filter A character or vector of characters to removes features by regex pattern.
     #' @param col_name Optional, a character or vector of characters to add to the final compositional data output.
     #' @param feature_top A wholenumber of the top features to visualize, the max is 15, due to a limit of palettes.
@@ -603,7 +607,10 @@ omics <- R6::R6Class(
     #'                         palette = result$palette,
     #'                         feature_rank = "Genus")
     #'
-    #' @return A long \link[data.table]{data.table} table.
+    #' @returns A list of components:
+    #'  * `data` A \link[data.table]{data.table} of feature compositions.
+    #'  * `palette` A \link[stats]{setNames} palette from \link{colormap}.
+    #' 
     #' @seealso \link{composition_plot}
     composition = function(feature_rank,
                            feature_filter = NULL,
@@ -651,13 +658,13 @@ omics <- R6::R6Class(
         self$normalize()
 
       # Agglomerate by feature_rank
-      self$feature_glom(feature_rank = feature_rank, feature_filter = feature_filter)
+      self$feature_merge(feature_rank = feature_rank, feature_filter = feature_filter)
 
       # Remove NAs when col_name is specified
       if (!is.null(col_name))
         self$removeNAs(col_name)
 
-      # Convert sparse matrix to data.table (safe since feature_glom shrinks the sparse matrix)
+      # Convert sparse matrix to data.table
       counts <- sparse_to_dtable(self$countData)
 
       # Fetch unfiltered and filtered features
@@ -745,7 +752,14 @@ omics <- R6::R6Class(
     #'                              normalize = TRUE)
     #' pcoa_plots
     #'
-    #' @return A list of \link[ggplot2]{ggplot} object.
+    #' @returns A list of components:
+    #'  * `distmat` A distance dissimilarity in \link[base]{matrix} format.
+    #'  * `stats` A statistical test as a \link[base]{data.frame}.
+    #'  * `pcs` principal components as a \link[base]{data.frame}.
+    #'  * `scree_plot` A \link[ggplot2]{ggplot} object.
+    #'  * `anova_plot` A \link[ggplot2]{ggplot} object.
+    #'  * `scores_plot` A \link[ggplot2]{ggplot} object.
+    #' 
     #' @seealso \link{ordination_plot}, \link{plot_pairwise_stats}, \link{pairwise_anosim}, \link{pairwise_adonis}
     ordination = function(metric = c("bray", "jaccard", "unifrac"),
                           method = c("pcoa", "nmds"),
@@ -838,7 +852,7 @@ omics <- R6::R6Class(
           )
       )
 
-      plot_list$dist <- distmat
+      plot_list$dist <- as.matrix(distmat)
 
       # Switch case to compute loading scores
       pcs <- switch(
@@ -871,7 +885,7 @@ omics <- R6::R6Class(
         df_pcs_points <- data.table::data.table(pcs$points)
         df_pcs_points$stress <- pcs$stress
       }
-      plot_list$pcs <- pcs
+      plot_list$pcs <- df_pcs_points
 
       # Adds relevant data
       df_pcs_points[, groups := self$metaData[[ group_by ]] ]
@@ -934,7 +948,7 @@ omics <- R6::R6Class(
     },
     #' @description
     #' Differential feature expression (DFE) using the \link{foldchange} for both paired and non-paired test.
-    #' @param feature_rank A character or vector of characters in the `featureData` to aggregate via [`feature_glom()`](#method-feature_glom).
+    #' @param feature_rank A character or vector of characters in the `featureData` to aggregate via [`feature_merge()`](#method-feature_merge).
     #' @param feature_filter A character or vector of characters to remove features via regex pattern (Default: NULL).
     #' @param paired A boolean value, the paired is only applicable when a `SAMPLEPAIR_ID` column exists within the `metaData`. See \link[stats]{wilcox.test} and [`samplepair_subset()`](#method-samplepair_subset).
     #' @param condition.group A character variable of an existing column name in `metaData`, wherein the conditions A and B are located.
@@ -956,9 +970,10 @@ omics <- R6::R6Class(
     #'                     condition_A = c("healthy"),
     #'                     condition_B = c("tumor"))
     #'
-    #' @return
-    #' * A list of \link[ggplot2]{ggplot} object.
-    #' * A long \link[data.table]{data.table} table.
+    #' @returns
+    #'  * `dfe` A long \link[data.table]{data.table} table.
+    #'  * `volcano_plot` A \link[ggplot2]{ggplot} object.
+    #'
     #' @seealso \link{volcano_plot}, \link{foldchange}
     DFE = function(feature_rank,
                    feature_filter = NULL,
@@ -1029,7 +1044,7 @@ omics <- R6::R6Class(
         self$samplepair_subset()
 
       # Agglomerate taxa by feature rank and filter unwanted taxa
-      self$feature_glom(feature_rank = feature_rank,
+      self$feature_merge(feature_rank = feature_rank,
                         feature_filter = feature_filter)
 
       # Extract mean relative abundance
@@ -1091,7 +1106,7 @@ omics <- R6::R6Class(
     #' Automated Omics Analysis based on the `metaData`, see [`validate()`](#method-validate).
     #' For now only works with headers that start with prefix `CONTRAST_`.
     #' @param feature_ranks A character vector as input to [`rankstat()`](#method-rankstat).
-    #' @param feature_contrast A character vector of feature columns in the `featureData` to aggregate via [`feature_glom()`](#method-feature_glom).
+    #' @param feature_contrast A character vector of feature columns in the `featureData` to aggregate via [`feature_merge()`](#method-feature_merge).
     #' @param feature_filter A character vector to filter unwanted features, default: \code{c("uncultured")}
     #' @param distance_metrics A character vector specifying what (dis)similarity metrics to use, default \code{c("unifrac")}
     #' @param beta_div_table A path to pre-computed distance matrix, expects tsv/csv/txt file.
@@ -1103,7 +1118,7 @@ omics <- R6::R6Class(
     #' @param cpus Number of cores to use, only used in [`ordination()`](#method-ordination) when beta_div_table is not supplied.
     #' @param filename A character to name the HTML report, it can also be a filepath (e.g. \code{"/path/to/report.html"}). Default: "report.html" in your current work directory.
     #'
-    #' @return A nested list of \link[ggplot2]{ggplot} objects.
+    #' @return A report in HTML format
     autoFlow = function(feature_ranks = c("Kingdom", "Phylum", "Class", "Order", "Family", "Genus", "Species"),
                         feature_contrast = c("Phylum", "Family", "Genus"),
                         feature_filter = c("uncultured"),
@@ -1153,8 +1168,9 @@ omics <- R6::R6Class(
       }
     }
 
-    # Plot results as list
+    # Creates empty plots and data list
     plots <- list()
+    data <- list()
     
     # Save omics class components
     private$tmp_link(
@@ -1212,6 +1228,13 @@ omics <- R6::R6Class(
       pcoa_plots <- matrix(list(), CONTRAST_ncol, metrics_nrow)
       nmds_plots <- matrix(list(), CONTRAST_ncol, metrics_nrow)
 
+      # Initialize data containers
+      composition_data <- matrix(list(), CONTRAST_ncol, feature_nrow)
+      Log2FC_data <- matrix(list(), CONTRAST_ncol, feature_nrow)
+      alpha_div_data <- list()
+      pcoa_data <- matrix(list(), CONTRAST_ncol, metrics_nrow)
+      nmds_data <- matrix(list(), CONTRAST_ncol, metrics_nrow)
+
       for (i in 1:CONTRAST_ncol) {
         col_name <- CONTRAST_names[i]
         conditions <- NULL
@@ -1255,8 +1278,11 @@ omics <- R6::R6Class(
           )
         }
         
-        ## Save plots and identify significant groups for composition plots & volcano plots
+        ## Save plots & data
         alpha_div_plots[[i]] <- res$plot
+        alpha_div_data[[i]] <- list(data = res$data, stats = res$stats)
+
+        ### Identify significant groups for composition plots & volcano plots
         signif_pairs <- res$stats[res$stats$p.adj < pvalue.threshold, ][c("group1", "group2")]
         if (nrow(signif_pairs) > 0)
           conditions <- signif_pairs
@@ -1299,10 +1325,16 @@ omics <- R6::R6Class(
             conditions <- combine_conditions(conditions, signif_pairs)
           }
           
+          ### Store plot and data
           pcoa_plots[[i, j]] <- patchwork::wrap_plots(res[c("scree_plot", "anova_plot", "scores_plot")],
                                                       nrow = 1) +
             patchwork::plot_layout(widths = c(rep(5, 3)),
                                    guides = "collect")
+          pcoa_data[[i, j]] <- list(
+            stats = res$anova_data,
+            dist_mat = res$dist,
+            pcs = res$pcs
+          )
 
           # Creates temporary plot results for NMDS
           if (inherits(beta_div_table, "Matrix")) {
@@ -1337,10 +1369,16 @@ omics <- R6::R6Class(
             conditions <- combine_conditions(conditions, signif_pairs)
           }      
 
+          ### Store plot and data
           nmds_plots[[i, j]] <- patchwork::wrap_plots(res[c("anova_plot", "scores_plot")],
                                                       nrow = 1) +
             patchwork::plot_layout(widths = c(rep(5, 3)),
                                    guides = "collect")
+          nmds_data[[i, j]] <- list(
+            stats = res$anova_data,
+            dist_mat = res$dist,
+            pcs = res$pcs
+          )
         }
       
         #--------------------------------------------------------------------#
@@ -1356,13 +1394,14 @@ omics <- R6::R6Class(
             normalize = normalize,
             col_name = col_name
             )
-          # Creates composition ggplot as list
+          # Creates composition ggplot and stores plot with data
           composition_plots[[i, j]] <- composition_plot(
             data = res$data,
             palette = res$palette,
             feature_rank = feature_contrast[j],
             group_by = col_name
             )
+          composition_data[[i, j]] <- list(data = res$data)
           
           if (!is.null(conditions) && nrow(conditions) > 0) {
 
@@ -1391,17 +1430,26 @@ omics <- R6::R6Class(
                   condition_B = c(conditions$group2)
                   )
               }
-            )   
+            )  
             Log2FC_plots[[i, j]] <- patchwork::wrap_plots(dfe$volcano_plot, nrow=1)
+            Log2FC_data[[i, j]] <- list(data = dfe$data)
           }
         }
       }
       
+      # Checks if plots aren't empty
       plots$alpha_div_plots <- is_empty(alpha_div_plots)
       plots$composition_plots <- is_empty(composition_plots)
       plots$Log2FC_plots <- is_empty(Log2FC_plots)
       plots$pcoa_plots <- is_empty(pcoa_plots)
       plots$nmds_plots <- is_empty(nmds_plots)
+
+      # Checks if data aren't empty
+      data$composition_data <- is_empty(composition_data)
+      data$Log2FC_data <- is_empty(Log2FC_data)
+      data$alpha_div_data <- is_empty(alpha_div_data)
+      data$pcoa_data <- is_empty(pcoa_data)
+      data$nmds_data <- is_empty(nmds_data)
     }
     
     #--------------------------------------------------------------------#
