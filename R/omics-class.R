@@ -1130,7 +1130,7 @@ omics <- R6::R6Class(
                         pvalue.threshold = 0.05,
                         perm = 999,
                         cpus = 1,
-                        filename = "report.html"
+                        filename = paste0(getwd(), "report.html")
                       ) {
     ## Error handling
     #--------------------------------------------------------------------#
@@ -1460,10 +1460,21 @@ omics <- R6::R6Class(
     rmd_path <- system.file("report.Rmd", package = "OmicFlow")
     css_path <- system.file("styles.css", package = "OmicFlow")
 
+    ## To bypass R CMD error and define for docker
+    is_r_cmd_check <- nzchar(Sys.getenv("_R_CHECK_PACKAGE_NAME_", ""))
+    if (is_r_cmd_check) {
+      intermediate_dir <- NULL
+      root_dir <- NULL
+    } else {
+      intermediate_dir <- dirname(filename)
+      root_dir <- dirname(filename)
+    }
+    
     rmarkdown::render(
       input = rmd_path,
       output_file = filename,
-      knit_root_dir = dirname(filename),
+      intermediates_dir = intermediate_dir,
+      knit_root_dir = root_dir,
       output_options = list(css = css_path)
     )
   }
