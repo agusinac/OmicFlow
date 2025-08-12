@@ -1130,7 +1130,7 @@ omics <- R6::R6Class(
                         pvalue.threshold = 0.05,
                         perm = 999,
                         cpus = 1,
-                        filename = paste0(getwd(),"/report.html")
+                        filename = "report.html"
                       ) {
     ## Error handling
     #--------------------------------------------------------------------#
@@ -1463,6 +1463,7 @@ omics <- R6::R6Class(
     rmarkdown::render(
       input = rmd_path,
       output_file = filename,
+      knit_root_dir = dirname(filename),
       output_options = list(css = css_path)
     )
   }

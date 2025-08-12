@@ -28,32 +28,6 @@
 ```
 
 
-## doParallel
-
-```
-@Manual{,
-  title = {doParallel: Foreach Parallel Adaptor for the 'parallel' Package},
-  author = {Microsoft Corporation and Steve Weston},
-  year = {2022},
-  note = {R package version 1.0.17},
-  url = {https://CRAN.R-project.org/package=doParallel},
-}
-```
-
-
-## dplyr
-
-```
-@Manual{,
-  title = {dplyr: A Grammar of Data Manipulation},
-  author = {Hadley Wickham and Romain François and Lionel Henry and Kirill Müller and Davis Vaughan},
-  year = {2023},
-  note = {R package version 1.1.4},
-  url = {https://CRAN.R-project.org/package=dplyr},
-}
-```
-
-
 ## gghalves
 
 ```
@@ -67,16 +41,15 @@
 ```
 
 
-## ggplot2
+## ggpubr
 
 ```
-@Book{,
-  author = {Hadley Wickham},
-  title = {ggplot2: Elegant Graphics for Data Analysis},
-  publisher = {Springer-Verlag New York},
-  year = {2016},
-  isbn = {978-3-319-24277-4},
-  url = {https://ggplot2.tidyverse.org},
+@Manual{,
+  title = {ggpubr: 'ggplot2' Based Publication Ready Plots},
+  author = {Alboukadel Kassambara},
+  year = {2025},
+  note = {R package version 0.6.1},
+  url = {https://CRAN.R-project.org/package=ggpubr},
 }
 ```
 
@@ -91,6 +64,32 @@
   year = {2024},
   note = {R package version 0.9.6},
   url = {https://CRAN.R-project.org/package=ggrepel},
+}
+```
+
+
+## jsonlite
+
+```
+@Article{,
+  title = {The jsonlite Package: A Practical and Consistent Mapping Between JSON Data and R Objects},
+  author = {Jeroen Ooms},
+  journal = {arXiv:1403.2805 [stat.CO]},
+  year = {2014},
+  url = {https://arxiv.org/abs/1403.2805},
+}
+```
+
+
+## jsonvalidate
+
+```
+@Manual{,
+  title = {jsonvalidate: Validate 'JSON' Schema},
+  author = {Rich FitzJohn and Rob Ashton and Mathias Buus and Evgeny Poberezkin},
+  year = {2025},
+  note = {R package version 1.5.0},
+  url = {https://CRAN.R-project.org/package=jsonvalidate},
 }
 ```
 
@@ -117,33 +116,6 @@
   year = {2024},
   note = {R package version 1.6-5},
   url = {https://CRAN.R-project.org/package=Matrix},
-}
-```
-
-
-## optparse
-
-```
-@Manual{,
-  title = {optparse: Command Line Option Parser},
-  author = {Trevor L. Davis},
-  year = {2024},
-  note = {R package version 1.7.5},
-  url = {https://CRAN.R-project.org/package=optparse},
-}
-```
-
-
-## parallel
-
-```
-@Manual{,
-  title = {R: A Language and Environment for Statistical Computing},
-  author = {{R Core Team}},
-  organization = {R Foundation for Statistical Computing},
-  address = {Vienna, Austria},
-  year = {2024},
-  url = {https://www.R-project.org/},
 }
 ```
 
@@ -227,7 +199,80 @@
 ```
 
 
+## rmarkdown
+
+```
+@Manual{,
+  title = {rmarkdown: Dynamic Documents for R},
+  author = {JJ Allaire and Yihui Xie and Christophe Dervieux and Jonathan McPherson and Javier Luraschi and Kevin Ushey and Aron Atkins and Hadley Wickham and Joe Cheng and Winston Chang and Richard Iannone},
+  year = {2024},
+  note = {R package version 2.29},
+  url = {https://github.com/rstudio/rmarkdown},
+}
+
+@Book{,
+  title = {R Markdown: The Definitive Guide},
+  author = {Yihui Xie and J.J. Allaire and Garrett Grolemund},
+  publisher = {Chapman and Hall/CRC},
+  address = {Boca Raton, Florida},
+  year = {2018},
+  isbn = {9781138359338},
+  url = {https://bookdown.org/yihui/rmarkdown},
+}
+
+@Book{,
+  title = {R Markdown Cookbook},
+  author = {Yihui Xie and Christophe Dervieux and Emily Riederer},
+  publisher = {Chapman and Hall/CRC},
+  address = {Boca Raton, Florida},
+  year = {2020},
+  isbn = {9780367563837},
+  url = {https://bookdown.org/yihui/rmarkdown-cookbook},
+}
+```
+
+
+## rstatix
+
+```
+@Manual{,
+  title = {rstatix: Pipe-Friendly Framework for Basic Statistical Tests},
+  author = {Alboukadel Kassambara},
+  year = {2023},
+  note = {R package version 0.7.2},
+  url = {https://CRAN.R-project.org/package=rstatix},
+}
+```
+
+
+## slam
+
+```
+@Manual{,
+  title = {slam: Sparse Lightweight Arrays and Matrices},
+  author = {Kurt Hornik and David Meyer and Christian Buchta},
+  year = {2024},
+  note = {R package version 0.1-55},
+  url = {https://CRAN.R-project.org/package=slam},
+}
+```
+
+
 ## stats
+
+```
+@Manual{,
+  title = {R: A Language and Environment for Statistical Computing},
+  author = {{R Core Team}},
+  organization = {R Foundation for Statistical Computing},
+  address = {Vienna, Austria},
+  year = {2024},
+  url = {https://www.R-project.org/},
+}
+```
+
+
+## tools
 
 ```
 @Manual{,
@@ -260,9 +305,9 @@
 ```
 @Manual{,
   title = {vegan: Community Ecology Package},
-  author = {Jari Oksanen and Gavin L. Simpson and F. Guillaume Blanchet and Roeland Kindt and Pierre Legendre and Peter R. Minchin and R.B. O'Hara and Peter Solymos and M. Henry H. Stevens and Eduard Szoecs and Helene Wagner and Matt Barbour and Michael Bedward and Ben Bolker and Daniel Borcard and Gustavo Carvalho and Michael Chirico and Miquel {De Caceres} and Sebastien Durand and Heloisa Beatriz Antoniazi Evangelista and Rich FitzJohn and Michael Friendly and Brendan Furneaux and Geoffrey Hannigan and Mark O. Hill and Leo Lahti and Dan McGlinn and Marie-Helene Ouellette and Eduardo {Ribeiro Cunha} and Tyler Smith and Adrian Stier and Cajo J.F. {Ter Braak} and James Weedon and Tuomas Borman},
+  author = {Jari Oksanen and Gavin L. Simpson and F. Guillaume Blanchet and Roeland Kindt and Pierre Legendre and Peter R. Minchin and R.B. O'Hara and Peter Solymos and M. Henry H. Stevens and Eduard Szoecs and Helene Wagner and Matt Barbour and Michael Bedward and Ben Bolker and Daniel Borcard and Tuomas Borman and Gustavo Carvalho and Michael Chirico and Miquel {De Caceres} and Sebastien Durand and Heloisa Beatriz Antoniazi Evangelista and Rich FitzJohn and Michael Friendly and Brendan Furneaux and Geoffrey Hannigan and Mark O. Hill and Leo Lahti and Cameron Martino and Dan McGlinn and Marie-Helene Ouellette and Eduardo {Ribeiro Cunha} and Tyler Smith and Adrian Stier and Cajo J.F. {Ter Braak} and James Weedon},
   year = {2025},
-  note = {R package version 2.6-10},
+  note = {R package version 2.7-1},
   url = {https://CRAN.R-project.org/package=vegan},
 }
 ```
@@ -282,16 +327,40 @@
 ```
 
 
-## cli
+## yyjsonr
 
 ```
 @Manual{,
-  title = {cli: Helpers for Developing Command Line Interfaces},
-  author = {Gábor Csárdi},
-  year = {2023},
-  note = {R package version 3.6.2},
-  url = {https://CRAN.R-project.org/package=cli},
+  title = {yyjsonr: Fast 'JSON', 'NDJSON' and 'GeoJSON' Parser and Generator},
+  author = {Mike Cheng and Yao Yuan},
+  year = {2025},
+  note = {R package version 0.1.21},
+  url = {https://CRAN.R-project.org/package=yyjsonr},
 }
 ```
 
 
+## downloadthis
+
+```
+@Manual{,
+  title = {downloadthis: Implement Download Buttons in 'rmarkdown'},
+  author = {Felipe {Mattioni Maturana}},
+  year = {2025},
+  note = {R package version 0.5.0},
+  url = {https://CRAN.R-project.org/package=downloadthis},
+}
+```
+
+
+## DT
+
+```
+@Manual{,
+  title = {DT: A Wrapper of the JavaScript Library 'DataTables'},
+  author = {Yihui Xie and Joe Cheng and Xianying Tan},
+  year = {2024},
+  note = {R package version 0.33},
+  url = {https://CRAN.R-project.org/package=DT},
+}
+```

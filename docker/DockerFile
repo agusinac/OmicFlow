@@ -1,22 +1,12 @@
 #------------------------------------------------------------------------------------#
 #
-#   Created by Alem Gusinac, last modified at 24-12-2024
+#   Created by Alem Gusinac, last modified at 12-08-2025
 #
-#   This Dockerfile creates a container suitable for r-base:latest and Qiime2
 #   It builds on top of a slim ubuntu (70MB) base
-#
-#   Current available setups by section:
-#       1. lib dependencies
-#       2. R packages
-#
-#   Additional setups can be included after the latest section
-#   It is important to include lib/pkgs for your setup in the first section
 #
 #------------------------------------------------------------------------------------#
 
 FROM ubuntu:20.04
-
-ARG USER=docker
 
 # set environment without graphical interface
 ENV DEBIAN_FRONTEND=noninteractive
@@ -64,8 +54,6 @@ RUN apt-get update && apt-get install -y r-base
 
 # Copy requirements
 COPY install2.r .
-COPY installBioc.r .
-COPY installGithub.r .
 
 # Required package for install2.r
 RUN R -e "install.packages('docopt', dependencies=TRUE)"
@@ -74,47 +62,28 @@ RUN R -e "install.packages('docopt', dependencies=TRUE)"
 RUN Rscript install2.r --error --skipinstalled \
     remotes \
     devtools \
-    BiocManager \
+    pak \
     b64 \
+    ggplot2 \ 
+    cli \
+    optparse \
     && rm -rf /tmp/downloaded_packages
 
 # R dependencies from CRAN
-RUN Rscript install2.r --error --skipinstalled \
-    ape \
-    data.table \
-    doParallel \
-    dplyr \
-    downloadthis \
-    DT \
-    foreach \
-    gghalves \
-    ggplot2 \
-    ggrepel \
-    ggpubr \
-    kableExtra \
-    magrittr \
-    Matrix \
-    optparse \
-    parallel \
-    patchwork \
-    purrr \
-    R6 \
-    rbiom \
-    RColorBrewer \
-    stats \
-    utils \
-    vegan \
-    viridis \
-    && rm -rf /tmp/downloaded_packages
+RUN R -e "pak::pak('agusinac/OmicFlow')"
 
-RUN Rscript installBioc.r --error --skipinstalled \
-    rhdf5 \
-    ggtree \
-    && rm -rf /tmp/downloaded_packages
+# Make autoFlow.R directly callable from /usr/local/bin
+RUN ln -s "$(Rscript -e 'cat(system.file("exec", "autoFlow.R", package = "OmicFlow"))')" /usr/local/bin/autoflow \
+    && chmod +x /usr/local/bin/autoflow
 
 #------------------------------------------------------------------------------------#
-# Final steps
+# 3. non-root user
 #------------------------------------------------------------------------------------#
 
-RUN useradd -ms /bin/bash ${USER}
-USER ${USER}
+ARG USERNAME=docker
+ARG USER_UID=1000
+ARG USER_GID=$USER_UID
+
+# Create the user
+RUN groupadd --gid $USER_GID $USERNAME \
+    && useradd --uid $USER_UID --gid $USER_GID -m $USERNAME \

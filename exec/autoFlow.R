@@ -26,12 +26,13 @@ option_list <- list (
   optparse::make_option(c("-t", "--tree"),
                         action = "store",
                         type = "character",
-                        help="Phylogenetic tree in newick format, should be supported by `ape::read.tree`"),
+                        help="Phylogenetic tree in newick format, should be supported by `ape::read.tree` (OPTIONAL, default: NULL)",
+                        default = NULL),
   optparse::make_option(c("-o", "--outdir"),
                         action = "store",
                         type = "character",
                         help="The directory to write the report, by default the current path is used.",
-                        default = normalizePath(getwd())),
+                        default = getwd()),
   optparse::make_option(c("-f", "--filename"),
                         action = "store",
                         type = "character",
@@ -63,8 +64,6 @@ parser <- optparse::OptionParser(
   )
 args <- optparse::parse_args(parser, positional_arguments=TRUE)
 
-print(args$options)
-
 ## Set threads for data.table
 data.table::setDTthreads(threads = args$options$threads)
 
@@ -74,7 +73,7 @@ if (args$options$omics == "metagenomics") {
   tax <- metagenomics$new(
     metaData = args$options$metadata,
     biomData = args$options$biom,
-    treeData = ifelse(!is.null(args$options$tree), args$options$tree, NULL)
+    treeData = args$options$tree
   )
   tax$feature_subset(Kingdom == "Bacteria")
   tax$normalize()
@@ -85,7 +84,7 @@ if (args$options$omics == "metagenomics") {
     alpha_div_table = args$options$`i-alpha-div`,
     cpus = args$options$cpus,
     normalize = FALSE,
-    filename = paste0(args$options$outdir, "/", args$options$filename)
+    filename = file.path(args$options$outdir, args$options$filename)
   )
   
 } else {

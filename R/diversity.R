@@ -67,8 +67,8 @@ diversity <- function(x,
   ## MAIN
   #--------------------------------------------------------------------#
 
+  total <- rep(Matrix::colSums(x), base::diff(x@p))
   if (normalize) {
-    total <- rep(Matrix::colSums(x), base::diff(x@p))
     x@x <- x@x / total
   }
 
