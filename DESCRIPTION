@@ -15,7 +15,7 @@ Description:
     Omics data can be very sparse, containing many zero's and consists out of multiple files. This package only requires a metadata filled in by the user,
     which serves as a guide to connect all the pieces together by aligning them into a single object that is defined as an omics class. The OmicFlow offers
     simple subsetting and transforming functions, alpha-, beta diversity and differential feature expression computations and visualisations. The autoFlow is capable 
-    to create an initial analysis based on the supplied metadata. This toolkit and initial analysis may serve the user to fast and efficiently load and 
+    to create an initial analysis based on the supplied metadata. This toolkit and initial analysis may serve a fast and efficient approach to load and 
     visualize some initial analysis before moving to more complex analysis.
 License: MIT + file LICENSE
 URL: https://github.com/agusinac/OmicFlow
