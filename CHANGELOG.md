@@ -3,14 +3,20 @@
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/)
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
-## v1.3.0 - [2025-08-11]
+## v1.3.0 - [2025-08-13]
 
 ### `Added`
-- `autoFlow` and `report.md` now contain downloadable data [#11](https://github.com/agusinac/OmicFlow/issues/11)
+- Docker support for R package `autoflow` [#10](https://github.com/agusinac/OmicFlow/issues/10)
 
 ### `Changed`
+- `autoFlow` and `report.md` now contain downloadable data [#11](https://github.com/agusinac/OmicFlow/issues/11)
 - Renamed `feature_glom` to `feature_merge`
-- Added returns documentation
+- Added `@returns` documentation in manuals
+- Updated `citations.md`
+- Finalized `readme.md`
+
+### `Fixed`
+- working directory is set to current working directory in `rmarkdown::render` (compatible in docker/bioconda etc.)
 
 ## v1.2.1 - [2025-08-05]
 
