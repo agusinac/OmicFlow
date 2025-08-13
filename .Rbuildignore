@@ -1,6 +1,6 @@
 ^.gitignore
 ^docker
-^dev
+^docs
 ^.Rhistory
 ^\.github$
 ^LICENSE\.md$
