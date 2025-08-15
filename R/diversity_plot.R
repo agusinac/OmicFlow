@@ -11,6 +11,9 @@
 #' @param p.adjust.method A character variable to specify the p.adjust.method to be used (Default: fdr).
 #' @return A \link[ggplot2]{ggplot2} object to be further modified
 #'
+#' @importFrom ggplot2 ggplot aes .data theme_bw theme element_text scale_colour_manual labs
+#' @importFrom stats p.adjust.methods
+#' 
 #' @examples
 #' library("ggplot2")
 #'  
@@ -73,7 +76,7 @@ diversity_plot <- function(data,
   if (!is.character(palette))
     cli::cli_abort("{palette} needs to contain characters.")
 
-  if (!is.character(method) && length(feature_rank) != 1)
+  if (!is.character(method) && length(method) != 1)
     cli::cli_abort("{method} needs to contain characters with length of 1.")
 
   if (!is.character(values) && length(values) != 1) {

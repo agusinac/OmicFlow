@@ -1,5 +1,5 @@
 test_that("Writes biom in expected format", {
-    output_file <- "test.biom"
+    output_file <- paste0(getwd(),"/test.biom")
 
     taxa <- metagenomics$new(
         biomData = "input/metagenomics/biom_with_taxonomy_hdf5.biom",
@@ -17,6 +17,5 @@ test_that("Writes biom in expected format", {
     )
     
     expect_equal(taxa$print(), taxa1$print())
-
     file.remove(output_file)
 })

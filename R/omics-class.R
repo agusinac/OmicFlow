@@ -7,6 +7,9 @@
 #' Every class is created with the \link[R6]{R6Class} method. Methods are either public or private, and only the public components are inherited by other omic classes.
 #' The omics class by default uses a \link[Matrix]{sparseMatrix} and \link[data.table]{data.table} data structures for quick and efficient data manipulation and returns the object by reference, same as the R6 class.
 #' The method by reference is very efficient when dealing with big data.
+#' @import R6 Matrix
+#' @importFrom jsonlite toJSON
+#' @importFrom jsonvalidate json_validate
 #' @export
 
 omics <- R6::R6Class(
@@ -593,6 +596,7 @@ omics <- R6::R6Class(
     #' @param feature_top A wholenumber of the top features to visualize, the max is 15, due to a limit of palettes.
     #' @param normalize A boolean value, whether to [`normalize()`](#method-normalize) by total sample sums (Default: TRUE).
     #' @param Brewer.palID A character name for the palette set to be applied, see \link[RColorBrewer]{brewer.pal} or \link{colormap}.
+    #' @importFrom viridis viridis
     #' @examples
     #' library(ggplot2)
     #' 
@@ -686,7 +690,7 @@ omics <- R6::R6Class(
       # Creates palette
       df_taxa_len <- length(final_dt[[feature_rank]])
       if (Brewer.palID == FALSE) {
-        chosen_palette <- viridis::viridis(df_taxa_len - 1)
+        chosen_palette <- viridis(df_taxa_len - 1)
       } else if (df_taxa_len-1 <= 15 && df_taxa_len-1 > 10) {
         chosen_palette <- c("#000000","#004949","#009292","#ff6db6","#ffb6db",
                             "#490092","#006ddb","#b66dff","#6db6ff","#b6dbff",
@@ -739,6 +743,9 @@ omics <- R6::R6Class(
     #' @param normalize A boolean value, whether to [`normalize()`](#method-normalize) by total sample sums (Default: TRUE).
     #' @param cpus A wholenumber, indicating the number of processes to spawn (Default: 1) in \link[rbiom]{bdiv_distmat}.
     #' @param perm A wholenumber, number of permutations to compare against the null hypothesis of \link[vegan]{adonis2} and \link[vegan]{anosim} (default: \code{perm=999}).
+    #' @importFrom purrr map
+    #' @importFrom rbiom bdiv_distmat
+    #' @importFrom slam as.simple_triplet_matrix
     #' @examples
     #' library(ggplot2)
     #' 
@@ -1117,7 +1124,7 @@ omics <- R6::R6Class(
     #' @param perm A wholenumber, number of permutations to compare against the null hypothesis of \link[vegan]{adonis2} or \link[vegan]{anosim} (default: \code{perm=999}).
     #' @param cpus Number of cores to use, only used in [`ordination()`](#method-ordination) when beta_div_table is not supplied.
     #' @param filename A character to name the HTML report, it can also be a filepath (e.g. \code{"/path/to/report.html"}). Default: "report.html" in your current work directory.
-    #'
+    #' @importFrom patchwork plot_layout wrap_plots
     #' @return A report in HTML format
     autoFlow = function(feature_ranks = c("Kingdom", "Phylum", "Class", "Order", "Family", "Genus", "Species"),
                         feature_contrast = c("Phylum", "Family", "Genus"),

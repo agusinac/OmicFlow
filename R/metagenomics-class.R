@@ -2,10 +2,15 @@
 #'
 #' @description This is a sub-class that is compatible to data obtained from either 16S rRNA marker-gene sequencing or shot-gun metagenomics sequencing.
 #' It inherits all methods from the abstract class \link{omics} and only adapts the \code{initialize} function.
-#' It supports BIOM format data (v2.1.0 from http://biom-format.org/) in both HDF5 and JSON format, also pre-existing data structures can be used or text files.
+#' It supports BIOM format data (v2.1.0 from \url{http://biom-format.org/}) in both HDF5 and JSON format, also pre-existing data structures can be used or text files.
 #' When omics data is very large, data loading becomes very expensive. It is therefore recommended to use the [`reset()`](#method-reset) method to reset your changes.
 #' Every omics class creates an internal memory efficient back-up of the data, the resetting of changes is an instant process.
 #' @seealso \link{omics}
+#' @import R6 rhdf5 Matrix
+#' @importFrom ape read.tree
+#' @importFrom tools file_ext
+#' @importFrom yyjsonr validate_json_file
+#' @importFrom jsonlite read_json
 #' @export
 
 metagenomics <- R6::R6Class(
@@ -200,6 +205,7 @@ metagenomics <- R6::R6Class(
     #' @description
     #' Removes empty (zero) values by row, column and tips from the `countData` and `treeData`.
     #' This method is performed automatically during subsetting of the object.
+    #' @importFrom ape keep.tip
     #' @examples
     #' taxa_path <- system.file("extdata", "mock_taxa.rds", package = "OmicFlow", mustWork = TRUE)
     #' taxa <- readRDS(taxa_path)
@@ -217,7 +223,7 @@ metagenomics <- R6::R6Class(
       invisible(self)
     },
     #' @description
-    #' Creates a BIOM file in HDF5 format of the loaded items via ['new()']{#method-new}, which is compatible to the python biom-format version 2.1, see http://biom-format.org.
+    #' Creates a BIOM file in HDF5 format of the loaded items via ['new()'](#method-new), which is compatible to the python biom-format version 2.1, see http://biom-format.org.
     #' @param filename A character variable of either the full path of filename of the biom file (e.g. `output.biom`)
     #' @examples
     #' taxa_path <- system.file("extdata", "mock_taxa.rds", package = "OmicFlow", mustWork = TRUE)

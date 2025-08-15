@@ -6,7 +6,7 @@
 \description{
 This is a sub-class that is compatible to data obtained from either 16S rRNA marker-gene sequencing or shot-gun metagenomics sequencing.
 It inherits all methods from the abstract class \link{omics} and only adapts the \code{initialize} function.
-It supports BIOM format data (v2.1.0 from http://biom-format.org/) in both HDF5 and JSON format, also pre-existing data structures can be used or text files.
+It supports BIOM format data (v2.1.0 from \url{http://biom-format.org/}) in both HDF5 and JSON format, also pre-existing data structures can be used or text files.
 When omics data is very large, data loading becomes very expensive. It is therefore recommended to use the \href{#method-reset}{\code{reset()}} method to reset your changes.
 Every omics class creates an internal memory efficient back-up of the data, the resetting of changes is an instant process.
 }
@@ -256,7 +256,7 @@ taxa$removeZeros()
 \if{html}{\out{<a id="method-metagenomics-write_biom"></a>}}
 \if{latex}{\out{\hypertarget{method-metagenomics-write_biom}{}}}
 \subsection{Method \code{write_biom()}}{
-Creates a BIOM file in HDF5 format of the loaded items via ['new()']{#method-new}, which is compatible to the python biom-format version 2.1, see http://biom-format.org.
+Creates a BIOM file in HDF5 format of the loaded items via \href{#method-new}{'new()'}, which is compatible to the python biom-format version 2.1, see http://biom-format.org.
 \subsection{Usage}{
 \if{html}{\out{<div class="r">}}\preformatted{metagenomics$write_biom(filename)}\if{html}{\out{</div>}}
 }

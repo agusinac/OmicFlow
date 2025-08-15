@@ -18,7 +18,8 @@
 #'  * R2 of H_0
 #'  * p value of F^p > F
 #'  * p adjusted
-#'@examples 
+#' @importFrom stats p.adjust.methods
+#' @examples 
 #' # Create random data
 #' set.seed(42)
 #' mock_data <- matrix(rnorm(15 * 10), nrow = 15, ncol = 10)

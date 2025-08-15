@@ -23,9 +23,7 @@ pak::pak('agusinac/OmicFlow')
 
 ## 📋 Metadata File Specification
 
-OmicFlow expects your sample metadata to follow a **simple, but strict** structure so that all datasets are compatible and validated up‑front.  
-Your metadata should be provided as a **CSV (or TSV)** file where **each row = one sample** and the first line should be a header.
-Additional columns are allowed and will be ignored during the metadata validation step.
+OmicFlow expects your sample metadata to follow a **simple, but strict** structure so that all datasets are compatible and validated up‑front. Sample metadata can be supplied as a **CSV/TSV** file or as a `data.table` in R. In both cases the sample metadata should contain a header (this is your first line if you supply a file) where **each row = one sample** Additional column names not mentioned here are allowed and will be ignored during the metadata validation step.
 
 ---
 
@@ -64,7 +62,7 @@ You can define extra variables using special prefixes:
   Example: `VARIABLE_Age` with values `42`, `51`, etc.
 
 The pattern-based columns are only used during the `autoFlow` function. At the moment only columns with prefix `CONTRAST_` are supported.
-Example: **Outputs a `report.html` file in current work directory**
+Example: **Outputs a `report.html` file in the current working directory**
 ```R
 taxa$autoFlow(
     normalize = FALSE,
@@ -77,15 +75,20 @@ taxa$autoFlow(
 ## Usage
 > [!NOTE]
 > Make sure your metadata meets the requirements!
+Example data can be found in the `tests` folder of the github repository. Alternatively, it can be acquired 
 ### Simple loading and subsetting.
 ---
 ```R
 library("OmicFlow")
 
+metadata_file <- system.file("extdata", "metadata.tsv", package = "OmicFlow")
+counts_file <- system.file("extdata", "counts.tsv", package = "OmicFlow")
+features_file <- system.file("extdata", "features.tsv", package = "OmicFlow")
+
 taxa <- metagenomics$new(
-    biomData = "tests/testthat/input/metagenomics/biom_with_taxonomy_hdf5.biom",
-    metaData = "tests/testthat/input/metagenomics/metadata.tsv",
-    treeData = "tests/testthat/input/metagenomics/rooted_tree.newick"
+    metaData = metadata_file,
+    countData = counts_file,
+    featureData = features_file
 )
 
 taxa$feature_subset(Kingdom == "Bacteria")

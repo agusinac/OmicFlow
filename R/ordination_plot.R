@@ -10,6 +10,9 @@
 #' @param dist_explained A vector of numeric values of the percentage dissimilarity explained for the dimension pairs, default is NULL.
 #' @param dist_metric A character variable indicating what metric is used (e.g. unifrac, bray-curtis), default is NULL.
 #' @return A \link[ggplot2]{ggplot2} object to be further modified
+#' 
+#' @importFrom ggplot2 ggplot aes .data theme_bw theme element_text stat_ellipse labs geom_point
+#' 
 #' @examples 
 #' library(ggplot2)
 #' 

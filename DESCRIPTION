@@ -19,24 +19,24 @@ Description:
     visualize some initial analysis before moving to more complex analysis.
 License: MIT + file LICENSE
 URL: https://github.com/agusinac/OmicFlow
-Depends: R (>= 4.3.0)
+Depends: 
+    R (>= 4.3.0),
+    R6,
+    data.table,
+    Matrix
 Imports: 
     ape,
-    data.table,
     gghalves,
     ggpubr,
     ggrepel,
     jsonlite,
     jsonvalidate,
     magrittr,
-    Matrix,
     patchwork,
     purrr,
-    R6,
     rbiom,
     RColorBrewer,
     rhdf5,
-    rmarkdown,
     rstatix,
     slam,
     stats,
@@ -45,10 +45,12 @@ Imports:
     vegan,
     viridis,
     yyjsonr,
-    downloadthis,
-    DT
+    methods,
+    ggplot2
 Suggests: 
-    ggplot2,
+    DT,
+    downloadthis,
+    rmarkdown,
     cli,
     testthat (>= 3.0.0)
 Config/testthat/edition: 3

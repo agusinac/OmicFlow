@@ -15,6 +15,7 @@
 #'  * R2 of H_0
 #'  * p value of F^p > F
 #'  * p adjusted
+#' @importFrom stats p.adjust.methods
 #' @examples 
 #' # Create random data
 #' set.seed(42)

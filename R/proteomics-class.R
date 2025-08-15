@@ -6,6 +6,8 @@
 #' When omics data is very large, data loading becomes very expensive. It is therefore recommended to use the [`reset()`](#method-reset) method to reset your changes.
 #' Every omics class creates an internal memory efficient back-up of the data, the resetting of changes is an instant process.
 #' @seealso \link{omics}
+#' @import R6
+#' @importFrom ape read.tree
 #' @export
 
 proteomics <- R6::R6Class(
@@ -109,6 +111,7 @@ proteomics <- R6::R6Class(
     #' @description
     #' Removes empty (zero) values by row, column and tips from the `countData` and `treeData`.
     #' This method is performed automatically during subsetting of the object.
+    #' @importFrom ape keep.tip
     #' @examples
     #' prot_path <- system.file("extdata", "mock_taxa.rds", package = "OmicFlow", mustWork = TRUE)
     #' prot <- readRDS(prot_path)

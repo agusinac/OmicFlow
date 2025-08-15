@@ -11,6 +11,7 @@
 #' @param y_axis_title A character variable to name the Y - axis title (default: NULL).
 #' @param plot_title A character variable to name the plot title (default: NULL).
 #' @return A \link[ggplot2]{ggplot2} object to be further modified
+#' @importFrom ggplot2 ggplot aes geom_bar geom_label theme_bw theme element_text labs
 #' @examples 
 #' library("ggplot2")
 #' 

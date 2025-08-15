@@ -10,6 +10,9 @@
 #' @param base Input for \link[base]{log} to use natural logarithmic scale, log2, log10 or other.
 #' @return A numeric vector with type double.
 #' @seealso \link[hillR]{hill_taxa}
+#' 
+#' @importFrom methods as
+#' 
 #' @examples 
 #' library("Matrix")
 #' 

@@ -10,6 +10,8 @@
 #' @param group_by A character variable to aggregate the stacked bars by group (Default: NULL).
 #' @return A \link[ggplot2]{ggplot2} object to be further modified
 #'
+#' @importFrom ggplot2 ggplot aes .data geom_bar coord_flip theme_bw theme element_text scale_x_discrete scale_fill_manual labs ggtitle
+#' 
 #' @examples
 #' library("ggplot2")
 #' 
@@ -104,13 +106,13 @@ composition_plot <- function(data,
   # Generates a stacked barplot as base with custome palette
   if (!is.null(group_by)) {
     plt <- data %>%
-      ggplot(mapping = aes(y = value,
+      ggplot(mapping = aes(y = .data[["value"]],
                            x = as.factor(.data[[ group_by ]]),
                            fill = .data[[ feature_rank ]]))
   } else {
     plt <- data %>%
-      ggplot(mapping = aes(y = value,
-                           x = SAMPLE_ID,
+      ggplot(mapping = aes(y = .data[["value"]],
+                           x = .data[["SAMPLE_ID"]],
                            fill = base::get(feature_rank, data)))
   }
   # Required for stacked barplot
@@ -141,7 +143,7 @@ composition_plot <- function(data,
 
   if (is.null(group_by)) {
     plt <- plt +
-      scale_x_discrete(limits = rev(levels(as.factor(data$SAMPLE_ID))))
+      scale_x_discrete(limits = rev(levels(as.factor(data[["SAMPLE_ID"]]))))
   }
   plt <- plt +
     scale_fill_manual(values = palette, name = feature_rank) +

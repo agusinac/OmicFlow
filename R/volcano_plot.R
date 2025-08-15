@@ -17,6 +17,7 @@
 #' @param label_B A character to describe condition B.
 #' 
 #' @return A \link[ggplot2]{ggplot2} object to be further modified.
+#' @importFrom ggplot2 ggplot aes .data theme_bw theme element_text labs geom_point geom_vline geom_hline element_rect scale_color_gradient2 scale_size_continuous
 #' @examples 
 #' library(data.table)
 #' library(ggplot2)
@@ -116,7 +117,7 @@ volcano_plot <- function(data,
 
   # Creates labels for significant and non-significant differential expression
   tmpdt[, (pvalue_col) := -log10(base::get(pvalue_col))]
-  tmpdt[, diffexpressed := ifelse(
+  tmpdt[, "diffexpressed" := ifelse(
     base::get(logfold_col) > logfold.threshold &
     base::get(pvalue_col) > -log10(pvalue.threshold) &
     base::get(abundance_col) >= abundance.threshold, 
@@ -129,13 +130,13 @@ volcano_plot <- function(data,
       "non-significant"
       )
     )]
-  tmpdt[, diffexpressed_labels := ifelse(diffexpressed != "non-significant", base::get(feature_rank), "")]
+  tmpdt[, "diffexpressed_labels" := ifelse(diffexpressed != "non-significant", base::get(feature_rank), "")]
 
   return(
     tmpdt %>%
       ggplot(mapping = aes(x = .data [[ logfold_col ]],
                            y = .data [[ pvalue_col ]],
-                           label = diffexpressed_labels,
+                           label = .data[["diffexpressed_labels"]],
                            color = .data [[ logfold_col ]])) +
       theme_bw() +
       theme(axis.text.x = element_text(angle = 45, hjust = 1, size=12),
@@ -157,7 +158,7 @@ volcano_plot <- function(data,
       ggrepel::geom_label_repel(show.legend = FALSE,
                                 max.overlaps = getOption("ggrepel.max.overlaps", default = Inf),
                                 color = "black") +
-      geom_point(aes(size = as.numeric(ifelse(diffexpressed != "non-significant", .data[[ abundance_col ]]*100, 0))),
+      geom_point(aes(size = as.numeric(ifelse(.data[["diffexpressed"]] != "non-significant", .data[[ abundance_col ]]*100, 0))),
                  shape = 16, alpha = 0.5) +
       scale_size_continuous(name = "Mean Abundance (%)") +
       labs(x = paste0("Fold Change log2( ", label_A," / ", label_B," )"),
