@@ -75,8 +75,6 @@ taxa$autoFlow(
 ## Usage
 > [!NOTE]
 > Make sure your metadata meets the requirements!
-Example data can be found in the `tests` folder of the github repository. Alternatively, it can be acquired 
-### Simple loading and subsetting.
 ---
 ```R
 library("OmicFlow")
@@ -98,8 +96,8 @@ taxa$normalize()
 
 ### Visualisations
 ---
-
-All visualizations use by default color-blind palettes!
+> [!NOTE]
+> All visualizations use by default color-blind palettes!
 
 #### 🔹Alpha diversity
 ```R
