@@ -67,6 +67,7 @@ taxa_path <- system.file("extdata", "mock_taxa.rds", package = "OmicFlow", mustW
 taxa <- readRDS(taxa_path)
 
 taxa$write_biom(filename = "output.biom")
+file.remove("output.biom")
 
 }
 \seealso{
@@ -274,6 +275,7 @@ Creates a BIOM file in HDF5 format of the loaded items via \href{#method-new}{'n
 taxa <- readRDS(taxa_path)
 
 taxa$write_biom(filename = "output.biom")
+file.remove("output.biom")
 
 }
 \if{html}{\out{</div>}}

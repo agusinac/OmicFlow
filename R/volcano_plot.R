@@ -130,7 +130,7 @@ volcano_plot <- function(data,
       "non-significant"
       )
     )]
-  tmpdt[, "diffexpressed_labels" := ifelse(diffexpressed != "non-significant", base::get(feature_rank), "")]
+  tmpdt[, "diffexpressed_labels" := ifelse(base::get("diffexpressed") != "non-significant", base::get(feature_rank), "")]
 
   return(
     tmpdt %>%

@@ -230,6 +230,7 @@ metagenomics <- R6::R6Class(
     #' taxa <- readRDS(taxa_path)
     #' 
     #' taxa$write_biom(filename = "output.biom")
+    #' file.remove("output.biom")
     #'
     write_biom = function (filename) {
 

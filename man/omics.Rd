@@ -281,8 +281,8 @@ Acceptable column headers:
 \item SAMPLE_ID (required)
 \item SAMPLEPAIR_ID (optional)
 \item FEATURE_ID (optional)
-\item CONTRAST_\if{html}{\out{<name>}} (optional), used for \href{#method-autoFlow}{\code{autoFlow()}}.
-\item VARIABLE_\if{html}{\out{<name>}} (optional), not supported yet.
+\item CONTRAST_ (optional), used for \href{#method-autoFlow}{\code{autoFlow()}}.
+\item VARIABLE_ (optional), not supported yet.
 }
 
 This function is used during the creation of a new object via \href{#method-new}{\code{new()}} to validate the supplied metadata

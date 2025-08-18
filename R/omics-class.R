@@ -154,8 +154,8 @@ omics <- R6::R6Class(
     #' * SAMPLE_ID (required)
     #' * SAMPLEPAIR_ID (optional)
     #' * FEATURE_ID (optional)
-    #' * CONTRAST_<name> (optional), used for [`autoFlow()`](#method-autoFlow).
-    #' * VARIABLE_<name> (optional), not supported yet.
+    #' * CONTRAST_ (optional), used for [`autoFlow()`](#method-autoFlow).
+    #' * VARIABLE_ (optional), not supported yet.
     #' 
     #' This function is used during the creation of a new object via [`new()`](#method-new) to validate the supplied metadata 
     #' via a filepath or existing \link[data.table]{data.table} or \link[base]{data.frame}.
