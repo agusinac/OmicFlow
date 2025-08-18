@@ -834,30 +834,31 @@ omics <- R6::R6Class(
       if (normalize)
         self$normalize()
 
-
       # Requires rownames to contain same labels as tree
-      counts <- slam::as.simple_triplet_matrix(self$countData)
-      rownames(counts) <- self$featureData$FEATURE_ID
+      if (is.null(distmat)) {
+        counts <- slam::as.simple_triplet_matrix(self$countData)
+        rownames(counts) <- self$featureData$FEATURE_ID
 
-      distmat <- switch(
-        metric,
-        "unifrac" = rbiom::bdiv_distmat(
-          biom = counts,
-          bdiv = metric,
-          weighted = weighted,
-          tree = self$treeData,
-          cpus = cpus
-          ),
-        "manhattan" = ,
-        "euclidean" = ,
-        "jaccard" = ,
-        "bray" = rbiom::bdiv_distmat(
-          biom = counts,
-          bdiv = metric,
-          weighted = weighted,
-          cpus = cpus
-          )
-      )
+        distmat <- switch(
+          metric,
+          "unifrac" = rbiom::bdiv_distmat(
+            biom = counts,
+            bdiv = metric,
+            weighted = weighted,
+            tree = self$treeData,
+            cpus = cpus
+            ),
+          "manhattan" = ,
+          "euclidean" = ,
+          "jaccard" = ,
+          "bray" = rbiom::bdiv_distmat(
+            biom = counts,
+            bdiv = metric,
+            weighted = weighted,
+            cpus = cpus
+            )
+        )
+      }
 
       plot_list$dist <- as.matrix(distmat)
 
@@ -1529,25 +1530,18 @@ omics <- R6::R6Class(
       # If filepath originates from an excel file, it may contain trailing spaces, or letters, which are removed.
       #
       dt <- data.table::fread(data, header = TRUE)
-      dt[, (names(dt)) := lapply(.SD, function(x) {
-      x <- gsub("\\s+", "", x)                      # Removes spaces between strings
-      x <- gsub("^[A-Za-z]*", "", x)                # Removes letters
-      })]
 
       # Convert to matrix format
-      mat_1 <- as.matrix(dt,
-                        rownames = rownames(dt),
-                        colnames = colnames(dt))
-
+      mat <- Matrix::Matrix(
+        data = as.matrix(dt),
+        dimnames = list(rownames(dt), colnames(dt))
+      )
+      
       # Change character values to numeric
-      mat_2 <- matrix(data = as.numeric(mat_1),
-                      ncol = ncol(dt))
-      colnames(mat_2) <- colnames(dt)
-
-      mat_2[is.na(mat_2) | mat_2 == ""] <- 0
+      mat[is.na(mat) | mat == ""] <- 0
       
       # Return sparseMatrix
-      return(as(mat_2, "sparseMatrix"))
+      return(as(mat, "sparseMatrix"))
     }
 
     if (inherits(data, "sparseMatrix"))
