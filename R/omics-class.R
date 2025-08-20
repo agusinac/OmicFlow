@@ -1530,15 +1530,17 @@ omics <- R6::R6Class(
       # If filepath originates from an excel file, it may contain trailing spaces, or letters, which are removed.
       #
       dt <- data.table::fread(data, header = TRUE)
+      # Change character values to numeric
+      for (col in names(dt)) {
+        dt[is.na(get(col)), (col) := 0]
+        dt[get(col) == "", (col) := 0]
+      }
 
       # Convert to matrix format
       mat <- Matrix::Matrix(
         data = as.matrix(dt),
         dimnames = list(rownames(dt), colnames(dt))
       )
-      
-      # Change character values to numeric
-      mat[is.na(mat) | mat == ""] <- 0
       
       # Return sparseMatrix
       return(as(mat, "sparseMatrix"))
