@@ -106,7 +106,7 @@ alpha_div <- taxa$alpha_diversity(
     metric = "shannon"
 )
 
-alpha_div$diversity_plt$plot
+alpha_div$plot
 ```
 ![](docs/figures/alphadiv_readme.png)
 
@@ -174,4 +174,4 @@ docker run -it --rm -v \
 ```
 
 ## Support
-If you are having issues, please [create an issue](https://github.com/agusinac/OmicFlow/issues)
+If you are having issues, please [create a ticket](https://github.com/agusinac/OmicFlow/issues)

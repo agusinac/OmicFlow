@@ -911,7 +911,7 @@ omics <- R6::R6Class(
           theme_bw() +
           scale_x_continuous(breaks=seq(1, 10, 1)) +
           scale_y_continuous(breaks=seq(0, 100, 10)) +
-          labs(title = "Screeplot of first 10 PCs",
+          labs(title = paste0("Screeplot of ", length(pcs$eig_norm)," PCs"),
                x = "Principal Components (PCs)",
                y = "dissimilarity explained [%]")
 
