@@ -817,7 +817,7 @@ For now only works with headers that start with prefix \code{CONTRAST_}.
   pvalue.threshold = 0.05,
   perm = 999,
   cpus = 1,
-  filename = paste0(getwd(), "report.html")
+  filename = paste0(getwd(), "/report.html")
 )}\if{html}{\out{</div>}}
 }
 

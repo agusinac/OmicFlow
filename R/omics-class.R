@@ -575,13 +575,15 @@ omics <- R6::R6Class(
 
       # Create and saves plots
       plot_list$data <- div
-      diversity_plt <- diversity_plot(data = na.omit(div),
-                                      values = "V1",
-                                      col_name = col_name,
-                                      palette = colors,
-                                      method = metric,
-                                      paired = paired,
-                                      p.adjust.method = p.adjust.method)
+      diversity_plt <- diversity_plot(
+        data = na.omit(div),
+        values = "V1",
+        col_name = col_name,
+        palette = colors,
+        method = metric,
+        paired = paired,
+        p.adjust.method = p.adjust.method
+        )
 
       plot_list$stats <- as.data.frame(diversity_plt$stats)
       plot_list$plot <- diversity_plt$plot
@@ -1138,7 +1140,7 @@ omics <- R6::R6Class(
                         pvalue.threshold = 0.05,
                         perm = 999,
                         cpus = 1,
-                        filename = paste0(getwd(), "report.html")
+                        filename = paste0(getwd(), "/report.html")
                       ) {
     ## Error handling
     #--------------------------------------------------------------------#

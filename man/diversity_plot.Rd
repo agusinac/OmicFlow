@@ -71,12 +71,12 @@ dt <- data.table::data.table(
 colors <- OmicFlow::colormap(dt, "treatment")
 
 diversity_plot(
-  data = dt,
-  values = "values",
-  col_name = "treatment",
-  palette = colors,
-  method = "shannon",
-  paired = FALSE,
-  p.adjust.method = "fdr"
+ data = dt,
+ values = "values",
+ col_name = "treatment",
+ palette = colors,
+ method = "shannon",
+ paired = FALSE,
+ p.adjust.method = "fdr"
 )
 }

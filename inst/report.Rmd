@@ -217,7 +217,7 @@ if (!is.null(plots$composition_plots)) {
 ```
 
 ```{r}
-if (!all(plots$Log2FC_plots == NULL)) {
+if (!is.null(plots$Log2FC_plots)) {
   cat("## Log2 FoldChanges {.tabset} \n")
   create_plot_tabs(
     plots = plots$Log2FC_plots, 
