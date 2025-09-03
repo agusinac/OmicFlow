@@ -1,7 +1,7 @@
 Package: OmicFlow
 Title: Fast and Efficient (Automated) Analysis of Sparse Omics Data
 Version: 1.3.1
-Date: 2025-09-02
+Date: 2025-09-03
 Authors@R: c(
     person(
         "Alem", "Gusinac",
