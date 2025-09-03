@@ -3,6 +3,16 @@
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/)
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## v1.3.1 - [2025-09-03]
+
+### `Added`
+- rhub yaml to check for additional platforms
+
+### `Fixed`
+- `testthat` now uses seed & `tempdir()` to meet CRAN policy
+- `report.md` now also displays volcano plots
+- `omics$autoFlow()` saves report html in correct current path
+
 ## v1.3.0 - [2025-08-13]
 
 ### `Added`

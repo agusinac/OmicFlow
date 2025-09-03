@@ -1,5 +1,5 @@
 test_that("Writes biom in expected format", {
-    output_file <- paste0(getwd(),"/test.biom")
+    output_file <- paste0(tempdir(),"/test.biom")
 
     taxa <- metagenomics$new(
         biomData = "input/metagenomics/biom_with_taxonomy_hdf5.biom",
