@@ -233,5 +233,5 @@ if (!is.null(plots$Log2FC_plots)) {
 
 ```{r}
 cat("## Thanks for using OmicFlow!\n")
-utils::citation("OmicFlow")
+print(citation("OmicFlow"), style = "text")
 ```

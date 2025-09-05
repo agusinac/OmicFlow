@@ -1,6 +1,6 @@
 #------------------------------------------------------------------------------------#
 #
-#   Created by Alem Gusinac, last modified at 12-08-2025
+#   Created by Alem Gusinac, last modified at 04-09-2025
 #
 #   It builds on top of a slim ubuntu (70MB) base
 #
@@ -25,6 +25,7 @@ RUN apt-get update && apt-get install -y \
     rustc \
     cargo \
     pgp \
+    pkg-config \
     autoconf automake \
     libx11-dev \
     libcurl4-openssl-dev \
@@ -61,11 +62,13 @@ RUN R -e "install.packages('docopt', dependencies=TRUE)"
 # Essential R dependencies
 RUN Rscript install2.r --error --skipinstalled \
     remotes \
-    devtools \
-    pak \
     b64 \
-    ggplot2 \ 
+    pak \
+    ggplot2 \
     cli \
+    DT \
+    downloadthis \
+    rmarkdown \
     optparse \
     && rm -rf /tmp/downloaded_packages
 
