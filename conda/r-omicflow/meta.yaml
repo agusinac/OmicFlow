@@ -1,0 +1,107 @@
+{% set version = '1.3.1' %}
+
+{% set posix = 'm2-' if win else '' %}
+{% set native = 'm2w64-' if win else '' %}
+
+package:
+  name: r-omicflow
+  version: {{ version|replace("-", "_") }}
+
+source:
+  url: 
+    - {{ cran_mirror }}/src/contrib/OmicFlow_{{ version }}.tar.gz
+    - {{ cran_mirror }}/src/contrib/Archive/OmicFlow/OmicFlow_{{ version }}.tar.gz
+  sha256: 21c84ba6f6871cd43f932f9838cec3e2accba6889c5179ad2cd545b30871ba75
+
+build:
+  merge_build_host: True  # [win]
+  # If this is a new build for the same version, increment the build number.
+  number: 0
+  # no skip
+  rpaths:
+    - lib/R/lib/
+    - lib/
+
+requirements:
+  build:
+    - {{ compiler('c') }}              # [not win]
+    - {{ compiler('m2w64_c') }}        # [win]
+    - {{ compiler('cxx') }}            # [not win]
+    - {{ compiler('m2w64_cxx') }}      # [win]
+    - {{ posix }}filesystem            # [win]
+    - {{ posix }}make
+    - {{ posix }}sed                   # [win]
+    - {{ posix }}coreutils             # [win]
+    - {{ posix }}zip                   # [win]
+  host:
+    - r-base >=4.3,<4.4.0a0
+    - r-r6
+    - r-data.table
+    - r-matrix
+    - r-ape
+    - r-gghalves
+    - r-ggpubr
+    - r-ggrepel
+    - r-jsonlite
+    - r-jsonvalidate
+    - r-magrittr
+    - r-patchwork
+    - r-purrr
+    - r-rbiom
+    - r-rcolorbrewer
+    - bioconductor-rhdf5lib =1.24.0
+    - bioconductor-rhdf5 =2.46.1
+    - r-rstatix
+    - r-slam
+    - r-vegan
+    - r-viridis
+    - r-yyjsonr
+    - r-ggplot2
+  run:
+    - r-base >=4.3,<4.4.0a0
+    - {{native}}gcc-libs         # [win]
+    - r-r6
+    - r-data.table
+    - r-matrix
+    - r-ape
+    - r-gghalves
+    - r-ggpubr
+    - r-ggrepel
+    - r-jsonlite
+    - r-jsonvalidate
+    - r-magrittr
+    - r-patchwork
+    - r-purrr
+    - r-rbiom
+    - r-rcolorbrewer
+    - bioconductor-rhdf5lib =1.24.0
+    - bioconductor-rhdf5 =2.46.1
+    - r-rstatix
+    - r-slam
+    - r-vegan
+    - r-viridis
+    - r-yyjsonr
+    - r-ggplot2
+
+test:
+  commands:
+    - $R -e "library('OmicFlow')"           # [not win]
+    - "\"%R%\" -e \"library('OmicFlow')\""  # [win]
+
+about:
+  home: https://cran.r-project.org/package=OmicFlow
+  summary: Fast and Efficient (Automated) Analysis of Sparse Omics Data
+  description: "
+    A generalised data structure for fast and efficient loading and data munching of sparse omics data. The 'OmicFlow' requires an up-front validated metadata template from the user,
+    which serves as a guide to connect all the pieces together by aligning them into a single object that is defined as an 'omics' class. 
+    Once this unified structure is established, users can perform manual subsetting, visualisation, and statistical analysis, or leverage the automated 'autoFlow' method to generate a comprehensive report.
+    "
+  license: "MIT"
+  license_family: MIT
+  license_file:
+    - '{{ environ["PREFIX"] }}/lib/R/share/licenses/MIT'
+    - LICENSE
+
+extra:
+  recipe-maintainers:
+    - agusinac

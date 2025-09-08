@@ -1,6 +1,7 @@
 [![CRAN](https://www.r-pkg.org/badges/version/OmicFlow)](https://CRAN.R-project.org/package=OmicFlow)
 [![Codecov](https://codecov.io/gh/agusinac/OmicFlow/graph/badge.svg)](https://app.codecov.io/gh/agusinac/OmicFlow)
 [![R-CMD-check](https://github.com/agusinac/OmicFlow/actions/workflows/R-CMD-check.yaml/badge.svg)](https://github.com/agusinac/OmicFlow/actions/workflows/R-CMD-check.yaml)
+[![run with conda](https://anaconda.org/agusinac/r-omicflow/badges/version.svg)](https://anaconda.org/agusinac/r-omicflow)
 [![run with docker](https://img.shields.io/badge/run%20with-docker-0db7ed?labelColor=000000&logo=docker)](https://hub.docker.com/r/agusinac/autoflow)
 
 OmicFlow
