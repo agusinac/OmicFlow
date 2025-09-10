@@ -85,6 +85,7 @@ column_exists <- function(column, table) {
   }))
 
   return (length(valid_columns) == length(column) && columns_empty)
+}
 
 is.wholenumber <- function(x, tol = .Machine$double.eps^0.5) {
   if (is.character(x)) {
