@@ -55,6 +55,7 @@ RUN apt-get update && apt-get install -y r-base
 
 # Copy requirements
 COPY install2.r .
+COPY installBioc.r .
 
 # Required package for install2.r
 RUN R -e "install.packages('docopt', dependencies=TRUE)"
@@ -62,8 +63,8 @@ RUN R -e "install.packages('docopt', dependencies=TRUE)"
 # Essential R dependencies
 RUN Rscript install2.r --error --skipinstalled \
     remotes \
+    BiocManager \
     b64 \
-    pak \
     ggplot2 \
     cli \
     DT \
@@ -72,8 +73,13 @@ RUN Rscript install2.r --error --skipinstalled \
     optparse \
     && rm -rf /tmp/downloaded_packages
 
-# R dependencies from CRAN
-RUN R -e "pak::pak('agusinac/OmicFlow')"
+RUN Rscript installBioc.r --error --skipinstalled \
+    rhdf5 \
+    && rm -rf /tmp/downloaded_packages
+
+RUN Rscript install2.r --error --skipinstalled \
+    OmicFlow \
+    && rm -rf /tmp/downloaded_packages
 
 # Make autoFlow.R directly callable from /usr/local/bin
 RUN ln -s "$(Rscript -e 'cat(system.file("exec", "autoFlow.R", package = "OmicFlow"))')" /usr/local/bin/autoflow \
