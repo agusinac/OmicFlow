@@ -84,7 +84,7 @@ column_exists <- function(column, table) {
     any(!is.na(table[[col]]))
   }))
 
-  return ( length(valid_columns) == length(column) && columns_empty )
+  return (length(valid_columns) == length(column) && columns_empty)
 }
 
 is.wholenumber <- function(x, tol = .Machine$double.eps^0.5) {

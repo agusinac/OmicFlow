@@ -1001,7 +1001,7 @@ omics <- R6::R6Class(
       #--------------------------------------------------------------------#
 
       if (!is.character(feature_rank) && length(feature_rank) != 1)
-        cli::cli_abort("{feature_rank} needs to be a character with a lenght of 1")
+        cli::cli_abort("{feature_rank} needs to be a character with a length of 1")
 
       if (!is.character(condition.group) && length(condition.group) != 1) {
         cli::cli_abort("{condition.group} needs to be a character with a length of 1")
@@ -1146,23 +1146,23 @@ omics <- R6::R6Class(
     #--------------------------------------------------------------------#
 
     if (!is.character(filename) && length(filename) != 1)
-      cli::cli_abort("{filename} needs to be a character with a lenght of 1")
+      cli::cli_abort("{filename} needs to be a character with a length of 1")
       
     if (!is.character(feature_contrast) && length(feature_contrast) != 1) {
-      cli::cli_abort("{feature_contrast} needs to be a character with a lenght of 1")
+      cli::cli_abort("{feature_contrast} needs to be a character with a length of 1")
     } else if (!column_exists(feature_contrast, self$featureData)) {
       cli::cli_abort("{feature_contrast} does not exist in featureData!")
     }
 
     if (!is.null(beta_div_table) && !is.character(beta_div_table) && length(beta_div_table) != 1) {
-      cli::cli_abort("{beta_div_table} needs to be a character with a lenght of 1")
+      cli::cli_abort("{beta_div_table} needs to be a character with a length of 1")
     
       if (file.exists(beta_div_table))
         cli::cli_abort("{beta_div_table} already exists!")
     }
 
     if (!is.null(alpha_div_table) && !is.character(alpha_div_table) && length(alpha_div_table) != 1) {
-      cli::cli_abort("{alpha_div_table} needs to be a character with a lenght of 1")
+      cli::cli_abort("{alpha_div_table} needs to be a character with a length of 1")
 
       if (file.exists(alpha_div_table))
         cli::cli_abort("{alpha_div_table} already exists!")

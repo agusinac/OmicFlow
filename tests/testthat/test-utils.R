@@ -3,9 +3,9 @@ test_that("Testing utils functions", {
 
     mock_df <- data.frame(
         SAMPLE_ID = c("SampleA", "SampleB", "SampleC"),
-        `depth-1` = c(4.01, 3.95, 4.12),
+        `depth-1` = c(4.01, 3.95, NA),
         `depth-2` = c(4.22, 4.06, 4.32),
-        `depth-3` = c(4.31, 4.15, 4.41),
+        `depth-3` = c(4.31, NA, 4.41),
         check.names = FALSE
     )
     data.table::fwrite(mock_df, "mock_rarefaction.txt", sep = "\t")
