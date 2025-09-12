@@ -913,7 +913,7 @@ omics <- R6::R6Class(
           theme_bw() +
           scale_x_continuous(breaks=seq(1, 10, 1)) +
           scale_y_continuous(breaks=seq(0, 100, 10)) +
-          labs(title = paste0("Screeplot of ", length(pcs$eig_norm)," PCs"),
+          labs(title = paste0("Screeplot of ", length(pcs$eig_norm[1:10])," PCs"),
                x = "Principal Components (PCs)",
                y = "dissimilarity explained [%]")
 
@@ -1471,20 +1471,13 @@ omics <- R6::R6Class(
     css_path <- system.file("styles.css", package = "OmicFlow")
 
     ## To bypass R CMD error and define for docker
-    is_r_cmd_check <- nzchar(Sys.getenv("_R_CHECK_PACKAGE_NAME_", ""))
-    if (is_r_cmd_check) {
-      intermediate_dir <- NULL
-      root_dir <- NULL
-    } else {
-      intermediate_dir <- dirname(filename)
-      root_dir <- dirname(filename)
-    }
+    knit_dir <- dirname(filename)
     
     rmarkdown::render(
       input = rmd_path,
       output_file = filename,
-      intermediates_dir = intermediate_dir,
-      knit_root_dir = root_dir,
+      intermediates_dir = knit_dir,
+      knit_root_dir = knit_dir,
       output_options = list(css = css_path)
     )
   }

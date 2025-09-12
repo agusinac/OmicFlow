@@ -1,6 +1,6 @@
 test_that("Tests autoFlow report creation", {
     output_file <- paste0(tempdir(),"/report.html")
-
+    
     taxa <- metagenomics$new(
         biomData = "input/metagenomics/biom_with_taxonomy_hdf5.biom",
         metaData = "input/metagenomics/metadata.tsv",
