@@ -1,4 +1,4 @@
-# if (!isTRUE(as.logical(Sys.getenv("CI")))) {
+if (!isTRUE(as.logical(Sys.getenv("CI")))) {
     test_that(
         "Tests autoFlow report creation", {
         output_file <- paste0(tempdir(),"/report.html")
@@ -15,4 +15,4 @@
         file.remove(output_file)
         }
     )
-# }
+}
