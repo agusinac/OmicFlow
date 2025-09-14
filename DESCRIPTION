@@ -55,7 +55,7 @@ Imports:
     viridis,
     yyjsonr,
     methods,
-    ggplot2 (== 3.5.2)
+    ggplot2 (>= 3.5.2)
 Suggests: 
     DT,
     downloadthis,
