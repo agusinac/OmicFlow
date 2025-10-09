@@ -598,7 +598,6 @@ omics <- R6::R6Class(
     #' @param feature_top A wholenumber of the top features to visualize, the max is 15, due to a limit of palettes.
     #' @param normalize A boolean value, whether to [`normalize()`](#method-normalize) by total sample sums (Default: TRUE).
     #' @param Brewer.palID A character name for the palette set to be applied, see \link[RColorBrewer]{brewer.pal} or \link{colormap}.
-    #' @importFrom viridis viridis
     #' @examples
     #' library(ggplot2)
     #' 
@@ -691,9 +690,7 @@ omics <- R6::R6Class(
 
       # Creates palette
       df_taxa_len <- length(final_dt[[feature_rank]])
-      if (Brewer.palID == FALSE) {
-        chosen_palette <- viridis(df_taxa_len - 1)
-      } else if (df_taxa_len-1 <= 15 && df_taxa_len-1 > 10) {
+      if (df_taxa_len-1 <= 15 && df_taxa_len-1 > 10) {
         chosen_palette <- c("#000000","#004949","#009292","#ff6db6","#ffb6db",
                             "#490092","#006ddb","#b66dff","#6db6ff","#b6dbff",
                             "#920000","#924900","#db6d00","#24ff24","#ffff6d")[1:df_taxa_len-1]
@@ -745,7 +742,6 @@ omics <- R6::R6Class(
     #' @param normalize A boolean value, whether to [`normalize()`](#method-normalize) by total sample sums (Default: TRUE).
     #' @param cpus A wholenumber, indicating the number of processes to spawn (Default: 1) in \link[rbiom]{bdiv_distmat}.
     #' @param perm A wholenumber, number of permutations to compare against the null hypothesis of \link[vegan]{adonis2} and \link[vegan]{anosim} (default: \code{perm=999}).
-    #' @importFrom purrr map
     #' @importFrom rbiom bdiv_distmat
     #' @importFrom slam as.simple_triplet_matrix
     #' @examples
@@ -882,18 +878,16 @@ omics <- R6::R6Class(
       )
       plot_list$anova_data <- stats_results
 
-      # Normalization of eigenvalues
-      if (method == "pcoa") {
-        pcs$eig_norm <- pcs$eig %>%
-          purrr::map(function(x) x / sum(pcs$eig) * 100) %>%
-          unlist()
+      # Data table of loading scores
+      df_pcs_points <- data.table::data.table(pcs$points)
 
-        # Collects loading scores into dataframe
-        df_pcs_points <- data.table::data.table(pcs$points)
+      if (method == "pcoa") {
+        # Normalisation of eigenvalues
+        pcs$eig_norm <- unlist(lapply(pcs$eig, function(x) x / sum(pcs$eig) * 100))
         colnames(df_pcs_points) <- paste0("PC", 1:ncol(df_pcs_points))
+
       } else if (method == "nmds") {
-        df_pcs_points <- data.table::data.table(pcs$points)
-        df_pcs_points$stress <- pcs$stress
+        df_pcs_points[['stress']] <- pcs$stress
       }
       plot_list$pcs <- df_pcs_points
 
