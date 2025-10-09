@@ -84,11 +84,13 @@ library("OmicFlow")
 metadata_file <- system.file("extdata", "metadata.tsv", package = "OmicFlow")
 counts_file <- system.file("extdata", "counts.tsv", package = "OmicFlow")
 features_file <- system.file("extdata", "features.tsv", package = "OmicFlow")
+tree_file <- system.file("extdata", "tree.newick", package = "OmicFlow")
 
 taxa <- metagenomics$new(
     metaData = metadata_file,
     countData = counts_file,
-    featureData = features_file
+    featureData = features_file,
+    treeData = tree_file
 )
 
 taxa$feature_subset(Kingdom == "Bacteria")
