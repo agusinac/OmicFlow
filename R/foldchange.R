@@ -155,6 +155,7 @@ foldchange <- function(data,
 
     # Empty vector
     result <- numeric(length(row_means_A))
+    max_val <- base::max(mat_A)
 
     # Find zero's to prevent Inf
     both_zero <- row_means_A == 0 & row_means_B == 0
@@ -167,6 +168,12 @@ foldchange <- function(data,
     result[row_means_A_zero] <- row_means_A[row_means_A_zero] - log2(row_means_B[row_means_A_zero])
     result[row_means_B_zero] <- log2(row_means_A[row_means_B_zero]) - row_means_B[row_means_B_zero]
     result[both_non_zero] <- log2(row_means_A[both_non_zero]) - log2(row_means_B[both_non_zero])
+
+    # Reverse flipped values with zero's based on max_val
+    if (max_val < 1.0) {
+      result[row_means_A_zero] <- result[row_means_A_zero] * -1
+      result[row_means_B_zero] <- result[row_means_B_zero] * -1
+    }
 
     # Combines to final foldchange data table
     foldchange_dt <- cbind(foldchange_dt, result)

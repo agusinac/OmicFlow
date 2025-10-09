@@ -10,6 +10,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 ### `Changed`
 
 ### `Fixed`
+- [#15](https://github.com/agusinac/OmicFlow/issues/15) Fixed flipped log2 values when condition A or B is zero.
 
 ### `Deprecated`
 - [#13](https://github.com/agusinac/OmicFlow/issues/13) Removed `viridis` dependency, `purrr:map` is replaced by `lapply`
