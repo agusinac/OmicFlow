@@ -7,8 +7,10 @@
 #' @param x A distance matrix in the form of \link[stats]{dist}.
 #' Obtained from a dissimilarity metric, in the case of similarity metric please use \code{1-dist}
 #' @param groups A character vector (column from a table) of labels.
-#' @param p.adjust.method P adjust method see \link[stats]{p.adjust}
-#' @param perm  Number of permutations to compare against the null hypothesis of adonis2 (default: \code{perm=999}).
+#' @param metadata A data.table or data.frame of extra metadata for \code{perm_design} (default: NULL).
+#' @param perm_design A function that takes a data.frame and constructs a permutation design with \link[permute]{how} (default: NULL).
+#' @param p.adjust.method P adjust method see \link[stats]{p.adjust}.
+#' @param perm Number of permutations to compare against the null hypothesis of adonis2 (default: \code{perm=999}).
 #' @seealso \link[vegan]{adonis2}
 #' @return A \link[base]{data.frame} of
 #'  * pairs that are used
@@ -39,6 +41,8 @@
 
 pairwise_adonis <- function(x,
                             groups,
+                            metadata = NULL,
+                            perm_design = NULL,
                             p.adjust.method = "bonferroni",
                             perm = 999){
 
@@ -49,7 +53,13 @@ pairwise_adonis <- function(x,
     cli::cli_abort("x must be of class dist.")
 
   if (!is.vector(groups))
-    cli::cli_abort("{groups} must be a vector.")
+    cli::cli_abort("groups must be a vector.")
+  
+  if (!is.null(metadata) && !inherits(metadata, "data.frame") && !inherits(metadata, "data.table"))
+    cli::cli_abort("metadata must be a data.frame or data.table.")
+  
+  if (!is.null(perm_design) && !is.function(perm_design))
+    cli::cli_abort("perm_design must be a function.")
 
   if (!c(p.adjust.method %in% p.adjust.methods))
     cli::cli_abort("Specified {p.adjust.method} is not valid. \nValid options: {p.adjust.methods}.")
@@ -73,14 +83,27 @@ pairwise_adonis <- function(x,
   # Loops through pairs
   for(i in 1:n){
     if(inherits(x, 'dist')){
-      m = as.matrix(x)[groups %in% c(as.character(co[1, i]),as.character(co[2, i])),
-                      groups %in% c(as.character(co[1, i]),as.character(co[2, i]))]
+      rows_to_keep <- groups %in% co[, i]
+      m <- as.matrix(x)[rows_to_keep, rows_to_keep]
     }
-    # Performing adonis2 test
-    tmp_m = data.frame(Fac = groups[groups %in% c(co[1,i], co[2,i])])
-    ad <- vegan::adonis2(m ~ Fac,
-                         data = tmp_m,
-                         permutations = perm);
+    tmp_m <- data.frame(Fac = groups[rows_to_keep])
+
+    # Apply permutation design
+    if (!is.null(perm_design) && !is.null(metadata)) {
+      sub_meta <- metadata[rows_to_keep, ]
+      h1 <- perm_design(sub_meta)
+      ad <- vegan::adonis2(
+        m ~ Fac,
+        data = tmp_m,
+        permutations = h1
+      )
+    } else {
+      ad <- vegan::adonis2(
+        m ~ Fac,
+        data = tmp_m,
+        permutations = perm
+      )
+    }
 
     # Saving stats
     pairs[i] <- paste(co[1, i],'vs',co[2, i])

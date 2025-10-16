@@ -7,8 +7,10 @@
 #' @param x  A distance matrix in the form of \link[stats]{dist}.
 #' Obtained from a dissimilarity metric, in the case of similarity metric please use \code{1-dist}
 #' @param groups  A vector (column from a table) of labels.
+#' @param metadata A data.table or data.frame of extra metadata for \code{perm_design} (default: NULL).
+#' @param perm_design A function that takes a data.frame and constructs a permutation design with \link[permute]{how} (default: NULL).
 #' @param p.adjust.method P adjust method see \link[stats]{p.adjust}
-#' @param perm  Number of permutations to compare against the null hypothesis of anosim (default: \code{perm=999}).
+#' @param perm Number of permutations to compare against the null hypothesis of anosim (default: \code{perm=999}).
 #' @seealso \link[vegan]{anosim}
 #' @return A \link[base]{data.frame} of
 #'  * pairs that are used
@@ -36,6 +38,8 @@
 
 pairwise_anosim <- function(x,
                             groups,
+                            metadata = NULL,
+                            perm_design = NULL,
                             p.adjust.method = "bonferroni",
                             perm = 999){
 
@@ -47,6 +51,12 @@ pairwise_anosim <- function(x,
 
   if (!is.vector(groups))
     cli::cli_abort("groups must be a vector.")
+
+  if (!is.null(metadata) && !inherits(metadata, "data.frame") && !inherits(metadata, "data.table"))
+    cli::cli_abort("metadata must be a data.frame or data.table.")
+
+  if (!is.null(perm_design) && !is.function(perm_design))
+    cli::cli_abort("perm_design must be a function.")
 
   if (!c(p.adjust.method %in% p.adjust.methods))
     cli::cli_abort("Specified {p.adjust.method} is not valid. \nValid options: {p.adjust.methods}.")
@@ -65,10 +75,27 @@ pairwise_anosim <- function(x,
 
   for(i in 1:n){
     if(inherits(x, "dist")){
-      m <- as.matrix(x)[groups %in% co[, i], groups %in% co[, i]]
+      rows_to_keep <- groups %in% co[, i]
+      m <- as.matrix(x)[rows_to_keep, rows_to_keep]
     }
 
-    ano <- vegan::anosim(m, groups[groups %in% co[, i]], permutations = perm)
+    # Apply permutation design
+    if (!is.null(perm_design) && !is.null(metadata)) {
+      sub_meta <- metadata[rows_to_keep, ]
+      h1 <- perm_design(sub_meta)
+      ano <- vegan::anosim(
+        x = m,
+        grouping = groups,
+        permutations = h1
+      )
+    } else {
+      ano <- vegan::anosim(
+        x = m, 
+        grouping = groups[rows_to_keep],
+        permutations = perm
+      )
+    }
+    
     pairs[i] <- paste(co[1, i],'vs',co[2, i])
     anosimR[i] <- ano$statistic
     p.value[i] <- ano$signif

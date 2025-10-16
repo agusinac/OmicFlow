@@ -4,13 +4,24 @@
 \alias{pairwise_anosim}
 \title{Pairwise anosim (ANOSIM) computation}
 \usage{
-pairwise_anosim(x, groups, p.adjust.method = "bonferroni", perm = 999)
+pairwise_anosim(
+  x,
+  groups,
+  metadata = NULL,
+  perm_design = NULL,
+  p.adjust.method = "bonferroni",
+  perm = 999
+)
 }
 \arguments{
 \item{x}{A distance matrix in the form of \link[stats]{dist}.
 Obtained from a dissimilarity metric, in the case of similarity metric please use \code{1-dist}}
 
 \item{groups}{A vector (column from a table) of labels.}
+
+\item{metadata}{A data.table or data.frame of extra metadata for \code{perm_design} (default: NULL).}
+
+\item{perm_design}{A function that takes a data.frame and constructs a permutation design with \link[permute]{how} (default: NULL).}
 
 \item{p.adjust.method}{P adjust method see \link[stats]{p.adjust}}
 
