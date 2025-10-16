@@ -1,6 +1,6 @@
 #------------------------------------------------------------------------------------#
 #
-#   Created by Alem Gusinac, last modified at 04-09-2025
+#   Created by Alem Gusinac, last modified at 16-10-2025
 #
 #   It builds on top of a slim ubuntu (70MB) base
 #
@@ -63,6 +63,7 @@ RUN R -e "install.packages('docopt', dependencies=TRUE)"
 # Essential R dependencies
 RUN Rscript install2.r --error --skipinstalled \
     remotes \
+    pak \
     BiocManager \
     b64 \
     ggplot2 \
@@ -77,9 +78,8 @@ RUN Rscript installBioc.r --error --skipinstalled \
     rhdf5 \
     && rm -rf /tmp/downloaded_packages
 
-RUN Rscript install2.r --error --skipinstalled \
-    OmicFlow \
-    && rm -rf /tmp/downloaded_packages
+# Install via github issue: https://github.com/agusinac/OmicFlow/issues/17
+RUN R -e "pak::pak('agusinac/OmicFlow')"
 
 # Make autoFlow.R directly callable from /usr/local/bin
 RUN ln -s "$(Rscript -e 'cat(system.file("exec", "autoFlow.R", package = "OmicFlow"))')" /usr/local/bin/autoflow \

@@ -165,13 +165,13 @@ res$volcano_plot
 ### Run autoflow via docker 🐳
 For additional options please run `autoflow -h`
 ```bash
-docker pull agusinac/autoflow:1.3.0
+docker pull agusinac/autoflow:1.3.2
 
 docker run -it --rm -v \
     "$(pwd)":/data \             # Mount the data in a temporary directory
     -w /data \                   # set working directory
     -u $(id -u):$(id -g) \       # non-root user
-    agusinac/autoflow:1.3.0 \
+    agusinac/autoflow:1.3.2 \
     autoflow \                   # autoflow R script
     -b /data/biom_with_taxonomy_hdf5.biom \
     -m /data/metadata.tsv
