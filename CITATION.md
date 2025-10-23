@@ -15,19 +15,6 @@
 ```
 
 
-## data.table
-
-```
-@Manual{,
-  title = {data.table: Extension of `data.frame`},
-  author = {Tyson Barrett and Matt Dowle and Arun Srinivasan and Jan Gorecki and Michael Chirico and Toby Hocking and Benjamin Schwendinger and Ivan Krylov},
-  year = {2025},
-  note = {R package version 1.17.0},
-  url = {https://CRAN.R-project.org/package=data.table},
-}
-```
-
-
 ## gghalves
 
 ```
@@ -64,6 +51,20 @@
   year = {2024},
   note = {R package version 0.9.6},
   url = {https://CRAN.R-project.org/package=ggrepel},
+}
+```
+
+
+## ggplot2
+
+```
+@Book{,
+  author = {Hadley Wickham},
+  title = {ggplot2: Elegant Graphics for Data Analysis},
+  publisher = {Springer-Verlag New York},
+  year = {2016},
+  isbn = {978-3-319-24277-4},
+  url = {https://ggplot2.tidyverse.org},
 }
 ```
 
@@ -107,15 +108,16 @@
 ```
 
 
-## Matrix
+## methods
 
 ```
 @Manual{,
-  title = {Matrix: Sparse and Dense Matrix Classes and Methods},
-  author = {Douglas Bates and Martin Maechler and Mikael Jagan},
+  title = {R: A Language and Environment for Statistical Computing},
+  author = {{R Core Team}},
+  organization = {R Foundation for Statistical Computing},
+  address = {Vienna, Austria},
   year = {2024},
-  note = {R package version 1.6-5},
-  url = {https://CRAN.R-project.org/package=Matrix},
+  url = {https://www.R-project.org/},
 }
 ```
 
@@ -127,47 +129,8 @@
   title = {patchwork: The Composer of Plots},
   author = {Thomas Lin Pedersen},
   year = {2025},
-  note = {R package version 1.3.1},
+  note = {R package version 1.3.2},
   url = {https://CRAN.R-project.org/package=patchwork},
-}
-```
-
-
-## purrr
-
-```
-@Manual{,
-  title = {purrr: Functional Programming Tools},
-  author = {Hadley Wickham and Lionel Henry},
-  year = {2025},
-  note = {R package version 1.0.4},
-  url = {https://CRAN.R-project.org/package=purrr},
-}
-```
-
-
-## R6
-
-```
-@Manual{,
-  title = {R6: Encapsulated Classes with Reference Semantics},
-  author = {Winston Chang},
-  year = {2025},
-  note = {R package version 2.6.1},
-  url = {https://CRAN.R-project.org/package=R6},
-}
-```
-
-
-## rbiom
-
-```
-@Manual{,
-  title = {rbiom: Read/Write, Analyze, and Visualize 'BIOM' Data},
-  author = {Daniel P. Smith},
-  year = {2025},
-  note = {R package version 2.2.1},
-  url = {https://CRAN.R-project.org/package=rbiom},
 }
 ```
 
@@ -199,39 +162,6 @@
 ```
 
 
-## rmarkdown
-
-```
-@Manual{,
-  title = {rmarkdown: Dynamic Documents for R},
-  author = {JJ Allaire and Yihui Xie and Christophe Dervieux and Jonathan McPherson and Javier Luraschi and Kevin Ushey and Aron Atkins and Hadley Wickham and Joe Cheng and Winston Chang and Richard Iannone},
-  year = {2024},
-  note = {R package version 2.29},
-  url = {https://github.com/rstudio/rmarkdown},
-}
-
-@Book{,
-  title = {R Markdown: The Definitive Guide},
-  author = {Yihui Xie and J.J. Allaire and Garrett Grolemund},
-  publisher = {Chapman and Hall/CRC},
-  address = {Boca Raton, Florida},
-  year = {2018},
-  isbn = {9781138359338},
-  url = {https://bookdown.org/yihui/rmarkdown},
-}
-
-@Book{,
-  title = {R Markdown Cookbook},
-  author = {Yihui Xie and Christophe Dervieux and Emily Riederer},
-  publisher = {Chapman and Hall/CRC},
-  address = {Boca Raton, Florida},
-  year = {2020},
-  isbn = {9780367563837},
-  url = {https://bookdown.org/yihui/rmarkdown-cookbook},
-}
-```
-
-
 ## rstatix
 
 ```
@@ -245,15 +175,60 @@
 ```
 
 
-## slam
+## Rcpp
 
 ```
 @Manual{,
-  title = {slam: Sparse Lightweight Arrays and Matrices},
-  author = {Kurt Hornik and David Meyer and Christian Buchta},
-  year = {2024},
-  note = {R package version 0.1-55},
-  url = {https://CRAN.R-project.org/package=slam},
+  title = {Rcpp: Seamless R and C++ Integration},
+  author = {Dirk Eddelbuettel and Romain Francois and JJ Allaire and Kevin Ushey and Qiang Kou and Nathan Russell and Iñaki Ucar and Doug Bates and John Chambers},
+  year = {2025},
+  note = {R package version 1.0.14},
+  url = {https://CRAN.R-project.org/package=Rcpp},
+}
+
+@Article{,
+  title = {{Rcpp}: Seamless {R} and {C++} Integration},
+  author = {Dirk Eddelbuettel and Romain Fran\c{c}ois},
+  journal = {Journal of Statistical Software},
+  year = {2011},
+  volume = {40},
+  number = {8},
+  pages = {1--18},
+  doi = {10.18637/jss.v040.i08},
+}
+
+@Book{,
+  title = {Seamless {R} and {C++} Integration with {Rcpp}},
+  author = {Dirk Eddelbuettel},
+  publisher = {Springer},
+  address = {New York},
+  year = {2013},
+  note = {ISBN 978-1-4614-6867-7},
+  doi = {10.1007/978-1-4614-6868-4},
+}
+
+@Article{,
+  title = {{Extending {R} with {C++}: A Brief Introduction to {Rcpp}}},
+  author = {Dirk Eddelbuettel and James Joseph Balamuta},
+  journal = {The American Statistician},
+  year = {2018},
+  volume = {72},
+  number = {1},
+  pages = {28-36},
+  doi = {10.1080/00031305.2017.1375990},
+}
+```
+
+
+## RcppParallel
+
+```
+@Manual{,
+  title = {RcppParallel: Parallel Programming Tools for 'Rcpp'},
+  author = {JJ Allaire and Romain Francois and Kevin Ushey and Gregory Vandenbrouck and Marcus Geelnard and {Intel}},
+  year = {2025},
+  note = {R package version 5.1.11-1},
+  url = {https://CRAN.R-project.org/package=RcppParallel},
 }
 ```
 
@@ -313,20 +288,6 @@
 ```
 
 
-## viridis
-
-```
-@Manual{,
-  title = {{viridis(Lite)} - Colorblind-Friendly Color Maps for R},
-  author = {{Garnier} and {Simon} and {Ross} and {Noam} and {Rudis} and {Robert} and {Camargo} and Antônio Pedro and {Sciaini} and {Marco} and {Scherer} and {Cédric}},
-  year = {2024},
-  note = {viridis package version 0.6.5},
-  url = {https://sjmgarnier.github.io/viridis/},
-  doi = {10.5281/zenodo.4679423},
-}
-```
-
-
 ## yyjsonr
 
 ```
@@ -336,31 +297,5 @@
   year = {2025},
   note = {R package version 0.1.21},
   url = {https://CRAN.R-project.org/package=yyjsonr},
-}
-```
-
-
-## downloadthis
-
-```
-@Manual{,
-  title = {downloadthis: Implement Download Buttons in 'rmarkdown'},
-  author = {Felipe {Mattioni Maturana}},
-  year = {2025},
-  note = {R package version 0.5.0},
-  url = {https://CRAN.R-project.org/package=downloadthis},
-}
-```
-
-
-## DT
-
-```
-@Manual{,
-  title = {DT: A Wrapper of the JavaScript Library 'DataTables'},
-  author = {Yihui Xie and Joe Cheng and Xianying Tan},
-  year = {2024},
-  note = {R package version 0.33},
-  url = {https://CRAN.R-project.org/package=DT},
 }
 ```
