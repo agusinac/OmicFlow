@@ -53,6 +53,10 @@ proteomics <- R6::R6Class(
         } else {
           cli::cli_alert_warning("The provided TreeData could not be loaded. Make sure the tree is supported by `ape::read.tree`")
         }
+
+        # Aligning featureData and countData rows by tree tips
+        self$featureData <- self$featureData[order(match(self$featureData$FEATURE_ID, self$treeData$tip.label))]
+        self$countData <- self$countData[self$featureData$FEATURE_ID, ]
       }
 
       self$print()
@@ -68,8 +72,19 @@ proteomics <- R6::R6Class(
     #' @description
     #' Displays parameters of the proteomics object via stdout.
     #' @examples
-    #' prot_path <- system.file("extdata", "mock_taxa.rds", package = "OmicFlow", mustWork = TRUE)
-    #' prot <- readRDS(prot_path)
+    #' library("OmicFlow")
+    #'
+    #' metadata_file <- system.file("extdata", "metadata.tsv", package = "OmicFlow")
+    #' counts_file <- system.file("extdata", "counts.tsv", package = "OmicFlow")
+    #' features_file <- system.file("extdata", "features.tsv", package = "OmicFlow")
+    #' tree_file <- system.file("extdata", "tree.newick", package = "OmicFlow")
+    #'
+    #' prot <- proteomics$new(
+    #'  metaData = metadata_file,
+    #'  countData = counts_file,
+    #'  featureData = features_file,
+    #'  treeData = tree_file
+    #' )
     #'
     #' # method 1 to call print function
     #' prot
@@ -90,9 +105,19 @@ proteomics <- R6::R6Class(
     #' Since modification of the object is done by reference and duplicates are not made, it is possible to `reset` changes to the class.
     #' The methods from the abstract class \link{omics} also contains a private method to prevent any changes to the original object when using methods such as \code{ordination} \code{alpha_diversity} or \code{$DFE}.  
     #' @examples
-    #'  
-    #' prot_path <- system.file("extdata", "mock_taxa.rds", package = "OmicFlow", mustWork = TRUE)
-    #' prot <- readRDS(prot_path)
+    #' library("OmicFlow")
+    #'
+    #' metadata_file <- system.file("extdata", "metadata.tsv", package = "OmicFlow")
+    #' counts_file <- system.file("extdata", "counts.tsv", package = "OmicFlow")
+    #' features_file <- system.file("extdata", "features.tsv", package = "OmicFlow")
+    #' tree_file <- system.file("extdata", "tree.newick", package = "OmicFlow")
+    #'
+    #' prot <- proteomics$new(
+    #'  metaData = metadata_file,
+    #'  countData = counts_file,
+    #'  featureData = features_file,
+    #'  treeData = tree_file
+    #' )
     #' 
     #' # Performs modifications
     #' prot$transform(log2)
@@ -113,8 +138,19 @@ proteomics <- R6::R6Class(
     #' This method is performed automatically during subsetting of the object.
     #' @importFrom ape keep.tip
     #' @examples
-    #' prot_path <- system.file("extdata", "mock_taxa.rds", package = "OmicFlow", mustWork = TRUE)
-    #' prot <- readRDS(prot_path)
+    #' library("OmicFlow")
+    #'
+    #' metadata_file <- system.file("extdata", "metadata.tsv", package = "OmicFlow")
+    #' counts_file <- system.file("extdata", "counts.tsv", package = "OmicFlow")
+    #' features_file <- system.file("extdata", "features.tsv", package = "OmicFlow")
+    #' tree_file <- system.file("extdata", "tree.newick", package = "OmicFlow")
+    #'
+    #' prot <- proteomics$new(
+    #'  metaData = metadata_file,
+    #'  countData = counts_file,
+    #'  featureData = features_file,
+    #'  treeData = tree_file
+    #' )
     #' 
     #' # Sample subset induces empty features
     #' prot$sample_subset(treatment == "tumor")

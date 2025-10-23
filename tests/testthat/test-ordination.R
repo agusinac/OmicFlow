@@ -11,7 +11,7 @@ test_that("Testing UniFrac ordination", {
     group_by = "CONTRAST_sex",
     weighted = TRUE,
     normalize = TRUE,
-    cpus = 1
+    threads = 1
   )
   
   expect_snapshot(res$anova_data)

@@ -3,17 +3,33 @@
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/)
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
-## v1.4.0 - [2025-10-]
+## v1.4.0 - [2025-10-23]
 
 ### `Added`
+- [#14](https://github.com/agusinac/OmicFlow/issues/14) `unifrac` for both weighted/unweighted and normalized options.
+- [#14](https://github.com/agusinac/OmicFlow/issues/14) `bray` for both weighted/unweighted options.
+- [#14](https://github.com/agusinac/OmicFlow/issues/14) `jaccard` for both weighted/unweighted options.
+- [#14](https://github.com/agusinac/OmicFlow/issues/14) `jsd` for both weighted/unweighted options.
+- [#14](https://github.com/agusinac/OmicFlow/issues/14) `aitchison` for both weighted/unweighted options.
+- [#14](https://github.com/agusinac/OmicFlow/issues/14) `cosine` for both weighted/unweighted options.
+- [#14](https://github.com/agusinac/OmicFlow/issues/14) `canberra` for both weighted/unweighted options.
+- [#14](https://github.com/agusinac/OmicFlow/issues/14) `manhattan` for both weighted/unweighted options.
+- `omics$distance` as wrapper for all new dissimilarity metrics.
+- [#18](https://github.com/agusinac/OmicFlow/issues/18) `pairwise_adonis2` and `pairwise_anosim` now allow custom permutation designs from `permute` R package.
+- Unit tests for dissimilarity metrics
 
 ### `Changed`
+- `metagenomics` and `proteomics` classes now align the countData (rows) and featureData by the treeData tip.labels.
+- `omics$ordination` uses now `omics$distance` to compute dissimilarity metrics (previously computed via `rbiom`).
+- Example data loaded from `inst/extdata` instead of re-using `mock.rds` object.
 
 ### `Fixed`
 - [#15](https://github.com/agusinac/OmicFlow/issues/15) Fixed flipped log2 values when condition A or B is zero.
+- [#17](https://github.com/agusinac/OmicFlow/issues/17) Docker is built via `pak` from github instead of CRAN.
 
 ### `Deprecated`
 - [#13](https://github.com/agusinac/OmicFlow/issues/13) Removed `viridis` dependency, `purrr:map` is replaced by `lapply`
+- Removed `rbiom` and it's dependency `slam`.
 
 ## v1.3.2 - [2025-09-20]
 

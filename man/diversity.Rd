@@ -26,13 +26,11 @@ A numeric vector with type double.
 \description{
 Computes the alpha diversity based on Shannon index, simpson or invsimpson.
 Code is adapted from \link[vegan]{diversity} and uses \link[Matrix]{sparseMatrix} in triplet format over the dense matrix.
-The code is much faster and memory efficient, while still being mathematical correct.
+The code is much faster and memory efficient, while still being mathematically correct.
 This function is built into the class \link{omics} with method \code{alpha_diversity()} and inherited by other omics classes, such as;
 \link{metagenomics} and \link{proteomics}.
 }
 \examples{
-library("Matrix")
-
 n_row <- 1000
 n_col <- 100
 density <- 0.2

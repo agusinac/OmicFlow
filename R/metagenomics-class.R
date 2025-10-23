@@ -126,6 +126,10 @@ metagenomics <- R6::R6Class(
         } else {
           cli::cli_alert_warning("The provided TreeData could not be loaded. Make sure the tree is supported by `ape::read.tree`")
         }
+
+        # Aligning featureData and countData rows by tree tips
+        self$featureData <- self$featureData[order(match(self$featureData$FEATURE_ID, self$treeData$tip.label))]
+        self$countData <- self$countData[self$featureData$FEATURE_ID, ]
       }
 
       #-------------------#
@@ -158,8 +162,19 @@ metagenomics <- R6::R6Class(
     #' @description
     #' Displays parameters of the metagenomics object via stdout.
     #' @examples
-    #' taxa_path <- system.file("extdata", "mock_taxa.rds", package = "OmicFlow", mustWork = TRUE)
-    #' taxa <- readRDS(taxa_path)
+    #' library("OmicFlow")
+    #'
+    #' metadata_file <- system.file("extdata", "metadata.tsv", package = "OmicFlow")
+    #' counts_file <- system.file("extdata", "counts.tsv", package = "OmicFlow")
+    #' features_file <- system.file("extdata", "features.tsv", package = "OmicFlow")
+    #' tree_file <- system.file("extdata", "tree.newick", package = "OmicFlow")
+    #'
+    #' taxa <- metagenomics$new(
+    #'  metaData = metadata_file,
+    #'  countData = counts_file,
+    #'  featureData = features_file,
+    #'  treeData = tree_file
+    #' )
     #'
     #' # method 1 to call print function
     #' taxa
@@ -181,9 +196,19 @@ metagenomics <- R6::R6Class(
     #' The methods from the abstract class \link{omics} also contains a private method to prevent any changes to the original object when using methods such as \code{ordination} \code{alpha_diversity} or \code{$DFE}.
     #' @examples
     #' library(ggplot2)
+    #' library("OmicFlow")
     #'
-    #' taxa_path <- system.file("extdata", "mock_taxa.rds", package = "OmicFlow", mustWork = TRUE)
-    #' taxa <- readRDS(taxa_path)
+    #' metadata_file <- system.file("extdata", "metadata.tsv", package = "OmicFlow")
+    #' counts_file <- system.file("extdata", "counts.tsv", package = "OmicFlow")
+    #' features_file <- system.file("extdata", "features.tsv", package = "OmicFlow")
+    #' tree_file <- system.file("extdata", "tree.newick", package = "OmicFlow")
+    #'
+    #' taxa <- metagenomics$new(
+    #'  metaData = metadata_file,
+    #'  countData = counts_file,
+    #'  featureData = features_file,
+    #'  treeData = tree_file
+    #' )
     #'
     #' # Performs modifications
     #' taxa$transform(log2)
@@ -207,8 +232,19 @@ metagenomics <- R6::R6Class(
     #' This method is performed automatically during subsetting of the object.
     #' @importFrom ape keep.tip
     #' @examples
-    #' taxa_path <- system.file("extdata", "mock_taxa.rds", package = "OmicFlow", mustWork = TRUE)
-    #' taxa <- readRDS(taxa_path)
+    #' library("OmicFlow")
+    #'
+    #' metadata_file <- system.file("extdata", "metadata.tsv", package = "OmicFlow")
+    #' counts_file <- system.file("extdata", "counts.tsv", package = "OmicFlow")
+    #' features_file <- system.file("extdata", "features.tsv", package = "OmicFlow")
+    #' tree_file <- system.file("extdata", "tree.newick", package = "OmicFlow")
+    #'
+    #' taxa <- metagenomics$new(
+    #'  metaData = metadata_file,
+    #'  countData = counts_file,
+    #'  featureData = features_file,
+    #'  treeData = tree_file
+    #' )
     #' 
     #' # Sample subset induces empty features
     #' taxa$sample_subset(treatment == "tumor")
@@ -226,8 +262,19 @@ metagenomics <- R6::R6Class(
     #' Creates a BIOM file in HDF5 format of the loaded items via ['new()'](#method-new), which is compatible to the python biom-format version 2.1, see http://biom-format.org.
     #' @param filename A character variable of either the full path of filename of the biom file (e.g. `output.biom`)
     #' @examples
-    #' taxa_path <- system.file("extdata", "mock_taxa.rds", package = "OmicFlow", mustWork = TRUE)
-    #' taxa <- readRDS(taxa_path)
+    #' library("OmicFlow")
+    #'
+    #' metadata_file <- system.file("extdata", "metadata.tsv", package = "OmicFlow")
+    #' counts_file <- system.file("extdata", "counts.tsv", package = "OmicFlow")
+    #' features_file <- system.file("extdata", "features.tsv", package = "OmicFlow")
+    #' tree_file <- system.file("extdata", "tree.newick", package = "OmicFlow")
+    #'
+    #' taxa <- metagenomics$new(
+    #'  metaData = metadata_file,
+    #'  countData = counts_file,
+    #'  featureData = features_file,
+    #'  treeData = tree_file
+    #' )
     #' 
     #' taxa$write_biom(filename = "output.biom")
     #' file.remove("output.biom")

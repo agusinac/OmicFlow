@@ -9,7 +9,7 @@ test_that("Testing Hill numbers", {
   res_1 <- hill_taxa(x = taxa$countData, q = 1)
   res_2 <- hill_taxa(x = taxa$countData, q = 2)
   
-  expect_snapshot(res_0)
-  expect_snapshot(res_1)
-  expect_snapshot(res_2)
+  expect_snapshot(cat(res_0))
+  expect_snapshot(cat(res_1))
+  expect_snapshot(cat(res_2))
 })

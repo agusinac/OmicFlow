@@ -2,7 +2,7 @@
 #'
 #' @description Computes the alpha diversity based on Shannon index, simpson or invsimpson.
 #' Code is adapted from \link[vegan]{diversity} and uses \link[Matrix]{sparseMatrix} in triplet format over the dense matrix.
-#' The code is much faster and memory efficient, while still being mathematical correct.
+#' The code is much faster and memory efficient, while still being mathematically correct.
 #' This function is built into the class \link{omics} with method \code{alpha_diversity()} and inherited by other omics classes, such as;
 #' \link{metagenomics} and \link{proteomics}.
 #'
@@ -13,8 +13,6 @@
 #' @return A numeric vector with type double.
 #' @seealso \link[vegan]{diversity}
 #' @examples 
-#' library("Matrix")
-#' 
 #' n_row <- 1000
 #' n_col <- 100
 #' density <- 0.2
@@ -50,12 +48,15 @@ diversity <- function(x,
   ## Error handling
   #--------------------------------------------------------------------#
 
+  if (is.vector(x))
+    cli::cli_abort("Input must a matrix of class matrix or Matrix, not a vector.")
+
   x <- drop(as(x, "sparseMatrix"))
   if (!is.numeric(x@x))
-    cli::cli_abort("input data must be numeric")
+    cli::cli_abort("Input data must be numeric")
 
   if (any(x@x < 0, na.rm = TRUE))
-    cli::cli_abort("input data must be non-negative")
+    cli::cli_abort("Input data must be non-negative")
 
   OPTIONS <- c("shannon", "simpson", "invsimpson")
   if (!is.character(metric) && length(metric) != 1) {

@@ -47,8 +47,17 @@ The method by reference is very efficient when dealing with big data.
 ## Method `omics$removeZeros`
 ## ------------------------------------------------
 
-obj_path <- system.file("extdata", "mock_taxa.rds", package = "OmicFlow", mustWork = TRUE)
-obj <- readRDS(obj_path)
+library("OmicFlow")
+
+metadata_file <- system.file("extdata", "metadata.tsv", package = "OmicFlow")
+counts_file <- system.file("extdata", "counts.tsv", package = "OmicFlow")
+features_file <- system.file("extdata", "features.tsv", package = "OmicFlow")
+
+obj <- metagenomics$new(
+ metaData = metadata_file,
+ countData = counts_file,
+ featureData = features_file,
+)
 
 obj$removeZeros()
 
@@ -57,8 +66,17 @@ obj$removeZeros()
 ## Method `omics$removeNAs`
 ## ------------------------------------------------
 
-obj_path <- system.file("extdata", "mock_taxa.rds", package = "OmicFlow", mustWork = TRUE)
-obj <- readRDS(obj_path)
+library("OmicFlow")
+
+metadata_file <- system.file("extdata", "metadata.tsv", package = "OmicFlow")
+counts_file <- system.file("extdata", "counts.tsv", package = "OmicFlow")
+features_file <- system.file("extdata", "features.tsv", package = "OmicFlow")
+
+obj <- metagenomics$new(
+ metaData = metadata_file,
+ countData = counts_file,
+ featureData = features_file,
+)
 
 obj$removeNAs(column = "treatment")
 
@@ -67,8 +85,17 @@ obj$removeNAs(column = "treatment")
 ## Method `omics$feature_subset`
 ## ------------------------------------------------
 
-obj_path <- system.file("extdata", "mock_taxa.rds", package = "OmicFlow", mustWork = TRUE)
-obj <- readRDS(obj_path)
+library("OmicFlow")
+
+metadata_file <- system.file("extdata", "metadata.tsv", package = "OmicFlow")
+counts_file <- system.file("extdata", "counts.tsv", package = "OmicFlow")
+features_file <- system.file("extdata", "features.tsv", package = "OmicFlow")
+
+obj <- metagenomics$new(
+ metaData = metadata_file,
+ countData = counts_file,
+ featureData = features_file,
+)
 
 obj$feature_subset(Genus == "Streptococcus")
 
@@ -77,8 +104,17 @@ obj$feature_subset(Genus == "Streptococcus")
 ## Method `omics$sample_subset`
 ## ------------------------------------------------
 
-obj_path <- system.file("extdata", "mock_taxa.rds", package = "OmicFlow", mustWork = TRUE)
-obj <- readRDS(obj_path)
+library("OmicFlow")
+
+metadata_file <- system.file("extdata", "metadata.tsv", package = "OmicFlow")
+counts_file <- system.file("extdata", "counts.tsv", package = "OmicFlow")
+features_file <- system.file("extdata", "features.tsv", package = "OmicFlow")
+
+obj <- metagenomics$new(
+ metaData = metadata_file,
+ countData = counts_file,
+ featureData = features_file,
+)
 
 obj$sample_subset(treatment == "tumor")
 
@@ -87,8 +123,17 @@ obj$sample_subset(treatment == "tumor")
 ## Method `omics$feature_merge`
 ## ------------------------------------------------
 
-obj_path <- system.file("extdata", "mock_taxa.rds", package = "OmicFlow", mustWork = TRUE)
-obj <- readRDS(obj_path)
+library("OmicFlow")
+
+metadata_file <- system.file("extdata", "metadata.tsv", package = "OmicFlow")
+counts_file <- system.file("extdata", "counts.tsv", package = "OmicFlow")
+features_file <- system.file("extdata", "features.tsv", package = "OmicFlow")
+
+obj <- metagenomics$new(
+ metaData = metadata_file,
+ countData = counts_file,
+ featureData = features_file,
+)
 
 obj$feature_merge(feature_rank = c("Kingdom", "Phylum"))
 obj$feature_merge(feature_rank = "Genus", feature_filter = c("uncultured", "metagenome"))
@@ -98,8 +143,17 @@ obj$feature_merge(feature_rank = "Genus", feature_filter = c("uncultured", "meta
 ## Method `omics$transform`
 ## ------------------------------------------------
 
-obj_path <- system.file("extdata", "mock_taxa.rds", package = "OmicFlow", mustWork = TRUE)
-obj <- readRDS(obj_path)
+library("OmicFlow")
+
+metadata_file <- system.file("extdata", "metadata.tsv", package = "OmicFlow")
+counts_file <- system.file("extdata", "counts.tsv", package = "OmicFlow")
+features_file <- system.file("extdata", "features.tsv", package = "OmicFlow")
+
+obj <- metagenomics$new(
+ metaData = metadata_file,
+ countData = counts_file,
+ featureData = features_file,
+)
 
 obj$transform(log2)
 
@@ -108,8 +162,17 @@ obj$transform(log2)
 ## Method `omics$normalize`
 ## ------------------------------------------------
 
-obj_path <- system.file("extdata", "mock_taxa.rds", package = "OmicFlow", mustWork = TRUE)
-obj <- readRDS(obj_path)
+library("OmicFlow")
+
+metadata_file <- system.file("extdata", "metadata.tsv", package = "OmicFlow")
+counts_file <- system.file("extdata", "counts.tsv", package = "OmicFlow")
+features_file <- system.file("extdata", "features.tsv", package = "OmicFlow")
+
+obj <- metagenomics$new(
+ metaData = metadata_file,
+ countData = counts_file,
+ featureData = features_file,
+)
 
 obj$normalize()
 
@@ -119,9 +182,17 @@ obj$normalize()
 ## ------------------------------------------------
 
 library(ggplot2)
+library("OmicFlow")
 
-obj_path <- system.file("extdata", "mock_taxa.rds", package = "OmicFlow", mustWork = TRUE)
-obj <- readRDS(obj_path)
+metadata_file <- system.file("extdata", "metadata.tsv", package = "OmicFlow")
+counts_file <- system.file("extdata", "counts.tsv", package = "OmicFlow")
+features_file <- system.file("extdata", "features.tsv", package = "OmicFlow")
+
+obj <- metagenomics$new(
+ metaData = metadata_file,
+ countData = counts_file,
+ featureData = features_file,
+)
 
 plt <- obj$rankstat(feature_ranks = c("Kingdom", "Phylum", "Family", "Genus", "Species"))
 plt
@@ -131,9 +202,17 @@ plt
 ## ------------------------------------------------
 
 library(ggplot2)
+library("OmicFlow")
 
-obj_path <- system.file("extdata", "mock_taxa.rds", package = "OmicFlow", mustWork = TRUE)
-obj <- readRDS(obj_path)
+metadata_file <- system.file("extdata", "metadata.tsv", package = "OmicFlow")
+counts_file <- system.file("extdata", "counts.tsv", package = "OmicFlow")
+features_file <- system.file("extdata", "features.tsv", package = "OmicFlow")
+
+obj <- metagenomics$new(
+ metaData = metadata_file,
+ countData = counts_file,
+ featureData = features_file,
+)
 
 plt <- obj$alpha_diversity(col_name = "treatment",
                            metric = "shannon")
@@ -144,9 +223,17 @@ plt <- obj$alpha_diversity(col_name = "treatment",
 ## ------------------------------------------------
 
 library(ggplot2)
+library("OmicFlow")
 
-obj_path <- system.file("extdata", "mock_taxa.rds", package = "OmicFlow", mustWork = TRUE)
-obj <- readRDS(obj_path)
+metadata_file <- system.file("extdata", "metadata.tsv", package = "OmicFlow")
+counts_file <- system.file("extdata", "counts.tsv", package = "OmicFlow")
+features_file <- system.file("extdata", "features.tsv", package = "OmicFlow")
+
+obj <- metagenomics$new(
+ metaData = metadata_file,
+ countData = counts_file,
+ featureData = features_file,
+)
 
 result <- obj$composition(feature_rank = "Genus",
                           feature_filter = c("uncultured"),
@@ -158,13 +245,40 @@ plt <- composition_plot(data = result$data,
 
 
 ## ------------------------------------------------
+## Method `omics$distance`
+## ------------------------------------------------
+
+library("OmicFlow")
+
+metadata_file <- system.file("extdata", "metadata.tsv", package = "OmicFlow")
+counts_file <- system.file("extdata", "counts.tsv", package = "OmicFlow")
+features_file <- system.file("extdata", "features.tsv", package = "OmicFlow")
+
+obj <- metagenomics$new(
+    metaData = metadata_file,
+    countData = counts_file,
+    featureData = features_file
+)
+
+obj$feature_subset(Kingdom == "Bacteria")
+dist <- obj$distance(metric = "bray")
+
+## ------------------------------------------------
 ## Method `omics$ordination`
 ## ------------------------------------------------
 
 library(ggplot2)
+library("OmicFlow")
 
-obj_path <- system.file("extdata", "mock_taxa.rds", package = "OmicFlow", mustWork = TRUE)
-obj <- readRDS(obj_path)
+metadata_file <- system.file("extdata", "metadata.tsv", package = "OmicFlow")
+counts_file <- system.file("extdata", "counts.tsv", package = "OmicFlow")
+features_file <- system.file("extdata", "features.tsv", package = "OmicFlow")
+
+obj <- metagenomics$new(
+ metaData = metadata_file,
+ countData = counts_file,
+ featureData = features_file,
+)
 
 pcoa_plots <- obj$ordination(metric = "bray",
                              method = "pcoa",
@@ -179,9 +293,17 @@ pcoa_plots
 ## ------------------------------------------------
 
 library(ggplot2)
+library("OmicFlow")
 
-obj_path <- system.file("extdata", "mock_taxa.rds", package = "OmicFlow", mustWork = TRUE)
-obj <- readRDS(obj_path)
+metadata_file <- system.file("extdata", "metadata.tsv", package = "OmicFlow")
+counts_file <- system.file("extdata", "counts.tsv", package = "OmicFlow")
+features_file <- system.file("extdata", "features.tsv", package = "OmicFlow")
+
+obj <- metagenomics$new(
+ metaData = metadata_file,
+ countData = counts_file,
+ featureData = features_file,
+)
 
 unpaired <- obj$DFE(feature_rank = "Genus",
                     paired = FALSE,
@@ -194,6 +316,8 @@ unpaired <- obj$DFE(feature_rank = "Genus",
 \link{diversity_plot}
 
 \link{composition_plot}
+
+\link{ordination_plot}, \link{plot_pairwise_stats}, \link{pairwise_anosim}, \link{pairwise_adonis}
 
 \link{ordination_plot}, \link{plot_pairwise_stats}, \link{pairwise_anosim}, \link{pairwise_adonis}
 
@@ -234,6 +358,7 @@ unpaired <- obj$DFE(feature_rank = "Genus",
 \item \href{#method-omics-rankstat}{\code{omics$rankstat()}}
 \item \href{#method-omics-alpha_diversity}{\code{omics$alpha_diversity()}}
 \item \href{#method-omics-composition}{\code{omics$composition()}}
+\item \href{#method-omics-distance}{\code{omics$distance()}}
 \item \href{#method-omics-ordination}{\code{omics$ordination()}}
 \item \href{#method-omics-DFE}{\code{omics$DFE()}}
 \item \href{#method-omics-autoFlow}{\code{omics$autoFlow()}}
@@ -310,8 +435,17 @@ object in place
 }
 \subsection{Examples}{
 \if{html}{\out{<div class="r example copy">}}
-\preformatted{obj_path <- system.file("extdata", "mock_taxa.rds", package = "OmicFlow", mustWork = TRUE)
-obj <- readRDS(obj_path)
+\preformatted{library("OmicFlow")
+
+metadata_file <- system.file("extdata", "metadata.tsv", package = "OmicFlow")
+counts_file <- system.file("extdata", "counts.tsv", package = "OmicFlow")
+features_file <- system.file("extdata", "features.tsv", package = "OmicFlow")
+
+obj <- metagenomics$new(
+ metaData = metadata_file,
+ countData = counts_file,
+ featureData = features_file,
+)
 
 obj$removeZeros()
 
@@ -342,8 +476,17 @@ object in place
 }
 \subsection{Examples}{
 \if{html}{\out{<div class="r example copy">}}
-\preformatted{obj_path <- system.file("extdata", "mock_taxa.rds", package = "OmicFlow", mustWork = TRUE)
-obj <- readRDS(obj_path)
+\preformatted{library("OmicFlow")
+
+metadata_file <- system.file("extdata", "metadata.tsv", package = "OmicFlow")
+counts_file <- system.file("extdata", "counts.tsv", package = "OmicFlow")
+features_file <- system.file("extdata", "features.tsv", package = "OmicFlow")
+
+obj <- metagenomics$new(
+ metaData = metadata_file,
+ countData = counts_file,
+ featureData = features_file,
+)
 
 obj$removeNAs(column = "treatment")
 
@@ -375,8 +518,17 @@ object in place
 }
 \subsection{Examples}{
 \if{html}{\out{<div class="r example copy">}}
-\preformatted{obj_path <- system.file("extdata", "mock_taxa.rds", package = "OmicFlow", mustWork = TRUE)
-obj <- readRDS(obj_path)
+\preformatted{library("OmicFlow")
+
+metadata_file <- system.file("extdata", "metadata.tsv", package = "OmicFlow")
+counts_file <- system.file("extdata", "counts.tsv", package = "OmicFlow")
+features_file <- system.file("extdata", "features.tsv", package = "OmicFlow")
+
+obj <- metagenomics$new(
+ metaData = metadata_file,
+ countData = counts_file,
+ featureData = features_file,
+)
 
 obj$feature_subset(Genus == "Streptococcus")
 
@@ -408,8 +560,17 @@ object in place
 }
 \subsection{Examples}{
 \if{html}{\out{<div class="r example copy">}}
-\preformatted{obj_path <- system.file("extdata", "mock_taxa.rds", package = "OmicFlow", mustWork = TRUE)
-obj <- readRDS(obj_path)
+\preformatted{library("OmicFlow")
+
+metadata_file <- system.file("extdata", "metadata.tsv", package = "OmicFlow")
+counts_file <- system.file("extdata", "counts.tsv", package = "OmicFlow")
+features_file <- system.file("extdata", "features.tsv", package = "OmicFlow")
+
+obj <- metagenomics$new(
+ metaData = metadata_file,
+ countData = counts_file,
+ featureData = features_file,
+)
 
 obj$sample_subset(treatment == "tumor")
 
@@ -464,8 +625,17 @@ object in place
 }
 \subsection{Examples}{
 \if{html}{\out{<div class="r example copy">}}
-\preformatted{obj_path <- system.file("extdata", "mock_taxa.rds", package = "OmicFlow", mustWork = TRUE)
-obj <- readRDS(obj_path)
+\preformatted{library("OmicFlow")
+
+metadata_file <- system.file("extdata", "metadata.tsv", package = "OmicFlow")
+counts_file <- system.file("extdata", "counts.tsv", package = "OmicFlow")
+features_file <- system.file("extdata", "features.tsv", package = "OmicFlow")
+
+obj <- metagenomics$new(
+ metaData = metadata_file,
+ countData = counts_file,
+ featureData = features_file,
+)
 
 obj$feature_merge(feature_rank = c("Kingdom", "Phylum"))
 obj$feature_merge(feature_rank = "Genus", feature_filter = c("uncultured", "metagenome"))
@@ -497,8 +667,17 @@ object in place
 }
 \subsection{Examples}{
 \if{html}{\out{<div class="r example copy">}}
-\preformatted{obj_path <- system.file("extdata", "mock_taxa.rds", package = "OmicFlow", mustWork = TRUE)
-obj <- readRDS(obj_path)
+\preformatted{library("OmicFlow")
+
+metadata_file <- system.file("extdata", "metadata.tsv", package = "OmicFlow")
+counts_file <- system.file("extdata", "counts.tsv", package = "OmicFlow")
+features_file <- system.file("extdata", "features.tsv", package = "OmicFlow")
+
+obj <- metagenomics$new(
+ metaData = metadata_file,
+ countData = counts_file,
+ featureData = features_file,
+)
 
 obj$transform(log2)
 
@@ -522,8 +701,17 @@ object in place
 }
 \subsection{Examples}{
 \if{html}{\out{<div class="r example copy">}}
-\preformatted{obj_path <- system.file("extdata", "mock_taxa.rds", package = "OmicFlow", mustWork = TRUE)
-obj <- readRDS(obj_path)
+\preformatted{library("OmicFlow")
+
+metadata_file <- system.file("extdata", "metadata.tsv", package = "OmicFlow")
+counts_file <- system.file("extdata", "counts.tsv", package = "OmicFlow")
+features_file <- system.file("extdata", "features.tsv", package = "OmicFlow")
+
+obj <- metagenomics$new(
+ metaData = metadata_file,
+ countData = counts_file,
+ featureData = features_file,
+)
 
 obj$normalize()
 
@@ -559,9 +747,17 @@ A \link[ggplot2]{ggplot} object.
 \subsection{Examples}{
 \if{html}{\out{<div class="r example copy">}}
 \preformatted{library(ggplot2)
+library("OmicFlow")
 
-obj_path <- system.file("extdata", "mock_taxa.rds", package = "OmicFlow", mustWork = TRUE)
-obj <- readRDS(obj_path)
+metadata_file <- system.file("extdata", "metadata.tsv", package = "OmicFlow")
+counts_file <- system.file("extdata", "counts.tsv", package = "OmicFlow")
+features_file <- system.file("extdata", "features.tsv", package = "OmicFlow")
+
+obj <- metagenomics$new(
+ metaData = metadata_file,
+ countData = counts_file,
+ featureData = features_file,
+)
 
 plt <- obj$rankstat(feature_ranks = c("Kingdom", "Phylum", "Family", "Genus", "Species"))
 plt
@@ -607,9 +803,17 @@ Alpha diversity based on \link{diversity}
 \subsection{Examples}{
 \if{html}{\out{<div class="r example copy">}}
 \preformatted{library(ggplot2)
+library("OmicFlow")
 
-obj_path <- system.file("extdata", "mock_taxa.rds", package = "OmicFlow", mustWork = TRUE)
-obj <- readRDS(obj_path)
+metadata_file <- system.file("extdata", "metadata.tsv", package = "OmicFlow")
+counts_file <- system.file("extdata", "counts.tsv", package = "OmicFlow")
+features_file <- system.file("extdata", "features.tsv", package = "OmicFlow")
+
+obj <- metagenomics$new(
+ metaData = metadata_file,
+ countData = counts_file,
+ featureData = features_file,
+)
 
 plt <- obj$alpha_diversity(col_name = "treatment",
                            metric = "shannon")
@@ -656,9 +860,17 @@ Creates a table most abundant compositional features. Also assigns a color blind
 \subsection{Examples}{
 \if{html}{\out{<div class="r example copy">}}
 \preformatted{library(ggplot2)
+library("OmicFlow")
 
-obj_path <- system.file("extdata", "mock_taxa.rds", package = "OmicFlow", mustWork = TRUE)
-obj <- readRDS(obj_path)
+metadata_file <- system.file("extdata", "metadata.tsv", package = "OmicFlow")
+counts_file <- system.file("extdata", "counts.tsv", package = "OmicFlow")
+features_file <- system.file("extdata", "features.tsv", package = "OmicFlow")
+
+obj <- metagenomics$new(
+ metaData = metadata_file,
+ countData = counts_file,
+ featureData = features_file,
+)
 
 result <- obj$composition(feature_rank = "Genus",
                           feature_filter = c("uncultured"),
@@ -675,19 +887,68 @@ plt <- composition_plot(data = result$data,
 
 }
 \if{html}{\out{<hr>}}
+\if{html}{\out{<a id="method-omics-distance"></a>}}
+\if{latex}{\out{\hypertarget{method-omics-distance}{}}}
+\subsection{Method \code{distance()}}{
+Compute a distance metric from \code{countData}
+\subsection{Usage}{
+\if{html}{\out{<div class="r">}}\preformatted{omics$distance(metric, normalized = TRUE, weighted = TRUE, threads = 1)}\if{html}{\out{</div>}}
+}
+
+\subsection{Arguments}{
+\if{html}{\out{<div class="arguments">}}
+\describe{
+\item{\code{metric}}{A dissimilarity metric to be applied on the \code{countData},
+thus far supports 'bray', 'jaccard', 'cosine', 'manhattan', 'jensen-shannon divergence', 'aitchison', canberra and 'unifrac' when a tree is provided via \code{treeData}, see \href{#method-distance}{\code{distance()}}.}
+
+\item{\code{normalized}}{A boolean value, whether to \href{#method-normalize}{\code{normalize()}} by total sample sums (Default: TRUE).}
+
+\item{\code{weighted}}{A boolean value, whether to compute weighted or unweighted dissimilarities (Default: TRUE).}
+
+\item{\code{threads}}{A wholenumber, indicating the number of threads to use (Default: 1).}
+}
+\if{html}{\out{</div>}}
+}
+\subsection{Returns}{
+A column x column \link[stats]{dist} object.
+}
+\subsection{Examples}{
+\if{html}{\out{<div class="r example copy">}}
+\preformatted{library("OmicFlow")
+
+metadata_file <- system.file("extdata", "metadata.tsv", package = "OmicFlow")
+counts_file <- system.file("extdata", "counts.tsv", package = "OmicFlow")
+features_file <- system.file("extdata", "features.tsv", package = "OmicFlow")
+
+obj <- metagenomics$new(
+    metaData = metadata_file,
+    countData = counts_file,
+    featureData = features_file
+)
+
+obj$feature_subset(Kingdom == "Bacteria")
+dist <- obj$distance(metric = "bray")
+}
+\if{html}{\out{</div>}}
+
+}
+
+}
+\if{html}{\out{<hr>}}
 \if{html}{\out{<a id="method-omics-ordination"></a>}}
 \if{latex}{\out{\hypertarget{method-omics-ordination}{}}}
 \subsection{Method \code{ordination()}}{
 Ordination of \code{countData} with statistical testing.
 \subsection{Usage}{
 \if{html}{\out{<div class="r">}}\preformatted{omics$ordination(
-  metric = c("bray", "jaccard", "unifrac"),
+  metric = "bray",
   method = c("pcoa", "nmds"),
   group_by,
   distmat = NULL,
   weighted = TRUE,
   normalize = TRUE,
-  cpus = 1,
+  threads = 1,
+  perm_design = NULL,
   perm = 999
 )}\if{html}{\out{</div>}}
 }
@@ -696,7 +957,7 @@ Ordination of \code{countData} with statistical testing.
 \if{html}{\out{<div class="arguments">}}
 \describe{
 \item{\code{metric}}{A dissimilarity or similarity metric to be applied on the \code{countData},
-thus far supports 'bray', 'jaccard' and 'unifrac' when a tree is provided via \code{treeData}, see \link[rbiom]{bdiv_distmat}.}
+thus far supports 'bray', 'jaccard', 'cosine', 'manhattan', 'jensen-shannon divergence', 'aitchison', canberra and 'unifrac' when a tree is provided via \code{treeData}, see \href{#method-distance}{\code{distance()}}.}
 
 \item{\code{method}}{Ordination method, supports "pcoa" and "nmds", see \link[vegan]{wcmdscale}.}
 
@@ -708,7 +969,9 @@ thus far supports 'bray', 'jaccard' and 'unifrac' when a tree is provided via \c
 
 \item{\code{normalize}}{A boolean value, whether to \href{#method-normalize}{\code{normalize()}} by total sample sums (Default: TRUE).}
 
-\item{\code{cpus}}{A wholenumber, indicating the number of processes to spawn (Default: 1) in \link[rbiom]{bdiv_distmat}.}
+\item{\code{threads}}{A wholenumber, indicating the number of threads to use (Default: 1).}
+
+\item{\code{perm_design}}{A function that takes \code{metaData} and constructs a permutation design with \link[permute]{how} (default: NULL).}
 
 \item{\code{perm}}{A wholenumber, number of permutations to compare against the null hypothesis of \link[vegan]{adonis2} and \link[vegan]{anosim} (default: \code{perm=999}).}
 }
@@ -717,9 +980,17 @@ thus far supports 'bray', 'jaccard' and 'unifrac' when a tree is provided via \c
 \subsection{Examples}{
 \if{html}{\out{<div class="r example copy">}}
 \preformatted{library(ggplot2)
+library("OmicFlow")
 
-obj_path <- system.file("extdata", "mock_taxa.rds", package = "OmicFlow", mustWork = TRUE)
-obj <- readRDS(obj_path)
+metadata_file <- system.file("extdata", "metadata.tsv", package = "OmicFlow")
+counts_file <- system.file("extdata", "counts.tsv", package = "OmicFlow")
+features_file <- system.file("extdata", "features.tsv", package = "OmicFlow")
+
+obj <- metagenomics$new(
+ metaData = metadata_file,
+ countData = counts_file,
+ featureData = features_file,
+)
 
 pcoa_plots <- obj$ordination(metric = "bray",
                              method = "pcoa",
@@ -782,9 +1053,17 @@ Differential feature expression (DFE) using the \link{foldchange} for both paire
 \subsection{Examples}{
 \if{html}{\out{<div class="r example copy">}}
 \preformatted{library(ggplot2)
+library("OmicFlow")
 
-obj_path <- system.file("extdata", "mock_taxa.rds", package = "OmicFlow", mustWork = TRUE)
-obj <- readRDS(obj_path)
+metadata_file <- system.file("extdata", "metadata.tsv", package = "OmicFlow")
+counts_file <- system.file("extdata", "counts.tsv", package = "OmicFlow")
+features_file <- system.file("extdata", "features.tsv", package = "OmicFlow")
+
+obj <- metagenomics$new(
+ metaData = metadata_file,
+ countData = counts_file,
+ featureData = features_file,
+)
 
 unpaired <- obj$DFE(feature_rank = "Genus",
                     paired = FALSE,

@@ -16,8 +16,19 @@ Every omics class creates an internal memory efficient back-up of the data, the 
 ## Method `metagenomics$print`
 ## ------------------------------------------------
 
-taxa_path <- system.file("extdata", "mock_taxa.rds", package = "OmicFlow", mustWork = TRUE)
-taxa <- readRDS(taxa_path)
+library("OmicFlow")
+
+metadata_file <- system.file("extdata", "metadata.tsv", package = "OmicFlow")
+counts_file <- system.file("extdata", "counts.tsv", package = "OmicFlow")
+features_file <- system.file("extdata", "features.tsv", package = "OmicFlow")
+tree_file <- system.file("extdata", "tree.newick", package = "OmicFlow")
+
+taxa <- metagenomics$new(
+ metaData = metadata_file,
+ countData = counts_file,
+ featureData = features_file,
+ treeData = tree_file
+)
 
 # method 1 to call print function
 taxa
@@ -31,9 +42,19 @@ taxa$print()
 ## ------------------------------------------------
 
 library(ggplot2)
+library("OmicFlow")
 
-taxa_path <- system.file("extdata", "mock_taxa.rds", package = "OmicFlow", mustWork = TRUE)
-taxa <- readRDS(taxa_path)
+metadata_file <- system.file("extdata", "metadata.tsv", package = "OmicFlow")
+counts_file <- system.file("extdata", "counts.tsv", package = "OmicFlow")
+features_file <- system.file("extdata", "features.tsv", package = "OmicFlow")
+tree_file <- system.file("extdata", "tree.newick", package = "OmicFlow")
+
+taxa <- metagenomics$new(
+ metaData = metadata_file,
+ countData = counts_file,
+ featureData = features_file,
+ treeData = tree_file
+)
 
 # Performs modifications
 taxa$transform(log2)
@@ -49,8 +70,19 @@ taxa$rankstat(feature_ranks = c("Kingdom", "Phylum", "Family", "Genus", "Species
 ## Method `metagenomics$removeZeros`
 ## ------------------------------------------------
 
-taxa_path <- system.file("extdata", "mock_taxa.rds", package = "OmicFlow", mustWork = TRUE)
-taxa <- readRDS(taxa_path)
+library("OmicFlow")
+
+metadata_file <- system.file("extdata", "metadata.tsv", package = "OmicFlow")
+counts_file <- system.file("extdata", "counts.tsv", package = "OmicFlow")
+features_file <- system.file("extdata", "features.tsv", package = "OmicFlow")
+tree_file <- system.file("extdata", "tree.newick", package = "OmicFlow")
+
+taxa <- metagenomics$new(
+ metaData = metadata_file,
+ countData = counts_file,
+ featureData = features_file,
+ treeData = tree_file
+)
 
 # Sample subset induces empty features
 taxa$sample_subset(treatment == "tumor")
@@ -63,8 +95,19 @@ taxa$removeZeros()
 ## Method `metagenomics$write_biom`
 ## ------------------------------------------------
 
-taxa_path <- system.file("extdata", "mock_taxa.rds", package = "OmicFlow", mustWork = TRUE)
-taxa <- readRDS(taxa_path)
+library("OmicFlow")
+
+metadata_file <- system.file("extdata", "metadata.tsv", package = "OmicFlow")
+counts_file <- system.file("extdata", "counts.tsv", package = "OmicFlow")
+features_file <- system.file("extdata", "features.tsv", package = "OmicFlow")
+tree_file <- system.file("extdata", "tree.newick", package = "OmicFlow")
+
+taxa <- metagenomics$new(
+ metaData = metadata_file,
+ countData = counts_file,
+ featureData = features_file,
+ treeData = tree_file
+)
 
 taxa$write_biom(filename = "output.biom")
 file.remove("output.biom")
@@ -108,6 +151,7 @@ file.remove("output.biom")
 <li><span class="pkg-link" data-pkg="OmicFlow" data-topic="omics" data-id="alpha_diversity"><a href='../../OmicFlow/html/omics.html#method-omics-alpha_diversity'><code>OmicFlow::omics$alpha_diversity()</code></a></span></li>
 <li><span class="pkg-link" data-pkg="OmicFlow" data-topic="omics" data-id="autoFlow"><a href='../../OmicFlow/html/omics.html#method-omics-autoFlow'><code>OmicFlow::omics$autoFlow()</code></a></span></li>
 <li><span class="pkg-link" data-pkg="OmicFlow" data-topic="omics" data-id="composition"><a href='../../OmicFlow/html/omics.html#method-omics-composition'><code>OmicFlow::omics$composition()</code></a></span></li>
+<li><span class="pkg-link" data-pkg="OmicFlow" data-topic="omics" data-id="distance"><a href='../../OmicFlow/html/omics.html#method-omics-distance'><code>OmicFlow::omics$distance()</code></a></span></li>
 <li><span class="pkg-link" data-pkg="OmicFlow" data-topic="omics" data-id="feature_merge"><a href='../../OmicFlow/html/omics.html#method-omics-feature_merge'><code>OmicFlow::omics$feature_merge()</code></a></span></li>
 <li><span class="pkg-link" data-pkg="OmicFlow" data-topic="omics" data-id="feature_subset"><a href='../../OmicFlow/html/omics.html#method-omics-feature_subset'><code>OmicFlow::omics$feature_subset()</code></a></span></li>
 <li><span class="pkg-link" data-pkg="OmicFlow" data-topic="omics" data-id="normalize"><a href='../../OmicFlow/html/omics.html#method-omics-normalize'><code>OmicFlow::omics$normalize()</code></a></span></li>
@@ -172,8 +216,19 @@ object in place
 }
 \subsection{Examples}{
 \if{html}{\out{<div class="r example copy">}}
-\preformatted{taxa_path <- system.file("extdata", "mock_taxa.rds", package = "OmicFlow", mustWork = TRUE)
-taxa <- readRDS(taxa_path)
+\preformatted{library("OmicFlow")
+
+metadata_file <- system.file("extdata", "metadata.tsv", package = "OmicFlow")
+counts_file <- system.file("extdata", "counts.tsv", package = "OmicFlow")
+features_file <- system.file("extdata", "features.tsv", package = "OmicFlow")
+tree_file <- system.file("extdata", "tree.newick", package = "OmicFlow")
+
+taxa <- metagenomics$new(
+ metaData = metadata_file,
+ countData = counts_file,
+ featureData = features_file,
+ treeData = tree_file
+)
 
 # method 1 to call print function
 taxa
@@ -204,9 +259,19 @@ object in place
 \subsection{Examples}{
 \if{html}{\out{<div class="r example copy">}}
 \preformatted{library(ggplot2)
+library("OmicFlow")
 
-taxa_path <- system.file("extdata", "mock_taxa.rds", package = "OmicFlow", mustWork = TRUE)
-taxa <- readRDS(taxa_path)
+metadata_file <- system.file("extdata", "metadata.tsv", package = "OmicFlow")
+counts_file <- system.file("extdata", "counts.tsv", package = "OmicFlow")
+features_file <- system.file("extdata", "features.tsv", package = "OmicFlow")
+tree_file <- system.file("extdata", "tree.newick", package = "OmicFlow")
+
+taxa <- metagenomics$new(
+ metaData = metadata_file,
+ countData = counts_file,
+ featureData = features_file,
+ treeData = tree_file
+)
 
 # Performs modifications
 taxa$transform(log2)
@@ -238,8 +303,19 @@ object in place
 }
 \subsection{Examples}{
 \if{html}{\out{<div class="r example copy">}}
-\preformatted{taxa_path <- system.file("extdata", "mock_taxa.rds", package = "OmicFlow", mustWork = TRUE)
-taxa <- readRDS(taxa_path)
+\preformatted{library("OmicFlow")
+
+metadata_file <- system.file("extdata", "metadata.tsv", package = "OmicFlow")
+counts_file <- system.file("extdata", "counts.tsv", package = "OmicFlow")
+features_file <- system.file("extdata", "features.tsv", package = "OmicFlow")
+tree_file <- system.file("extdata", "tree.newick", package = "OmicFlow")
+
+taxa <- metagenomics$new(
+ metaData = metadata_file,
+ countData = counts_file,
+ featureData = features_file,
+ treeData = tree_file
+)
 
 # Sample subset induces empty features
 taxa$sample_subset(treatment == "tumor")
@@ -271,8 +347,19 @@ Creates a BIOM file in HDF5 format of the loaded items via \href{#method-new}{'n
 }
 \subsection{Examples}{
 \if{html}{\out{<div class="r example copy">}}
-\preformatted{taxa_path <- system.file("extdata", "mock_taxa.rds", package = "OmicFlow", mustWork = TRUE)
-taxa <- readRDS(taxa_path)
+\preformatted{library("OmicFlow")
+
+metadata_file <- system.file("extdata", "metadata.tsv", package = "OmicFlow")
+counts_file <- system.file("extdata", "counts.tsv", package = "OmicFlow")
+features_file <- system.file("extdata", "features.tsv", package = "OmicFlow")
+tree_file <- system.file("extdata", "tree.newick", package = "OmicFlow")
+
+taxa <- metagenomics$new(
+ metaData = metadata_file,
+ countData = counts_file,
+ featureData = features_file,
+ treeData = tree_file
+)
 
 taxa$write_biom(filename = "output.biom")
 file.remove("output.biom")
