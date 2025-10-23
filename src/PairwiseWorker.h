@@ -1,5 +1,5 @@
 #ifndef PAIRWISEWORKER_H
-#define PAIRWISEWORKE_H
+#define PAIRWISEWORKER_H
 
 #include <RcppArmadillo.h>
 #include <RcppParallel.h>
