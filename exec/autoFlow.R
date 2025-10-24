@@ -46,11 +46,6 @@ option_list <- list (
                         action = "store",
                         type = "character",
                         help="A custom alpha diversity created from rarefaction from QIIME2, it should contain columns starting wtih `depth-`"),
-  optparse::make_option(c("-c", "--cpus"),
-                        action = "store",
-                        type = "numeric",
-                        help="Number of cores to use, only used when a distance matrix, such as UniFrac or bray-curtis is computed.",
-                        default = 4),
   optparse::make_option("--threads",
                         action = "store",
                         type = "numeric",
@@ -82,7 +77,7 @@ if (args$options$omics == "metagenomics") {
   tax$autoFlow(
     beta_div_table = args$options$`i-beta-div`,
     alpha_div_table = args$options$`i-alpha-div`,
-    cpus = args$options$cpus,
+    threads = args$options$threads,
     normalize = FALSE,
     filename = file.path(args$options$outdir, args$options$filename)
   )
