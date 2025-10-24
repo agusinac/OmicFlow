@@ -1275,7 +1275,7 @@ omics <- R6::R6Class(
     #' @param weighted A boolean value, whether to compute weighted or unweighted dissimilarities (Default: TRUE).
     #' @param pvalue.threshold A numeric value, the p-value is used to include/exclude composition and foldchanges plots coming from alpha- and beta diversity analysis (Default: 0.05).
     #' @param perm A wholenumber, number of permutations to compare against the null hypothesis of \link[vegan]{adonis2} or \link[vegan]{anosim} (default: \code{perm=999}).
-    #' @param cpus Number of cores to use, only used in [`ordination()`](#method-ordination) when beta_div_table is not supplied.
+    #' @param threads Number of threads to use, only used in [`ordination()`](#method-ordination) when beta_div_table is not supplied (default: 1).
     #' @param filename A character to name the HTML report, it can also be a filepath (e.g. \code{"/path/to/report.html"}). Default: "report.html" in your current work directory.
     #' @importFrom patchwork plot_layout wrap_plots
     #' @return A report in HTML format
@@ -1289,7 +1289,7 @@ omics <- R6::R6Class(
                         weighted = TRUE,
                         pvalue.threshold = 0.05,
                         perm = 999,
-                        cpus = 1,
+                        threads = 1,
                         filename = paste0(getwd(), "/report.html")
                       ) {
     ## Error handling
@@ -1467,7 +1467,7 @@ omics <- R6::R6Class(
               normalize = normalize,
               weighted = weighted,
               perm = perm,
-              cpus = cpus
+              threads = threads
               )
           }
           
@@ -1511,7 +1511,8 @@ omics <- R6::R6Class(
               group_by = col_name,
               weighted = weighted,
               normalize = normalize,
-              perm = perm
+              perm = perm,
+              threads = threads
               )
           }
 
