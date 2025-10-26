@@ -52,22 +52,14 @@ double Cosine::operator()(const arma::sp_mat& A, const arma::sp_mat& B) const {
 -----------------------------*/
 
 double JSD::operator()(const arma::sp_mat& A, const arma::sp_mat& B) const {
-    arma::mat a = arma::conv_to<arma::mat>::from(A.col(0));
-    arma::mat b = arma::conv_to<arma::mat>::from(B.col(0));
-    arma::mat m = 0.5 * (a + b);
+    arma::mat denseA = arma::conv_to<arma::mat>::from(A.col(0) + eps);
+    arma::mat denseB = arma::conv_to<arma::mat>::from(B.col(0) + eps);
+    arma::mat M = 0.5 * (denseA + denseB);
 
-    // Adding small epsilon for zero's
-    arma::mat ai = a + eps;
-    arma::mat bi = b + eps;
-    arma::mat mi = m + eps;
+    double num = 0.5 * arma::accu(A % (arma::log(denseA / M)));
+    double denum = 0.5 * arma::accu(B % (arma::log(denseB / M)));
 
-    arma::vec num = 0.5 * (ai % arma::log(ai / mi));
-    arma::vec denum = 0.5 * (bi % arma::log(bi / mi));
-
-    double jsd = arma::accu(num + denum);
-
-    if (jsd == 0.0) return 0.0;
-    return jsd;
+    return num + denum;
 };
 
 
@@ -76,23 +68,29 @@ double JSD::operator()(const arma::sp_mat& A, const arma::sp_mat& B) const {
 -----------------------------*/
 
 double Canberra::operator()(const arma::sp_mat& A, const arma::sp_mat& B) const {
+    arma::sp_mat num = arma::abs(A - B);
+    arma::sp_mat denum = arma::abs(A + B);
+
     double sum = 0.0;
     int count = 0;
-    arma::sp_mat C = A + B;
 
-    for (auto it = C.begin(); it != C.end(); ++it) {
-        int i = it.row();
-        int j = it.col();
-        double a_val = A(i, j);
-        double b_val = B(i, j);
-        double num = std::abs(a_val - b_val);
-        double denum = std::abs(a_val) + std::abs(b_val);
-        if (denum > 0.0) {
-            sum += num / denum;
-            count++;
+    auto itNum = num.begin();
+    auto itDen = denum.begin();
+
+    while (itDen != denum.end() && itNum != num.end()) {
+        if (itDen.row() == itNum.row()) {
+            if (*itDen > 0.0) {
+                sum += (*itNum) / (*itDen);
+                ++count;
+            }
+            ++itDen;
+            ++itNum;
+        } else if (itDen.row() < itNum.row()) {
+            ++itDen;
+        } else {
+            ++itNum;
         }
     }
-    if (count == 0) return std::numeric_limits<double>::quiet_NaN();
     if (sum == 0.0 || count == 0) return 0.0;
     return sum / count;
 };
@@ -102,20 +100,17 @@ double Canberra::operator()(const arma::sp_mat& A, const arma::sp_mat& B) const 
 -----------------------------*/
 
 double Aitchison::operator()(const arma::sp_mat& A, const arma::sp_mat& B) const {
-    arma::mat a = arma::conv_to<arma::mat>::from(A.col(0));
-    arma::mat b = arma::conv_to<arma::mat>::from(B.col(0));
+    // Convert to dense vector
+    arma::mat denseA = arma::conv_to<arma::mat>::from(A.col(0) + eps);
+    arma::mat denseB = arma::conv_to<arma::mat>::from(B.col(0) + eps);
 
-    // Adding small epsilon for zero's
-    arma::mat ai = a + eps;
-    arma::mat bi = b + eps;
-
-    // Compute geometric means
-    double ga = std::exp(arma::as_scalar(arma::mean(arma::log(ai))));
-    double gb = std::exp(arma::as_scalar(arma::mean(arma::log(bi))));
-
+    // Geometric mean
+    double ga = std::exp(arma::as_scalar(arma::mean(arma::log(denseA))));
+    double gb = std::exp(arma::as_scalar(arma::mean(arma::log(denseB))));
+    
     // Compute clr transforms
-    arma::vec clr_a = arma::log(ai / ga);
-    arma::vec clr_b = arma::log(bi / gb);
+    arma::mat clr_a = arma::log(denseA / ga);
+    arma::mat clr_b = arma::log(denseB / gb);
 
     return arma::norm(clr_a - clr_b, 2);
 };
