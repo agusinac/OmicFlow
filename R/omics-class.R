@@ -821,7 +821,7 @@ omics <- R6::R6Class(
     #' @description
     #' Compute a distance metric from `countData`
     #' @param metric A dissimilarity metric to be applied on the `countData`, 
-    #' thus far supports 'bray', 'jaccard', 'cosine', 'manhattan', 'jensen-shannon divergence', 'aitchison', canberra and 'unifrac' when a tree is provided via `treeData`, see [`distance()`](#method-distance).
+    #' thus far supports 'bray', 'jaccard', 'cosine', 'manhattan', 'jensen-shannon divergence', 'canberra' and 'unifrac' when a tree is provided via `treeData`, see [`distance()`](#method-distance).
     #' @param weighted A boolean value, whether to compute weighted or unweighted dissimilarities (Default: TRUE).
     #' @param normalized A boolean value, whether to [`normalize()`](#method-normalize) by total sample sums (Default: TRUE).
     #' @param threads A wholenumber, indicating the number of threads to use (Default: 1).
@@ -848,7 +848,7 @@ omics <- R6::R6Class(
       #--------------------------------------------------------------------#
       OPTIONS <- c(
         "bray", "jaccard", "cosine", "manhattan",
-        "aitchison", "jsd", "canberra", "unifrac"
+        "jsd", "canberra", "unifrac"
         )
 
       if (!is.character(metric) && length(metric) != 1) {
@@ -889,7 +889,6 @@ omics <- R6::R6Class(
         "jaccard" = OmicFlow::jaccard(x = self$countData, weighted=weighted, threads=threads),
         "bray" = OmicFlow::bray(x = self$countData, weighted=weighted, threads=threads),
         "jsd" = OmicFlow::jsd(x = self$countData, weighted=weighted, threads=threads),
-        "aitchison" = OmicFlow::aitchison(x = self$countData, weighted=weighted, threads=threads),
         "cosine" = OmicFlow::cosine(x = self$countData, weighted=weighted, threads=threads)
       )
 
@@ -898,7 +897,7 @@ omics <- R6::R6Class(
     #' @description
     #' Ordination of `countData` with statistical testing.
     #' @param metric A dissimilarity or similarity metric to be applied on the `countData`, 
-    #' thus far supports 'bray', 'jaccard', 'cosine', 'manhattan', 'jensen-shannon divergence', 'aitchison', canberra and 'unifrac' when a tree is provided via `treeData`, see [`distance()`](#method-distance).
+    #' thus far supports 'bray', 'jaccard', 'cosine', 'manhattan', 'jensen-shannon divergence', 'canberra' and 'unifrac' when a tree is provided via `treeData`, see [`distance()`](#method-distance).
     #' @param method Ordination method, supports "pcoa" and "nmds", see \link[vegan]{wcmdscale}.
     #' @param distmat A custom distance matrix in either \link[stats]{dist} or \link[Matrix]{Matrix} format.
     #' @param group_by A character variable in `metaData` to be used for the \link{pairwise_adonis} or \link{pairwise_anosim} statistical test.
