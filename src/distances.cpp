@@ -59,7 +59,7 @@ double JSD::operator()(const arma::sp_mat& A, const arma::sp_mat& B) const {
     double num = 0.5 * arma::accu(A % (arma::log(denseA / M)));
     double denum = 0.5 * arma::accu(B % (arma::log(denseB / M)));
 
-    return num + denum;
+    return (num + denum) / std::log(2.0);
 };
 
 
