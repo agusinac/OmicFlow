@@ -1095,7 +1095,7 @@ For now only works with headers that start with prefix \code{CONTRAST_}.
   weighted = TRUE,
   pvalue.threshold = 0.05,
   perm = 999,
-  cpus = 1,
+  threads = 1,
   filename = paste0(getwd(), "/report.html")
 )}\if{html}{\out{</div>}}
 }
@@ -1123,7 +1123,7 @@ For now only works with headers that start with prefix \code{CONTRAST_}.
 
 \item{\code{perm}}{A wholenumber, number of permutations to compare against the null hypothesis of \link[vegan]{adonis2} or \link[vegan]{anosim} (default: \code{perm=999}).}
 
-\item{\code{cpus}}{Number of cores to use, only used in \href{#method-ordination}{\code{ordination()}} when beta_div_table is not supplied.}
+\item{\code{threads}}{Number of threads to use, only used in \href{#method-ordination}{\code{ordination()}} when beta_div_table is not supplied (default: 1).}
 
 \item{\code{filename}}{A character to name the HTML report, it can also be a filepath (e.g. \code{"/path/to/report.html"}). Default: "report.html" in your current work directory.}
 }
