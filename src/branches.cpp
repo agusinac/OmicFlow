@@ -1,28 +1,42 @@
 #include "branches.h"
 
-arma::mat BranchWeights::operator()(const arma::sp_mat& tips_A, const arma::sp_mat& tips_B) const {
+arma::mat BranchWeights::operator()(const arma::sp_mat& A, const arma::sp_mat& B) const {
+    int n_tips = A.n_rows;
     int n_branches = edge.n_rows;
-    int n_tips = tips_A.n_rows;
     arma::mat weights(n_branches, 2);
     arma::vec branch_weights_A(n_branches, 1, arma::fill::zeros);
     arma::vec branch_weights_B(n_branches, 1, arma::fill::zeros);
 
-    // Assign tip abundances to branches using direct lookup
-    for (int i = 0; i < n_tips; ++i) {
-        int edge_idx = child_to_edge[i];
-        if (edge_idx == -1) continue;
-        branch_weights_A(edge_idx) = tips_A(i, 0);
-        branch_weights_B(edge_idx) = tips_B(i, 0);
+    // Assign non-zero entries for A
+    for (arma::sp_mat::const_iterator it = A.begin(); it != A.end(); ++it) {
+        int row_idx = it.row();
+        int edge_idx = child_to_edge[row_idx];
+        if (edge_idx != 1)
+            branch_weights_A(edge_idx) = *it;
     }
-    // Propagate abundances upward (same as before)
-    // Error `Mat::operator(): Index out of bounds` happens at this code snippet!
+
+    // Assign non-zero entries for B
+    for (arma::sp_mat::const_iterator it = B.begin(); it != B.end(); ++it) {
+        int row_idx = it.row();
+        int edge_idx = child_to_edge[row_idx];
+        if (edge_idx != 1)
+            branch_weights_B(edge_idx) = *it;
+    }
+
+    // Sum abundances from tip to root
     for (int i = n_branches - 1; i >= 0; --i) {
         int parent = edge(i, 0);
         if (parent >= n_tips) {
             int pidx = child_to_edge[parent];
             if (pidx != -1) {
-                branch_weights_A(pidx) += branch_weights_A(i);
-                branch_weights_B(pidx) += branch_weights_B(i);
+                double& bwA_p = branch_weights_A(pidx);
+                double& bwA_i = branch_weights_A(i);
+
+                double& bwB_p = branch_weights_B(pidx);
+                double& bwB_i = branch_weights_B(i);
+
+                bwA_p += bwA_i;
+                bwB_p += bwB_i;
             }
         }
     }
@@ -31,19 +45,27 @@ arma::mat BranchWeights::operator()(const arma::sp_mat& tips_A, const arma::sp_m
     return weights;
 };
 
-std::pair<std::vector<bool>, std::vector<bool>> BranchPresence::operator()(const arma::sp_mat& tips_A, const arma::sp_mat& tips_B) const {
+std::pair<std::vector<bool>, std::vector<bool>> BranchPresence::operator()(const arma::sp_mat& A, const arma::sp_mat& B) const {
     int n_branches = edge.n_rows;
-    int n_tips = tips_A.n_rows;
+    int n_tips = A.n_rows;
 
     std::vector<bool> presence_A(n_branches, false);
     std::vector<bool> presence_B(n_branches, false);
 
-    for (int i = 0; i < n_tips; ++i) {
-        int edge_idx = child_to_edge[i];
-        if (edge_idx != -1) {
-            presence_A[edge_idx] = (tips_A(i, 0) > 0);
-            presence_B[edge_idx] = (tips_B(i, 0) > 0);
-        }
+    // Assign non-zero entries for A
+    for (arma::sp_mat::const_iterator it = A.begin(); it != A.end(); ++it) {
+        int idx = it.row();
+        int edge_idx = child_to_edge[idx];
+        if (edge_idx != -1)
+            presence_A[edge_idx] = true;
+    }
+
+    // Assign non-zero entries for B
+    for (arma::sp_mat::const_iterator it = B.begin(); it != B.end(); ++it) {
+        int idx = it.row();
+        int edge_idx = child_to_edge[idx];
+        if (edge_idx != -1)
+            presence_B[edge_idx] = true;
     }
 
     for (int i = n_branches - 1; i >= 0; --i) {
@@ -56,6 +78,5 @@ std::pair<std::vector<bool>, std::vector<bool>> BranchPresence::operator()(const
             }
         }
     }
-
     return {presence_A, presence_B};
 };

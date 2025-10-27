@@ -84,7 +84,7 @@ unifrac <- function(x, tree, weighted = TRUE, normalized = TRUE, threads = 1) {
 
     out <- .Call(
         '_OmicFlow_unifrac', PACKAGE = 'OmicFlow', 
-        x, tree$edge-1, tree$edge.length, normalized, weighted
+        x, tree$edge-1, tree$edge.length, weighted, normalized
         )
 
     col_names <- colnames(x)
