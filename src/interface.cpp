@@ -41,12 +41,6 @@ arma::mat canberra(const arma::sp_mat& mat) {
 }
 
 // [[Rcpp::export]]
-arma::mat aitchison(const arma::sp_mat& mat) {
-    Aitchison dist;
-    return pairwise_dist(mat, dist);
-}
-
-// [[Rcpp::export]]
 arma::mat unifrac(const arma::sp_mat& mat, const arma::umat& edge, const arma::vec& edge_lengths, bool weighted, bool normalized) {
     UniFrac dist(edge, edge_lengths, weighted, normalized);
     return pairwise_dist(mat, dist);

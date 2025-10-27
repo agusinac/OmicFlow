@@ -96,26 +96,6 @@ double Canberra::operator()(const arma::sp_mat& A, const arma::sp_mat& B) const 
 };
 
 /*----------------------------
-    Aitchison dissimilarity
------------------------------*/
-
-double Aitchison::operator()(const arma::sp_mat& A, const arma::sp_mat& B) const {
-    // Convert to dense vector
-    arma::mat denseA = arma::conv_to<arma::mat>::from(A.col(0) + eps);
-    arma::mat denseB = arma::conv_to<arma::mat>::from(B.col(0) + eps);
-
-    // Geometric mean
-    double ga = std::exp(arma::as_scalar(arma::mean(arma::log(denseA))));
-    double gb = std::exp(arma::as_scalar(arma::mean(arma::log(denseB))));
-    
-    // Compute clr transforms
-    arma::mat clr_a = arma::log(denseA / ga);
-    arma::mat clr_b = arma::log(denseB / gb);
-
-    return arma::norm(clr_a - clr_b, 2);
-};
-
-/*----------------------------
     UniFrac dissimilarity
 -----------------------------*/
 

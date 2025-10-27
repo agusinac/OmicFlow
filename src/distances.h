@@ -28,11 +28,6 @@ struct Canberra {
     double operator()(const arma::sp_mat& A, const arma::sp_mat& B) const;
 };
 
-struct Aitchison { 
-    const double eps = 1e-15;
-    double operator()(const arma::sp_mat& A, const arma::sp_mat& B) const;
-};
-
 struct UniFrac {
     const arma::umat& edge;
     const arma::vec& edge_lengths;

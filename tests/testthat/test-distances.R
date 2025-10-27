@@ -61,13 +61,6 @@ test_that("Testing dissimilarity metrics", {
     )
     expect_snapshot(cat(can))
 
-    ## Testing Aitchison
-    ait <- aitchison(
-        x = taxa$countData,
-        weighted = TRUE
-    )
-    expect_snapshot(cat(ait))
-
     ## Testing Jensen-Shannon Divergence
     jsd_res <- jsd(
         x = taxa$countData,

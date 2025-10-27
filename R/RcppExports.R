@@ -25,10 +25,6 @@ canberra <- function(mat) {
     .Call(`_OmicFlow_canberra`, mat)
 }
 
-aitchison <- function(mat) {
-    .Call(`_OmicFlow_aitchison`, mat)
-}
-
 unifrac <- function(mat, edge, edge_lengths, weighted, normalized) {
     .Call(`_OmicFlow_unifrac`, mat, edge, edge_lengths, weighted, normalized)
 }

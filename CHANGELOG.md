@@ -10,7 +10,6 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - [#14](https://github.com/agusinac/OmicFlow/issues/14) `bray` for both weighted/unweighted options.
 - [#14](https://github.com/agusinac/OmicFlow/issues/14) `jaccard` for both weighted/unweighted options.
 - [#14](https://github.com/agusinac/OmicFlow/issues/14) `jsd` for both weighted/unweighted options.
-- [#14](https://github.com/agusinac/OmicFlow/issues/14) `aitchison` for both weighted/unweighted options.
 - [#14](https://github.com/agusinac/OmicFlow/issues/14) `cosine` for both weighted/unweighted options.
 - [#14](https://github.com/agusinac/OmicFlow/issues/14) `canberra` for both weighted/unweighted options.
 - [#14](https://github.com/agusinac/OmicFlow/issues/14) `manhattan` for both weighted/unweighted options.
