@@ -841,7 +841,7 @@ omics <- R6::R6Class(
     #'
     #' obj$feature_subset(Kingdom == "Bacteria")
     #' dist <- obj$distance(metric = "bray")
-    #' @seealso \link{ordination_plot}, \link{plot_pairwise_stats}, \link{pairwise_anosim}, \link{pairwise_adonis}
+    #' @seealso \link{bray}, \link{canberra}, \link{cosine}, \link{jaccard}, \link{jsd}, \link{manhattan}, \link{unifrac}
     distance = function(metric, normalized = TRUE, weighted = TRUE, threads = 1) {
 
       ## Error handling

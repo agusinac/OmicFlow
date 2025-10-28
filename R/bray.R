@@ -2,6 +2,8 @@
 #'
 #' @description 
 #' Calculates the Bray-Curtis dissimilarity of a \link[Matrix]{sparseMatrix} pairwise for each column. 
+#' 
+#' @details
 #' The Bray-Curtis dissimilarity between two samples \eqn{A} and \eqn{B}, each of length \eqn{n}, is defined as:
 #'
 #' \eqn{d(A,B) = \frac{\sum_{i}^n |A_i - B_i|}{\sum_{i}^n (A_i + B_i)}}

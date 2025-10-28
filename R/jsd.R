@@ -2,13 +2,15 @@
 #'
 #' @description
 #' Calculates the Jensen-Shannon divergence of a \link[Matrix]{sparseMatrix} pairwise for each column.
+#' 
+#' @details
 #' The Jensen-Shannon divergence between two probability distributions \eqn{A} and \eqn{B}, each of length \eqn{n}, is defined as:
 #'
 #' \eqn{ d(A, B) = \frac{1}{2} D_{KL}(A \parallel M) + \frac{1}{2} D_{KL}(B \parallel M) }
 #'
 #' where \eqn{M = \frac{1}{2} (A + B)} is the mixture distribution,
 #' and \eqn{D_{KL}} is the Kullback-Leibler divergence.
-#' When weighted is set to FALSE, counts are changed to relative abundances.
+#' When weighted is set to FALSE, counts are replaced by presence/absence data.
 #'
 #' @param x A \link[Matrix]{sparseMatrix}.
 #' @param weighted A boolean value, to use counts or relative abundances (default: TRUE).

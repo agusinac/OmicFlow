@@ -1,6 +1,6 @@
 #------------------------------------------------------------------------------------#
 #
-#   Created by Alem Gusinac, last modified at 16-10-2025
+#   Created by Alem Gusinac, last modified at 24-10-2025
 #
 #   It builds on top of a slim ubuntu (70MB) base
 #
@@ -53,6 +53,10 @@ RUN echo "deb https://cloud.r-project.org/bin/linux/ubuntu focal-cran40/" >> /et
 RUN apt-get update && apt-get upgrade -y && apt-get clean
 RUN apt-get update && apt-get install -y r-base
 
+# Install ggplot2 3.5.2 explicitly before other packages
+RUN R -e "install.packages('remotes', repos='https://cloud.r-project.org')"
+RUN R -e "remotes::install_version('ggplot2', version='3.5.2', repos='https://cloud.r-project.org')"
+
 # Copy requirements
 COPY install2.r .
 COPY installBioc.r .
@@ -62,11 +66,9 @@ RUN R -e "install.packages('docopt', dependencies=TRUE)"
 
 # Essential R dependencies
 RUN Rscript install2.r --error --skipinstalled \
-    remotes \
     pak \
     BiocManager \
     b64 \
-    ggplot2 \
     cli \
     DT \
     downloadthis \
@@ -95,4 +97,4 @@ ARG USER_GID=$USER_UID
 
 # Create the user
 RUN groupadd --gid $USER_GID $USERNAME \
-    && useradd --uid $USER_UID --gid $USER_GID -m $USERNAME \
+    && useradd --uid $USER_UID --gid $USER_GID -m $USERNAME

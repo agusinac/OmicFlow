@@ -2,6 +2,8 @@
 #'
 #' @description 
 #' Calculates the Canberra dissimilarity of a \link[Matrix]{sparseMatrix} pairwise for each column.
+#' 
+#' @details
 #' The Canberra dissimilarity between two samples \eqn{A} and \eqn{B}, each of length \eqn{n}, is defined as:
 #'
 #' \eqn{d(A,B) = \frac{1 / NZ} \sum_{i}^n \frac{|A_i - B_i|}{|A_i| + |B_i|}}

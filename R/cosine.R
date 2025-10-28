@@ -2,6 +2,8 @@
 #'
 #' @description 
 #' Calculates the cosine disimilarity of a \link[Matrix]{sparseMatrix} pairwise for each column.
+#' 
+#' @details
 #' The cosine dissimilarity between two samples \eqn{A} and \eqn{B}, each of length \eqn{n}, is defined as:
 #'
 #' \eqn{d(A,B) = 1 - \frac{\sum_{i}^n A_i B_i}{\sqrt{\sum_{i}^n A_i^2} \sqrt{\sum_{i}^n B_i^2}} }

@@ -18,6 +18,8 @@ A column x column \link[stats]{dist} object.
 }
 \description{
 Calculates the Jaccard dissimilarity of a \link[Matrix]{sparseMatrix} pairwise for each column.
+}
+\details{
 The weighted Jaccard disimilarity between two samples \eqn{A} and \eqn{B}, each of length \eqn{n}, is defined as:
 
 \eqn{d(A,B) = 1 - \frac{ \sum_{i}^{n} \min(A_i, B_i) }{ \sum_{i}^{n} \max(A_i, B_i) }}

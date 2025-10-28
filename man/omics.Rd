@@ -317,7 +317,7 @@ unpaired <- obj$DFE(feature_rank = "Genus",
 
 \link{composition_plot}
 
-\link{ordination_plot}, \link{plot_pairwise_stats}, \link{pairwise_anosim}, \link{pairwise_adonis}
+\link{bray}, \link{canberra}, \link{cosine}, \link{jaccard}, \link{jsd}, \link{manhattan}, \link{unifrac}
 
 \link{ordination_plot}, \link{plot_pairwise_stats}, \link{pairwise_anosim}, \link{pairwise_adonis}
 

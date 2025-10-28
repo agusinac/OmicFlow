@@ -18,6 +18,8 @@ A column x column \link[stats]{dist} object.
 }
 \description{
 Calculates the Manhattan dissimilarity of a \link[Matrix]{sparseMatrix} pairwise for each column.
+}
+\details{
 The Manhattan dissimilarity between two samples \eqn{A} and \eqn{B}, each of length \eqn{n}, is defined as:
 
 \eqn{d(A, B) = \sum_{i}^n |A_i - B_i|}

@@ -1,19 +1,21 @@
 #' Compute UniFrac Dissimilarity from a Sparse Matrix.
 #'
 #' @description Calculates the UniFrac dissimilarity between samples based on phylogenetic branch lengths and abundance or presence/absence data.
-#' The UniFrac distance between two samples \eqn{A} and \eqn{B}, with phylogenetic tree edges \eqn{i = 1 \ldots n} of lengths \eqn{L_i}, is computed differently depending on the \code{weighted} and \code{normalized} flags:
-#' Weighted UniFrac:
-#' \eqn{d(A,B) = \frac{\sum_{i}^n L_i |A_i - B_i|}{\sum_{i}^n L_i (A_i + B_i)}}
-#' Normalized Weighted UniFrac:
-#' \eqn{d(A,B) = \sum_{i}^n L_i |A_i - B_i|}
-#' where \eqn{A_i} and \eqn{B_i} are the abundance weights for branch \eqn{i} computed by propagating tip abundances to internal nodes.
-#'
-#' Unweighted UniFrac (always normalized): 
-#' \eqn{d(A,B) = \frac{\sum_{i}^n L_i |A'_i - B'_i|}{\sum_{i}^n L_i \max(A'_i, B'_i)}}
-#'
-#' where \eqn{A'_i} and \eqn{B'_i} are binary indicators (presence/absence) on branches \eqn{i}, derived by propagating tip presence to internal nodes.
-#' When \code{weighted = FALSE}, input counts are first converted to presence/absence before distance computation.
-#'
+#' 
+#' @details
+#' The UniFrac distance between two samples \eqn{A} and \eqn{B}, with phylogenetic tree edges \eqn{i = 1 \ldots n} of lengths \eqn{L_i}, is computed differently depending on the \code{weighted} and \code{normalized} flags. 
+#' When \code{weighted = FALSE}, input counts are first converted to presence/absence data.
+#' \describe{
+#'  \item{Weighted UniFrac (\code{normalized = FALSE} and \code{weighted = TRUE}):}{
+#'      \eqn{d(A,B) = \frac{\sum_{i}^n L_i |A_i - B_i|}{\sum_{i}^n L_i (A_i + B_i)}}
+#'  }
+#'  \item{Normalized Weighted UniFrac (\code{normalized = TRUE} and \code{weighted = TRUE}):}{
+#'      \eqn{d(A,B) = \sum_{i}^n L_i |A_i - B_i|}
+#'  }
+#'  \item{Unweighted UniFrac (\code{weighted = FALSE}, unweighted is always normalized):}{
+#'      \eqn{d(A,B) = \frac{\sum_{i}^n L_i |A_i - B_i|}{\sum_{i}^n L_i \max(A_i, B_i)}}
+#'  }
+#'}
 #' @param x A \link[Matrix]{sparseMatrix} of strictly positive counts or presence/absence data.
 #' @param tree A `phylo` class tree.
 #' @param weighted Logical indicating whether to compute weighted (abundance) or unweighted (presence/absence) UniFrac (default: TRUE).
@@ -21,12 +23,7 @@
 #' @param threads Integer number of threads to use for parallel computation (default: 1).
 #' @return A symmetric matrix of pairwise UniFrac distances between columns of \code{x}.
 #' @references
-#' Lozupone, C., Hamady, M., Kelley, S. T., & Knight, R. (2007). Quantitative and qualitative beta diversity measures lead to different insights into factors that structure microbial communities. Applied and Environmental Microbiology, 73(5), 1576–1585.
-#'
 #' Lozupone, C., & Knight, R. (2005). UniFrac: a new phylogenetic method for comparing microbial communities. Applied and Environmental Microbiology, 71(12), 8228–8235.
-#'
-#' Lozupone, C., & Knight, R. (2008). Species divergence and the measurement of microbial diversity. FEMS Microbiology Reviews, 32(4), 557–578.
-#'
 #' @examples 
 #' library("OmicFlow")
 #'
