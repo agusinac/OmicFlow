@@ -108,20 +108,6 @@
 ```
 
 
-## methods
-
-```
-@Manual{,
-  title = {R: A Language and Environment for Statistical Computing},
-  author = {{R Core Team}},
-  organization = {R Foundation for Statistical Computing},
-  address = {Vienna, Austria},
-  year = {2024},
-  url = {https://www.R-project.org/},
-}
-```
-
-
 ## patchwork
 
 ```
@@ -233,35 +219,7 @@
 ```
 
 
-## stats
-
-```
-@Manual{,
-  title = {R: A Language and Environment for Statistical Computing},
-  author = {{R Core Team}},
-  organization = {R Foundation for Statistical Computing},
-  address = {Vienna, Austria},
-  year = {2024},
-  url = {https://www.R-project.org/},
-}
-```
-
-
-## tools
-
-```
-@Manual{,
-  title = {R: A Language and Environment for Statistical Computing},
-  author = {{R Core Team}},
-  organization = {R Foundation for Statistical Computing},
-  address = {Vienna, Austria},
-  year = {2024},
-  url = {https://www.R-project.org/},
-}
-```
-
-
-## utils
+## stats, tools, methods, utils
 
 ```
 @Manual{,
