@@ -18,10 +18,10 @@
 #'}
 #' @param x A \link[Matrix]{sparseMatrix} of strictly positive counts or presence/absence data.
 #' @param tree A `phylo` class tree.
-#' @param weighted Logical indicating whether to compute weighted (abundance) or unweighted (presence/absence) UniFrac (default: TRUE).
-#' @param normalized Logical indicating whether to normalize weighted UniFrac distances to be between 0 and 1 (default: TRUE). Unweighted UniFrac is always normalized.
-#' @param threads Integer number of threads to use for parallel computation (default: 1).
-#' @return A symmetric matrix of pairwise UniFrac distances between columns of \code{x}.
+#' @param weighted A boolean value, to use abundances (\code{weighted = TRUE}) or absence/presence (\code{weighted=FALSE}) (default: TRUE).
+#' @param normalized A boolean value, whether to normalize weighted UniFrac distances to be between 0 and 1 (default: TRUE). Unweighted UniFrac is always normalized.
+#' @param threads A wholenumber, the number of threads to use in \link[RcppParallel]{setThreadOptions} (default: 1).
+#' @return A column x column \link[stats]{dist} object.
 #' @references
 #' Lozupone, C., & Knight, R. (2005). UniFrac: a new phylogenetic method for comparing microbial communities. Applied and Environmental Microbiology, 71(12), 8228–8235.
 #' @examples 

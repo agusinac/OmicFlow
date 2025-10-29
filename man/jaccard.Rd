@@ -9,7 +9,7 @@ jaccard(x, weighted = TRUE, threads = 1)
 \arguments{
 \item{x}{A \link[Matrix]{sparseMatrix}.}
 
-\item{weighted}{A boolean value, to use abundances or absence/presence (default: TRUE).}
+\item{weighted}{A boolean value, to use abundances (\code{weighted = TRUE}) or absence/presence (\code{weighted=FALSE}) (default: TRUE).}
 
 \item{threads}{A wholenumber, the number of threads to use in \link[RcppParallel]{setThreadOptions} (default: 1).}
 }

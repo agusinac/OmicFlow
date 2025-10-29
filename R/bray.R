@@ -12,7 +12,7 @@
 #' When weighted is set to FALSE, counts are replaced by presence/absence data.
 #'
 #' @param x A \link[Matrix]{sparseMatrix}.
-#' @param weighted A boolean value, to use abundances or absence/presence (default: TRUE).
+#' @param weighted A boolean value, to use abundances (\code{weighted = TRUE}) or absence/presence (\code{weighted=FALSE}) (default: TRUE).
 #' @param threads A wholenumber, the number of threads to use in \link[RcppParallel]{setThreadOptions} (default: 1).
 #' @return A column x column \link[stats]{dist} object.
 #' @references

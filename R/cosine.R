@@ -12,11 +12,11 @@
 #' When weighted is set to FALSE, counts are replaced by presence/absence data.
 #'
 #' @param x A \link[Matrix]{sparseMatrix}.
-#' @param weighted A boolean value, to use abundances or absence/presence (default: TRUE).
+#' @param weighted A boolean value, to use abundances (\code{weighted = TRUE}) or absence/presence (\code{weighted=FALSE}) (default: TRUE).
 #' @param threads A wholenumber, the number of threads to use in \link[RcppParallel]{setThreadOptions} (default: 1).
 #' @return A column x column \link[stats]{dist} object.
 #' @references
-#' Han, J., Pei, J., & Tong, H. (2023). Data, measurements, and data preprocessing. In *Data Mining* (Fourth Edition) (pp. 23-84). Morgan Kaufmann. https://doi.org/10.1016/B978-0-12-811760-6.00012-6
+#' Deza, M. M., & Deza, E. (2009). Encyclopedia of Distances. Springer Science & Business Media., 308.
 #' @examples 
 #' library("OmicFlow")
 #'

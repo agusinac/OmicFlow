@@ -899,11 +899,11 @@ Compute a distance metric from \code{countData}
 \if{html}{\out{<div class="arguments">}}
 \describe{
 \item{\code{metric}}{A dissimilarity metric to be applied on the \code{countData},
-thus far supports 'bray', 'jaccard', 'cosine', 'manhattan', 'jensen-shannon divergence', 'canberra' and 'unifrac' when a tree is provided via \code{treeData}, see \href{#method-distance}{\code{distance()}}.}
+thus far supports 'bray', 'jaccard', 'cosine', 'manhattan', 'jsd' (jensen-shannon divergence), 'canberra' and 'unifrac' when a tree is provided via \code{treeData}, see \href{#method-distance}{\code{distance()}}.}
 
 \item{\code{normalized}}{A boolean value, whether to \href{#method-normalize}{\code{normalize()}} by total sample sums (Default: TRUE).}
 
-\item{\code{weighted}}{A boolean value, whether to compute weighted or unweighted dissimilarities (Default: TRUE).}
+\item{\code{weighted}}{A boolean value, to use abundances (\code{weighted = TRUE}) or absence/presence (\code{weighted=FALSE}) (default: TRUE).}
 
 \item{\code{threads}}{A wholenumber, indicating the number of threads to use (Default: 1).}
 }
@@ -957,7 +957,7 @@ Ordination of \code{countData} with statistical testing.
 \if{html}{\out{<div class="arguments">}}
 \describe{
 \item{\code{metric}}{A dissimilarity or similarity metric to be applied on the \code{countData},
-thus far supports 'bray', 'jaccard', 'cosine', 'manhattan', 'jensen-shannon divergence', 'canberra' and 'unifrac' when a tree is provided via \code{treeData}, see \href{#method-distance}{\code{distance()}}.}
+thus far supports 'bray', 'jaccard', 'cosine', 'manhattan', 'jsd' (jensen-shannon divergence), 'canberra' and 'unifrac' when a tree is provided via \code{treeData}, see \href{#method-distance}{\code{distance()}}.}
 
 \item{\code{method}}{Ordination method, supports "pcoa" and "nmds", see \link[vegan]{wcmdscale}.}
 

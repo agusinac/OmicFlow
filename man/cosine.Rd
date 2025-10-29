@@ -9,7 +9,7 @@ cosine(x, weighted = TRUE, threads = 1)
 \arguments{
 \item{x}{A \link[Matrix]{sparseMatrix}.}
 
-\item{weighted}{A boolean value, to use abundances or absence/presence (default: TRUE).}
+\item{weighted}{A boolean value, to use abundances (\code{weighted = TRUE}) or absence/presence (\code{weighted=FALSE}) (default: TRUE).}
 
 \item{threads}{A wholenumber, the number of threads to use in \link[RcppParallel]{setThreadOptions} (default: 1).}
 }
@@ -48,5 +48,5 @@ taxa$normalize()
 cosine(taxa$countData)
 }
 \references{
-Han, J., Pei, J., & Tong, H. (2023). Data, measurements, and data preprocessing. In \emph{Data Mining} (Fourth Edition) (pp. 23-84). Morgan Kaufmann. https://doi.org/10.1016/B978-0-12-811760-6.00012-6
+Deza, M. M., & Deza, E. (2009). Encyclopedia of Distances. Springer Science & Business Media., 308.
 }

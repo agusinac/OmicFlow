@@ -11,14 +11,14 @@ unifrac(x, tree, weighted = TRUE, normalized = TRUE, threads = 1)
 
 \item{tree}{A \code{phylo} class tree.}
 
-\item{weighted}{Logical indicating whether to compute weighted (abundance) or unweighted (presence/absence) UniFrac (default: TRUE).}
+\item{weighted}{A boolean value, to use abundances (\code{weighted = TRUE}) or absence/presence (\code{weighted=FALSE}) (default: TRUE).}
 
-\item{normalized}{Logical indicating whether to normalize weighted UniFrac distances to be between 0 and 1 (default: TRUE). Unweighted UniFrac is always normalized.}
+\item{normalized}{A boolean value, whether to normalize weighted UniFrac distances to be between 0 and 1 (default: TRUE). Unweighted UniFrac is always normalized.}
 
-\item{threads}{Integer number of threads to use for parallel computation (default: 1).}
+\item{threads}{A wholenumber, the number of threads to use in \link[RcppParallel]{setThreadOptions} (default: 1).}
 }
 \value{
-A symmetric matrix of pairwise UniFrac distances between columns of \code{x}.
+A column x column \link[stats]{dist} object.
 }
 \description{
 Calculates the UniFrac dissimilarity between samples based on phylogenetic branch lengths and abundance or presence/absence data.
