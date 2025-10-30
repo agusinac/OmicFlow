@@ -162,5 +162,20 @@ res <- taxa$DFE(
 res$volcano_plot
 ```
 
+> [!NOTE]
+> Symbolic links do not work with mounting, please only copy the original file!
+
+Example: **Outputs a `report.html` file in current work directory**
+```bash
+docker run -it --rm -v \
+    "$(pwd)":/data \             # Mount the data in a temporary directory
+    -w /data \                   # set working directory
+    -u $(id -u):$(id -g) \       # non-root user
+    agusinac/autoflow:1.3.0 \
+    autoflow \                   # autoflow R script
+    -b /data/biom_with_taxonomy_hdf5.biom \
+    -m /data/metadata.tsv
+```
+
 ## Support
 If you are having issues, please [create a ticket](https://github.com/agusinac/OmicFlow/issues)

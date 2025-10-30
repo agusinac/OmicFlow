@@ -1,4 +1,4 @@
-{% set version = '1.3.1' %}
+{% set version = '1.4.0' %}
 
 {% set posix = 'm2-' if win else '' %}
 {% set native = 'm2w64-' if win else '' %}
@@ -11,7 +11,7 @@ source:
   url: 
     - {{ cran_mirror }}/src/contrib/OmicFlow_{{ version }}.tar.gz
     - {{ cran_mirror }}/src/contrib/Archive/OmicFlow/OmicFlow_{{ version }}.tar.gz
-  sha256: 21c84ba6f6871cd43f932f9838cec3e2accba6889c5179ad2cd545b30871ba75
+  sha256: ad61519e485c4dd8b59854ca1cebf8b0ccfacadcfa6690324d9b7ad52e499b63
 
 build:
   merge_build_host: True  # [win]
@@ -44,17 +44,16 @@ requirements:
     - r-jsonvalidate
     - r-magrittr
     - r-patchwork
-    - r-purrr
-    - r-rbiom
     - r-rcolorbrewer
+    - r-rcpp
+    - r-rcppparallel
+    - r-rcpparmadillo
     - bioconductor-rhdf5lib =1.24.0
     - bioconductor-rhdf5 =2.46.1
     - r-rstatix
-    - r-slam
     - r-vegan
-    - r-viridis
     - r-yyjsonr
-    - r-ggplot2
+    - r-ggplot2 >=3.5.2
   run:
     - r-base >=4.3,<4.4.0a0
     - {{native}}gcc-libs         # [win]
@@ -69,17 +68,16 @@ requirements:
     - r-jsonvalidate
     - r-magrittr
     - r-patchwork
-    - r-purrr
-    - r-rbiom
     - r-rcolorbrewer
+    - r-rcpp
+    - r-rcppparallel
+    - r-rcpparmadillo
     - bioconductor-rhdf5lib =1.24.0
     - bioconductor-rhdf5 =2.46.1
     - r-rstatix
-    - r-slam
     - r-vegan
-    - r-viridis
     - r-yyjsonr
-    - r-ggplot2
+    - r-ggplot2 >=3.5.2
 
 test:
   commands:
