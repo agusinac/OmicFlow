@@ -162,6 +162,8 @@ res <- taxa$DFE(
 res$volcano_plot
 ```
 
+## Run OmicFlow and autoFlow standalone script with docker!
+
 > [!NOTE]
 > Symbolic links do not work with mounting, please only copy the original file!
 
