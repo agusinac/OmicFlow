@@ -132,8 +132,7 @@ volcano_plot <- function(data,
     )]
   tmpdt[, "diffexpressed_labels" := ifelse(base::get("diffexpressed") != "non-significant", base::get(feature_rank), "")]
 
-  return(
-    tmpdt %>%
+  plt <- tmpdt %>%
       ggplot(mapping = aes(x = .data [[ logfold_col ]],
                            y = .data [[ pvalue_col ]],
                            label = .data[["diffexpressed_labels"]],
@@ -157,11 +156,20 @@ volcano_plot <- function(data,
                             na.value = "grey80") +
       ggrepel::geom_label_repel(show.legend = FALSE,
                                 max.overlaps = getOption("ggrepel.max.overlaps", default = Inf),
-                                color = "black") +
-      geom_point(aes(size = as.numeric(ifelse(.data[["diffexpressed"]] != "non-significant", .data[[ abundance_col ]]*100, 0))),
-                 shape = 16, alpha = 0.5) +
+                                color = "black")
+    if (any(tmpdt$diffexpressed != "non-significant")) {
+      plt <- plt +
+        geom_point(
+          aes(size = as.numeric(ifelse(.data[["diffexpressed"]] != "non-significant", .data[[ abundance_col ]]*100, 0))),
+              shape = 16, alpha = 0.5
+        )
+    } else {
+      plt <- plt + geom_point(shape = 16, alpha = 0.5)
+    }
+    plt <- plt +
       scale_size_continuous(name = "Mean Abundance (%)") +
       labs(x = paste0("Fold Change log2( ", label_A," / ", label_B," )"),
            y = paste0("-log10( ", pvalue_col ," )"))
-  )
+
+  return(plt)
 }
