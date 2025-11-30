@@ -15,7 +15,7 @@ proteomics <- R6::R6Class(
   cloneable = FALSE,
   inherit = omics,
   public = list(
-    #' @field countData A path to an existing file, data.table or data.frame.
+    #' @field countData A path to an existing file, data.table, data.frame, matrix or sparseMatrix with zero values.
     countData = NULL,
 
     #' @field metaData A path to an existing file, data.table or data.frame.
@@ -29,7 +29,7 @@ proteomics <- R6::R6Class(
 
     #' @description
     #' Initializes the proteomics class object with \code{proteomics$new()}
-    #' @param countData countData A path to an existing file or sparseMatrix.
+    #' @param countData A path to an existing file, data.table, data.frame, matrix or sparseMatrix with zero values.
     #' @param featureData A path to an existing file, data.table or data.frame.
     #' @param metaData A path to an existing file, data.table or data.frame.
     #' @param treeData A path to an existing newick file or class "phylo", see \link[ape]{read.tree}.

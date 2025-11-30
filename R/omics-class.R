@@ -16,7 +16,7 @@ omics <- R6::R6Class(
   classname = "omics",
   cloneable = FALSE,
   public = list(
-    #' @field countData A path to an existing file, data.table or data.frame.
+    #' @field countData A path to an existing file, data.table, data.frame, matrix or sparseMatrix with zero values.
     countData = NULL,
 
     #' @field featureData A path to an existing file, data.table or data.frame.
@@ -43,9 +43,9 @@ omics <- R6::R6Class(
     #' It requires a column `SAMPLE_ID` and optionally a `SAMPLEPAIR_ID` or `FEATURE_ID` can be supplied. 
     #' The `SAMPLE_ID` will be used to link the metaData to the countData, and will act as the key during subsetting of other columns.
     #' To create a new object use [`new()`](#method-new) method. Do notice that the abstract class only checks if the metadata is valid!
-    #' The `countData` and `featureData` will not be checked, these are handles by the sub-classes. 
+    #' The `countData` and `featureData` will not be checked, these are handled by the sub-classes. 
     #' Using the omics class to load your data is not supported and still experimental.
-    #' @param countData A path to an existing file, data.table or data.frame.
+    #' @param countData A path to an existing file, data.table, data.frame, matrix or sparseMatrix with zero values.
     #' @param featureData A path to an existing file, data.table or data.frame.
     #' @param metaData A path to an existing file, data.table or data.frame.
     #' @return A new `omics` object.
@@ -504,8 +504,9 @@ omics <- R6::R6Class(
     #' @details
     #' Counts the number of features identified for each column, for example in case of 16S metagenomics it would be the number of OTUs or ASVs on different taxonomy levels.
     #' @param feature_ranks A vector of characters or integers that match the `featureData`.
+    #' @param unique A boolean value to display only unique entries in `feature_ranks`.
     #' @examples
-    #' library(ggplot2)
+    #' library("ggplot2")
     #' library("OmicFlow")
     #'
     #' metadata_file <- system.file("extdata", "metadata.tsv", package = "OmicFlow")
@@ -522,7 +523,7 @@ omics <- R6::R6Class(
     #' plt
     #' @return A \link[ggplot2]{ggplot} object.
     #'
-    rankstat = function(feature_ranks) {
+    rankstat = function(feature_ranks, unique = FALSE) {
 
       ## Error handling
       #--------------------------------------------------------------------#
@@ -540,8 +541,16 @@ omics <- R6::R6Class(
       #--------------------------------------------------------------------#
 
       # Counts number of ASVs without empty values
-      values <- self$featureData[, lapply(.SD, function(x) sum(!is.na(x) & x != "")), .SDcols = !c(self$.feature_id)][, .SD, .SDcols = feature_ranks]
-
+      if (unique) {
+        values <- taxa$featureData[, 
+          lapply(.SD, data.table::uniqueN)
+          ][, .SD, .SDcols = feature_ranks] 
+      } else {
+        values <- taxa$featureData[, 
+          lapply(.SD, function(x) sum(!is.na(x) & x != ""))
+          ][, .SD, .SDcols = feature_ranks]  
+      }
+      
       # Pivot into long table
       long_values <- data.table::melt(data = values,
                                       measure.vars = names(values),
@@ -577,7 +586,7 @@ omics <- R6::R6Class(
     #' @param paired A boolean value to perform paired analysis in \link[stats]{wilcox.test} and samplepair subsetting via [`samplepair_subset()`](#method-samplepair_subset)
     #' @param p.adjust.method A character variable to specify the p.adjust.method to be used, default is 'fdr'.
     #' @examples
-    #' library(ggplot2)
+    #' library("ggplot2")
     #' library("OmicFlow")
     #'
     #' metadata_file <- system.file("extdata", "metadata.tsv", package = "OmicFlow")
@@ -678,7 +687,7 @@ omics <- R6::R6Class(
     #' @param normalize A boolean value, whether to [`normalize()`](#method-normalize) by total sample sums (Default: TRUE).
     #' @param Brewer.palID A character name for the palette set to be applied, see \link[RColorBrewer]{brewer.pal} or \link{colormap}.
     #' @examples
-    #' library(ggplot2)
+    #' library("ggplot2")
     #' library("OmicFlow")
     #'
     #' metadata_file <- system.file("extdata", "metadata.tsv", package = "OmicFlow")
@@ -773,8 +782,7 @@ omics <- R6::R6Class(
                         dt[(feature_top+1):nrow(dt)][, lapply(.SD, function(x) sum(x)),
                                                                  .SDcols = !c(feature_rank, "row_sum")],
                         fill = TRUE)
-      final_dt[nrow(final_dt), (feature_rank)] <- "Other"
-
+      
       # Creates palette
       df_taxa_len <- length(final_dt[[feature_rank]])
       if (df_taxa_len-1 <= 15 && df_taxa_len-1 > 10) {
@@ -784,7 +792,15 @@ omics <- R6::R6Class(
       } else {
         chosen_palette <- RColorBrewer::brewer.pal(df_taxa_len-1, Brewer.palID)
       }
-      taxa_colors_ordered <- stats::setNames(c(chosen_palette, "lightgrey"), final_dt[[feature_rank]])
+      
+
+      # Add 'Others'
+      if (df_taxa_len == feature_top+1) {
+        final_dt[nrow(final_dt), (feature_rank)] <- "Other"
+        taxa_colors_ordered <- stats::setNames(c(chosen_palette, "lightgrey"), final_dt[[feature_rank]])
+      } else {
+        taxa_colors_ordered <- stats::setNames(chosen_palette, final_dt[[feature_rank]])
+      }
 
       # Pivoting in long table and factoring feature ranke
       final_long <- data.table::melt(final_dt,
@@ -907,7 +923,7 @@ omics <- R6::R6Class(
     #' @param perm_design A function that takes `metaData` and constructs a permutation design with \link[permute]{how} (default: NULL).
     #' @param perm A wholenumber, number of permutations to compare against the null hypothesis of \link[vegan]{adonis2} and \link[vegan]{anosim} (default: \code{perm=999}).
     #' @examples
-    #' library(ggplot2)
+    #' library("ggplot2")
     #' library("OmicFlow")
     #'
     #' metadata_file <- system.file("extdata", "metadata.tsv", package = "OmicFlow")
@@ -1110,7 +1126,7 @@ omics <- R6::R6Class(
     #' @param abundance.threshold A numeric value used as an abundance threshold to size the scatter dots based on their mean relative abundance (default: 0.01).
     #' @param normalize A boolean value, whether to [`normalize()`](#method-normalize) by total sample sums (Default: TRUE).
     #' @examples
-    #' library(ggplot2)
+    #' library("ggplot2")
     #' library("OmicFlow")
     #'
     #' metadata_file <- system.file("extdata", "metadata.tsv", package = "OmicFlow")
@@ -1688,17 +1704,22 @@ omics <- R6::R6Class(
       )
       
       # Return sparseMatrix
-      return(as(mat, "sparseMatrix"))
+      if (any(mat == 0)) {
+        return(as(mat, "sparseMatrix"))
+      } else {
+        cli::cli_abort("`countData` cannot be a dense matrix!")
+      }
     }
 
     if (inherits(data, "sparseMatrix"))
       return(data)
 
-    if (is.matrix(data))
+    if (is.matrix(data) && any(data == 0)) {
       sp_mat <- Matrix::Matrix(data, sparse = TRUE)
       return(sp_mat)
-
-    stop("Input must be a filepath, matrix, or sparseMatrix.")
+    }
+      
+    stop("Input must be an existing filepath, matrix (with zero's), or sparseMatrix.")
     }
   )
 )

@@ -3,6 +3,19 @@
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/)
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## v1.4.1 - [2025-11-30]
+
+### `Added`
+- [#20](https://github.com/agusinac/OmicFlow/issues/20) `rankstat` has now an `unique` option.
+
+### `Fixed`
+- [#22](https://github.com/agusinac/OmicFlow/issues/22) `private$check_matrix` checks if any zero's are present before creating a `sparseMatrix`.
+- [#20](https://github.com/agusinac/OmicFlow/issues/20) `omics$compositon` Doesn't show `Others` when there are none.
+
+### `Deprecated`
+- [#21](https://github.com/agusinac/OmicFlow/issues/21) Removed `gghalves` in `diversity_plot`
+
+
 ## v1.4.0 - [2025-10-23]
 
 ### `Added`

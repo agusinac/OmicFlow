@@ -98,6 +98,15 @@ taxa <- metagenomics$new(
 taxa$feature_subset(Kingdom == "Bacteria")
 taxa$normalize()
 
+# Access variables directly
+taxa$metaData
+taxa$countData
+taxa$featureData
+taxa$treeData
+
+# Inspect what functions variables are available to the class
+str(taxa)
+
 ```
 
 ### Visualisations
