@@ -181,7 +181,7 @@ obj$normalize()
 ## Method `omics$rankstat`
 ## ------------------------------------------------
 
-library(ggplot2)
+library("ggplot2")
 library("OmicFlow")
 
 metadata_file <- system.file("extdata", "metadata.tsv", package = "OmicFlow")
@@ -201,7 +201,7 @@ plt
 ## Method `omics$alpha_diversity`
 ## ------------------------------------------------
 
-library(ggplot2)
+library("ggplot2")
 library("OmicFlow")
 
 metadata_file <- system.file("extdata", "metadata.tsv", package = "OmicFlow")
@@ -222,7 +222,7 @@ plt <- obj$alpha_diversity(col_name = "treatment",
 ## Method `omics$composition`
 ## ------------------------------------------------
 
-library(ggplot2)
+library("ggplot2")
 library("OmicFlow")
 
 metadata_file <- system.file("extdata", "metadata.tsv", package = "OmicFlow")
@@ -267,7 +267,7 @@ dist <- obj$distance(metric = "bray")
 ## Method `omics$ordination`
 ## ------------------------------------------------
 
-library(ggplot2)
+library("ggplot2")
 library("OmicFlow")
 
 metadata_file <- system.file("extdata", "metadata.tsv", package = "OmicFlow")
@@ -292,7 +292,7 @@ pcoa_plots
 ## Method `omics$DFE`
 ## ------------------------------------------------
 
-library(ggplot2)
+library("ggplot2")
 library("OmicFlow")
 
 metadata_file <- system.file("extdata", "metadata.tsv", package = "OmicFlow")
@@ -326,7 +326,7 @@ unpaired <- obj$DFE(feature_rank = "Genus",
 \section{Public fields}{
 \if{html}{\out{<div class="r6-fields">}}
 \describe{
-\item{\code{countData}}{A path to an existing file, data.table or data.frame.}
+\item{\code{countData}}{A path to an existing file, data.table, data.frame, matrix or sparseMatrix with zero values.}
 
 \item{\code{featureData}}{A path to an existing file, data.table or data.frame.}
 
@@ -373,7 +373,7 @@ The omics classes requires a metadata samplesheet, that is validated by the meta
 It requires a column \code{SAMPLE_ID} and optionally a \code{SAMPLEPAIR_ID} or \code{FEATURE_ID} can be supplied.
 The \code{SAMPLE_ID} will be used to link the metaData to the countData, and will act as the key during subsetting of other columns.
 To create a new object use \href{#method-new}{\code{new()}} method. Do notice that the abstract class only checks if the metadata is valid!
-The \code{countData} and \code{featureData} will not be checked, these are handles by the sub-classes.
+The \code{countData} and \code{featureData} will not be checked, these are handled by the sub-classes.
 Using the omics class to load your data is not supported and still experimental.
 \subsection{Usage}{
 \if{html}{\out{<div class="r">}}\preformatted{omics$new(countData = NULL, featureData = NULL, metaData = NULL)}\if{html}{\out{</div>}}
@@ -382,7 +382,7 @@ Using the omics class to load your data is not supported and still experimental.
 \subsection{Arguments}{
 \if{html}{\out{<div class="arguments">}}
 \describe{
-\item{\code{countData}}{A path to an existing file, data.table or data.frame.}
+\item{\code{countData}}{A path to an existing file, data.table, data.frame, matrix or sparseMatrix with zero values.}
 
 \item{\code{featureData}}{A path to an existing file, data.table or data.frame.}
 
@@ -727,13 +727,15 @@ obj$normalize()
 \subsection{Method \code{rankstat()}}{
 Rank statistics based on \code{featureData}
 \subsection{Usage}{
-\if{html}{\out{<div class="r">}}\preformatted{omics$rankstat(feature_ranks)}\if{html}{\out{</div>}}
+\if{html}{\out{<div class="r">}}\preformatted{omics$rankstat(feature_ranks, unique = FALSE)}\if{html}{\out{</div>}}
 }
 
 \subsection{Arguments}{
 \if{html}{\out{<div class="arguments">}}
 \describe{
 \item{\code{feature_ranks}}{A vector of characters or integers that match the \code{featureData}.}
+
+\item{\code{unique}}{A boolean value to display only unique entries in \code{feature_ranks}.}
 }
 \if{html}{\out{</div>}}
 }
@@ -746,7 +748,7 @@ A \link[ggplot2]{ggplot} object.
 }
 \subsection{Examples}{
 \if{html}{\out{<div class="r example copy">}}
-\preformatted{library(ggplot2)
+\preformatted{library("ggplot2")
 library("OmicFlow")
 
 metadata_file <- system.file("extdata", "metadata.tsv", package = "OmicFlow")
@@ -802,7 +804,7 @@ Alpha diversity based on \link{diversity}
 }
 \subsection{Examples}{
 \if{html}{\out{<div class="r example copy">}}
-\preformatted{library(ggplot2)
+\preformatted{library("ggplot2")
 library("OmicFlow")
 
 metadata_file <- system.file("extdata", "metadata.tsv", package = "OmicFlow")
@@ -859,7 +861,7 @@ Creates a table most abundant compositional features. Also assigns a color blind
 }
 \subsection{Examples}{
 \if{html}{\out{<div class="r example copy">}}
-\preformatted{library(ggplot2)
+\preformatted{library("ggplot2")
 library("OmicFlow")
 
 metadata_file <- system.file("extdata", "metadata.tsv", package = "OmicFlow")
@@ -979,7 +981,7 @@ thus far supports 'bray', 'jaccard', 'cosine', 'manhattan', 'jsd' (jensen-shanno
 }
 \subsection{Examples}{
 \if{html}{\out{<div class="r example copy">}}
-\preformatted{library(ggplot2)
+\preformatted{library("ggplot2")
 library("OmicFlow")
 
 metadata_file <- system.file("extdata", "metadata.tsv", package = "OmicFlow")
@@ -1052,7 +1054,7 @@ Differential feature expression (DFE) using the \link{foldchange} for both paire
 }
 \subsection{Examples}{
 \if{html}{\out{<div class="r example copy">}}
-\preformatted{library(ggplot2)
+\preformatted{library("ggplot2")
 library("OmicFlow")
 
 metadata_file <- system.file("extdata", "metadata.tsv", package = "OmicFlow")

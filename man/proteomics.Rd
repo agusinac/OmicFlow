@@ -96,7 +96,7 @@ prot$removeZeros()
 \section{Public fields}{
 \if{html}{\out{<div class="r6-fields">}}
 \describe{
-\item{\code{countData}}{A path to an existing file, data.table or data.frame.}
+\item{\code{countData}}{A path to an existing file, data.table, data.frame, matrix or sparseMatrix with zero values.}
 
 \item{\code{metaData}}{A path to an existing file, data.table or data.frame.}
 
@@ -148,7 +148,7 @@ Initializes the proteomics class object with \code{proteomics$new()}
 \subsection{Arguments}{
 \if{html}{\out{<div class="arguments">}}
 \describe{
-\item{\code{countData}}{countData A path to an existing file or sparseMatrix.}
+\item{\code{countData}}{A path to an existing file, data.table, data.frame, matrix or sparseMatrix with zero values.}
 
 \item{\code{metaData}}{A path to an existing file, data.table or data.frame.}
 
