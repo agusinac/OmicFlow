@@ -542,11 +542,11 @@ omics <- R6::R6Class(
 
       # Counts number of ASVs without empty values
       if (unique) {
-        values <- taxa$featureData[, 
+        values <- self$featureData[, 
           lapply(.SD, data.table::uniqueN)
           ][, .SD, .SDcols = feature_ranks] 
       } else {
-        values <- taxa$featureData[, 
+        values <- self$featureData[, 
           lapply(.SD, function(x) sum(!is.na(x) & x != ""))
           ][, .SD, .SDcols = feature_ranks]  
       }
@@ -1707,18 +1707,19 @@ omics <- R6::R6Class(
       if (any(mat == 0)) {
         return(as(mat, "sparseMatrix"))
       } else {
-        cli::cli_abort("`countData` cannot be a dense matrix!")
+        stop("`countData` cannot be a dense matrix!")
       }
     }
 
     if (inherits(data, "sparseMatrix"))
       return(data)
 
-    if (is.matrix(data) && any(data == 0)) {
-      sp_mat <- Matrix::Matrix(data, sparse = TRUE)
-      return(sp_mat)
-    }
-      
+    if (is.matrix(data)) {
+      if (!any(data == 0)) {
+        stop("Matrix input must contain at least one zero.")
+      }
+      return(Matrix::Matrix(data, sparse = TRUE))
+    }      
     stop("Input must be an existing filepath, matrix (with zero's), or sparseMatrix.")
     }
   )

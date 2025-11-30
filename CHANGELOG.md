@@ -11,6 +11,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 ### `Fixed`
 - [#22](https://github.com/agusinac/OmicFlow/issues/22) `private$check_matrix` checks if any zero's are present before creating a `sparseMatrix`.
 - [#20](https://github.com/agusinac/OmicFlow/issues/20) `omics$compositon` Doesn't show `Others` when there are none.
+- [#24](https://github.com/agusinac/OmicFlow/issues/24) `volcano_plot` only sizes the points if there are significant features found.
 
 ### `Deprecated`
 - [#21](https://github.com/agusinac/OmicFlow/issues/21) Removed `gghalves` in `diversity_plot`

@@ -11,7 +11,7 @@
 #' @param p.adjust.method A character variable to specify the p.adjust.method to be used (Default: fdr).
 #' @return A \link[ggplot2]{ggplot2} object to be further modified
 #'
-#' @importFrom ggplot2 ggplot aes .data theme_bw theme element_text scale_colour_manual labs
+#' @importFrom ggplot2 ggplot aes .data theme_bw theme element_text scale_colour_manual labs geom_boxplot
 #' @importFrom stats p.adjust.methods
 #' 
 #' @examples
