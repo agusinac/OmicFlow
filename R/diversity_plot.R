@@ -111,8 +111,7 @@ diversity_plot <- function(data,
   plt <- data %>%
     ggplot(mapping = aes(x = as.factor(.data[[ col_name ]]),
                          y = .data[[ values ]])) +
-    gghalves::geom_half_boxplot() +
-    gghalves::geom_half_point_panel(aes(color = as.factor(.data[[ col_name ]]))) +
+    geom_boxplot() +
     theme_bw() +
     theme(legend.position = "none",
           text=element_text(size=14),

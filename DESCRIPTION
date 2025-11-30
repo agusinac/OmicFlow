@@ -35,10 +35,9 @@ Depends:
     Matrix
 Imports: 
     ape,
-    gghalves,
     ggpubr,
     ggrepel,
-    ggplot2 (>= 3.5.2),
+    ggplot2,
     jsonlite,
     jsonvalidate,
     magrittr,
