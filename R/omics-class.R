@@ -543,7 +543,7 @@ omics <- R6::R6Class(
       # Counts number of ASVs without empty values
       if (unique) {
         values <- self$featureData[, 
-          lapply(.SD, data.table::uniqueN)
+          lapply(.SD, function(x) data.table::uniqueN(x[!is.na(x) & x != ""]))
           ][, .SD, .SDcols = feature_ranks] 
       } else {
         values <- self$featureData[, 
