@@ -3,6 +3,16 @@
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/)
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## v1.5.0 - [2026-01-]
+
+### `Added`
+- [#23](https://github.com/agusinac/OmicFlow/issues/23) active bindings on data types, in place modification and automatic synchronisation between other data types by default via private function `sync`.
+- [#23](https://github.com/agusinac/OmicFlow/issues/23) `featureData` is now always created as placeholder.
+
+### `Changed`
+- [#23](https://github.com/agusinac/OmicFlow/issues/23) omics classes are now cloneable.
+- [#23](https://github.com/agusinac/OmicFlow/issues/23) `removeZeros()` function is now private.
+
 ## v1.4.2 - [2025-11-30]
 
 ### `Fixed`
