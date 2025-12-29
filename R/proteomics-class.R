@@ -12,21 +12,29 @@
 
 proteomics <- R6::R6Class(
   classname = "proteomics",
-  cloneable = FALSE,
+  cloneable = TRUE,
   inherit = omics,
+  active = list(
+    treeData = function(value) {
+      # Restores omics class components
+      private$tmp_link(
+        .countData = private$.countData,
+        .featureData = private$.featureData,
+        .metaData = private$.metaData,
+        .treeData = private$.treeData
+      )
+      on.exit(private$tmp_restore(), add = TRUE)
+
+      if (missing(value)) {
+        private$.treeData
+      } else if (identical(class(value), class(private$.treeData))){
+        private$.treeData <- value
+        private$sync()
+        invisible(self)
+      } else stop("Data input requires to be of the same class as `treeData`")
+    }
+  ),
   public = list(
-    #' @field countData A path to an existing file, data.table, data.frame, matrix or sparseMatrix with zero values.
-    countData = NULL,
-
-    #' @field metaData A path to an existing file, data.table or data.frame.
-    metaData = NULL,
-
-    #' @field featureData A path to an existing file, data.table or data.frame.
-    featureData = NULL,
-
-    #' @field treeData A path to an existing newick file or class "phylo", see \link[ape]{read.tree}.
-    treeData = NULL,
-
     #' @description
     #' Initializes the proteomics class object with \code{proteomics$new()}
     #' @param countData A path to an existing file, data.table, data.frame, matrix or sparseMatrix with zero values.
@@ -45,28 +53,28 @@ proteomics <- R6::R6Class(
 
       if (!is.null(treeData)) {
         if (is.character(treeData) && length(treeData) == 1 && file.exists(treeData)) {
-          self$treeData <- ape::read.tree(treeData)
+          private$.treeData <- ape::read.tree(treeData)
           cli::cli_alert_success("treeData is loaded.")
         } else if (inherits(treeData, "phylo")) {
-          self$treeData <- treeData
+          private$.treeData <- treeData
           cli::cli_alert_success("treeData is loaded.")
         } else {
           cli::cli_alert_warning("The provided TreeData could not be loaded. Make sure the tree is supported by `ape::read.tree`")
         }
 
         # Aligning featureData and countData rows by tree tips
-        self$featureData <- self$featureData[order(match(self$featureData$FEATURE_ID, self$treeData$tip.label))]
-        self$countData <- self$countData[self$featureData$FEATURE_ID, ]
+        private$.featureData <- private$.featureData[order(match(private$.featureData$FEATURE_ID, private$.treeData$tip.label))]
+        private$.countData <- private$.countData[private$.featureData$FEATURE_ID, ]
       }
 
       self$print()
 
       # saves data for reset function
       private$original_data = list(
-        counts = self$countData,
-        features = self$featureData,
-        metadata = self$metaData,
-        tree = self$treeData
+        counts = private$.countData,
+        features = private$.featureData,
+        metadata = private$.metaData,
+        tree = private$.treeData
       )
     },
     #' @description
@@ -95,10 +103,10 @@ proteomics <- R6::R6Class(
     #' @return object in place
     print = function() {
       cat("## proteomics-class object \n")
-      if (length(self$countData) > 0) cat(paste0("## countData:\t[ ", ncol(self$countData), " Samples and ", nrow(self$countData), " Features\t] \n"))
-      if (length(self$metaData) > 0) cat(paste0("## metaData:\t[ ", ncol(self$metaData), " Variables and ", nrow(self$metaData), " Samples\t] \n"))
-      if (length(self$featureData) > 0) cat(paste0("## featureData:\t[ ", ncol(self$featureData)-1, " Attributes and ", nrow(self$featureData), " Proteins\t] \n"))
-      if (length(self$treeData) > 0) cat(paste0("## treeData:\t[ ", length(self$treeData$tip.label), " Tips and ", self$treeData$Nnode, " Nodes\t] \n"))
+      if (length(private$.countData) > 0) cat(paste0("## countData:\t[ ", ncol(private$.countData), " Samples and ", nrow(private$.countData), " Features\t] \n"))
+      if (length(private$.metaData) > 0) cat(paste0("## metaData:\t[ ", ncol(private$.metaData), " Variables and ", nrow(private$.metaData), " Samples\t] \n"))
+      if (length(private$.featureData) > 0) cat(paste0("## featureData:\t[ ", ncol(private$.featureData)-1, " Attributes and ", nrow(private$.featureData), " Proteins\t] \n"))
+      if (length(private$.treeData) > 0) cat(paste0("## treeData:\t[ ", length(private$.treeData$tip.label), " Tips and ", private$.treeData$Nnode, " Nodes\t] \n"))
     },
         #' @description
     #' Upon creation of a new `proteomics` object a small backup of the original data is created.
@@ -127,45 +135,20 @@ proteomics <- R6::R6Class(
     #'
     #' @return object in place
     reset = function() {
-      self$countData = private$original_data$counts
-      self$featureData = private$original_data$features
-      self$metaData = private$original_data$metadata
-      self$treeData = private$original_data$tree
-      invisible(self)
-    },
-    #' @description
-    #' Removes empty (zero) values by row, column and tips from the `countData` and `treeData`.
-    #' This method is performed automatically during subsetting of the object.
-    #' @importFrom ape keep.tip
-    #' @examples
-    #' library("OmicFlow")
-    #'
-    #' metadata_file <- system.file("extdata", "metadata.tsv", package = "OmicFlow")
-    #' counts_file <- system.file("extdata", "counts.tsv", package = "OmicFlow")
-    #' features_file <- system.file("extdata", "features.tsv", package = "OmicFlow")
-    #' tree_file <- system.file("extdata", "tree.newick", package = "OmicFlow")
-    #'
-    #' prot <- proteomics$new(
-    #'  metaData = metadata_file,
-    #'  countData = counts_file,
-    #'  featureData = features_file,
-    #'  treeData = tree_file
-    #' )
-    #' 
-    #' # Sample subset induces empty features
-    #' prot$sample_subset(treatment == "tumor")
-    #'
-    #' # Remove empty features from countData and treeData
-    #' prot$removeZeros()
-    #' 
-    #' @return object in place
-    removeZeros = function() {
-      super$removeZeros()
-      if (!is.null(self$treeData)) self$treeData <- ape::keep.tip(self$treeData, self$featureData$FEATURE_ID)
+      private$.countData = private$original_data$counts
+      private$.featureData = private$original_data$features
+      private$.metaData = private$original_data$metadata
+      private$.treeData = private$original_data$tree
       invisible(self)
     }
   ),
   private = list(
+    # Private data fields
+    #-------------------------#
+    .countData = NULL,
+    .featureData = NULL,
+    .metaData = NULL,
+    .treeData = NULL,
     original_data = list()
   )
 )

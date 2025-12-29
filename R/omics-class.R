@@ -10,21 +10,69 @@
 #' @import R6 Matrix
 #' @importFrom jsonlite toJSON
 #' @importFrom jsonvalidate json_validate
+#' @importFrom ape keep.tip
 #' @export
 
 omics <- R6::R6Class(
   classname = "omics",
-  cloneable = FALSE,
+  cloneable = TRUE,
+  active = list(
+    metaData = function(value) {   
+      # Restores omics class components
+      private$tmp_link(
+        .countData = private$.countData,
+        .featureData = private$.featureData,
+        .metaData = private$.metaData,
+        .treeData = private$.treeData
+      )
+      on.exit(private$tmp_restore(), add = TRUE)
+
+      if (missing(value)) {
+        private$.metaData
+      } else if (identical(class(value), class(private$.metaData))){
+        private$.metaData <- value
+        private$sync()
+        invisible(self)
+      } else stop("Data input requires to be of the same class as `metaData`")
+    },
+    featureData = function(value) {
+      # Restores omics class components
+      private$tmp_link(
+        .countData = private$.countData,
+        .featureData = private$.featureData,
+        .metaData = private$.metaData,
+        .treeData = private$.treeData
+      )
+      on.exit(private$tmp_restore(), add = TRUE)
+
+      if (missing(value)) {
+        private$.featureData
+      } else if (identical(class(value), class(private$.featureData))){
+        private$.featureData <- value
+        private$sync()
+        invisible(self)
+      } else stop("Data input requires to be of the same class as `featureData`")
+    },
+    countData = function(value) {
+      # Restores omics class components
+      private$tmp_link(
+        .countData = private$.countData,
+        .featureData = private$.featureData,
+        .metaData = private$.metaData,
+        .treeData = private$.treeData
+      )
+      on.exit(private$tmp_restore(), add = TRUE)
+
+      if (missing(value)) {
+        private$.countData
+      } else if (identical(class(value), class(private$.countData))){
+        private$.countData <- value
+        private$sync()
+        invisible(self)
+      } else stop("Data input requires to be of the same class as `countData`")
+    }
+  ),
   public = list(
-    #' @field countData A path to an existing file, data.table, data.frame, matrix or sparseMatrix with zero values.
-    countData = NULL,
-
-    #' @field featureData A path to an existing file, data.table or data.frame.
-    featureData = NULL,
-
-    #' @field metaData A path to an existing file, data.table or data.frame.
-    metaData = NULL,
-
     #' @field .valid_schema Boolean value for schema validation via JSON
     .valid_schema = NULL,
 
@@ -55,16 +103,11 @@ omics <- R6::R6Class(
       ###   metaData    ###
       #-------------------#
       if (!is.null(metaData)) {
-        self$metaData <- private$check_table(metaData)
+        private$.metaData <- private$check_table(metaData)
         self$validate()
 
         if (self$.valid_schema) {
           cli::cli_alert_success("Metadata template passed the JSON validation.")
-
-          self$metaData <- self$metaData[, lapply(.SD, function(x) ifelse(x == "", NA, x)),
-                                         .SDcols = colnames(self$metaData)]
-
-          colnames(self$metaData) <- gsub("\\s+", "_", colnames(self$metaData))
 
           #--------------------------------------------------------------------#
           ## Checking for duplicated sample and feature identifiers
@@ -72,10 +115,10 @@ omics <- R6::R6Class(
 
           cli::cli_alert_info("Checking for duplicated identifiers ..")
 
-          duplicated_sample_ids <- any(duplicated(self$metaData, by = self$.sample_id))
+          duplicated_sample_ids <- any(duplicated(private$.metaData, by = self$.sample_id))
 
-          if (column_exists(self$.feature_id, self$metaData)) {
-            duplicated_feature_ids <- any(duplicated(self$metaData, by = self$.feature_id))
+          if (column_exists(self$.feature_id, private$.metaData)) {
+            duplicated_feature_ids <- any(duplicated(private$.metaData, by = self$.feature_id))
           } else {
             duplicated_feature_ids <- FALSE
           }
@@ -89,7 +132,7 @@ omics <- R6::R6Class(
           #--------------------------------------------------------------------#
           ## Disable samplepair_id if not supplied
           #--------------------------------------------------------------------#
-          if (!column_exists(self$.samplepair_id, self$metaData))
+          if (!column_exists(self$.samplepair_id, private$.metaData))
             self$.samplepair_id <- NULL
 
         } else {
@@ -109,17 +152,15 @@ omics <- R6::R6Class(
       ###  featureData  ###
       #-------------------#
       if (!is.null(featureData)) {
-        self$featureData <- private$check_table(featureData)
+        private$.featureData <- private$check_table(featureData)
 
-        if (column_exists(self$.feature_id, self$metaData)) {
-          FEATURE_ID <- self$metaData[[self$.feature_id]]
+        if (column_exists(self$.feature_id, private$.metaData)) {
+          FEATURE_ID <- private$.metaData[[self$.feature_id]]
         } else {
-          FEATURE_ID <- paste0("feature_", rownames(self$featureData))
+          FEATURE_ID <- paste0("feature_", rownames(private$.featureData))
         }
 
-        self$featureData[, (self$.feature_id) := FEATURE_ID]
-        colnames(self$featureData) <- gsub("\\s+", "_", colnames(self$featureData))
-
+        private$.featureData[, (self$.feature_id) := FEATURE_ID]
         cli::cli_alert_success("featureData is loaded.")
       }
 
@@ -127,23 +168,22 @@ omics <- R6::R6Class(
       ###   countData   ###
       #-------------------#
       if (!is.null(countData)) {
-        self$countData <- private$check_matrix(countData)
-        rownames(self$countData) <- self$featureData$FEATURE_ID
+        private$.countData <- private$check_matrix(countData)
+        rownames(private$.countData) <- private$.featureData[[ self$.feature_id ]]
         cli::cli_alert_success("countData is loaded.")
+
+        if (is.null(private$.featureData)) {
+          FEATURE_ID <- paste0("feature_", nrow(private$.countData))
+          private$.featureData <- data.table::data.table()
+          private$.featureData[, self$.feature_id := FEATURE_ID]
+          cli::cli_alert_warning("Placeholder featureData created.")
+        }
       }
 
-      # There should be an interal metadata template check to make sure all headers are correct.
-      # Should also include to check for missing data and alert the user!
-      # Current example to be used in the future
-      base::tryCatch(
-        { self$countData <- self$countData[, self$metaData[[ self$.sample_id ]], drop = FALSE] },
-        error = function(e) {
-          cli::cli_abort(c(
-            "Error occured during countData subsetting by metaData:",
-            "i" = "The error message was: {e$message}"
-          ))
-        }
-      )
+      #-------------------#
+      ###     sync      ###
+      #-------------------#
+      private$sync()
 
     },
     #' @description
@@ -166,7 +206,7 @@ omics <- R6::R6Class(
       tmp_json <- base::tempfile(fileext = ".json")
 
       json_data <- jsonlite::toJSON(
-        self$metaData,
+        private$.metaData,
         dataframe = "rows",
         pretty = TRUE,
         auto_unbox = TRUE
@@ -184,37 +224,6 @@ omics <- R6::R6Class(
         )
 
       unlink(tmp_json)
-      invisible(self)
-    },
-    #' @description
-    #' Removes empty (zero) values by row and column from the `countData`.
-    #' This method is performed automatically during subsetting of the object.
-    #' @examples
-    #' library("OmicFlow")
-    #'
-    #' metadata_file <- system.file("extdata", "metadata.tsv", package = "OmicFlow")
-    #' counts_file <- system.file("extdata", "counts.tsv", package = "OmicFlow")
-    #' features_file <- system.file("extdata", "features.tsv", package = "OmicFlow")
-    #'
-    #' obj <- metagenomics$new(
-    #'  metaData = metadata_file,
-    #'  countData = counts_file,
-    #'  featureData = features_file,
-    #' )
-    #' 
-    #' obj$removeZeros()
-    #' 
-    #' @return object in place
-    removeZeros = function() {
-      # Remove empty samples (columns)
-      keep_cols <- Matrix::colSums(self$countData) > 0
-
-      # Remove empty species (rows)
-      keep_rows <- Matrix::rowSums(self$countData) > 0
-
-      # Creates new countData instance
-      self$countData <- self$countData[keep_rows, keep_cols]
-      self$featureData <- self$featureData[keep_rows]
       invisible(self)
     },
     #' @description
@@ -241,24 +250,23 @@ omics <- R6::R6Class(
       ## Error handling
       #--------------------------------------------------------------------#
 
-      if (all(is.wholenumber(column)) && length(column) <= length(colnames(self$metaData)))
-        column <- colnames(self$metaData[column])
+      if (all(is.wholenumber(column)) && length(column) <= length(colnames(private$.metaData)))
+        column <- colnames(private$.metaData[column])
 
       if (!is.character(column))
         cli::cli_abort("{column} needs to be a character or an integer.")
 
-      if (!column_exists(column, self$metaData))
+      if (!column_exists(column, private$.metaData))
         cli::cli_abort("{column} do not exist in the metaData or one of the specified columns is completely empty!")
 
       ## MAIN
       #--------------------------------------------------------------------#
-
-      self$metaData <- na.omit(self$metaData, cols = column)
-      self$countData <- self$countData[, self$metaData[[ self$.sample_id ]]]
+      private$.metaData <- na.omit(private$.metaData, cols = column)
+      private$sync()
       invisible(self)
     },
     #' @description
-    #' Feature subset (based on `featureData`), automatically applies [`removeZeros()`](#method-removeZeros).
+    #' Feature subset (based on `featureData`), automatically applies data synchronization.
     #' @param ... Expressions that return a logical value, and are defined in terms of the variables in `featureData`.
     #' Only rows for which all conditions evaluate to TRUE are kept.
     #' @examples
@@ -279,19 +287,19 @@ omics <- R6::R6Class(
     #' @return object in place
     feature_subset = function(...) {
       # Replace all NAs by empty string
-      features <- data.table::copy(self$featureData)
+      features <- data.table::copy(private$.featureData)
       features[, names(features) := lapply(.SD, function(x) {
         if (is.character(x)) ifelse(is.na(x), "", x) else x
       })]
 
       rows_to_keep <- features[, ...]
-      self$featureData <- self$featureData[rows_to_keep, ]
-      self$countData <- self$countData[rows_to_keep, ]
-      self$removeZeros()
+      private$.featureData <- private$.featureData[rows_to_keep, ]
+      private$.countData <- private$.countData[rows_to_keep, ]
+      private$sync()
       invisible(self)
     },
     #' @description
-    #' Sample subset (based on `metaData`), automatically applies [`removeZeros()`](#method-removeZeros).
+    #' Sample subset (based on `metaData`), automatically applies synchronization.
     #' @param ... Expressions that return a logical value, and are defined in terms of the variables in `metaData`.
     #' Only rows for which all conditions evaluate to TRUE are kept.
     #' @examples
@@ -312,17 +320,17 @@ omics <- R6::R6Class(
     #' @return object in place
     sample_subset = function(...) {
       # set order of columns
-      self$countData <- self$countData[, self$metaData[[ self$.sample_id ]], drop = FALSE]
+      private$.countData <- private$.countData[, private$.metaData[[ self$.sample_id ]], drop = FALSE]
       # subset columns and rows
-      rows_to_keep <- self$metaData[, ...]
-      self$metaData <- self$metaData[rows_to_keep, ]
+      rows_to_keep <- private$.metaData[, ...]
+      private$.metaData <- private$.metaData[rows_to_keep, ]
       # NAs can occur in rows_to_keep, which then doesnt work on sparse Matrix.
-      self$countData <- self$countData[, self$metaData[[ self$.sample_id ]] ]
-      self$removeZeros()
+      private$.countData <- private$.countData[, private$.metaData[[ self$.sample_id ]] ]
+      private$sync()
       invisible(self)
     },
     #' @description
-    #' Samplepair subset (based on `metaData`), automatically applies [`removeZeros()`](#method-removeZeros).
+    #' Samplepair subset (based on `metaData`), automatically applies synchronization.
     #' @param num_unique_pairs An integer value to define the number of pairs to subset. The default is NULL, 
     #' meaning the maximum number of unique pairs will be used to subset the data. 
     #' Let's say you have three samples for each pair, then the `num_unique_pairs` will be set to 3.
@@ -339,19 +347,18 @@ omics <- R6::R6Class(
       ## MAIN
       #--------------------------------------------------------------------#
 
-      counts <- self$metaData[, .(unique_count = data.table::uniqueN(SAMPLE_ID)), by = SAMPLEPAIR_ID]
+      counts <- private$.metaData[, .(unique_count = data.table::uniqueN(SAMPLE_ID)), by = SAMPLEPAIR_ID]
 
       if (is.null(num_unique_pairs)) {
         num_unique_pairs <- counts[, max(unique_count)]
       }
 
-      self$metaData <- self$metaData[SAMPLEPAIR_ID %in% counts[unique_count == num_unique_pairs, SAMPLEPAIR_ID]]
-      self$countData <- self$countData[, self$metaData[[self$.sample_id]] ]
-      self$removeZeros()
+      private$.metaData <- private$.metaData[SAMPLEPAIR_ID %in% counts[unique_count == num_unique_pairs, SAMPLEPAIR_ID]]
+      private$sync()
       invisible(self)
     },
     #' @description
-    #' Agglomerates features by column, automatically applies [`removeZeros()`](#method-removeZeros).
+    #' Agglomerates features by column, automatically applies synchronization.
     #' @param feature_rank A character value or vector of columns to aggregate from the `featureData`.
     #' @param feature_filter A character value or vector of characters to remove features via regex pattern.
     #' @examples
@@ -382,17 +389,18 @@ omics <- R6::R6Class(
       if (!is.null(feature_filter) && !is.character(feature_filter))
         cli::cli_abort("{feature_filter} needs to be a character or vector containing characters")
 
-      if (!column_exists(feature_rank, self$featureData))
+      if (!column_exists(feature_rank, private$.featureData))
         cli::cli_abort("{feature_rank} does not exist in featureData!")
 
       ## MAIN
       #--------------------------------------------------------------------#
 
       # creates a subset of unique feature rank, hashes combined for each unique rank
-      counts <- data.table::data.table("FEATURE_ID" = rownames(self$countData))
+      counts <- data.table::data.table()
+      counts[, (self$.feature_id) := rownames(private$.countData)]
 
       # Supports multiple features
-      features <- data.table::copy(self$featureData[self$featureData[[ feature_rank[1] ]] != "", ])
+      features <- data.table::copy(private$.featureData[private$.featureData[[ feature_rank[1] ]] != "", ])
 
       # set keys
       data.table::setkey(counts, FEATURE_ID)
@@ -402,33 +410,33 @@ omics <- R6::R6Class(
       grouped_ids <- features[, .(IDs = list(FEATURE_ID)), by = feature_rank]
       counts_glom <- Matrix::Matrix(0,
                                     nrow = nrow(grouped_ids),
-                                    ncol = ncol(self$countData),
-                                    dimnames = list(NULL, colnames(self$countData)),
+                                    ncol = ncol(private$.countData),
+                                    dimnames = list(NULL, colnames(private$.countData)),
                                     sparse = TRUE)
 
       # Populate sparse matrix by colsums of identical taxa
       for (i in 1:nrow(grouped_ids)) {
         ids <- grouped_ids$IDs[[i]]
         if (length(ids) == 1) {
-          counts_glom[i, ] <- self$countData[ids, ]
+          counts_glom[i, ] <- private$.countData[ids, ]
         } else {
-          counts_glom[i, ] <- Matrix::colSums(self$countData[ids, ])
+          counts_glom[i, ] <- Matrix::colSums(private$.countData[ids, ])
         }
       }
 
       # Prepare final self-components
-      self$featureData <- base::unique(features, by = feature_rank)
+      private$.featureData <- base::unique(features, by = feature_rank)
       # Fetch first ID from each list
       grouped_ids$ID_first <- sapply(grouped_ids$IDs, `[[`, 1)
       # Reorder by matching IDs
-      self$featureData <- self$featureData[ base::order(base::match(self$featureData$FEATURE_ID, grouped_ids$ID_first)) ]
-      self$countData <- counts_glom
+      private$.featureData <- private$.featureData[ base::order(base::match(private$.featureData[[ self$.feature_id ]], grouped_ids$ID_first)) ]
+      private$.countData <- counts_glom
 
       # Replaces strings matching feature_filter with NAs
       if (!is.null(feature_filter)) {
         regex_pattern <- paste(feature_filter, collapse = "|")
         for (col in feature_rank) {
-          self$featureData[
+          private$.featureData[
             grepl(regex_pattern, get(col), ignore.case = TRUE),
             (col) := NA_character_
           ]
@@ -436,12 +444,12 @@ omics <- R6::R6Class(
       }
 
       # Clean up featureData
-      empty_strings <- !is.na(self$featureData[[ feature_rank[1] ]])
-      self$featureData <- self$featureData[empty_strings, ]
-      self$countData <- self$countData[empty_strings, ]
-      rownames(self$countData) <- self$featureData$FEATURE_ID
+      empty_strings <- !is.na(private$.featureData[[ feature_rank[1] ]])
+      private$.featureData <- private$.featureData[empty_strings, ]
+      private$.countData <- private$.countData[empty_strings, ]
+      rownames(private$.countData) <- private$.featureData[[ self$.feature_id ]]
 
-      self$removeZeros()
+      private$sync()
       invisible(self)
     },
     #' @description
@@ -474,7 +482,7 @@ omics <- R6::R6Class(
       ## MAIN
       #--------------------------------------------------------------------#
 
-      self$countData@x <- FUN(self$countData@x)
+      private$.countData@x <- FUN(private$.countData@x)
       invisible(self)
     },
     #' @description
@@ -496,7 +504,7 @@ omics <- R6::R6Class(
     #'
     #' @return object in place
     normalize = function() {
-      self$countData@x <- self$countData@x / rep(Matrix::colSums(self$countData), base::diff(self$countData@p))
+      private$.countData@x <- private$.countData@x / rep(Matrix::colSums(private$.countData), base::diff(private$.countData@p))
       invisible(self)
     },
     #' @description
@@ -531,10 +539,10 @@ omics <- R6::R6Class(
       if (!is.character(feature_ranks))
         cli::cli_abort("{feature_ranks} needs to be of character or integer type.")
 
-      if (all(is.wholenumber(feature_ranks)) && length(feature_ranks) > length(colnames(self$featureData)))
-        feature_ranks <- colnames(self$featureData[feature_ranks])
+      if (all(is.wholenumber(feature_ranks)) && length(feature_ranks) > length(colnames(private$.featureData)))
+        feature_ranks <- colnames(private$.featureData[feature_ranks])
 
-      if (!column_exists(feature_ranks, self$featureData))
+      if (!column_exists(feature_ranks, private$.featureData))
         cli::cli_abort("Specified {feature_ranks} do not exist in the featureData.")
 
       ## MAIN
@@ -542,11 +550,11 @@ omics <- R6::R6Class(
 
       # Counts number of ASVs without empty values
       if (unique) {
-        values <- self$featureData[, 
-          lapply(.SD, function(x) data.table::uniqueN(x[!is.na(x) & x != ""]))
+        values <- private$.featureData[, 
+          lapply(.SD, data.table::uniqueN)
           ][, .SD, .SDcols = feature_ranks] 
       } else {
-        values <- self$featureData[, 
+        values <- private$.featureData[, 
           lapply(.SD, function(x) sum(!is.na(x) & x != ""))
           ][, .SD, .SDcols = feature_ranks]  
       }
@@ -620,7 +628,7 @@ omics <- R6::R6Class(
 
       if (!is.character(col_name) && length(col_name) != 1) {
         cli::cli_abort("{col_name} must be a character and of length 1")
-      } else if (!column_exists(col_name, self$metaData)) {
+      } else if (!column_exists(col_name, private$.metaData)) {
         cli::cli_abort("The specified {col_name} does not exist in the metaData.")
       }
 
@@ -635,10 +643,10 @@ omics <- R6::R6Class(
 
       # Save omics class components
       private$tmp_link(
-        .countData = self$countData,
-        .featureData = self$featureData,
-        .metaData = self$metaData,
-        .treeData = self$treeData
+        .countData = private$.countData,
+        .featureData = private$.featureData,
+        .metaData = private$.metaData,
+        .treeData = private$.treeData
       )
       
       # Restores omics class components
@@ -653,13 +661,13 @@ omics <- R6::R6Class(
         self$samplepair_subset()
 
       # Alpha diversity based on 'metric'
-      div <- data.table::data.table(diversity(x = self$countData, metric=metric))
-      div[, (col_name) := self$metaData[, .SD, .SDcols = c(col_name)]]
+      div <- data.table::data.table(diversity(x = private$.countData, metric=metric))
+      div[, (col_name) := private$.metaData[, .SD, .SDcols = c(col_name)]]
       # Adjusts for evenness
       if (evenness) div$V1 <- div$V1 / log(vegan::specnumber(div$V1))
 
       # get colors
-      colors <- colormap(self$metaData, col_name, Brewer.palID)
+      colors <- colormap(private$.metaData, col_name, Brewer.palID)
 
       # Create and saves plots
       plot_list$data <- div
@@ -726,7 +734,7 @@ omics <- R6::R6Class(
       if (!is.null(col_name)) {
         if (!is.character(col_name) && length(col_name) != 1) {
           cli::cli_abort("{col_name} must be a character and of length 1")
-        } else if (!column_exists(col_name, self$metaData)) {
+        } else if (!column_exists(col_name, private$.metaData)) {
           cli::cli_abort("The specified {col_name} does not exist in the metaData.")
         }
       }
@@ -745,10 +753,10 @@ omics <- R6::R6Class(
 
       # Copies object to prevent modification of omics class components
       private$tmp_link(
-        .countData = self$countData,
-        .featureData = self$featureData,
-        .metaData = self$metaData,
-        .treeData = self$treeData
+        .countData = private$.countData,
+        .featureData = private$.featureData,
+        .metaData = private$.metaData,
+        .treeData = private$.treeData
       )
       
       # Restores omics class components
@@ -766,10 +774,10 @@ omics <- R6::R6Class(
         self$removeNAs(col_name)
 
       # Convert sparse matrix to data.table
-      counts <- sparse_to_dtable(self$countData)
+      counts <- sparse_to_dtable(private$.countData)
 
       # Fetch unfiltered and filtered features
-      dt <- counts[, (feature_rank) := self$featureData[[feature_rank]]]
+      dt <- counts[, (feature_rank) := private$.featureData[[feature_rank]]]
 
       # Create row_sums
       dt[, row_sum := rowSums(.SD), .SDcols = !c(feature_rank)]
@@ -813,7 +821,7 @@ omics <- R6::R6Class(
       # Adds metadata columns by user input
       if (!is.null(col_name)) {
         composition_final <- base::merge(final_long,
-                                         self$metaData[, .SD, .SDcols = c(self$.sample_id, col_name)],
+                                         private$.metaData[, .SD, .SDcols = c(self$.sample_id, col_name)],
                                          by = self$.sample_id,
                                          all = TRUE,
                                          allow.cartesian = TRUE) %>%
@@ -876,7 +884,7 @@ omics <- R6::R6Class(
       if (!is.wholenumber(threads))
         cli::cli_abort("{threads} need to be an integer!")
 
-      if (is.null(self$treeData) && metric == "unifrac")
+      if (is.null(private$.treeData) && metric == "unifrac")
         cli::cli_abort("The specified {metric} is invalid since no `treeData` is supplied.")
 
       ## MAIN
@@ -884,10 +892,10 @@ omics <- R6::R6Class(
 
       # Copies object to prevent modification of omics class components
       private$tmp_link(
-        .countData = self$countData,
-        .featureData = self$featureData,
-        .metaData = self$metaData,
-        .treeData = self$treeData
+        .countData = private$.countData,
+        .featureData = private$.featureData,
+        .metaData = private$.metaData,
+        .treeData = private$.treeData
       )
       
       # Restores omics class components
@@ -899,13 +907,13 @@ omics <- R6::R6Class(
 
       distmat <- switch(
         metric,
-        "unifrac" = OmicFlow::unifrac(x = self$countData, tree = self$treeData, weighted=weighted, normalized=normalized, threads=threads),
-        "manhattan" = OmicFlow::manhattan(x = self$countData, weighted=weighted, threads=threads),
-        "canberra" = OmicFlow::canberra(x = self$countData, weighted=weighted, threads=threads),
-        "jaccard" = OmicFlow::jaccard(x = self$countData, weighted=weighted, threads=threads),
-        "bray" = OmicFlow::bray(x = self$countData, weighted=weighted, threads=threads),
-        "jsd" = OmicFlow::jsd(x = self$countData, weighted=weighted, threads=threads),
-        "cosine" = OmicFlow::cosine(x = self$countData, weighted=weighted, threads=threads)
+        "unifrac" = OmicFlow::unifrac(x = private$.countData, tree = private$.treeData, weighted=weighted, normalized=normalized, threads=threads),
+        "manhattan" = OmicFlow::manhattan(x = private$.countData, weighted=weighted, threads=threads),
+        "canberra" = OmicFlow::canberra(x = private$.countData, weighted=weighted, threads=threads),
+        "jaccard" = OmicFlow::jaccard(x = private$.countData, weighted=weighted, threads=threads),
+        "bray" = OmicFlow::bray(x = private$.countData, weighted=weighted, threads=threads),
+        "jsd" = OmicFlow::jsd(x = private$.countData, weighted=weighted, threads=threads),
+        "cosine" = OmicFlow::cosine(x = private$.countData, weighted=weighted, threads=threads)
       )
 
       return(distmat)
@@ -969,7 +977,7 @@ omics <- R6::R6Class(
 
       if (!is.character(group_by) && length(group_by) != 1) {
         cli::cli_abort("{group_by} needs to be a character with a length of 1")
-      } else if (!column_exists(group_by, self$metaData)) {
+      } else if (!column_exists(group_by, private$.metaData)) {
         cli::cli_abort("{group_by} does not exist in the metaData or is empty.")
       }
 
@@ -982,7 +990,7 @@ omics <- R6::R6Class(
       if (!is.null(distmat) && (!inherits(distmat, "Matrix") && !inherits(distmat, "dist")))
         cli::cli_abort("custom distance matrix (distmat) need to be of class Matrix or dist")
 
-      if (is.null(self$treeData) && metric == "unifrac") {
+      if (is.null(private$.treeData) && metric == "unifrac") {
         cli::cli_alert_warning("The specified {metric} is invalid since no tree is supplied.\n Switching to bray-curtis metric.")
         metric <- "bray"
       }
@@ -992,10 +1000,10 @@ omics <- R6::R6Class(
 
       # Copies object to prevent modification of omics class components
       private$tmp_link(
-        .countData = self$countData,
-        .featureData = self$featureData,
-        .metaData = self$metaData,
-        .treeData = self$treeData
+        .countData = private$.countData,
+        .featureData = private$.featureData,
+        .metaData = private$.metaData,
+        .treeData = private$.treeData
       )
       
       # Restores omics class components
@@ -1004,7 +1012,7 @@ omics <- R6::R6Class(
       # Subset by missing values
       self$removeNAs(group_by)
       if (inherits(distmat, "Matrix")) {
-        distmat <- distmat[self$metaData[[ self$.sample_id ]], self$metaData[[ self$.sample_id ]]]
+        distmat <- distmat[private$.metaData[[ self$.sample_id ]], private$.metaData[[ self$.sample_id ]]]
         distmat <- as.dist(distmat)
       }
 
@@ -1032,12 +1040,12 @@ omics <- R6::R6Class(
                                 trace = FALSE,
                                 autotransform = FALSE)
       )
-      if (!is.null(perm_design)) metadata <- self$metaData else metadata <- NULL
+      if (!is.null(perm_design)) metadata <- private$.metaData else metadata <- NULL
       # Switch case to compute relevant statistics
       stats_results <- switch(
         method,
-        "pcoa" = pairwise_adonis(distmat, groups = self$metaData[[ group_by ]], perm = perm, perm_design = perm_design, metadata = metadata),
-        "nmds" = pairwise_anosim(distmat, groups = self$metaData[[ group_by ]], perm = perm, perm_design = perm_design, metadata = metadata)
+        "pcoa" = pairwise_adonis(distmat, groups = private$.metaData[[ group_by ]], perm = perm, perm_design = perm_design, metadata = metadata),
+        "nmds" = pairwise_anosim(distmat, groups = private$.metaData[[ group_by ]], perm = perm, perm_design = perm_design, metadata = metadata)
       )
       plot_list$anova_data <- stats_results
 
@@ -1055,7 +1063,7 @@ omics <- R6::R6Class(
       plot_list$pcs <- df_pcs_points
 
       # Adds relevant data
-      df_pcs_points[, groups := self$metaData[[ group_by ]] ]
+      df_pcs_points[, groups := private$.metaData[[ group_by ]] ]
       df_pcs_points[, samples := row.names(df_pcs_points) ]
 
       if (method == "pcoa") {
@@ -1170,7 +1178,7 @@ omics <- R6::R6Class(
 
       if (!is.character(condition.group) && length(condition.group) != 1) {
         cli::cli_abort("{condition.group} needs to be a character with a length of 1")
-      } else if (!column_exists(condition.group, self$metaData)) {
+      } else if (!column_exists(condition.group, private$.metaData)) {
         cli::cli_abort("{condition.group} does not exist in the metaData or is empty.")
       }
       if (!is.character(condition_A))
@@ -1198,10 +1206,10 @@ omics <- R6::R6Class(
 
       # Copies object to prevent modification of omics class components
       private$tmp_link(
-        .countData = self$countData,
-        .featureData = self$featureData,
-        .metaData = self$metaData,
-        .treeData = self$treeData
+        .countData = private$.countData,
+        .featureData = private$.featureData,
+        .metaData = private$.metaData,
+        .treeData = private$.treeData
       )
       
       # Restores omics class components
@@ -1223,16 +1231,16 @@ omics <- R6::R6Class(
                         feature_filter = feature_filter)
 
       # Extract mean relative abundance
-      rel_abun <- as.matrix(Matrix::rowSums(self$countData) / ncol(self$countData))
-      rownames(rel_abun) <- self$featureData[[ feature_rank ]]
+      rel_abun <- as.matrix(Matrix::rowSums(private$.countData) / ncol(private$.countData))
+      rownames(rel_abun) <- private$.featureData[[ feature_rank ]]
 
       # Get data.table format relative abundances
-      dt <- sparse_to_dtable(self$countData)[, (feature_rank) := self$featureData[[feature_rank]]]
+      dt <- sparse_to_dtable(private$.countData)[, (feature_rank) := private$.featureData[[feature_rank]]]
 
       # Compute 2-fold expression based on (un)paired samples
       # Computes on equation of log2(A) - log2(B)
       # Supports multiple inputs for A and B.
-      condition.labels <- data.table::setorderv(self$metaData,
+      condition.labels <- data.table::setorderv(private$.metaData,
                                                 cols = c(self$.sample_id, condition.group))[[ condition.group ]]
 
       # paired samples
@@ -1315,7 +1323,7 @@ omics <- R6::R6Class(
       
     if (!is.character(feature_contrast) && length(feature_contrast) != 1) {
       cli::cli_abort("{feature_contrast} needs to be a character with a length of 1")
-    } else if (!column_exists(feature_contrast, self$featureData)) {
+    } else if (!column_exists(feature_contrast, private$.featureData)) {
       cli::cli_abort("{feature_contrast} does not exist in featureData!")
     }
 
@@ -1349,22 +1357,22 @@ omics <- R6::R6Class(
     
     # Save omics class components
     private$tmp_link(
-      .countData = self$countData,
-      .featureData = self$featureData,
-      .metaData = self$metaData,
-      .treeData = self$treeData
+      .countData = private$.countData,
+      .featureData = private$.featureData,
+      .metaData = private$.metaData,
+      .treeData = private$.treeData
     )
     
     # Restores omics class components
     on.exit(private$tmp_restore(), add = TRUE)
 
     # Collect columns: CONTRAST_ and VARIABLE_
-    metacols <- colnames(self$metaData)
+    metacols <- colnames(private$.metaData)
 
-    CONTRAST_data <- self$metaData[, .SD, .SDcols = grepl("CONTRAST_", metacols)]
+    CONTRAST_data <- private$.metaData[, .SD, .SDcols = grepl("CONTRAST_", metacols)]
     CONTRAST_names <- colnames(CONTRAST_data)
 
-    VARIABLE_data <- self$metaData[, .SD, .SDcols = grepl("VARIABLE_", metacols)]
+    VARIABLE_data <- private$.metaData[, .SD, .SDcols = grepl("VARIABLE_", metacols)]
     VARIABLE_names <- colnames(VARIABLE_data)
 
     #
@@ -1387,7 +1395,7 @@ omics <- R6::R6Class(
       # Load custom distance matrix if supplied
       if (!is.null(beta_div_table)) {
         beta_div_table <- check_matrix(filepath = beta_div_table)
-        beta_div_table <- beta_div_table[self$metaData[[self$.sample_id]], self$metaData[[self$.sample_id]]]
+        beta_div_table <- beta_div_table[private$.metaData[[self$.sample_id]], private$.metaData[[self$.sample_id]]]
       }
 
       # Load custom rarefraction alpha diversity table if supplied
@@ -1420,7 +1428,7 @@ omics <- R6::R6Class(
         #--------------------------------------------------------------------#
         if (inherits(alpha_div_table, "data.table")) {
           dt_final <- base::merge(alpha_div_table,
-                                  self$metaData[, .SD, .SDcols = c(self$.sample_id, col_name)],
+                                  private$.metaData[, .SD, .SDcols = c(self$.sample_id, col_name)],
                                   by = self$.sample_id,
                                   all.x = TRUE) %>%
             na.omit(cols = col_name)
@@ -1649,7 +1657,58 @@ omics <- R6::R6Class(
   }
   ),
   private = list(
-    # Creates a temporary save of self components
+
+    # Private data fields
+    #-------------------------#
+    .countData = NULL,
+    .featureData = NULL,
+    .metaData = NULL,
+    .treeData = NULL,
+
+    # Function for synchronization of private data fields
+    #---------------------------------------------------------#
+    sync = function() {
+      if (!is.null(private$.metaData)) {
+        private$.metaData <- private$.metaData[, lapply(.SD, function(x) ifelse(x == "", NA, x)),
+                                        .SDcols = colnames(private$.metaData)]
+
+        colnames(private$.metaData) <- gsub("\\s+", "_", colnames(private$.metaData))
+
+        if (!is.null(private$.countData)) {
+          tryCatch(
+            { private$.countData <- private$.countData[, private$.metaData[[ self$.sample_id ]], drop = FALSE] },
+            error = "Error occured during countData subsetting by metaData"
+          )
+        }      
+      }
+
+      if (!is.null(private$.countData)) {
+        private$removeZeros()
+        private$.countData <- private$.countData[, private$.metaData[[ self$.sample_id ]], drop = FALSE]
+      }
+
+      if (!is.null(private$.featureData)) {
+        colnames(private$.featureData) <- gsub("\\s+", "_", colnames(private$.featureData))
+        private$.countData <- private$.countData[ private$.featureData[[ self$.feature_id ]], ]
+        rows_to_keep <- private$.metaData[[ self$.sample_id ]] %in% colnames(private$.countData)
+        private$.metaData <- private$.metaData[rows_to_keep, ]
+      }
+
+      if (!is.null(private$.treeData)) {
+        private$.treeData <- ape::keep.tip(private$.treeData, private$.featureData[[ self$.feature_id ]])
+        private$removeZeros()
+        private$.countData <- private$countData[ private$.featureData[[ self$.feature_id ]], drop = FALSE]
+      }          
+    },
+    removeZeros = function() {
+      keep_cols <- Matrix::colSums(private$.countData) > 0
+      keep_rows <- Matrix::rowSums(private$.countData) > 0
+
+      private$.countData <- private$.countData[keep_rows, keep_cols]
+      private$.featureData <- private$.featureData[keep_rows]
+    },
+    # Temporary data fields
+    #-------------------------#
     tmp_store = NULL,
     tmp_link = function(.countData = NULL, .featureData = NULL, .metaData = NULL, .treeData = NULL) {
       private$tmp_store <<- list(
@@ -1660,17 +1719,16 @@ omics <- R6::R6Class(
                             )
     },
     tmp_restore = function() {
-      # Restores self components if applicable!
-      if (!is.null(private$tmp_store$.countData)) self$countData <- private$tmp_store$.countData
-      if (!is.null(private$tmp_store$.metaData)) self$metaData <- private$tmp_store$.metaData
-      if (!is.null(private$tmp_store$.featureData)) self$featureData <- private$tmp_store$.featureData
-      if (!is.null(private$tmp_store$.treeData)) self$treeData <- private$tmp_store$.treeData
+      if (!is.null(private$tmp_store$.countData)) private$.countData <- private$tmp_store$.countData
+      if (!is.null(private$tmp_store$.metaData)) private$.metaData <- private$tmp_store$.metaData
+      if (!is.null(private$tmp_store$.featureData)) private$.featureData <- private$tmp_store$.featureData
+      if (!is.null(private$tmp_store$.treeData)) private$.treeData <- private$tmp_store$.treeData
       return(invisible(self))
     },
+
+    # Checks & loads input table/filepath
+    #--------------------------------------#
     check_table = function(data) {
-    #
-    # Creates a data.table from given filepath, data.frame or data.table
-    #
     if (is.character(data) && length(data) == 1 && file.exists(data))
       return(data.table::fread(data, header = TRUE))
 
@@ -1682,14 +1740,11 @@ omics <- R6::R6Class(
 
     stop("Input must be a filepath, data.frame, or data.table.")
   },
+
+  # Checks & loads input matrix/filepath
+  #--------------------------------------#
   check_matrix = function(data) {
-    #
-    # Creates a sparseMatrix from given filepath, matrix or sparseMatrix
-    #
     if (is.character(data) && length(data) == 1 && file.exists(data)) {
-      # 
-      # If filepath originates from an excel file, it may contain trailing spaces, or letters, which are removed.
-      #
       dt <- data.table::fread(data, header = TRUE)
       # Change character values to numeric
       for (col in names(dt)) {

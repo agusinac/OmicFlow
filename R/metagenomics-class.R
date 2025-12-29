@@ -15,24 +15,29 @@
 
 metagenomics <- R6::R6Class(
   classname = "metagenomics",
-  cloneable = FALSE,
+  cloneable = TRUE,
   inherit = omics,
+  active = list(
+    treeData = function(value) {
+      # Restores omics class components
+      private$tmp_link(
+        .countData = private$.countData,
+        .featureData = private$.featureData,
+        .metaData = private$.metaData,
+        .treeData = private$.treeData
+      )
+      on.exit(private$tmp_restore(), add = TRUE)
+
+      if (missing(value)) {
+        private$.treeData
+      } else if (identical(class(value), class(private$.treeData))){
+        private$.treeData <- value
+        private$sync()
+        invisible(self)
+      } else stop("Data input requires to be of the same class as `treeData`")
+    }
+  ),
   public = list(
-    #' @field countData A path to an existing file, data.table, data.frame, matrix or sparseMatrix with zero values.
-    countData = NULL,
-
-    #' @field metaData A path to an existing file, data.table or data.frame.
-    metaData = NULL,
-
-    #' @field featureData A path to an existing file, data.table or data.frame.
-    featureData = NULL,
-
-    #' @field treeData A path to an existing newick file or class "phylo", see \link[ape]{read.tree}.
-    treeData = NULL,
-
-    #' @field biomData A path to an existing biom file or hdf5 file, see \link[rhdf5]{h5read}.
-    biomData = NULL,
-
     #' @description
     #' Initializes the metagenomics class object with \code{metagenomics$new()}
     #' @param countData countData A path to an existing file, data.table, data.frame, matrix or sparseMatrix with zero values.
@@ -92,7 +97,7 @@ metagenomics <- R6::R6Class(
             }
 
             # Loads data in memory
-            self$biomData <- rhdf5::h5read(biomData, "/", read.attributes = TRUE)
+            private$.biomData <- rhdf5::h5read(biomData, "/", read.attributes = TRUE)
             private$construct_hdf5_featureData()
             private$construct_hdf5_countData()
 
@@ -102,13 +107,29 @@ metagenomics <- R6::R6Class(
 
           } else if (yyjsonr::validate_json_file(biomData)) {
             
-            self$biomData <- jsonlite::read_json(biomData)
+            private$.biomData <- jsonlite::read_json(biomData)
             private$construct_json_featureData(feature_names)
             private$construct_json_countData()
 
           } else {
             cli::cli_abort("biomData could not be loaded. Not a valid JSON or HDF5 format!")
           }
+
+          # Create placeholder featureData
+          if (is.null(private$.featureData)) {
+            FEATURE_ID <- paste0("feature_", nrow(private$.countData))
+            private$.featureData <- data.table::data.table()
+            private$.featureData[, self$.feature_id := FEATURE_ID]
+            cli::cli_alert_warning("Placeholder featureData created.")
+          }
+          rownames(private$.countData) <- private$.featureData[[ self$.feature_id ]]
+          data.table::setcolorder(
+            x = private$.featureData,
+            neworder = c(self$.feature_id, base::setdiff(colnames(private$.featureData), self$.feature_id))
+          )
+          private$.featureData <- private$.featureData[, 
+            lapply(.SD, function(x) ifelse(x == "", NA, x)),
+            .SDcols = colnames(private$.featureData)]
         }
       }
 
@@ -118,18 +139,18 @@ metagenomics <- R6::R6Class(
 
       if (!is.null(treeData)) {
         if (is.character(treeData) && length(treeData) == 1 && file.exists(treeData)) {
-          self$treeData <- ape::read.tree(treeData)
+          private$.treeData <- ape::read.tree(treeData)
           cli::cli_alert_success("treeData is loaded.")
         } else if (inherits(treeData, "phylo")) {
-          self$treeData <- treeData
+          private$.treeData <- treeData
           cli::cli_alert_success("treeData is loaded.")
         } else {
           cli::cli_alert_warning("The provided TreeData could not be loaded. Make sure the tree is supported by `ape::read.tree`")
         }
 
         # Aligning featureData and countData rows by tree tips
-        self$featureData <- self$featureData[order(match(self$featureData$FEATURE_ID, self$treeData$tip.label))]
-        self$countData <- self$countData[self$featureData$FEATURE_ID, ]
+        private$.featureData <- private$.featureData[order(match(private$.featureData[[ self$.feature_id ]], private$.treeData$tip.label))]
+        private$.countData <- private$.countData[private$.featureData[[ self$.feature_id ]], ]
       }
 
       #-------------------#
@@ -139,24 +160,24 @@ metagenomics <- R6::R6Class(
       cli::cli_alert_info("Final steps .. cleaning & creating back-up")
 
       # Removing prefix of taxonomic features
-      self$featureData <- self$featureData[, lapply(.SD, function(x) gsub("^[dpcofgs]_{2}", "", x)),
-                                           .SDcols = colnames(self$featureData)]
+      private$.featureData <- private$.featureData[, lapply(.SD, function(x) gsub("^[dpcofgs]_{2}", "", x)),
+                                           .SDcols = colnames(private$.featureData)]
       # Rename last column names by feature_names
       n_feature_names <- length(feature_names)
-      n_cols_featureData <- ncol(self$featureData)
-      colnames(self$featureData)[n_cols_featureData:(n_cols_featureData - n_feature_names + 1)] <- base::rev(feature_names)
+      n_cols_featureData <- ncol(private$.featureData)
+      colnames(private$.featureData)[n_cols_featureData:(n_cols_featureData - n_feature_names + 1)] <- base::rev(feature_names)
 
       # Subsetting countData by metadata
-      self$countData <- self$countData[, self$metaData[[ self$.sample_id ]], drop = FALSE]
+      private$.countData <- private$.countData[, private$.metaData[[ self$.sample_id ]], drop = FALSE]
 
       self$print()
 
       # saves data for reset function
       private$original_data = list(
-        counts = self$countData,
-        features = self$featureData,
-        metadata = self$metaData,
-        tree = self$treeData
+        counts = private$.countData,
+        features = private$.featureData,
+        metadata = private$.metaData,
+        tree = private$.treeData
       )
     },
     #' @description
@@ -185,10 +206,10 @@ metagenomics <- R6::R6Class(
     #' @return object in place
     print = function() {
       cat("## metagenomics-class object \n")
-      if (length(self$countData) > 0) cat(paste0("## countData:\t[ ", ncol(self$countData), " Samples and ", nrow(self$countData), " Features\t] \n"))
-      if (length(self$metaData) > 0) cat(paste0("## metaData:\t[ ", ncol(self$metaData), " Variables and ", nrow(self$metaData), " Samples\t] \n"))
-      if (length(self$featureData) > 0) cat(paste0("## taxData:\t[ ", ncol(self$featureData)-1, " Ranks and ", nrow(self$featureData), " Taxa\t] \n"))
-      if (length(self$treeData) > 0) cat(paste0("## treeData:\t[ ", length(self$treeData$tip.label), " Tips and ", self$treeData$Nnode, " Nodes\t] \n"))
+      if (length(private$.countData) > 0) cat(paste0("## countData:\t[ ", ncol(private$.countData), " Samples and ", nrow(private$.countData), " Features\t] \n"))
+      if (length(private$.metaData) > 0) cat(paste0("## metaData:\t[ ", ncol(private$.metaData), " Variables and ", nrow(private$.metaData), " Samples\t] \n"))
+      if (length(private$.featureData) > 0) cat(paste0("## taxData:\t[ ", ncol(private$.featureData)-1, " Ranks and ", nrow(private$.featureData), " Taxa\t] \n"))
+      if (length(private$.treeData) > 0) cat(paste0("## treeData:\t[ ", length(private$.treeData$tip.label), " Tips and ", private$.treeData$Nnode, " Nodes\t] \n"))
     },
     #' @description
     #' Upon creation of a new `metagenomics` object a small backup of the original data is created.
@@ -221,41 +242,10 @@ metagenomics <- R6::R6Class(
     #'
     #' @return object in place
     reset = function() {
-      self$countData = private$original_data$counts
-      self$featureData = private$original_data$features
-      self$metaData = private$original_data$metadata
-      self$treeData = private$original_data$tree
-      invisible(self)
-    },
-    #' @description
-    #' Removes empty (zero) values by row, column and tips from the `countData` and `treeData`.
-    #' This method is performed automatically during subsetting of the object.
-    #' @importFrom ape keep.tip
-    #' @examples
-    #' library("OmicFlow")
-    #'
-    #' metadata_file <- system.file("extdata", "metadata.tsv", package = "OmicFlow")
-    #' counts_file <- system.file("extdata", "counts.tsv", package = "OmicFlow")
-    #' features_file <- system.file("extdata", "features.tsv", package = "OmicFlow")
-    #' tree_file <- system.file("extdata", "tree.newick", package = "OmicFlow")
-    #'
-    #' taxa <- metagenomics$new(
-    #'  metaData = metadata_file,
-    #'  countData = counts_file,
-    #'  featureData = features_file,
-    #'  treeData = tree_file
-    #' )
-    #' 
-    #' # Sample subset induces empty features
-    #' taxa$sample_subset(treatment == "tumor")
-    #'
-    #' # Remove empty features from countData and treeData
-    #' taxa$removeZeros()
-    #' 
-    #' @return object in place
-    removeZeros = function() {
-      super$removeZeros()
-      if (!is.null(self$treeData)) self$treeData <- ape::keep.tip(self$treeData, self$featureData$FEATURE_ID)
+      private$.countData = private$original_data$counts
+      private$.featureData = private$original_data$features
+      private$.metaData = private$original_data$metadata
+      private$.treeData = private$original_data$tree
       invisible(self)
     },
     #' @description
@@ -313,7 +303,7 @@ metagenomics <- R6::R6Class(
         cli::cli_abort("Can't open HDF5 file {.filename {filename}}: {h5}")
 
       # convert countData to triplet matrix
-      triplets <- Matrix::summary(self$countData)
+      triplets <- Matrix::summary(private$.countData)
 
       #----------------------------#
       #       Add Attributes       #
@@ -336,7 +326,7 @@ metagenomics <- R6::R6Class(
       rhdf5::h5writeAttribute(attr = paste(Sys.Date()),
                               h5obj = h5,
                               name = 'creation-date')
-      rhdf5::h5writeAttribute(attr = dim(self$countData),
+      rhdf5::h5writeAttribute(attr = dim(private$.countData),
                               h5obj = h5,
                               name = 'shape')
       rhdf5::h5writeAttribute(attr = length(triplets),
@@ -352,10 +342,10 @@ metagenomics <- R6::R6Class(
       x <- matrix(c(triplets$i - 1, triplets$j - 1, triplets$x), ncol = 3)
       x <- x[order(x[,1]),,drop=FALSE]
 
-      counts_per_row <- base::tabulate(x[,1] + 1L, nbins = nrow(self$countData))
+      counts_per_row <- base::tabulate(x[,1] + 1L, nbins = nrow(private$.countData))
       indptr <- c(0L, base::cumsum(counts_per_row))
 
-      rhdf5::h5writeDataset(obj = base::rownames(self$countData),
+      rhdf5::h5writeDataset(obj = base::rownames(private$.countData),
                             h5loc = h5,
                             name = 'observation/ids')
       rhdf5::h5writeDataset(obj = as.numeric(x[,3]),
@@ -372,10 +362,10 @@ metagenomics <- R6::R6Class(
       #       Counts by column     #
       #----------------------------#
       x <- x[order(x[,2]),,drop=FALSE]
-      counts_per_col <- base::tabulate(x[,2] + 1L, nbins = ncol(self$countData))
+      counts_per_col <- base::tabulate(x[,2] + 1L, nbins = ncol(private$.countData))
       indptr <- c(0L, cumsum(counts_per_col))
 
-      rhdf5::h5writeDataset(obj = base::colnames(self$countData),
+      rhdf5::h5writeDataset(obj = base::colnames(private$.countData),
                             h5loc = h5,
                             name = 'sample/ids')
       rhdf5::h5writeDataset(obj = as.numeric(x[,3]),
@@ -391,9 +381,9 @@ metagenomics <- R6::R6Class(
       #----------------------------#
       #       Add Taxonomy         #
       #----------------------------#
-      if (all(dim(self$featureData)) > 0) {
+      if (all(dim(private$.featureData)) > 0) {
         h5path <- 'observation/metadata/taxonomy'
-        features <- as.matrix(self$featureData[, .SD, .SDcols = !c("FEATURE_ID")])
+        features <- as.matrix(private$.featureData[, .SD, .SDcols = !c("FEATURE_ID")])
         dimnames(features) <- list(NULL, NULL)
         rhdf5::h5writeDataset(obj = features,
                               h5loc = h5,
@@ -405,56 +395,62 @@ metagenomics <- R6::R6Class(
     }
   ),
   private = list(
+    # Private data fields
+    #-------------------------#
+    .countData = NULL,
+    .featureData = NULL,
+    .metaData = NULL,
+    .treeData = NULL,
+    .biomData = NULL,
     original_data = list(),
     construct_hdf5_featureData = function() {
-      self$featureData <- data.table::data.table(t(self$biomData$observation$metadata$taxonomy))
-
-      if (any(grepl(self$.feature_id, colnames(self$metaData))) && !all(is.na(self$metaData[[ self$.feature_id ]]))) {
-        FEATURE_ID <- self$metaData[[self$.feature_id]]
+      if (!is.null(private$.biomData$observation$metadata$taxonomy)) {
+        private$.featureData <- data.table::data.table(t(private$.biomData$observation$metadata$taxonomy))
+      }
+      
+      if (any(grepl(self$.feature_id, colnames(private$.metaData))) && !all(is.na(private$.metaData[[ self$.feature_id ]]))) {
+        FEATURE_ID <- private$.metaData[[self$.feature_id]]
+      } else if (!is.null(private$.biomData$observation$ids)) {
+        FEATURE_ID <- private$.biomData$observation$ids
       } else {
-        FEATURE_ID <- self$biomData$observation$ids
+        FEATURE_ID <- NULL
       }
 
       # Adds feature id as first column
-      self$featureData[[ self$.feature_id ]] <- FEATURE_ID
-      data.table::setcolorder(x = self$featureData,
-                              neworder = c(self$.feature_id, base::setdiff(colnames(self$featureData), self$.feature_id))
-                              )
-      colnames(self$featureData) <- gsub("\\s+", "_", colnames(self$featureData))
-      self$featureData <- self$featureData[, lapply(.SD, function(x) ifelse(x == "", NA, x)),
-                                           .SDcols = colnames(self$featureData)]
+      if (!is.null(FEATURE_ID) && !is.null(private$.featureData)) {
+        private$.featureData[[ self$.feature_id ]] <- FEATURE_ID
+      }
 
       cli::cli_alert_success("featureData is loaded.")
     },
     construct_hdf5_countData = function() {
-      indptr <- as.numeric(self$biomData$observation$matrix$indptr)
+      indptr <- as.numeric(private$.biomData$observation$matrix$indptr)
 
-      self$countData <- Matrix::sparseMatrix(
+      private$.countData <- Matrix::sparseMatrix(
         i        = unlist(sapply(1:(length(indptr)-1), function (i) rep(i, diff(indptr[c(i,i+1)])))),
-        j        = as.numeric(self$biomData$observation$matrix$indices) + 1,
-        x        = as.numeric(self$biomData$observation$matrix$data),
-        dims     = c(length(self$biomData$observation$ids), length(self$biomData$sample$ids)),
+        j        = as.numeric(private$.biomData$observation$matrix$indices) + 1,
+        x        = as.numeric(private$.biomData$observation$matrix$data),
+        dims     = c(length(private$.biomData$observation$ids), length(private$.biomData$sample$ids)),
         dimnames = list(
-          as.character(self$biomData$observation$ids),
-          as.character(self$biomData$sample$ids)
+          as.character(private$.biomData$observation$ids),
+          as.character(private$.biomData$sample$ids)
         ))
-
-      rownames(self$countData) <- self$featureData$FEATURE_ID
 
       cli::cli_alert_success("countData is loaded.")
     },
     construct_json_featureData = function(feature_names) {
       # Create empty featureData
-      self$featureData <- data.table::data.table(matrix(NA_character_,
-                                                        nrow = length(self$biomData$rows),
-                                                        ncol = length(c(self$.feature_id, feature_names))))
-      setNames(self$featureData, c(self$.feature_id, feature_names))
+      private$.featureData <- data.table::data.table(matrix(NA_character_,
+                                                     nrow = length(private$.biomData$rows),
+                                                     ncol = length(c(self$.feature_id, feature_names))
+                                                     ))
+      setNames(private$.featureData, c(self$.feature_id, feature_names))
 
       # Fill first column with $id values
-      self$featureData[["FEATURE_ID"]] <- vapply(self$biomData$rows, function(x) as.character(x$id), character(1))
+      private$.featureData[[ self$.feature_id ]] <- vapply(private$.biomData$rows, function(x) as.character(x$id), character(1))
 
-      for (i in seq_along(self$biomData$rows)) {
-        taxonomy <- self$biomData$rows[[i]]$metadata$taxonomy
+      for (i in seq_along(private$.biomData$rows)) {
+        taxonomy <- private$.biomData$rows[[i]]$metadata$taxonomy
 
         # Skip if taxonomy is missing or NULL
         if (is.null(taxonomy)) next
@@ -465,39 +461,29 @@ metagenomics <- R6::R6Class(
 
         # Fill featureData with tax values by index
         col_positions <- tax_indices + 1
-        self$featureData[i, (col_positions) := as.list(tax_values)]
+        private$.featureData[i, (col_positions) := as.list(tax_values)]
       }
 
-      if (any(grepl(self$.feature_id, colnames(self$metaData))) && !all(is.na(self$metaData[[self$.feature_id]]))) {
-        FEATURE_ID <- self$metaData[[self$.feature_id]]
+      if (any(grepl(self$.feature_id, colnames(private$.metaData))) && !all(is.na(private$.metaData[[self$.feature_id]]))) {
+        FEATURE_ID <- private$.metaData[[self$.feature_id]]
+        private$.featureData[, (self$.feature_id) := FEATURE_ID]
       }
-
-      # Adds feature id as first column
-      self$featureData[, (self$.feature_id) := FEATURE_ID]
-      data.table::setcolorder(x = self$featureData,
-                              neworder = c(self$.feature_id, base::setdiff(colnames(self$featureData), self$.feature_id))
-      )
-      colnames(self$featureData) <- gsub("\\s+", "_", colnames(self$featureData))
-
       cli::cli_alert_success("featureData is loaded.")
     },
     construct_json_countData = function() {
-      feature_ids <- sapply(self$biomData$rows, function(x) unlist(x$id))
-      sample_ids <- sapply(self$biomData$columns, function(x) unlist(x$id))
+      feature_ids <- sapply(private$.biomData$rows, function(x) unlist(x$id))
+      sample_ids <- sapply(private$.biomData$columns, function(x) unlist(x$id))
 
-      self$countData <- Matrix::sparseMatrix(
-        i        = sapply(self$biomData$data, function(x) x[[1]]) + 1,
-        j        = sapply(self$biomData$data, function(x) x[[2]]) + 1,
-        x        = sapply(self$biomData$data, function(x) x[[3]]),
+      private$.countData <- Matrix::sparseMatrix(
+        i        = sapply(private$.biomData$data, function(x) x[[1]]) + 1,
+        j        = sapply(private$.biomData$data, function(x) x[[2]]) + 1,
+        x        = sapply(private$.biomData$data, function(x) x[[3]]),
         dims     = c( length(feature_ids), length(sample_ids) ),
         dimnames = list(
           as.character(feature_ids),
           as.character(sample_ids)
         )
       )
-
-      rownames(self$countData) <- self$featureData$FEATURE_ID
-
       cli::cli_alert_success("countData is loaded.")
     }
   )
