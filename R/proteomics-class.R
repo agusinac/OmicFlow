@@ -86,7 +86,7 @@ proteomics <- R6::R6Class(
       )
     },
     #' @description
-    #' Displays parameters of the proteomics object via stdout.
+    #' Displays parameters of the proteomics class via stdout.
     #' @examples
     #' library("OmicFlow")
     #'
@@ -111,12 +111,12 @@ proteomics <- R6::R6Class(
     #' @return object in place
     print = function() {
       cat("## proteomics-class object \n")
-      if (length(private$.countData) > 0) cat(paste0("## countData:\t[ ", ncol(private$.countData), " Samples and ", nrow(private$.countData), " Features\t] \n"))
-      if (length(private$.metaData) > 0) cat(paste0("## metaData:\t[ ", ncol(private$.metaData), " Variables and ", nrow(private$.metaData), " Samples\t] \n"))
-      if (length(private$.featureData) > 0) cat(paste0("## featureData:\t[ ", ncol(private$.featureData)-1, " Attributes and ", nrow(private$.featureData), " Proteins\t] \n"))
-      if (length(private$.treeData) > 0) cat(paste0("## treeData:\t[ ", length(private$.treeData$tip.label), " Tips and ", private$.treeData$Nnode, " Nodes\t] \n"))
+      if (length(self$countData) > 0) cat(paste0("## countData:\t[ ", ncol(self$countData), " Samples and ", nrow(self$countData), " Features\t] \n"))
+      if (length(self$metaData) > 0) cat(paste0("## metaData:\t[ ", ncol(self$metaData), " Variables and ", nrow(self$metaData), " Samples\t] \n"))
+      if (length(self$featureData) > 0) cat(paste0("## featureData:\t[ ", ncol(self$featureData)-1, " Attributes and ", nrow(self$featureData), " Proteins\t] \n"))
+      if (length(self$treeData) > 0) cat(paste0("## treeData:\t[ ", length(self$treeData$tip.label), " Tips and ", self$treeData$Nnode, " Nodes\t] \n"))
     },
-        #' @description
+    #' @description
     #' Upon creation of a new `proteomics` object a small backup of the original data is created.
     #' Since modification of the object is done by reference and duplicates are not made, it is possible to `reset` changes to the class.
     #' The methods from the abstract class \link{omics} also contains a private method to prevent any changes to the original object when using methods such as \code{ordination} \code{alpha_diversity} or \code{$DFE}.  

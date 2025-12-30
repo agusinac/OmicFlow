@@ -15,4 +15,13 @@ test_that("Testing subsetting of data", {
   # Perform metadata subset
   taxa$sample_subset(treatment == "tumor")
   expect_snapshot(taxa)
+
+  # active binding subset
+  taxa$reset()
+  taxa$featureData <- taxa$featureData[1:200, ]
+  expect_snapshot(taxa)
+
+  taxa$reset()
+  taxa$countData <- taxa$countData[1:50, ]
+  expect_snapshot(taxa)
 })

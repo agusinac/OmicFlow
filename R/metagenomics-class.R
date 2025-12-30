@@ -131,7 +131,6 @@ metagenomics <- R6::R6Class(
             rownames(private$.countData) <- private$.featureData[[ self$feature_id ]]
             cli::cli_alert_warning("Placeholder featureData created.")
           }
-          print(private$.featureData)
           rownames(private$.countData) <- private$.featureData[[ self$feature_id ]]
           data.table::setcolorder(
             x = private$.featureData,
@@ -191,7 +190,7 @@ metagenomics <- R6::R6Class(
       )
     },
     #' @description
-    #' Displays parameters of the metagenomics object via stdout.
+    #' Displays parameters of the metagenomics class via stdout.
     #' @examples
     #' library("OmicFlow")
     #'

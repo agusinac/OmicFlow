@@ -206,7 +206,7 @@ omics <- R6::R6Class(
       ###     sync      ###
       #-------------------#
       private$sync()
-
+      self$print()
     },
     #' @description
     #' Validates an input metadata against the JSON schema. The metadata should look as follows and should not contain any empty spaces.
@@ -247,6 +247,33 @@ omics <- R6::R6Class(
 
       unlink(tmp_json)
       invisible(self)
+    },
+    #' @description
+    #' Displays parameters of the omics class via stdout.
+    #' @examples
+    #' library("OmicFlow")
+    #'
+    #' metadata_file <- system.file("extdata", "metadata.tsv", package = "OmicFlow")
+    #' counts_file <- system.file("extdata", "counts.tsv", package = "OmicFlow")
+    #'
+    #' obj <- omics$new(
+    #'  metaData = metadata_file,
+    #'  countData = counts_file
+    #' )
+    #'
+    #' # method 1 to call print function
+    #' obj
+    #'
+    #' # method 2 to call print function
+    #' obj$print()
+    #'
+    #' @return object in place
+    print = function() {
+      cat("## omics-class object \n")
+      if (length(private$.countData) > 0) cat(paste0("## countData:\t[ ", ncol(private$.countData), " Samples and ", nrow(private$.countData), " Features\t] \n"))
+      if (length(private$.metaData) > 0) cat(paste0("## metaData:\t[ ", ncol(private$.metaData), " Variables and ", nrow(private$.metaData), " Samples\t] \n"))
+      if (length(private$.featureData) > 0) cat(paste0("## featureData:\t[ ", ncol(private$.featureData)-1, " Attributes and ", nrow(private$.featureData), " Features\t] \n"))
+      if (length(private$.treeData) > 0) cat(paste0("## treeData:\t[ ", length(private$.treeData$tip.label), " Tips and ", private$.treeData$Nnode, " Nodes\t] \n"))
     },
     #' @description
     #' Remove NAs from `metaData` and updates the `countData`.
