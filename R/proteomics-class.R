@@ -50,7 +50,7 @@ proteomics <- R6::R6Class(
     #' @param metaData A path to an existing file, data.table or data.frame.
     #' @param treeData A path to an existing newick file or class "phylo", see \link[ape]{read.tree}.
     #' @return A new `proteomics` object.
-    initialize = function(countData = NA, metaData = NA, featureData = NA, treeData = NA) {
+    initialize = function(countData = NULL, metaData = NULL, featureData = NULL, treeData = NULL) {
       super$initialize(countData = countData,
                        metaData = metaData,
                        featureData = featureData)
