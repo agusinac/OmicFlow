@@ -44,25 +44,6 @@ The method by reference is very efficient when dealing with big data.
 \examples{
 
 ## ------------------------------------------------
-## Method `omics$removeZeros`
-## ------------------------------------------------
-
-library("OmicFlow")
-
-metadata_file <- system.file("extdata", "metadata.tsv", package = "OmicFlow")
-counts_file <- system.file("extdata", "counts.tsv", package = "OmicFlow")
-features_file <- system.file("extdata", "features.tsv", package = "OmicFlow")
-
-obj <- metagenomics$new(
- metaData = metadata_file,
- countData = counts_file,
- featureData = features_file,
-)
-
-obj$removeZeros()
-
-
-## ------------------------------------------------
 ## Method `omics$removeNAs`
 ## ------------------------------------------------
 
@@ -97,7 +78,7 @@ obj <- metagenomics$new(
  featureData = features_file,
 )
 
-obj$feature_subset(Genus == "Streptococcus")
+obj$feature_subset(Genus == "Pseudomonas")
 
 
 ## ------------------------------------------------
@@ -326,19 +307,11 @@ unpaired <- obj$DFE(feature_rank = "Genus",
 \section{Public fields}{
 \if{html}{\out{<div class="r6-fields">}}
 \describe{
-\item{\code{countData}}{A path to an existing file, data.table, data.frame, matrix or sparseMatrix with zero values.}
+\item{\code{feature_id}}{A character, default name for the feature identifiers.}
 
-\item{\code{featureData}}{A path to an existing file, data.table or data.frame.}
+\item{\code{sample_id}}{A character, default name for the sample identifiers.}
 
-\item{\code{metaData}}{A path to an existing file, data.table or data.frame.}
-
-\item{\code{.valid_schema}}{Boolean value for schema validation via JSON}
-
-\item{\code{.feature_id}}{A character, default name for the feature identifiers.}
-
-\item{\code{.sample_id}}{A character, default name for the sample identifiers.}
-
-\item{\code{.samplepair_id}}{A character, default name for the sample pair identifiers.}
+\item{\code{samplepair_id}}{A character, default name for the sample pair identifiers.}
 }
 \if{html}{\out{</div>}}
 }
@@ -347,7 +320,6 @@ unpaired <- obj$DFE(feature_rank = "Genus",
 \itemize{
 \item \href{#method-omics-new}{\code{omics$new()}}
 \item \href{#method-omics-validate}{\code{omics$validate()}}
-\item \href{#method-omics-removeZeros}{\code{omics$removeZeros()}}
 \item \href{#method-omics-removeNAs}{\code{omics$removeNAs()}}
 \item \href{#method-omics-feature_subset}{\code{omics$feature_subset()}}
 \item \href{#method-omics-sample_subset}{\code{omics$sample_subset()}}
@@ -362,6 +334,7 @@ unpaired <- obj$DFE(feature_rank = "Genus",
 \item \href{#method-omics-ordination}{\code{omics$ordination()}}
 \item \href{#method-omics-DFE}{\code{omics$DFE()}}
 \item \href{#method-omics-autoFlow}{\code{omics$autoFlow()}}
+\item \href{#method-omics-clone}{\code{omics$clone()}}
 }
 }
 \if{html}{\out{<hr>}}
@@ -421,41 +394,6 @@ None
 }
 }
 \if{html}{\out{<hr>}}
-\if{html}{\out{<a id="method-omics-removeZeros"></a>}}
-\if{latex}{\out{\hypertarget{method-omics-removeZeros}{}}}
-\subsection{Method \code{removeZeros()}}{
-Removes empty (zero) values by row and column from the \code{countData}.
-This method is performed automatically during subsetting of the object.
-\subsection{Usage}{
-\if{html}{\out{<div class="r">}}\preformatted{omics$removeZeros()}\if{html}{\out{</div>}}
-}
-
-\subsection{Returns}{
-object in place
-}
-\subsection{Examples}{
-\if{html}{\out{<div class="r example copy">}}
-\preformatted{library("OmicFlow")
-
-metadata_file <- system.file("extdata", "metadata.tsv", package = "OmicFlow")
-counts_file <- system.file("extdata", "counts.tsv", package = "OmicFlow")
-features_file <- system.file("extdata", "features.tsv", package = "OmicFlow")
-
-obj <- metagenomics$new(
- metaData = metadata_file,
- countData = counts_file,
- featureData = features_file,
-)
-
-obj$removeZeros()
-
-}
-\if{html}{\out{</div>}}
-
-}
-
-}
-\if{html}{\out{<hr>}}
 \if{html}{\out{<a id="method-omics-removeNAs"></a>}}
 \if{latex}{\out{\hypertarget{method-omics-removeNAs}{}}}
 \subsection{Method \code{removeNAs()}}{
@@ -500,7 +438,7 @@ obj$removeNAs(column = "treatment")
 \if{html}{\out{<a id="method-omics-feature_subset"></a>}}
 \if{latex}{\out{\hypertarget{method-omics-feature_subset}{}}}
 \subsection{Method \code{feature_subset()}}{
-Feature subset (based on \code{featureData}), automatically applies \href{#method-removeZeros}{\code{removeZeros()}}.
+Feature subset (based on \code{featureData}), automatically applies data synchronization.
 \subsection{Usage}{
 \if{html}{\out{<div class="r">}}\preformatted{omics$feature_subset(...)}\if{html}{\out{</div>}}
 }
@@ -530,7 +468,7 @@ obj <- metagenomics$new(
  featureData = features_file,
 )
 
-obj$feature_subset(Genus == "Streptococcus")
+obj$feature_subset(Genus == "Pseudomonas")
 
 }
 \if{html}{\out{</div>}}
@@ -542,7 +480,7 @@ obj$feature_subset(Genus == "Streptococcus")
 \if{html}{\out{<a id="method-omics-sample_subset"></a>}}
 \if{latex}{\out{\hypertarget{method-omics-sample_subset}{}}}
 \subsection{Method \code{sample_subset()}}{
-Sample subset (based on \code{metaData}), automatically applies \href{#method-removeZeros}{\code{removeZeros()}}.
+Sample subset (based on \code{metaData}), automatically applies synchronization.
 \subsection{Usage}{
 \if{html}{\out{<div class="r">}}\preformatted{omics$sample_subset(...)}\if{html}{\out{</div>}}
 }
@@ -584,7 +522,7 @@ obj$sample_subset(treatment == "tumor")
 \if{html}{\out{<a id="method-omics-samplepair_subset"></a>}}
 \if{latex}{\out{\hypertarget{method-omics-samplepair_subset}{}}}
 \subsection{Method \code{samplepair_subset()}}{
-Samplepair subset (based on \code{metaData}), automatically applies \href{#method-removeZeros}{\code{removeZeros()}}.
+Samplepair subset (based on \code{metaData}), automatically applies synchronization.
 \subsection{Usage}{
 \if{html}{\out{<div class="r">}}\preformatted{omics$samplepair_subset(num_unique_pairs = NULL)}\if{html}{\out{</div>}}
 }
@@ -606,7 +544,7 @@ object in place
 \if{html}{\out{<a id="method-omics-feature_merge"></a>}}
 \if{latex}{\out{\hypertarget{method-omics-feature_merge}{}}}
 \subsection{Method \code{feature_merge()}}{
-Agglomerates features by column, automatically applies \href{#method-removeZeros}{\code{removeZeros()}}.
+Agglomerates features by column, automatically applies synchronization.
 \subsection{Usage}{
 \if{html}{\out{<div class="r">}}\preformatted{omics$feature_merge(feature_rank, feature_filter = NULL)}\if{html}{\out{</div>}}
 }
@@ -1133,6 +1071,23 @@ For now only works with headers that start with prefix \code{CONTRAST_}.
 }
 \subsection{Returns}{
 A report in HTML format
+}
+}
+\if{html}{\out{<hr>}}
+\if{html}{\out{<a id="method-omics-clone"></a>}}
+\if{latex}{\out{\hypertarget{method-omics-clone}{}}}
+\subsection{Method \code{clone()}}{
+The objects of this class are cloneable with this method.
+\subsection{Usage}{
+\if{html}{\out{<div class="r">}}\preformatted{omics$clone(deep = FALSE)}\if{html}{\out{</div>}}
+}
+
+\subsection{Arguments}{
+\if{html}{\out{<div class="arguments">}}
+\describe{
+\item{\code{deep}}{Whether to make a deep clone.}
+}
+\if{html}{\out{</div>}}
 }
 }
 }

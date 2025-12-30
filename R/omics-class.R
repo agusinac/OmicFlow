@@ -25,13 +25,21 @@ omics <- R6::R6Class(
         .metaData = private$.metaData,
         .treeData = private$.treeData
       )
-      on.exit(private$tmp_restore(), add = TRUE)
+
+      # Returns on failure
+      success <- FALSE
+      on.exit({
+        if (!success) {
+          private$tmp_restore()
+        }
+      }, add = TRUE)
 
       if (missing(value)) {
         private$.metaData
-      } else if (identical(class(value), class(private$.metaData))){
+      } else if (inherits(value, "data.table")){
         private$.metaData <- value
         private$sync()
+        success <- TRUE
         invisible(self)
       } else stop("Data input requires to be of the same class as `metaData`")
     },
@@ -43,13 +51,21 @@ omics <- R6::R6Class(
         .metaData = private$.metaData,
         .treeData = private$.treeData
       )
-      on.exit(private$tmp_restore(), add = TRUE)
+
+      # Returns on failure
+      success <- FALSE
+      on.exit({
+        if (!success) {
+          private$tmp_restore()
+        }
+      }, add = TRUE)
 
       if (missing(value)) {
         private$.featureData
-      } else if (identical(class(value), class(private$.featureData))){
+      } else if (inherits(value, "data.table")){
         private$.featureData <- value
         private$sync()
+        success <- TRUE
         invisible(self)
       } else stop("Data input requires to be of the same class as `featureData`")
     },
@@ -61,29 +77,34 @@ omics <- R6::R6Class(
         .metaData = private$.metaData,
         .treeData = private$.treeData
       )
-      on.exit(private$tmp_restore(), add = TRUE)
+
+      # Returns on failure
+      success <- FALSE
+      on.exit({
+        if (!success) {
+          private$tmp_restore()
+        }
+      }, add = TRUE)
 
       if (missing(value)) {
         private$.countData
-      } else if (identical(class(value), class(private$.countData))){
+      } else if (inherits(value, "Matrix")){
         private$.countData <- value
         private$sync()
+        success <- TRUE
         invisible(self)
       } else stop("Data input requires to be of the same class as `countData`")
     }
   ),
   public = list(
-    #' @field .valid_schema Boolean value for schema validation via JSON
-    .valid_schema = NULL,
+    #' @field feature_id A character, default name for the feature identifiers.
+    feature_id = "FEATURE_ID",
 
-    #' @field .feature_id A character, default name for the feature identifiers.
-    .feature_id = "FEATURE_ID",
+    #' @field sample_id A character, default name for the sample identifiers.
+    sample_id = "SAMPLE_ID",
 
-    #' @field .sample_id A character, default name for the sample identifiers.
-    .sample_id = "SAMPLE_ID",
-
-    #' @field .samplepair_id A character, default name for the sample pair identifiers.
-    .samplepair_id = "SAMPLEPAIR_ID",
+    #' @field samplepair_id A character, default name for the sample pair identifiers.
+    samplepair_id = "SAMPLEPAIR_ID",
 
     #' @description
     #' Wrapper function that is inherited and adapted for each omics class.
@@ -106,7 +127,7 @@ omics <- R6::R6Class(
         private$.metaData <- private$check_table(metaData)
         self$validate()
 
-        if (self$.valid_schema) {
+        if (private$.valid_schema) {
           cli::cli_alert_success("Metadata template passed the JSON validation.")
 
           #--------------------------------------------------------------------#
@@ -115,10 +136,10 @@ omics <- R6::R6Class(
 
           cli::cli_alert_info("Checking for duplicated identifiers ..")
 
-          duplicated_sample_ids <- any(duplicated(private$.metaData, by = self$.sample_id))
+          duplicated_sample_ids <- any(duplicated(private$.metaData, by = self$sample_id))
 
-          if (column_exists(self$.feature_id, private$.metaData)) {
-            duplicated_feature_ids <- any(duplicated(private$.metaData, by = self$.feature_id))
+          if (column_exists(self$feature_id, private$.metaData)) {
+            duplicated_feature_ids <- any(duplicated(private$.metaData, by = self$feature_id))
           } else {
             duplicated_feature_ids <- FALSE
           }
@@ -132,11 +153,11 @@ omics <- R6::R6Class(
           #--------------------------------------------------------------------#
           ## Disable samplepair_id if not supplied
           #--------------------------------------------------------------------#
-          if (!column_exists(self$.samplepair_id, private$.metaData))
-            self$.samplepair_id <- NULL
+          if (!column_exists(self$samplepair_id, private$.metaData))
+            self$samplepair_id <- NULL
 
         } else {
-          errors <- attr(self$.valid_schema, "errors")
+          errors <- attr(private$.valid_schema, "errors")
           cli::cli_abort(
             "JSON validation failed: \n{ paste(errors$message, collapse = '\n')}"
             )
@@ -154,13 +175,13 @@ omics <- R6::R6Class(
       if (!is.null(featureData)) {
         private$.featureData <- private$check_table(featureData)
 
-        if (column_exists(self$.feature_id, private$.metaData)) {
-          FEATURE_ID <- private$.metaData[[self$.feature_id]]
+        if (column_exists(self$feature_id, private$.metaData)) {
+          FEATURE_ID <- private$.metaData[[ self$feature_id ]]
         } else {
-          FEATURE_ID <- paste0("feature_", rownames(private$.featureData))
+          FEATURE_ID <- paste0("feature_", 1:nrow(private$.featureData))
         }
 
-        private$.featureData[, (self$.feature_id) := FEATURE_ID]
+        private$.featureData[, self$feature_id := FEATURE_ID]
         cli::cli_alert_success("featureData is loaded.")
       }
 
@@ -169,13 +190,14 @@ omics <- R6::R6Class(
       #-------------------#
       if (!is.null(countData)) {
         private$.countData <- private$check_matrix(countData)
-        rownames(private$.countData) <- private$.featureData[[ self$.feature_id ]]
+        rownames(private$.countData) <- private$.featureData[[ self$feature_id ]]
         cli::cli_alert_success("countData is loaded.")
 
         if (is.null(private$.featureData)) {
-          FEATURE_ID <- paste0("feature_", nrow(private$.countData))
+          FEATURE_ID <- paste0("feature_", 1:nrow(private$.countData))
           private$.featureData <- data.table::data.table()
-          private$.featureData[, self$.feature_id := FEATURE_ID]
+          private$.featureData <- private$.featureData[, (self$feature_id) := FEATURE_ID]
+          rownames(private$.countData) <- private$.featureData[[ self$feature_id ]]
           cli::cli_alert_warning("Placeholder featureData created.")
         }
       }
@@ -214,14 +236,14 @@ omics <- R6::R6Class(
 
       writeLines(json_data, tmp_json)
 
-      self$.valid_schema <- jsonvalidate::json_validate(
+      private$.valid_schema <- jsonvalidate::json_validate(
         tmp_json,
         system.file("metadata_schema.json", package = "OmicFlow"),
         engine = "ajv",
         verbose = TRUE,
         error = FALSE,
         strict = TRUE
-        )
+      )
 
       unlink(tmp_json)
       invisible(self)
@@ -282,7 +304,7 @@ omics <- R6::R6Class(
     #'  featureData = features_file,
     #' )
     #' 
-    #' obj$feature_subset(Genus == "Streptococcus")
+    #' obj$feature_subset(Genus == "Pseudomonas")
     #' 
     #' @return object in place
     feature_subset = function(...) {
@@ -320,12 +342,12 @@ omics <- R6::R6Class(
     #' @return object in place
     sample_subset = function(...) {
       # set order of columns
-      private$.countData <- private$.countData[, private$.metaData[[ self$.sample_id ]], drop = FALSE]
+      private$.countData <- private$.countData[, private$.metaData[[ self$sample_id ]], drop = FALSE]
       # subset columns and rows
       rows_to_keep <- private$.metaData[, ...]
       private$.metaData <- private$.metaData[rows_to_keep, ]
       # NAs can occur in rows_to_keep, which then doesnt work on sparse Matrix.
-      private$.countData <- private$.countData[, private$.metaData[[ self$.sample_id ]] ]
+      private$.countData <- private$.countData[, private$.metaData[[ self$sample_id ]] ]
       private$sync()
       invisible(self)
     },
@@ -397,7 +419,7 @@ omics <- R6::R6Class(
 
       # creates a subset of unique feature rank, hashes combined for each unique rank
       counts <- data.table::data.table()
-      counts[, (self$.feature_id) := rownames(private$.countData)]
+      counts[, (self$feature_id) := rownames(private$.countData)]
 
       # Supports multiple features
       features <- data.table::copy(private$.featureData[private$.featureData[[ feature_rank[1] ]] != "", ])
@@ -429,7 +451,7 @@ omics <- R6::R6Class(
       # Fetch first ID from each list
       grouped_ids$ID_first <- sapply(grouped_ids$IDs, `[[`, 1)
       # Reorder by matching IDs
-      private$.featureData <- private$.featureData[ base::order(base::match(private$.featureData[[ self$.feature_id ]], grouped_ids$ID_first)) ]
+      private$.featureData <- private$.featureData[ base::order(base::match(private$.featureData[[ self$feature_id ]], grouped_ids$ID_first)) ]
       private$.countData <- counts_glom
 
       # Replaces strings matching feature_filter with NAs
@@ -447,7 +469,7 @@ omics <- R6::R6Class(
       empty_strings <- !is.na(private$.featureData[[ feature_rank[1] ]])
       private$.featureData <- private$.featureData[empty_strings, ]
       private$.countData <- private$.countData[empty_strings, ]
-      rownames(private$.countData) <- private$.featureData[[ self$.feature_id ]]
+      rownames(private$.countData) <- private$.featureData[[ self$feature_id ]]
 
       private$sync()
       invisible(self)
@@ -657,7 +679,7 @@ omics <- R6::R6Class(
         self$removeNAs(col_name)
 
       # Subset by samplepair completion
-      if ( paired && !is.null(self$.samplepair_id) )
+      if ( paired && !is.null(self$samplepair_id) )
         self$samplepair_subset()
 
       # Alpha diversity based on 'metric'
@@ -816,13 +838,13 @@ omics <- R6::R6Class(
                                      variable.factor = FALSE,
                                      value.factor = TRUE)
       # Rename colnames for merge step
-      colnames(final_long) <- c(feature_rank, self$.sample_id, "value")
+      colnames(final_long) <- c(feature_rank, self$sample_id, "value")
 
       # Adds metadata columns by user input
       if (!is.null(col_name)) {
         composition_final <- base::merge(final_long,
-                                         private$.metaData[, .SD, .SDcols = c(self$.sample_id, col_name)],
-                                         by = self$.sample_id,
+                                         private$.metaData[, .SD, .SDcols = c(self$sample_id, col_name)],
+                                         by = self$sample_id,
                                          all = TRUE,
                                          allow.cartesian = TRUE) %>%
           unique()
@@ -1012,7 +1034,7 @@ omics <- R6::R6Class(
       # Subset by missing values
       self$removeNAs(group_by)
       if (inherits(distmat, "Matrix")) {
-        distmat <- distmat[private$.metaData[[ self$.sample_id ]], private$.metaData[[ self$.sample_id ]]]
+        distmat <- distmat[private$.metaData[[ self$sample_id ]], private$.metaData[[ self$sample_id ]]]
         distmat <- as.dist(distmat)
       }
 
@@ -1193,7 +1215,7 @@ omics <- R6::R6Class(
       if (!is.numeric(foldchange.threshold))
         cli::cli_abort("{foldchange.threshold} need to be numeric.")
 
-      if (paired && is.null(self$.samplepair_id)) {
+      if (paired && is.null(self$samplepair_id)) {
         cli::cli_alert_warning("Paired is set to {paired} but SAMPLEPAIR_ID does not exist in the metaData.\n Differential feature analysis will not be done with paired set to FALSE!")
         paired <- FALSE
       }
@@ -1223,7 +1245,7 @@ omics <- R6::R6Class(
       self$removeNAs(condition.group)
 
       # Subset by samplepair completion
-      if (paired && !is.null(self$.samplepair_id))
+      if (paired && !is.null(self$samplepair_id))
         self$samplepair_subset()
 
       # Agglomerate taxa by feature rank and filter unwanted taxa
@@ -1241,7 +1263,7 @@ omics <- R6::R6Class(
       # Computes on equation of log2(A) - log2(B)
       # Supports multiple inputs for A and B.
       condition.labels <- data.table::setorderv(private$.metaData,
-                                                cols = c(self$.sample_id, condition.group))[[ condition.group ]]
+                                                cols = c(self$sample_id, condition.group))[[ condition.group ]]
 
       # paired samples
       dfe <- foldchange(
@@ -1395,7 +1417,7 @@ omics <- R6::R6Class(
       # Load custom distance matrix if supplied
       if (!is.null(beta_div_table)) {
         beta_div_table <- check_matrix(filepath = beta_div_table)
-        beta_div_table <- beta_div_table[private$.metaData[[self$.sample_id]], private$.metaData[[self$.sample_id]]]
+        beta_div_table <- beta_div_table[private$.metaData[[self$sample_id]], private$.metaData[[self$sample_id]]]
       }
 
       # Load custom rarefraction alpha diversity table if supplied
@@ -1428,8 +1450,8 @@ omics <- R6::R6Class(
         #--------------------------------------------------------------------#
         if (inherits(alpha_div_table, "data.table")) {
           dt_final <- base::merge(alpha_div_table,
-                                  private$.metaData[, .SD, .SDcols = c(self$.sample_id, col_name)],
-                                  by = self$.sample_id,
+                                  private$.metaData[, .SD, .SDcols = c(self$sample_id, col_name)],
+                                  by = self$sample_id,
                                   all.x = TRUE) %>%
             na.omit(cols = col_name)
 
@@ -1447,7 +1469,7 @@ omics <- R6::R6Class(
               self$alpha_diversity(
                 col_name = col_name,
                 metric = "shannon",
-                paired = ifelse(!is.null(self$.samplepair_id), TRUE, FALSE)
+                paired = ifelse(!is.null(self$samplepair_id), TRUE, FALSE)
               )
             },
             error = function(e) {
@@ -1595,7 +1617,7 @@ omics <- R6::R6Class(
               self$DFE(
                 feature_rank = feature_contrast[j],
                 feature_filter = feature_filter,
-                paired = ifelse(!is.null(self$.samplepair_id), TRUE, FALSE),
+                paired = ifelse(!is.null(self$samplepair_id), TRUE, FALSE),
                 normalize = normalize,
                 condition.group = col_name,
                 condition_A = c(conditions$group1),
@@ -1664,6 +1686,7 @@ omics <- R6::R6Class(
     .featureData = NULL,
     .metaData = NULL,
     .treeData = NULL,
+    .valid_schema = NULL,
 
     # Function for synchronization of private data fields
     #---------------------------------------------------------#
@@ -1672,40 +1695,45 @@ omics <- R6::R6Class(
         private$.metaData <- private$.metaData[, lapply(.SD, function(x) ifelse(x == "", NA, x)),
                                         .SDcols = colnames(private$.metaData)]
 
-        colnames(private$.metaData) <- gsub("\\s+", "_", colnames(private$.metaData))
+        colnames(private$.metaData) <- gsub("\\s+", "_", colnames(private$.metaData))  
 
+        # Keep only common samples based on metaData
         if (!is.null(private$.countData)) {
-          tryCatch(
-            { private$.countData <- private$.countData[, private$.metaData[[ self$.sample_id ]], drop = FALSE] },
-            error = "Error occured during countData subsetting by metaData"
-          )
-        }      
-      }
-
-      if (!is.null(private$.countData)) {
-        private$removeZeros()
-        private$.countData <- private$.countData[, private$.metaData[[ self$.sample_id ]], drop = FALSE]
+          common_samples <- base::intersect(private$.metaData[[ self$sample_id ]], colnames(private$.countData))
+          private$.countData <- private$.countData[, common_samples, drop = FALSE]
+          private$.metaData <- private$.metaData[private$.metaData[[ self$sample_id ]] %in% common_samples, ]
+        }
       }
 
       if (!is.null(private$.featureData)) {
         colnames(private$.featureData) <- gsub("\\s+", "_", colnames(private$.featureData))
-        private$.countData <- private$.countData[ private$.featureData[[ self$.feature_id ]], ]
-        rows_to_keep <- private$.metaData[[ self$.sample_id ]] %in% colnames(private$.countData)
-        private$.metaData <- private$.metaData[rows_to_keep, ]
-      }
 
-      if (!is.null(private$.treeData)) {
-        private$.treeData <- ape::keep.tip(private$.treeData, private$.featureData[[ self$.feature_id ]])
-        private$removeZeros()
-        private$.countData <- private$countData[ private$.featureData[[ self$.feature_id ]], drop = FALSE]
-      }          
+        # Keep only common tips based on treeData
+        if (!is.null(private$.treeData)) {
+          common_tips <- base::intersect(private$.treeData$tip.label, private$.featureData[[ self$feature_id ]])
+          private$.treeData <- ape::keep.tip(private$.treeData, common_tips)
+          private$.featureData <- private$.featureData[private$.featureData[[ self$feature_id ]] %in% common_tips, ]
+        }
+
+        # Keep only common features based on countData
+        if (!is.null(private$.countData)) {
+          common_features <- base::intersect(private$.featureData[[ self$feature_id ]], rownames(private$.countData))
+          private$.featureData <- private$.featureData[private$.featureData[[ self$feature_id ]] %in% common_features, ]
+          private$.countData <- private$.countData[common_features, ]
+          private$removeZeros()
+        }
+      }     
     },
     removeZeros = function() {
       keep_cols <- Matrix::colSums(private$.countData) > 0
       keep_rows <- Matrix::rowSums(private$.countData) > 0
 
       private$.countData <- private$.countData[keep_rows, keep_cols]
+      private$.metaData <- private$.metaData[keep_cols, ]
       private$.featureData <- private$.featureData[keep_rows]
+
+      if (!is.null(private$.treeData))
+        private$.treeData <- ape::keep.tip(private$.treeData, private$.featureData[[ self$feature_id ]])
     },
     # Temporary data fields
     #-------------------------#

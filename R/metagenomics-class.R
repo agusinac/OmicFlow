@@ -26,13 +26,21 @@ metagenomics <- R6::R6Class(
         .metaData = private$.metaData,
         .treeData = private$.treeData
       )
-      on.exit(private$tmp_restore(), add = TRUE)
+
+      # Returns on failure
+      success <- FALSE
+      on.exit({
+        if (!success) {
+          private$tmp_restore()
+        }
+      }, add = TRUE)
 
       if (missing(value)) {
         private$.treeData
-      } else if (identical(class(value), class(private$.treeData))){
+      } else if (inherits(value, "phylo")){
         private$.treeData <- value
         private$sync()
+        success <- TRUE
         invisible(self)
       } else stop("Data input requires to be of the same class as `treeData`")
     }
@@ -117,15 +125,17 @@ metagenomics <- R6::R6Class(
 
           # Create placeholder featureData
           if (is.null(private$.featureData)) {
-            FEATURE_ID <- paste0("feature_", nrow(private$.countData))
+            FEATURE_ID <- paste0("feature_", 1:nrow(private$.countData))
             private$.featureData <- data.table::data.table()
-            private$.featureData[, self$.feature_id := FEATURE_ID]
+            private$.featureData <- private$.featureData[, (self$feature_id) := FEATURE_ID]
+            rownames(private$.countData) <- private$.featureData[[ self$feature_id ]]
             cli::cli_alert_warning("Placeholder featureData created.")
           }
-          rownames(private$.countData) <- private$.featureData[[ self$.feature_id ]]
+          print(private$.featureData)
+          rownames(private$.countData) <- private$.featureData[[ self$feature_id ]]
           data.table::setcolorder(
             x = private$.featureData,
-            neworder = c(self$.feature_id, base::setdiff(colnames(private$.featureData), self$.feature_id))
+            neworder = c(self$feature_id, base::setdiff(colnames(private$.featureData), self$feature_id))
           )
           private$.featureData <- private$.featureData[, 
             lapply(.SD, function(x) ifelse(x == "", NA, x)),
@@ -149,8 +159,8 @@ metagenomics <- R6::R6Class(
         }
 
         # Aligning featureData and countData rows by tree tips
-        private$.featureData <- private$.featureData[order(match(private$.featureData[[ self$.feature_id ]], private$.treeData$tip.label))]
-        private$.countData <- private$.countData[private$.featureData[[ self$.feature_id ]], ]
+        private$.featureData <- private$.featureData[order(match(private$.featureData[[ self$feature_id ]], private$.treeData$tip.label))]
+        private$.countData <- private$.countData[private$.featureData[[ self$feature_id ]], ]
       }
 
       #-------------------#
@@ -168,7 +178,7 @@ metagenomics <- R6::R6Class(
       colnames(private$.featureData)[n_cols_featureData:(n_cols_featureData - n_feature_names + 1)] <- base::rev(feature_names)
 
       # Subsetting countData by metadata
-      private$.countData <- private$.countData[, private$.metaData[[ self$.sample_id ]], drop = FALSE]
+      private$.countData <- private$.countData[, private$.metaData[[ self$sample_id ]], drop = FALSE]
 
       self$print()
 
@@ -383,7 +393,7 @@ metagenomics <- R6::R6Class(
       #----------------------------#
       if (all(dim(private$.featureData)) > 0) {
         h5path <- 'observation/metadata/taxonomy'
-        features <- as.matrix(private$.featureData[, .SD, .SDcols = !c("FEATURE_ID")])
+        features <- as.matrix(private$.featureData[, .SD, .SDcols = !c(self$feature_id)])
         dimnames(features) <- list(NULL, NULL)
         rhdf5::h5writeDataset(obj = features,
                               h5loc = h5,
@@ -408,8 +418,8 @@ metagenomics <- R6::R6Class(
         private$.featureData <- data.table::data.table(t(private$.biomData$observation$metadata$taxonomy))
       }
       
-      if (any(grepl(self$.feature_id, colnames(private$.metaData))) && !all(is.na(private$.metaData[[ self$.feature_id ]]))) {
-        FEATURE_ID <- private$.metaData[[self$.feature_id]]
+      if (any(grepl(self$feature_id, colnames(private$.metaData))) && !all(is.na(private$.metaData[[ self$feature_id ]]))) {
+        FEATURE_ID <- private$.metaData[[self$feature_id]]
       } else if (!is.null(private$.biomData$observation$ids)) {
         FEATURE_ID <- private$.biomData$observation$ids
       } else {
@@ -418,7 +428,7 @@ metagenomics <- R6::R6Class(
 
       # Adds feature id as first column
       if (!is.null(FEATURE_ID) && !is.null(private$.featureData)) {
-        private$.featureData[[ self$.feature_id ]] <- FEATURE_ID
+        private$.featureData[[ self$feature_id ]] <- FEATURE_ID
       }
 
       cli::cli_alert_success("featureData is loaded.")
@@ -442,12 +452,12 @@ metagenomics <- R6::R6Class(
       # Create empty featureData
       private$.featureData <- data.table::data.table(matrix(NA_character_,
                                                      nrow = length(private$.biomData$rows),
-                                                     ncol = length(c(self$.feature_id, feature_names))
+                                                     ncol = length(c(self$feature_id, feature_names))
                                                      ))
-      setNames(private$.featureData, c(self$.feature_id, feature_names))
+      setNames(private$.featureData, c(self$feature_id, feature_names))
 
       # Fill first column with $id values
-      private$.featureData[[ self$.feature_id ]] <- vapply(private$.biomData$rows, function(x) as.character(x$id), character(1))
+      private$.featureData[[ self$feature_id ]] <- vapply(private$.biomData$rows, function(x) as.character(x$id), character(1))
 
       for (i in seq_along(private$.biomData$rows)) {
         taxonomy <- private$.biomData$rows[[i]]$metadata$taxonomy
@@ -464,9 +474,9 @@ metagenomics <- R6::R6Class(
         private$.featureData[i, (col_positions) := as.list(tax_values)]
       }
 
-      if (any(grepl(self$.feature_id, colnames(private$.metaData))) && !all(is.na(private$.metaData[[self$.feature_id]]))) {
-        FEATURE_ID <- private$.metaData[[self$.feature_id]]
-        private$.featureData[, (self$.feature_id) := FEATURE_ID]
+      if (any(grepl(self$feature_id, colnames(private$.metaData))) && !all(is.na(private$.metaData[[self$feature_id]]))) {
+        FEATURE_ID <- private$.metaData[[self$feature_id]]
+        private$.featureData[, (self$feature_id) := FEATURE_ID]
       }
       cli::cli_alert_success("featureData is loaded.")
     },

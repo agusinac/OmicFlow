@@ -23,13 +23,21 @@ proteomics <- R6::R6Class(
         .metaData = private$.metaData,
         .treeData = private$.treeData
       )
-      on.exit(private$tmp_restore(), add = TRUE)
+      
+      # Returns on failure
+      success <- FALSE
+      on.exit({
+        if (!success) {
+          private$tmp_restore()
+        }
+      }, add = TRUE)
 
       if (missing(value)) {
         private$.treeData
-      } else if (identical(class(value), class(private$.treeData))){
+      } else if (inherits(value, "phylo")){
         private$.treeData <- value
         private$sync()
+        success <- TRUE
         invisible(self)
       } else stop("Data input requires to be of the same class as `treeData`")
     }
@@ -63,8 +71,8 @@ proteomics <- R6::R6Class(
         }
 
         # Aligning featureData and countData rows by tree tips
-        private$.featureData <- private$.featureData[order(match(private$.featureData$FEATURE_ID, private$.treeData$tip.label))]
-        private$.countData <- private$.countData[private$.featureData$FEATURE_ID, ]
+        private$.featureData <- private$.featureData[order(match(private$.featureData[[ self$feature_id ]], private$.treeData$tip.label))]
+        private$.countData <- private$.countData[private$.featureData[[ self$feature_id ]], ]
       }
 
       self$print()

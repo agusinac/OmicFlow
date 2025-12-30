@@ -67,31 +67,6 @@ taxa$rankstat(feature_ranks = c("Kingdom", "Phylum", "Family", "Genus", "Species
 
 
 ## ------------------------------------------------
-## Method `metagenomics$removeZeros`
-## ------------------------------------------------
-
-library("OmicFlow")
-
-metadata_file <- system.file("extdata", "metadata.tsv", package = "OmicFlow")
-counts_file <- system.file("extdata", "counts.tsv", package = "OmicFlow")
-features_file <- system.file("extdata", "features.tsv", package = "OmicFlow")
-tree_file <- system.file("extdata", "tree.newick", package = "OmicFlow")
-
-taxa <- metagenomics$new(
- metaData = metadata_file,
- countData = counts_file,
- featureData = features_file,
- treeData = tree_file
-)
-
-# Sample subset induces empty features
-taxa$sample_subset(treatment == "tumor")
-
-# Remove empty features from countData and treeData
-taxa$removeZeros()
-
-
-## ------------------------------------------------
 ## Method `metagenomics$write_biom`
 ## ------------------------------------------------
 
@@ -119,29 +94,14 @@ file.remove("output.biom")
 \section{Super class}{
 \code{\link[OmicFlow:omics]{OmicFlow::omics}} -> \code{metagenomics}
 }
-\section{Public fields}{
-\if{html}{\out{<div class="r6-fields">}}
-\describe{
-\item{\code{countData}}{A path to an existing file, data.table, data.frame, matrix or sparseMatrix with zero values.}
-
-\item{\code{metaData}}{A path to an existing file, data.table or data.frame.}
-
-\item{\code{featureData}}{A path to an existing file, data.table or data.frame.}
-
-\item{\code{treeData}}{A path to an existing newick file or class "phylo", see \link[ape]{read.tree}.}
-
-\item{\code{biomData}}{A path to an existing biom file or hdf5 file, see \link[rhdf5]{h5read}.}
-}
-\if{html}{\out{</div>}}
-}
 \section{Methods}{
 \subsection{Public methods}{
 \itemize{
 \item \href{#method-metagenomics-new}{\code{metagenomics$new()}}
 \item \href{#method-metagenomics-print}{\code{metagenomics$print()}}
 \item \href{#method-metagenomics-reset}{\code{metagenomics$reset()}}
-\item \href{#method-metagenomics-removeZeros}{\code{metagenomics$removeZeros()}}
 \item \href{#method-metagenomics-write_biom}{\code{metagenomics$write_biom()}}
+\item \href{#method-metagenomics-clone}{\code{metagenomics$clone()}}
 }
 }
 \if{html}{\out{
@@ -289,47 +249,6 @@ taxa$rankstat(feature_ranks = c("Kingdom", "Phylum", "Family", "Genus", "Species
 
 }
 \if{html}{\out{<hr>}}
-\if{html}{\out{<a id="method-metagenomics-removeZeros"></a>}}
-\if{latex}{\out{\hypertarget{method-metagenomics-removeZeros}{}}}
-\subsection{Method \code{removeZeros()}}{
-Removes empty (zero) values by row, column and tips from the \code{countData} and \code{treeData}.
-This method is performed automatically during subsetting of the object.
-\subsection{Usage}{
-\if{html}{\out{<div class="r">}}\preformatted{metagenomics$removeZeros()}\if{html}{\out{</div>}}
-}
-
-\subsection{Returns}{
-object in place
-}
-\subsection{Examples}{
-\if{html}{\out{<div class="r example copy">}}
-\preformatted{library("OmicFlow")
-
-metadata_file <- system.file("extdata", "metadata.tsv", package = "OmicFlow")
-counts_file <- system.file("extdata", "counts.tsv", package = "OmicFlow")
-features_file <- system.file("extdata", "features.tsv", package = "OmicFlow")
-tree_file <- system.file("extdata", "tree.newick", package = "OmicFlow")
-
-taxa <- metagenomics$new(
- metaData = metadata_file,
- countData = counts_file,
- featureData = features_file,
- treeData = tree_file
-)
-
-# Sample subset induces empty features
-taxa$sample_subset(treatment == "tumor")
-
-# Remove empty features from countData and treeData
-taxa$removeZeros()
-
-}
-\if{html}{\out{</div>}}
-
-}
-
-}
-\if{html}{\out{<hr>}}
 \if{html}{\out{<a id="method-metagenomics-write_biom"></a>}}
 \if{latex}{\out{\hypertarget{method-metagenomics-write_biom}{}}}
 \subsection{Method \code{write_biom()}}{
@@ -369,5 +288,22 @@ file.remove("output.biom")
 
 }
 
+}
+\if{html}{\out{<hr>}}
+\if{html}{\out{<a id="method-metagenomics-clone"></a>}}
+\if{latex}{\out{\hypertarget{method-metagenomics-clone}{}}}
+\subsection{Method \code{clone()}}{
+The objects of this class are cloneable with this method.
+\subsection{Usage}{
+\if{html}{\out{<div class="r">}}\preformatted{metagenomics$clone(deep = FALSE)}\if{html}{\out{</div>}}
+}
+
+\subsection{Arguments}{
+\if{html}{\out{<div class="arguments">}}
+\describe{
+\item{\code{deep}}{Whether to make a deep clone.}
+}
+\if{html}{\out{</div>}}
+}
 }
 }

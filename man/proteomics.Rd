@@ -61,31 +61,6 @@ prot$transform(log2)
 # resets
 prot$reset()
 
-
-## ------------------------------------------------
-## Method `proteomics$removeZeros`
-## ------------------------------------------------
-
-library("OmicFlow")
-
-metadata_file <- system.file("extdata", "metadata.tsv", package = "OmicFlow")
-counts_file <- system.file("extdata", "counts.tsv", package = "OmicFlow")
-features_file <- system.file("extdata", "features.tsv", package = "OmicFlow")
-tree_file <- system.file("extdata", "tree.newick", package = "OmicFlow")
-
-prot <- proteomics$new(
- metaData = metadata_file,
- countData = counts_file,
- featureData = features_file,
- treeData = tree_file
-)
-
-# Sample subset induces empty features
-prot$sample_subset(treatment == "tumor")
-
-# Remove empty features from countData and treeData
-prot$removeZeros()
-
 }
 \seealso{
 \link{omics}
@@ -93,26 +68,13 @@ prot$removeZeros()
 \section{Super class}{
 \code{\link[OmicFlow:omics]{OmicFlow::omics}} -> \code{proteomics}
 }
-\section{Public fields}{
-\if{html}{\out{<div class="r6-fields">}}
-\describe{
-\item{\code{countData}}{A path to an existing file, data.table, data.frame, matrix or sparseMatrix with zero values.}
-
-\item{\code{metaData}}{A path to an existing file, data.table or data.frame.}
-
-\item{\code{featureData}}{A path to an existing file, data.table or data.frame.}
-
-\item{\code{treeData}}{A path to an existing newick file or class "phylo", see \link[ape]{read.tree}.}
-}
-\if{html}{\out{</div>}}
-}
 \section{Methods}{
 \subsection{Public methods}{
 \itemize{
 \item \href{#method-proteomics-new}{\code{proteomics$new()}}
 \item \href{#method-proteomics-print}{\code{proteomics$print()}}
 \item \href{#method-proteomics-reset}{\code{proteomics$reset()}}
-\item \href{#method-proteomics-removeZeros}{\code{proteomics$removeZeros()}}
+\item \href{#method-proteomics-clone}{\code{proteomics$clone()}}
 }
 }
 \if{html}{\out{
@@ -245,44 +207,20 @@ prot$reset()
 
 }
 \if{html}{\out{<hr>}}
-\if{html}{\out{<a id="method-proteomics-removeZeros"></a>}}
-\if{latex}{\out{\hypertarget{method-proteomics-removeZeros}{}}}
-\subsection{Method \code{removeZeros()}}{
-Removes empty (zero) values by row, column and tips from the \code{countData} and \code{treeData}.
-This method is performed automatically during subsetting of the object.
+\if{html}{\out{<a id="method-proteomics-clone"></a>}}
+\if{latex}{\out{\hypertarget{method-proteomics-clone}{}}}
+\subsection{Method \code{clone()}}{
+The objects of this class are cloneable with this method.
 \subsection{Usage}{
-\if{html}{\out{<div class="r">}}\preformatted{proteomics$removeZeros()}\if{html}{\out{</div>}}
+\if{html}{\out{<div class="r">}}\preformatted{proteomics$clone(deep = FALSE)}\if{html}{\out{</div>}}
 }
 
-\subsection{Returns}{
-object in place
-}
-\subsection{Examples}{
-\if{html}{\out{<div class="r example copy">}}
-\preformatted{library("OmicFlow")
-
-metadata_file <- system.file("extdata", "metadata.tsv", package = "OmicFlow")
-counts_file <- system.file("extdata", "counts.tsv", package = "OmicFlow")
-features_file <- system.file("extdata", "features.tsv", package = "OmicFlow")
-tree_file <- system.file("extdata", "tree.newick", package = "OmicFlow")
-
-prot <- proteomics$new(
- metaData = metadata_file,
- countData = counts_file,
- featureData = features_file,
- treeData = tree_file
-)
-
-# Sample subset induces empty features
-prot$sample_subset(treatment == "tumor")
-
-# Remove empty features from countData and treeData
-prot$removeZeros()
-
+\subsection{Arguments}{
+\if{html}{\out{<div class="arguments">}}
+\describe{
+\item{\code{deep}}{Whether to make a deep clone.}
 }
 \if{html}{\out{</div>}}
-
 }
-
 }
 }
