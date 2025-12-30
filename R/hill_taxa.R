@@ -48,8 +48,9 @@ hill_taxa <- function (x,
 
   ## Error handling
   #--------------------------------------------------------------------#
+  if (is.vector(x))
+    cli::cli_abort("Input must be a matrix of class matrix or Matrix, not a vector.")
 
-  x <- drop(as(x, "sparseMatrix"))
   if (!is.numeric(x@x))
     cli::cli_abort("input data must be numeric")
 
@@ -61,6 +62,9 @@ hill_taxa <- function (x,
 
   ## MAIN
   #--------------------------------------------------------------------#
+  if (inherits(x, "denseMatrix") || inherits(x, "matrix") || inherits(x, "sparseMatrix")) {
+    x <- as(x, "CsparseMatrix")
+  } else cli::cli_abort("Input isn't a matrix, dense- or sparseMatrix.")
 
   if (normalize) {
     total <- rep(Matrix::colSums(x), base::diff(x@p))

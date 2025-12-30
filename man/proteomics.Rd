@@ -36,31 +36,6 @@ prot
 # method 2 to call print function
 prot$print()
 
-
-## ------------------------------------------------
-## Method `proteomics$reset`
-## ------------------------------------------------
-
-library("OmicFlow")
-
-metadata_file <- system.file("extdata", "metadata.tsv", package = "OmicFlow")
-counts_file <- system.file("extdata", "counts.tsv", package = "OmicFlow")
-features_file <- system.file("extdata", "features.tsv", package = "OmicFlow")
-tree_file <- system.file("extdata", "tree.newick", package = "OmicFlow")
-
-prot <- proteomics$new(
- metaData = metadata_file,
- countData = counts_file,
- featureData = features_file,
- treeData = tree_file
-)
-
-# Performs modifications
-prot$transform(log2)
-
-# resets
-prot$reset()
-
 }
 \seealso{
 \link{omics}
@@ -80,7 +55,6 @@ prot$reset()
 \itemize{
 \item \href{#method-proteomics-new}{\code{proteomics$new()}}
 \item \href{#method-proteomics-print}{\code{proteomics$print()}}
-\item \href{#method-proteomics-reset}{\code{proteomics$reset()}}
 \item \href{#method-proteomics-clone}{\code{proteomics$clone()}}
 }
 }
@@ -98,6 +72,7 @@ prot$reset()
 <li><span class="pkg-link" data-pkg="OmicFlow" data-topic="omics" data-id="ordination"><a href='../../OmicFlow/html/omics.html#method-omics-ordination'><code>OmicFlow::omics$ordination()</code></a></span></li>
 <li><span class="pkg-link" data-pkg="OmicFlow" data-topic="omics" data-id="rankstat"><a href='../../OmicFlow/html/omics.html#method-omics-rankstat'><code>OmicFlow::omics$rankstat()</code></a></span></li>
 <li><span class="pkg-link" data-pkg="OmicFlow" data-topic="omics" data-id="removeNAs"><a href='../../OmicFlow/html/omics.html#method-omics-removeNAs'><code>OmicFlow::omics$removeNAs()</code></a></span></li>
+<li><span class="pkg-link" data-pkg="OmicFlow" data-topic="omics" data-id="reset"><a href='../../OmicFlow/html/omics.html#method-omics-reset'><code>OmicFlow::omics$reset()</code></a></span></li>
 <li><span class="pkg-link" data-pkg="OmicFlow" data-topic="omics" data-id="sample_subset"><a href='../../OmicFlow/html/omics.html#method-omics-sample_subset'><code>OmicFlow::omics$sample_subset()</code></a></span></li>
 <li><span class="pkg-link" data-pkg="OmicFlow" data-topic="omics" data-id="samplepair_subset"><a href='../../OmicFlow/html/omics.html#method-omics-samplepair_subset'><code>OmicFlow::omics$samplepair_subset()</code></a></span></li>
 <li><span class="pkg-link" data-pkg="OmicFlow" data-topic="omics" data-id="transform"><a href='../../OmicFlow/html/omics.html#method-omics-transform'><code>OmicFlow::omics$transform()</code></a></span></li>
@@ -122,7 +97,7 @@ Initializes the proteomics class object with \code{proteomics$new()}
 \subsection{Arguments}{
 \if{html}{\out{<div class="arguments">}}
 \describe{
-\item{\code{countData}}{A path to an existing file or a dense/sparse \link\link{Matrix} format.}
+\item{\code{countData}}{A path to an existing file or a dense/sparse \link[Matrix]{Matrix} format.}
 
 \item{\code{metaData}}{A path to an existing file, \link[data.table]{data.table} or data.frame.}
 
@@ -169,48 +144,6 @@ prot
 
 # method 2 to call print function
 prot$print()
-
-}
-\if{html}{\out{</div>}}
-
-}
-
-}
-\if{html}{\out{<hr>}}
-\if{html}{\out{<a id="method-proteomics-reset"></a>}}
-\if{latex}{\out{\hypertarget{method-proteomics-reset}{}}}
-\subsection{Method \code{reset()}}{
-Upon creation of a new \code{proteomics} object a small backup of the original data is created.
-Since modification of the object is done by reference and duplicates are not made, it is possible to \code{reset} changes to the class.
-The methods from the abstract class \link{omics} also contains a private method to prevent any changes to the original object when using methods such as \code{ordination} \code{alpha_diversity} or \code{$DFE}.
-\subsection{Usage}{
-\if{html}{\out{<div class="r">}}\preformatted{proteomics$reset()}\if{html}{\out{</div>}}
-}
-
-\subsection{Returns}{
-object in place
-}
-\subsection{Examples}{
-\if{html}{\out{<div class="r example copy">}}
-\preformatted{library("OmicFlow")
-
-metadata_file <- system.file("extdata", "metadata.tsv", package = "OmicFlow")
-counts_file <- system.file("extdata", "counts.tsv", package = "OmicFlow")
-features_file <- system.file("extdata", "features.tsv", package = "OmicFlow")
-tree_file <- system.file("extdata", "tree.newick", package = "OmicFlow")
-
-prot <- proteomics$new(
- metaData = metadata_file,
- countData = counts_file,
- featureData = features_file,
- treeData = tree_file
-)
-
-# Performs modifications
-prot$transform(log2)
-
-# resets
-prot$reset()
 
 }
 \if{html}{\out{</div>}}

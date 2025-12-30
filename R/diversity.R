@@ -6,7 +6,7 @@
 #' This function is built into the class \link{omics} with method \code{alpha_diversity()} and inherited by other omics classes, such as;
 #' \link{metagenomics} and \link{proteomics}.
 #'
-#' @param x A \link[base]{matrix} or \link[Matrix]{sparseMatrix}.
+#' @param x A \link[base]{matrix}, \link[Matrix]{sparseMatrix} or \link[Matrix]{denseMatrix}.
 #' @param metric A character variable for metric; shannon, simpson or invsimpson.
 #' @param normalize A boolean variable for sample normalization by column sums.
 #' @param base Input for \link[base]{log} to use natural logarithmic scale, log2, log10 or other.
@@ -49,9 +49,8 @@ diversity <- function(x,
   #--------------------------------------------------------------------#
 
   if (is.vector(x))
-    cli::cli_abort("Input must a matrix of class matrix or Matrix, not a vector.")
+    cli::cli_abort("Input must be a matrix of class matrix or Matrix, not a vector.")
 
-  x <- drop(as(x, "sparseMatrix"))
   if (!is.numeric(x@x))
     cli::cli_abort("Input data must be numeric")
 
@@ -67,7 +66,10 @@ diversity <- function(x,
 
   ## MAIN
   #--------------------------------------------------------------------#
-
+  if (inherits(x, "denseMatrix") || inherits(x, "matrix") || inherits(x, "sparseMatrix")) {
+    x <- as(x, "CsparseMatrix")
+  } else cli::cli_abort("Input isn't a matrix, dense- or sparseMatrix.")
+    
   total <- rep(Matrix::colSums(x), base::diff(x@p))
   if (normalize) {
     x@x <- x@x / total

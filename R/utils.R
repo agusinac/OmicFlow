@@ -1,22 +1,12 @@
-#' Converting a sparse matrix to data.table
+#' Converting a Matrix to data.table
 #'
 #' @description Wrapper function that converts a sparseMatrix to data.table
 #'
-#' @param sparsemat A \link[Matrix]{sparseMatrix} class.
+#' @param mat A \link[Matrix]{Matrix} class.
 #' @return A \link[data.table]{data.table} class.
 #' @export
-sparse_to_dtable <- function(sparsemat) {
-
-  ## Error handling
-  #--------------------------------------------------------------------#
-
-  if (!inherits(sparsemat, "sparseMatrix"))
-    cli::cli_abort("sparsemat must be a sparseMatrix.")
-
-  ## MAIN
-  #--------------------------------------------------------------------#
-
-  return(data.table::data.table(as.matrix(sparsemat)))
+matrix_to_dtable <- function(mat) {
+  return(data.table::data.table(as.matrix(mat)))
 }
 
 #' Loads a rarefied alpha diversity table from Qiime2

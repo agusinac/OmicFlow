@@ -65,6 +65,33 @@ obj$print()
 
 
 ## ------------------------------------------------
+## Method `omics$reset`
+## ------------------------------------------------
+
+library(ggplot2)
+library("OmicFlow")
+
+metadata_file <- system.file("extdata", "metadata.tsv", package = "OmicFlow")
+counts_file <- system.file("extdata", "counts.tsv", package = "OmicFlow")
+features_file <- system.file("extdata", "features.tsv", package = "OmicFlow")
+
+taxa <- omics$new(
+ metaData = metadata_file,
+ countData = counts_file,
+ featureData = features_file
+)
+
+# Performs modifications
+taxa$transform(log2)
+
+# resets
+taxa$reset()
+
+# An inbuilt reset function prevents unwanted modification to the taxa object.
+taxa$rankstat(feature_ranks = c("Kingdom", "Phylum", "Family", "Genus", "Species"))
+
+
+## ------------------------------------------------
 ## Method `omics$removeNAs`
 ## ------------------------------------------------
 
@@ -325,17 +352,6 @@ unpaired <- obj$DFE(feature_rank = "Genus",
 
 \link{volcano_plot}, \link{foldchange}
 }
-\section{Public fields}{
-\if{html}{\out{<div class="r6-fields">}}
-\describe{
-\item{\code{feature_id}}{A character, default name for the feature identifiers.}
-
-\item{\code{sample_id}}{A character, default name for the sample identifiers.}
-
-\item{\code{samplepair_id}}{A character, default name for the sample pair identifiers.}
-}
-\if{html}{\out{</div>}}
-}
 \section{Active bindings}{
 \if{html}{\out{<div class="r6-active-bindings">}}
 \describe{
@@ -353,6 +369,7 @@ unpaired <- obj$DFE(feature_rank = "Genus",
 \item \href{#method-omics-new}{\code{omics$new()}}
 \item \href{#method-omics-validate}{\code{omics$validate()}}
 \item \href{#method-omics-print}{\code{omics$print()}}
+\item \href{#method-omics-reset}{\code{omics$reset()}}
 \item \href{#method-omics-removeNAs}{\code{omics$removeNAs()}}
 \item \href{#method-omics-feature_subset}{\code{omics$feature_subset()}}
 \item \href{#method-omics-sample_subset}{\code{omics$sample_subset()}}
@@ -388,7 +405,7 @@ Using the omics class to load your data is not supported and still experimental.
 \subsection{Arguments}{
 \if{html}{\out{<div class="arguments">}}
 \describe{
-\item{\code{countData}}{A path to an existing file or a dense/sparse \link\link{Matrix} format.}
+\item{\code{countData}}{A path to an existing file or a dense/sparse \link[Matrix]{Matrix} format.}
 
 \item{\code{featureData}}{A path to an existing file, \link[data.table]{data.table} or data.frame.}
 
@@ -455,6 +472,50 @@ obj
 
 # method 2 to call print function
 obj$print()
+
+}
+\if{html}{\out{</div>}}
+
+}
+
+}
+\if{html}{\out{<hr>}}
+\if{html}{\out{<a id="method-omics-reset"></a>}}
+\if{latex}{\out{\hypertarget{method-omics-reset}{}}}
+\subsection{Method \code{reset()}}{
+Upon creation of a new \code{omics} object a small backup of the original data is created.
+Since modification of the object is done by reference and duplicates are not made, it is possible to \code{reset} changes to the class.
+The methods from the abstract class \link{omics} also contains a private method to prevent any changes to the original object when using methods such as \code{ordination} \code{alpha_diversity} or \code{$DFE}.
+\subsection{Usage}{
+\if{html}{\out{<div class="r">}}\preformatted{omics$reset()}\if{html}{\out{</div>}}
+}
+
+\subsection{Returns}{
+object in place
+}
+\subsection{Examples}{
+\if{html}{\out{<div class="r example copy">}}
+\preformatted{library(ggplot2)
+library("OmicFlow")
+
+metadata_file <- system.file("extdata", "metadata.tsv", package = "OmicFlow")
+counts_file <- system.file("extdata", "counts.tsv", package = "OmicFlow")
+features_file <- system.file("extdata", "features.tsv", package = "OmicFlow")
+
+taxa <- omics$new(
+ metaData = metadata_file,
+ countData = counts_file,
+ featureData = features_file
+)
+
+# Performs modifications
+taxa$transform(log2)
+
+# resets
+taxa$reset()
+
+# An inbuilt reset function prevents unwanted modification to the taxa object.
+taxa$rankstat(feature_ranks = c("Kingdom", "Phylum", "Family", "Genus", "Species"))
 
 }
 \if{html}{\out{</div>}}

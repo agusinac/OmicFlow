@@ -46,7 +46,7 @@ proteomics <- R6::R6Class(
   public = list(
     #' @description
     #' Initializes the proteomics class object with \code{proteomics$new()}
-    #' @param countData A path to an existing file or a dense/sparse \link[Matrix] format.
+    #' @param countData A path to an existing file or a dense/sparse \link[Matrix]{Matrix} format.
     #' @param featureData A path to an existing file, \link[data.table]{data.table} or data.frame.
     #' @param metaData A path to an existing file, \link[data.table]{data.table} or data.frame.
     #' @param treeData A path to an existing newick file or class "phylo", see \link[ape]{read.tree}.
@@ -72,8 +72,8 @@ proteomics <- R6::R6Class(
         }
 
         # Aligning featureData and countData rows by tree tips
-        private$.featureData <- private$.featureData[order(match(private$.featureData[[ self$feature_id ]], private$.treeData$tip.label))]
-        private$.countData <- private$.countData[private$.featureData[[ self$feature_id ]], ]
+        private$.featureData <- private$.featureData[order(match(private$.featureData[[ private$.feature_id ]], private$.treeData$tip.label))]
+        private$.countData <- private$.countData[private$.featureData[[ private$.feature_id ]], ]
       }
 
       self$print()
@@ -116,39 +116,6 @@ proteomics <- R6::R6Class(
       if (length(self$metaData) > 0) cat(paste0("## metaData:\t[ ", ncol(self$metaData), " Variables and ", nrow(self$metaData), " Samples\t] \n"))
       if (length(self$featureData) > 0) cat(paste0("## featureData:\t[ ", ncol(self$featureData)-1, " Attributes and ", nrow(self$featureData), " Proteins\t] \n"))
       if (length(self$treeData) > 0) cat(paste0("## treeData:\t[ ", length(self$treeData$tip.label), " Tips and ", self$treeData$Nnode, " Nodes\t] \n"))
-    },
-    #' @description
-    #' Upon creation of a new `proteomics` object a small backup of the original data is created.
-    #' Since modification of the object is done by reference and duplicates are not made, it is possible to `reset` changes to the class.
-    #' The methods from the abstract class \link{omics} also contains a private method to prevent any changes to the original object when using methods such as \code{ordination} \code{alpha_diversity} or \code{$DFE}.  
-    #' @examples
-    #' library("OmicFlow")
-    #'
-    #' metadata_file <- system.file("extdata", "metadata.tsv", package = "OmicFlow")
-    #' counts_file <- system.file("extdata", "counts.tsv", package = "OmicFlow")
-    #' features_file <- system.file("extdata", "features.tsv", package = "OmicFlow")
-    #' tree_file <- system.file("extdata", "tree.newick", package = "OmicFlow")
-    #'
-    #' prot <- proteomics$new(
-    #'  metaData = metadata_file,
-    #'  countData = counts_file,
-    #'  featureData = features_file,
-    #'  treeData = tree_file
-    #' )
-    #' 
-    #' # Performs modifications
-    #' prot$transform(log2)
-    #'
-    #' # resets
-    #' prot$reset()
-    #'
-    #' @return object in place
-    reset = function() {
-      private$.countData = private$original_data$counts
-      private$.featureData = private$original_data$features
-      private$.metaData = private$original_data$metadata
-      private$.treeData = private$original_data$tree
-      invisible(self)
     }
   ),
   private = list(
@@ -158,6 +125,9 @@ proteomics <- R6::R6Class(
     .featureData = NULL,
     .metaData = NULL,
     .treeData = NULL,
+    .feature_id = "FEATURE_ID",
+    .sample_id = "SAMPLE_ID",
+    .samplepair_id = "SAMPLEPAIR_ID",
     original_data = list()
   )
 )

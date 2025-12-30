@@ -27,6 +27,6 @@ test_that("Testing utils functions", {
         dims = c(5, 4)
         )
 
-    dt_sparse <- sparse_to_dtable(sparsemat)
+    dt_sparse <- matrix_to_dtable(sparsemat)
     expect_snapshot(dt_sparse)
 })

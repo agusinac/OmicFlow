@@ -49,7 +49,7 @@ metagenomics <- R6::R6Class(
   public = list(
     #' @description
     #' Initializes the metagenomics class object with \code{metagenomics$new()}
-    #' @param countData A path to an existing file or a dense/sparse \link[Matrix] format.
+    #' @param countData A path to an existing file or a dense/sparse \link[Matrix]{Matrix} format.
     #' @param featureData A path to an existing file, \link[data.table]{data.table} or data.frame.
     #' @param metaData A path to an existing file, \link[data.table]{data.table} or data.frame.
     #' @param treeData A path to an existing newick file or class "phylo", see \link[ape]{read.tree}.
@@ -128,14 +128,14 @@ metagenomics <- R6::R6Class(
           if (is.null(private$.featureData)) {
             FEATURE_ID <- paste0("feature_", 1:nrow(private$.countData))
             private$.featureData <- data.table::data.table()
-            private$.featureData <- private$.featureData[, (self$feature_id) := FEATURE_ID]
-            rownames(private$.countData) <- private$.featureData[[ self$feature_id ]]
+            private$.featureData <- private$.featureData[, (private$.feature_id) := FEATURE_ID]
+            rownames(private$.countData) <- private$.featureData[[ private$.feature_id ]]
             cli::cli_alert_warning("Placeholder featureData created.")
           }
-          rownames(private$.countData) <- private$.featureData[[ self$feature_id ]]
+          rownames(private$.countData) <- private$.featureData[[ private$.feature_id ]]
           data.table::setcolorder(
             x = private$.featureData,
-            neworder = c(self$feature_id, base::setdiff(colnames(private$.featureData), self$feature_id))
+            neworder = c(private$.feature_id, base::setdiff(colnames(private$.featureData), private$.feature_id))
           )
           private$.featureData <- private$.featureData[, 
             lapply(.SD, function(x) ifelse(x == "", NA, x)),
@@ -159,8 +159,8 @@ metagenomics <- R6::R6Class(
         }
 
         # Aligning featureData and countData rows by tree tips
-        private$.featureData <- private$.featureData[order(match(private$.featureData[[ self$feature_id ]], private$.treeData$tip.label))]
-        private$.countData <- private$.countData[private$.featureData[[ self$feature_id ]], ]
+        private$.featureData <- private$.featureData[order(match(private$.featureData[[ private$.feature_id ]], private$.treeData$tip.label))]
+        private$.countData <- private$.countData[private$.featureData[[ private$.feature_id ]], ]
       }
 
       #-------------------#
@@ -178,7 +178,7 @@ metagenomics <- R6::R6Class(
       colnames(private$.featureData)[n_cols_featureData:(n_cols_featureData - n_feature_names + 1)] <- base::rev(feature_names)
 
       # Subsetting countData by metadata
-      private$.countData <- private$.countData[, private$.metaData[[ self$sample_id ]], drop = FALSE]
+      private$.countData <- private$.countData[, private$.metaData[[ private$.sample_id ]], drop = FALSE]
 
       self$print()
 
@@ -220,43 +220,6 @@ metagenomics <- R6::R6Class(
       if (length(private$.metaData) > 0) cat(paste0("## metaData:\t[ ", ncol(private$.metaData), " Variables and ", nrow(private$.metaData), " Samples\t] \n"))
       if (length(private$.featureData) > 0) cat(paste0("## taxData:\t[ ", ncol(private$.featureData)-1, " Ranks and ", nrow(private$.featureData), " Taxa\t] \n"))
       if (length(private$.treeData) > 0) cat(paste0("## treeData:\t[ ", length(private$.treeData$tip.label), " Tips and ", private$.treeData$Nnode, " Nodes\t] \n"))
-    },
-    #' @description
-    #' Upon creation of a new `metagenomics` object a small backup of the original data is created.
-    #' Since modification of the object is done by reference and duplicates are not made, it is possible to `reset` changes to the class.
-    #' The methods from the abstract class \link{omics} also contains a private method to prevent any changes to the original object when using methods such as \code{ordination} \code{alpha_diversity} or \code{$DFE}.
-    #' @examples
-    #' library(ggplot2)
-    #' library("OmicFlow")
-    #'
-    #' metadata_file <- system.file("extdata", "metadata.tsv", package = "OmicFlow")
-    #' counts_file <- system.file("extdata", "counts.tsv", package = "OmicFlow")
-    #' features_file <- system.file("extdata", "features.tsv", package = "OmicFlow")
-    #' tree_file <- system.file("extdata", "tree.newick", package = "OmicFlow")
-    #'
-    #' taxa <- metagenomics$new(
-    #'  metaData = metadata_file,
-    #'  countData = counts_file,
-    #'  featureData = features_file,
-    #'  treeData = tree_file
-    #' )
-    #'
-    #' # Performs modifications
-    #' taxa$transform(log2)
-    #'
-    #' # resets
-    #' taxa$reset()
-    #'
-    #' # An inbuilt reset function prevents unwanted modification to the taxa object.
-    #' taxa$rankstat(feature_ranks = c("Kingdom", "Phylum", "Family", "Genus", "Species"))
-    #'
-    #' @return object in place
-    reset = function() {
-      private$.countData = private$original_data$counts
-      private$.featureData = private$original_data$features
-      private$.metaData = private$original_data$metadata
-      private$.treeData = private$original_data$tree
-      invisible(self)
     },
     #' @description
     #' Creates a BIOM file in HDF5 format of the loaded items via ['new()'](#method-new), which is compatible to the python biom-format version 2.1, see http://biom-format.org.
@@ -393,7 +356,7 @@ metagenomics <- R6::R6Class(
       #----------------------------#
       if (all(dim(private$.featureData)) > 0) {
         h5path <- 'observation/metadata/taxonomy'
-        features <- as.matrix(private$.featureData[, .SD, .SDcols = !c(self$feature_id)])
+        features <- as.matrix(private$.featureData[, .SD, .SDcols = !c(private$.feature_id)])
         dimnames(features) <- list(NULL, NULL)
         rhdf5::h5writeDataset(obj = features,
                               h5loc = h5,
@@ -412,14 +375,17 @@ metagenomics <- R6::R6Class(
     .metaData = NULL,
     .treeData = NULL,
     .biomData = NULL,
+    .feature_id = "FEATURE_ID",
+    .sample_id = "SAMPLE_ID",
+    .samplepair_id = "SAMPLEPAIR_ID",
     original_data = list(),
     construct_hdf5_featureData = function() {
       if (!is.null(private$.biomData$observation$metadata$taxonomy)) {
         private$.featureData <- data.table::data.table(t(private$.biomData$observation$metadata$taxonomy))
       }
       
-      if (any(grepl(self$feature_id, colnames(private$.metaData))) && !all(is.na(private$.metaData[[ self$feature_id ]]))) {
-        FEATURE_ID <- private$.metaData[[self$feature_id]]
+      if (any(grepl(private$.feature_id, colnames(private$.metaData))) && !all(is.na(private$.metaData[[ private$.feature_id ]]))) {
+        FEATURE_ID <- private$.metaData[[private$.feature_id]]
       } else if (!is.null(private$.biomData$observation$ids)) {
         FEATURE_ID <- private$.biomData$observation$ids
       } else {
@@ -428,7 +394,7 @@ metagenomics <- R6::R6Class(
 
       # Adds feature id as first column
       if (!is.null(FEATURE_ID) && !is.null(private$.featureData)) {
-        private$.featureData[[ self$feature_id ]] <- FEATURE_ID
+        private$.featureData[[ private$.feature_id ]] <- FEATURE_ID
       }
 
       cli::cli_alert_success("featureData is loaded.")
@@ -452,12 +418,12 @@ metagenomics <- R6::R6Class(
       # Create empty featureData
       private$.featureData <- data.table::data.table(matrix(NA_character_,
                                                      nrow = length(private$.biomData$rows),
-                                                     ncol = length(c(self$feature_id, feature_names))
+                                                     ncol = length(c(private$.feature_id, feature_names))
                                                      ))
-      setNames(private$.featureData, c(self$feature_id, feature_names))
+      setNames(private$.featureData, c(private$.feature_id, feature_names))
 
       # Fill first column with $id values
-      private$.featureData[[ self$feature_id ]] <- vapply(private$.biomData$rows, function(x) as.character(x$id), character(1))
+      private$.featureData[[ private$.feature_id ]] <- vapply(private$.biomData$rows, function(x) as.character(x$id), character(1))
 
       for (i in seq_along(private$.biomData$rows)) {
         taxonomy <- private$.biomData$rows[[i]]$metadata$taxonomy
@@ -474,9 +440,9 @@ metagenomics <- R6::R6Class(
         private$.featureData[i, (col_positions) := as.list(tax_values)]
       }
 
-      if (any(grepl(self$feature_id, colnames(private$.metaData))) && !all(is.na(private$.metaData[[self$feature_id]]))) {
-        FEATURE_ID <- private$.metaData[[self$feature_id]]
-        private$.featureData[, (self$feature_id) := FEATURE_ID]
+      if (any(grepl(private$.feature_id, colnames(private$.metaData))) && !all(is.na(private$.metaData[[private$.feature_id]]))) {
+        FEATURE_ID <- private$.metaData[[private$.feature_id]]
+        private$.featureData[, (private$.feature_id) := FEATURE_ID]
       }
       cli::cli_alert_success("featureData is loaded.")
     },

@@ -13,6 +13,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - [#23](https://github.com/agusinac/OmicFlow/issues/23) omics classes are now cloneable.
 - [#23](https://github.com/agusinac/OmicFlow/issues/23) `removeZeros()` function is now private.
 - [#26](https://github.com/agusinac/OmicFlow/issues/26) clarified `initialize` and field tags.
+- [#27](https://github.com/agusinac/OmicFlow/issues/27) Both `denseMatrix` as `sparseMatrix` are converted to `CsparseMatrix`, compatible to `omics$normalize`, `omics$feature_merge`, `diversity`, `hill_taxa` and `C-functions`. 
 
 ### `Fixed`
 - [#25](https://github.com/agusinac/OmicFlow/issues/25) changed default value of `initialize` function.
@@ -31,7 +32,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - [#22](https://github.com/agusinac/OmicFlow/issues/22) `private$check_matrix` checks if any zero's are present before creating a `sparseMatrix`.
 - [#20](https://github.com/agusinac/OmicFlow/issues/20) `omics$compositon` Doesn't show `Others` when there are none.
 - [#24](https://github.com/agusinac/OmicFlow/issues/24) `volcano_plot` only sizes the points if there are significant features found.
-
+ 
 ### `Deprecated`
 - [#21](https://github.com/agusinac/OmicFlow/issues/21) Removed `gghalves` in `diversity_plot`
 
