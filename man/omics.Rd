@@ -44,6 +44,27 @@ The method by reference is very efficient when dealing with big data.
 \examples{
 
 ## ------------------------------------------------
+## Method `omics$print`
+## ------------------------------------------------
+
+library("OmicFlow")
+
+metadata_file <- system.file("extdata", "metadata.tsv", package = "OmicFlow")
+counts_file <- system.file("extdata", "counts.tsv", package = "OmicFlow")
+
+obj <- omics$new(
+ metaData = metadata_file,
+ countData = counts_file
+)
+
+# method 1 to call print function
+obj
+
+# method 2 to call print function
+obj$print()
+
+
+## ------------------------------------------------
 ## Method `omics$removeNAs`
 ## ------------------------------------------------
 
@@ -315,11 +336,23 @@ unpaired <- obj$DFE(feature_rank = "Genus",
 }
 \if{html}{\out{</div>}}
 }
+\section{Active bindings}{
+\if{html}{\out{<div class="r6-active-bindings">}}
+\describe{
+\item{\code{metaData}}{A \link[data.table]{data.table} with \code{SAMPLE_ID} column.}
+
+\item{\code{featureData}}{A \link[data.table]{data.table} with \code{FEATURE_ID} column.}
+
+\item{\code{countData}}{A dense or sparse \link{Matrix}.}
+}
+\if{html}{\out{</div>}}
+}
 \section{Methods}{
 \subsection{Public methods}{
 \itemize{
 \item \href{#method-omics-new}{\code{omics$new()}}
 \item \href{#method-omics-validate}{\code{omics$validate()}}
+\item \href{#method-omics-print}{\code{omics$print()}}
 \item \href{#method-omics-removeNAs}{\code{omics$removeNAs()}}
 \item \href{#method-omics-feature_subset}{\code{omics$feature_subset()}}
 \item \href{#method-omics-sample_subset}{\code{omics$sample_subset()}}
@@ -355,11 +388,11 @@ Using the omics class to load your data is not supported and still experimental.
 \subsection{Arguments}{
 \if{html}{\out{<div class="arguments">}}
 \describe{
-\item{\code{countData}}{A path to an existing file, data.table, data.frame, matrix or sparseMatrix with zero values.}
+\item{\code{countData}}{A path to an existing file or a dense/sparse \link\link{Matrix} format.}
 
-\item{\code{featureData}}{A path to an existing file, data.table or data.frame.}
+\item{\code{featureData}}{A path to an existing file, \link[data.table]{data.table} or data.frame.}
 
-\item{\code{metaData}}{A path to an existing file, data.table or data.frame.}
+\item{\code{metaData}}{A path to an existing file, \link[data.table]{data.table} or data.frame.}
 }
 \if{html}{\out{</div>}}
 }
@@ -392,6 +425,42 @@ via a filepath or existing \link[data.table]{data.table} or \link[base]{data.fra
 \subsection{Returns}{
 None
 }
+}
+\if{html}{\out{<hr>}}
+\if{html}{\out{<a id="method-omics-print"></a>}}
+\if{latex}{\out{\hypertarget{method-omics-print}{}}}
+\subsection{Method \code{print()}}{
+Displays parameters of the omics class via stdout.
+\subsection{Usage}{
+\if{html}{\out{<div class="r">}}\preformatted{omics$print()}\if{html}{\out{</div>}}
+}
+
+\subsection{Returns}{
+object in place
+}
+\subsection{Examples}{
+\if{html}{\out{<div class="r example copy">}}
+\preformatted{library("OmicFlow")
+
+metadata_file <- system.file("extdata", "metadata.tsv", package = "OmicFlow")
+counts_file <- system.file("extdata", "counts.tsv", package = "OmicFlow")
+
+obj <- omics$new(
+ metaData = metadata_file,
+ countData = counts_file
+)
+
+# method 1 to call print function
+obj
+
+# method 2 to call print function
+obj$print()
+
+}
+\if{html}{\out{</div>}}
+
+}
+
 }
 \if{html}{\out{<hr>}}
 \if{html}{\out{<a id="method-omics-removeNAs"></a>}}

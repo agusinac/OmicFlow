@@ -68,6 +68,13 @@ prot$reset()
 \section{Super class}{
 \code{\link[OmicFlow:omics]{OmicFlow::omics}} -> \code{proteomics}
 }
+\section{Active bindings}{
+\if{html}{\out{<div class="r6-active-bindings">}}
+\describe{
+\item{\code{treeData}}{A "phylo" class, see \link\link{ape}.}
+}
+\if{html}{\out{</div>}}
+}
 \section{Methods}{
 \subsection{Public methods}{
 \itemize{
@@ -104,17 +111,22 @@ prot$reset()
 \subsection{Method \code{new()}}{
 Initializes the proteomics class object with \code{proteomics$new()}
 \subsection{Usage}{
-\if{html}{\out{<div class="r">}}\preformatted{proteomics$new(countData = NA, metaData = NA, featureData = NA, treeData = NA)}\if{html}{\out{</div>}}
+\if{html}{\out{<div class="r">}}\preformatted{proteomics$new(
+  countData = NULL,
+  metaData = NULL,
+  featureData = NULL,
+  treeData = NULL
+)}\if{html}{\out{</div>}}
 }
 
 \subsection{Arguments}{
 \if{html}{\out{<div class="arguments">}}
 \describe{
-\item{\code{countData}}{A path to an existing file, data.table, data.frame, matrix or sparseMatrix with zero values.}
+\item{\code{countData}}{A path to an existing file or a dense/sparse \link\link{Matrix} format.}
 
-\item{\code{metaData}}{A path to an existing file, data.table or data.frame.}
+\item{\code{metaData}}{A path to an existing file, \link[data.table]{data.table} or data.frame.}
 
-\item{\code{featureData}}{A path to an existing file, data.table or data.frame.}
+\item{\code{featureData}}{A path to an existing file, \link[data.table]{data.table} or data.frame.}
 
 \item{\code{treeData}}{A path to an existing newick file or class "phylo", see \link[ape]{read.tree}.}
 }
@@ -128,7 +140,7 @@ A new \code{proteomics} object.
 \if{html}{\out{<a id="method-proteomics-print"></a>}}
 \if{latex}{\out{\hypertarget{method-proteomics-print}{}}}
 \subsection{Method \code{print()}}{
-Displays parameters of the proteomics object via stdout.
+Displays parameters of the proteomics class via stdout.
 \subsection{Usage}{
 \if{html}{\out{<div class="r">}}\preformatted{proteomics$print()}\if{html}{\out{</div>}}
 }

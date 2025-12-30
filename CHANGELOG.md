@@ -12,6 +12,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 ### `Changed`
 - [#23](https://github.com/agusinac/OmicFlow/issues/23) omics classes are now cloneable.
 - [#23](https://github.com/agusinac/OmicFlow/issues/23) `removeZeros()` function is now private.
+- [#26](https://github.com/agusinac/OmicFlow/issues/26) clarified `initialize` and field tags.
 
 ### `Fixed`
 - [#25](https://github.com/agusinac/OmicFlow/issues/25) changed default value of `initialize` function.

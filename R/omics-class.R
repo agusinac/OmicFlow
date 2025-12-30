@@ -17,6 +17,7 @@ omics <- R6::R6Class(
   classname = "omics",
   cloneable = TRUE,
   active = list(
+    #' @field metaData A \link[data.table]{data.table} with `SAMPLE_ID` column.
     metaData = function(value) {   
       # Restores omics class components
       private$tmp_link(
@@ -43,6 +44,7 @@ omics <- R6::R6Class(
         invisible(self)
       } else stop("Data input requires to be of the same class as `metaData`")
     },
+    #' @field featureData A \link[data.table]{data.table} with `FEATURE_ID` column.
     featureData = function(value) {
       # Restores omics class components
       private$tmp_link(
@@ -69,6 +71,7 @@ omics <- R6::R6Class(
         invisible(self)
       } else stop("Data input requires to be of the same class as `featureData`")
     },
+    #' @field countData A dense or sparse \link{Matrix}.
     countData = function(value) {
       # Restores omics class components
       private$tmp_link(
@@ -114,9 +117,9 @@ omics <- R6::R6Class(
     #' To create a new object use [`new()`](#method-new) method. Do notice that the abstract class only checks if the metadata is valid!
     #' The `countData` and `featureData` will not be checked, these are handled by the sub-classes. 
     #' Using the omics class to load your data is not supported and still experimental.
-    #' @param countData A path to an existing file, data.table, data.frame, matrix or sparseMatrix with zero values.
-    #' @param featureData A path to an existing file, data.table or data.frame.
-    #' @param metaData A path to an existing file, data.table or data.frame.
+    #' @param countData A path to an existing file or a dense/sparse \link[Matrix] format.
+    #' @param featureData A path to an existing file, \link[data.table]{data.table} or data.frame.
+    #' @param metaData A path to an existing file, \link[data.table]{data.table} or data.frame.
     #' @return A new `omics` object.
     #'
     initialize = function(countData = NULL, featureData = NULL, metaData = NULL) {
@@ -1719,6 +1722,9 @@ omics <- R6::R6Class(
     #---------------------------------------------------------#
     sync = function() {
       if (!is.null(private$.metaData)) {
+        if (!column_exists(self$sample_id, private$.metaData))
+          cli::cli_abort("{self$sample_id} doesn't exist in metaData.")
+
         private$.metaData <- private$.metaData[, lapply(.SD, function(x) ifelse(x == "", NA, x)),
                                         .SDcols = colnames(private$.metaData)]
 
@@ -1733,6 +1739,9 @@ omics <- R6::R6Class(
       }
 
       if (!is.null(private$.featureData)) {
+        if (!column_exists(self$feature_id, private$.featureData))
+          cli::cli_abort("{self$feature_id} doesn't exist in featureData.")
+
         colnames(private$.featureData) <- gsub("\\s+", "_", colnames(private$.featureData))
 
         # Keep only common tips based on treeData

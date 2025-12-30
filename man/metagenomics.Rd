@@ -94,6 +94,13 @@ file.remove("output.biom")
 \section{Super class}{
 \code{\link[OmicFlow:omics]{OmicFlow::omics}} -> \code{metagenomics}
 }
+\section{Active bindings}{
+\if{html}{\out{<div class="r6-active-bindings">}}
+\describe{
+\item{\code{treeData}}{A "phylo" class, see \link\link{ape}.}
+}
+\if{html}{\out{</div>}}
+}
 \section{Methods}{
 \subsection{Public methods}{
 \itemize{
@@ -144,11 +151,11 @@ Initializes the metagenomics class object with \code{metagenomics$new()}
 \subsection{Arguments}{
 \if{html}{\out{<div class="arguments">}}
 \describe{
-\item{\code{countData}}{countData A path to an existing file, data.table, data.frame, matrix or sparseMatrix with zero values.}
+\item{\code{countData}}{A path to an existing file or a dense/sparse \link\link{Matrix} format.}
 
-\item{\code{metaData}}{A path to an existing file, data.table or data.frame.}
+\item{\code{metaData}}{A path to an existing file, \link[data.table]{data.table} or data.frame.}
 
-\item{\code{featureData}}{A path to an existing file, data.table or data.frame.}
+\item{\code{featureData}}{A path to an existing file, \link[data.table]{data.table} or data.frame.}
 
 \item{\code{treeData}}{A path to an existing newick file or class "phylo", see \link[ape]{read.tree}.}
 
@@ -166,7 +173,7 @@ A new \code{metagenomics} object.
 \if{html}{\out{<a id="method-metagenomics-print"></a>}}
 \if{latex}{\out{\hypertarget{method-metagenomics-print}{}}}
 \subsection{Method \code{print()}}{
-Displays parameters of the metagenomics object via stdout.
+Displays parameters of the metagenomics class via stdout.
 \subsection{Usage}{
 \if{html}{\out{<div class="r">}}\preformatted{metagenomics$print()}\if{html}{\out{</div>}}
 }
