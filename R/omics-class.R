@@ -184,13 +184,19 @@ omics <- R6::R6Class(
       #-------------------#
       if (!is.null(countData)) {
         private$.countData <- private$check_matrix(countData)
-        rownames(private$.countData) <- private$.featureData[[ private$.feature_id ]]
         cli::cli_alert_success("countData is loaded.")
 
         if (is.null(private$.featureData)) {
-          FEATURE_ID <- paste0("feature_", 1:nrow(private$.countData))
           private$.featureData <- data.table::data.table()
-          private$.featureData <- private$.featureData[, (private$.feature_id) := FEATURE_ID]
+          countData_with_rownames <- rownames(private$.countData)
+
+          if (is.null(countData_with_rownames)) {
+            FEATURE_ID <- paste0("feature_", 1:nrow(private$.countData))
+            private$.featureData <- private$.featureData[, (private$.feature_id) := FEATURE_ID]
+          } else {
+            private$.featureData <- private$.featureData[, (private$.feature_id) := countData_with_rownames]
+          }
+
           rownames(private$.countData) <- private$.featureData[[ private$.feature_id ]]
           cli::cli_alert_warning("Placeholder featureData created.")
         }
@@ -1853,10 +1859,15 @@ omics <- R6::R6Class(
         dt[get(col) == "", (col) := 0]
       }
 
+      # Removes rownames if present
+      if (!is.null(dt$V1)) {
+        dt_rownames <- dt$V1
+        dt[, V1 := NULL]
+      }
       # Convert to matrix format
       mat <- Matrix::Matrix(
         data = as.matrix(dt),
-        dimnames = list(rownames(dt), colnames(dt))
+        dimnames = list(dt_rownames, colnames(dt))
       )
       
       # Return CsparseMatrix
