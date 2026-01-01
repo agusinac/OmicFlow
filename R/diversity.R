@@ -48,8 +48,9 @@ diversity <- function(x,
   ## Error handling
   #--------------------------------------------------------------------#
 
-  if (is.vector(x))
-    cli::cli_abort("Input must be a matrix of class matrix or Matrix, not a vector.")
+  if (inherits(x, "denseMatrix") || inherits(x, "matrix") || inherits(x, "sparseMatrix")) {
+    x <- as(x, "CsparseMatrix")
+  } else cli::cli_abort("Input isn't a base::matrix, dense- or sparseMatrix.")
 
   if (!is.numeric(x@x))
     cli::cli_abort("Input data must be numeric")
@@ -65,11 +66,7 @@ diversity <- function(x,
   }
 
   ## MAIN
-  #--------------------------------------------------------------------#
-  if (inherits(x, "denseMatrix") || inherits(x, "matrix") || inherits(x, "sparseMatrix")) {
-    x <- as(x, "CsparseMatrix")
-  } else cli::cli_abort("Input isn't a matrix, dense- or sparseMatrix.")
-    
+  #--------------------------------------------------------------------#    
   total <- rep(Matrix::colSums(x), base::diff(x@p))
   if (normalize) {
     x@x <- x@x / total
