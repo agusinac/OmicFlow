@@ -14,6 +14,14 @@ test_that("Testing Log2 Foldchanges", {
       condition_A = c("male"),
       condition_B = c("female")
     ))
+
+  print(dfe$data)
+
+  str(dfe$data)
+  dput(dfe$databj)
+  class(dfe$data)
+  attributes(dfe$data)
+  
   
   skip_if(grepl("devel", R.version$status)) # Due to numerical differences in p-value
   expect_snapshot(dfe$data)

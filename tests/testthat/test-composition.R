@@ -12,11 +12,6 @@ test_that("Testing Compositional data", {
     feature_top = 10
   )
 
-  str(res$data)
-  dput(ores$databj)
-  class(res$data)
-  attributes(res$data)
-  
   expect_snapshot(res$data)
   expect_snapshot(res$palette)
 })
