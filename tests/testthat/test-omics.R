@@ -8,12 +8,11 @@ test_that("Testing omics loading", {
     featureData = features_file,
     metaData = metadata_file
   )
+  expect_snapshot(with_features)
   
   without_features <- omics$new(
     countData = counts_file,
     metaData = metadata_file
   )
-  
-  expect_snapshot(with_features)
-  expect_snapshot(without_features)
+  expect_snapshot(without_features) 
 })

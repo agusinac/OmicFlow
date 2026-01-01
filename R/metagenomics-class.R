@@ -18,7 +18,7 @@ metagenomics <- R6::R6Class(
   cloneable = TRUE,
   inherit = omics,
   active = list(
-    #' @field treeData A "phylo" class, see \link[ape].
+    #' @field treeData A "phylo" class, see \link[ape]{as.phylo}.
     treeData = function(value) {
       # Restores omics class components
       private$tmp_link(

@@ -11,6 +11,8 @@ test_that("Testing Compositional data", {
     col_name = "CONTRAST_sex",
     feature_top = 10
   )
+
+  print(res$data)
   
   expect_snapshot(res$data)
   expect_snapshot(res$palette)

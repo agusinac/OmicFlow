@@ -71,7 +71,7 @@ omics <- R6::R6Class(
         invisible(self)
       } else stop("Data input requires to be of the same class as `featureData`")
     },
-    #' @field countData A dense or sparse \link{Matrix}.
+    #' @field countData A dense or sparse \link[Matrix]{Matrix}.
     countData = function(value) {
       # Restores omics class components
       private$tmp_link(
@@ -103,7 +103,7 @@ omics <- R6::R6Class(
     #' @description
     #' Wrapper function that is inherited and adapted for each omics class.
     #' The omics classes requires a metadata samplesheet, that is validated by the metadata_schema.json.
-    #' It requires a column `SAMPLE_ID` and optionally a `SAMPLEPAIR_ID` or `FEATURE_ID` can be supplied. 
+    #' It requires a column `SAMPLE_ID` and optionally a `SAMPLEPAIR_ID` can be supplied. 
     #' The `SAMPLE_ID` will be used to link the metaData to the countData, and will act as the key during subsetting of other columns.
     #' To create a new object use [`new()`](#method-new) method. Do notice that the abstract class only checks if the metadata is valid!
     #' The `countData` and `featureData` will not be checked, these are handled by the sub-classes. 
@@ -125,24 +125,14 @@ omics <- R6::R6Class(
           cli::cli_alert_success("Metadata template passed the JSON validation.")
 
           #--------------------------------------------------------------------#
-          ## Checking for duplicated sample and feature identifiers
+          ## Checking for duplicated sample identifiers
           #--------------------------------------------------------------------#
 
           cli::cli_alert_info("Checking for duplicated identifiers ..")
 
           duplicated_sample_ids <- any(duplicated(private$.metaData, by = private$.sample_id))
-
-          if (column_exists(private$.feature_id, private$.metaData)) {
-            duplicated_feature_ids <- any(duplicated(private$.metaData, by = private$.feature_id))
-          } else {
-            duplicated_feature_ids <- FALSE
-          }
-
-          if (duplicated_sample_ids) {
+          if (duplicated_sample_ids)
             cli::cli_abort("Found duplicated SAMPLE_ID, make sure SAMPLE_ID column contains unique identifiers!")
-          } else if (duplicated_feature_ids) {
-            cli::cli_abort("Found duplicated FEATURE_ID, make sure FEATURE_ID column contains unique identifiers!")
-          }
 
           #--------------------------------------------------------------------#
           ## Disable samplepair_id if not supplied
@@ -167,15 +157,20 @@ omics <- R6::R6Class(
       ###  featureData  ###
       #-------------------#
       if (!is.null(featureData)) {
+        duplicated_feature_ids <- FALSE
         private$.featureData <- private$check_table(featureData)
 
-        if (column_exists(private$.feature_id, private$.metaData)) {
-          FEATURE_ID <- private$.metaData[[ private$.feature_id ]]
-        } else {
-          FEATURE_ID <- paste0("feature_", 1:nrow(private$.featureData))
-        }
+        if (column_exists(private$.feature_id, private$.featureData)) {
+          duplicated_feature_ids <- any(duplicated(private$.featureData, by = private$.feature_id))
 
-        private$.featureData[, private$.feature_id := FEATURE_ID]
+          if (duplicated_feature_ids)
+            cli::cli_abort("Found duplicated FEATURE_ID, make sure FEATURE_ID column contains unique identifiers!")
+
+        } else {
+
+          FEATURE_ID <- paste0("feature_", 1:nrow(private$.featureData))
+          private$.featureData[, private$.feature_id := FEATURE_ID]
+        }
         cli::cli_alert_success("featureData is loaded.")
       }
 
@@ -193,12 +188,13 @@ omics <- R6::R6Class(
           if (is.null(countData_with_rownames)) {
             FEATURE_ID <- paste0("feature_", 1:nrow(private$.countData))
             private$.featureData <- private$.featureData[, (private$.feature_id) := FEATURE_ID]
+            rownames(private$.countData) <- FEATURE_ID
           } else {
             private$.featureData <- private$.featureData[, (private$.feature_id) := countData_with_rownames]
-          }
-
-          rownames(private$.countData) <- private$.featureData[[ private$.feature_id ]]
+          }          
           cli::cli_alert_warning("Placeholder featureData created.")
+        } else {
+          rownames(private$.countData) <- private$.featureData[[ private$.feature_id ]]
         }
       }
 
@@ -223,7 +219,6 @@ omics <- R6::R6Class(
     #' Acceptable column headers:
     #' * SAMPLE_ID (required)
     #' * SAMPLEPAIR_ID (optional)
-    #' * FEATURE_ID (optional)
     #' * CONTRAST_ (optional), used for [`autoFlow()`](#method-autoFlow).
     #' * VARIABLE_ (optional), not supported yet.
     #' 
@@ -864,7 +859,7 @@ omics <- R6::R6Class(
       if (!is.null(col_name))
         self$removeNAs(col_name)
 
-      # Convert sparse matrix to data.table
+      # Converts matrix to data.table
       counts <- matrix_to_dtable(private$.countData)
 
       # Fetch unfiltered and filtered features
@@ -1775,6 +1770,7 @@ omics <- R6::R6Class(
 
         # Keep only common samples based on metaData
         if (!is.null(private$.countData)) {
+          private$.countData <- private$check_matrix(private$.countData)
           common_samples <- base::intersect(private$.metaData[[ private$.sample_id ]], colnames(private$.countData))
           private$.countData <- private$.countData[, common_samples, drop = FALSE]
           private$.metaData <- private$.metaData[private$.metaData[[ private$.sample_id ]] %in% common_samples, ]
@@ -1785,11 +1781,16 @@ omics <- R6::R6Class(
         if (!column_exists(private$.feature_id, private$.featureData))
           cli::cli_abort("{private$.feature_id} doesn't exist in featureData.")
 
+        private$.featureData <- private$check_table(private$.featureData)
         colnames(private$.featureData) <- gsub("\\s+", "_", colnames(private$.featureData))
 
         # Keep only common tips based on treeData
         if (!is.null(private$.treeData)) {
           common_tips <- base::intersect(private$.treeData$tip.label, private$.featureData[[ private$.feature_id ]])
+
+          if (length(common_tips) == 0)
+            cli::cli_abort("None FEATURE_IDs are matching, check if FEATURE_ID exists in `treeData` tip labels!")
+
           private$.treeData <- ape::keep.tip(private$.treeData, common_tips)
           private$.featureData <- private$.featureData[private$.featureData[[ private$.feature_id ]] %in% common_tips, ]
         }
@@ -1797,6 +1798,10 @@ omics <- R6::R6Class(
         # Keep only common features based on countData
         if (!is.null(private$.countData)) {
           common_features <- base::intersect(private$.featureData[[ private$.feature_id ]], rownames(private$.countData))
+          
+          if (length(common_features) == 0)
+            cli::cli_abort("None FEATURE_IDs are matching, check if FEATURE_ID exists in `countData` rownames!")
+
           private$.featureData <- private$.featureData[private$.featureData[[ private$.feature_id ]] %in% common_features, ]
           private$.countData <- private$.countData[common_features, ]
           private$removeZeros()
@@ -1863,6 +1868,8 @@ omics <- R6::R6Class(
       if (!is.null(dt$V1)) {
         dt_rownames <- dt$V1
         dt[, V1 := NULL]
+      } else {
+        dt_rownames <- NULL
       }
       # Convert to matrix format
       mat <- Matrix::Matrix(

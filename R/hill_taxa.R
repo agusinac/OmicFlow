@@ -4,7 +4,7 @@
 #' Code is adapted from \link[hillR]{hill_taxa} and uses \link[Matrix]{sparseMatrix} in triplet format over the dense matrix.
 #' The code is much faster and memory efficient, while still being mathematical correct.
 #'
-#' @param x A \link[base]{matrix} or \link[Matrix]{sparseMatrix}.
+#' @param x A \link[base]{matrix}, \link[Matrix]{sparseMatrix} or \link[Matrix]{Matrix}.
 #' @param q A wholenumber for 0, 1 or 2, default is 0.
 #' @param normalize A boolean variable for sample normalization by column sums.
 #' @param base Input for \link[base]{log} to use natural logarithmic scale, log2, log10 or other.
@@ -48,8 +48,9 @@ hill_taxa <- function (x,
 
   ## Error handling
   #--------------------------------------------------------------------#
-  if (is.vector(x))
-    cli::cli_abort("Input must be a matrix of class matrix or Matrix, not a vector.")
+  if (inherits(x, "denseMatrix") || inherits(x, "matrix") || inherits(x, "sparseMatrix")) {
+    x <- as(x, "CsparseMatrix")
+  } else cli::cli_abort("Input isn't a base::matrix, dense- or sparseMatrix.")
 
   if (!is.numeric(x@x))
     cli::cli_abort("input data must be numeric")
@@ -62,10 +63,6 @@ hill_taxa <- function (x,
 
   ## MAIN
   #--------------------------------------------------------------------#
-  if (inherits(x, "denseMatrix") || inherits(x, "matrix") || inherits(x, "sparseMatrix")) {
-    x <- as(x, "CsparseMatrix")
-  } else cli::cli_abort("Input isn't a matrix, dense- or sparseMatrix.")
-
   if (normalize) {
     total <- rep(Matrix::colSums(x), base::diff(x@p))
     x@x <- x@x / total

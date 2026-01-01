@@ -7,7 +7,7 @@
 unifrac(x, tree, weighted = TRUE, normalized = TRUE, threads = 1)
 }
 \arguments{
-\item{x}{A \link[base]{matrix}, \link[Matrix]{sparseMatrix} or \link[Matrix]{denseMatrix} of strictly positive counts or presence/absence data.}
+\item{x}{A \link[base]{matrix}, \link[Matrix]{sparseMatrix} or \link[Matrix]{Matrix} of strictly positive counts or presence/absence data.}
 
 \item{tree}{A \code{phylo} class tree.}
 

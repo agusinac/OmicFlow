@@ -359,7 +359,7 @@ unpaired <- obj$DFE(feature_rank = "Genus",
 
 \item{\code{featureData}}{A \link[data.table]{data.table} with \code{FEATURE_ID} column.}
 
-\item{\code{countData}}{A dense or sparse \link{Matrix}.}
+\item{\code{countData}}{A dense or sparse \link[Matrix]{Matrix}.}
 }
 \if{html}{\out{</div>}}
 }
@@ -393,7 +393,7 @@ unpaired <- obj$DFE(feature_rank = "Genus",
 \subsection{Method \code{new()}}{
 Wrapper function that is inherited and adapted for each omics class.
 The omics classes requires a metadata samplesheet, that is validated by the metadata_schema.json.
-It requires a column \code{SAMPLE_ID} and optionally a \code{SAMPLEPAIR_ID} or \code{FEATURE_ID} can be supplied.
+It requires a column \code{SAMPLE_ID} and optionally a \code{SAMPLEPAIR_ID} can be supplied.
 The \code{SAMPLE_ID} will be used to link the metaData to the countData, and will act as the key during subsetting of other columns.
 To create a new object use \href{#method-new}{\code{new()}} method. Do notice that the abstract class only checks if the metadata is valid!
 The \code{countData} and \code{featureData} will not be checked, these are handled by the sub-classes.
@@ -428,7 +428,6 @@ Acceptable column headers:
 \itemize{
 \item SAMPLE_ID (required)
 \item SAMPLEPAIR_ID (optional)
-\item FEATURE_ID (optional)
 \item CONTRAST_ (optional), used for \href{#method-autoFlow}{\code{autoFlow()}}.
 \item VARIABLE_ (optional), not supported yet.
 }

@@ -7,7 +7,7 @@
 hill_taxa(x, q = 0, normalize = TRUE, base = exp(1))
 }
 \arguments{
-\item{x}{A \link[base]{matrix} or \link[Matrix]{sparseMatrix}.}
+\item{x}{A \link[base]{matrix}, \link[Matrix]{sparseMatrix} or \link[Matrix]{Matrix}.}
 
 \item{q}{A wholenumber for 0, 1 or 2, default is 0.}
 

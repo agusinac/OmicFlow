@@ -6,7 +6,7 @@
 #' This function is built into the class \link{omics} with method \code{alpha_diversity()} and inherited by other omics classes, such as;
 #' \link{metagenomics} and \link{proteomics}.
 #'
-#' @param x A \link[base]{matrix}, \link[Matrix]{sparseMatrix} or \link[Matrix]{denseMatrix}.
+#' @param x A \link[base]{matrix}, \link[Matrix]{sparseMatrix} or \link[Matrix]{Matrix}.
 #' @param metric A character variable for metric; shannon, simpson or invsimpson.
 #' @param normalize A boolean variable for sample normalization by column sums.
 #' @param base Input for \link[base]{log} to use natural logarithmic scale, log2, log10 or other.

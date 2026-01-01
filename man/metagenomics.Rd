@@ -68,7 +68,7 @@ file.remove("output.biom")
 \section{Active bindings}{
 \if{html}{\out{<div class="r6-active-bindings">}}
 \describe{
-\item{\code{treeData}}{A "phylo" class, see \link\link{ape}.}
+\item{\code{treeData}}{A "phylo" class, see \link[ape]{as.phylo}.}
 }
 \if{html}{\out{</div>}}
 }
