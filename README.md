@@ -20,7 +20,7 @@ The development version is available on GitHub.
 
 ``` r
 install.packages('pak') # if not yet installed
-pak::pak('agusinac/OmicFlow')
+pak::pkg_install('agusinac/OmicFlow@dev')
 ```
 
 ## 📋 Metadata File Specification
