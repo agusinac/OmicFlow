@@ -20,30 +20,36 @@ metagenomics <- R6::R6Class(
   active = list(
     #' @field treeData A "phylo" class, see \link[ape]{as.phylo}.
     treeData = function(value) {
-      # Restores omics class components
-      private$tmp_link(
-        .countData = private$.countData,
-        .featureData = private$.featureData,
-        .metaData = private$.metaData,
-        .treeData = private$.treeData
-      )
+      # back-up
+      old_countData <- private$.countData
+      old_featureData <- private$.featureData
+      old_metaData <- private$.metaData
+      old_treeData <- private$.treeData
 
-      # Returns on failure
+      # restore on error
       success <- FALSE
       on.exit({
         if (!success) {
-          private$tmp_restore()
+          message("Restoring...")
+          private$.countData <- old_countData
+          private$.featureData <- old_featureData
+          private$.metaData <- old_metaData
+          private$.treeData <- old_treeData
         }
       }, add = TRUE)
 
       if (missing(value)) {
+        success <- TRUE
         private$.treeData
-      } else if (inherits(value, "phylo")){
+      } else if (inherits(value, "phylo")) {
         private$.treeData <- value
         private$sync()
+        self$print()
         success <- TRUE
         invisible(self)
-      } else stop("Data input requires to be of the same class as `treeData`")
+      } else {
+        cli::cli_abort("Data input must be {.cls phylo} like {.field treeData}.")
+      }
     }
   ),
   public = list(
@@ -189,37 +195,6 @@ metagenomics <- R6::R6Class(
         metadata = private$.metaData,
         tree = private$.treeData
       )
-    },
-    #' @description
-    #' Displays parameters of the metagenomics class via stdout.
-    #' @examples
-    #' library("OmicFlow")
-    #'
-    #' metadata_file <- system.file("extdata", "metadata.tsv", package = "OmicFlow")
-    #' counts_file <- system.file("extdata", "counts.tsv", package = "OmicFlow")
-    #' features_file <- system.file("extdata", "features.tsv", package = "OmicFlow")
-    #' tree_file <- system.file("extdata", "tree.newick", package = "OmicFlow")
-    #'
-    #' taxa <- metagenomics$new(
-    #'  metaData = metadata_file,
-    #'  countData = counts_file,
-    #'  featureData = features_file,
-    #'  treeData = tree_file
-    #' )
-    #'
-    #' # method 1 to call print function
-    #' taxa
-    #'
-    #' # method 2 to call print function
-    #' taxa$print()
-    #'
-    #' @return object in place
-    print = function() {
-      cat("## metagenomics-class object \n")
-      if (length(private$.countData) > 0) cat(paste0("## countData:\t[ ", ncol(private$.countData), " Samples and ", nrow(private$.countData), " Features\t] \n"))
-      if (length(private$.metaData) > 0) cat(paste0("## metaData:\t[ ", ncol(private$.metaData), " Variables and ", nrow(private$.metaData), " Samples\t] \n"))
-      if (length(private$.featureData) > 0) cat(paste0("## taxData:\t[ ", ncol(private$.featureData)-1, " Ranks and ", nrow(private$.featureData), " Taxa\t] \n"))
-      if (length(private$.treeData) > 0) cat(paste0("## treeData:\t[ ", length(private$.treeData$tip.label), " Tips and ", private$.treeData$Nnode, " Nodes\t] \n"))
     },
     #' @description
     #' Creates a BIOM file in HDF5 format of the loaded items via ['new()'](#method-new), which is compatible to the python biom-format version 2.1, see http://biom-format.org.

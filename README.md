@@ -19,8 +19,8 @@ install.packages('OmicFlow', dependencies = TRUE)
 The development version is available on GitHub.
 
 ``` r
-install.packages('pak') # if not yet installed
-pak::pak('agusinac/OmicFlow')
+install.packages('pak') # Install/update to latest version
+pak::pkg_install('agusinac/OmicFlow@dev')
 ```
 
 ## 📋 Metadata File Specification

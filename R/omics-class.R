@@ -18,85 +18,103 @@ omics <- R6::R6Class(
   cloneable = TRUE,
   active = list(
     #' @field metaData A \link[data.table]{data.table} with `SAMPLE_ID` column.
-    metaData = function(value) {   
-      # Restores omics class components
-      private$tmp_link(
-        .countData = private$.countData,
-        .featureData = private$.featureData,
-        .metaData = private$.metaData,
-        .treeData = private$.treeData
-      )
+    metaData = function(value) {
+      # back-up
+      old_countData <- private$.countData
+      old_featureData <- private$.featureData
+      old_metaData <- private$.metaData
+      old_treeData <- private$.treeData
 
-      # Returns on failure
+      # restore on error
       success <- FALSE
       on.exit({
         if (!success) {
-          private$tmp_restore()
+          message("Restoring...")
+          private$.countData <- old_countData
+          private$.featureData <- old_featureData
+          private$.metaData <- old_metaData
+          private$.treeData <- old_treeData
         }
       }, add = TRUE)
 
       if (missing(value)) {
+        success <- TRUE
         private$.metaData
-      } else if (inherits(value, "data.table")){
+      } else if (inherits(value, "data.table")) {
         private$.metaData <- value
         private$sync()
         success <- TRUE
+        self$print()
         invisible(self)
-      } else stop("Data input requires to be of the same class as `metaData`")
+      } else {
+        cli::cli_abort("Data input must be {.cls data.table} like {.field metaData}.")
+      }
     },
     #' @field featureData A \link[data.table]{data.table} with `FEATURE_ID` column.
     featureData = function(value) {
-      # Restores omics class components
-      private$tmp_link(
-        .countData = private$.countData,
-        .featureData = private$.featureData,
-        .metaData = private$.metaData,
-        .treeData = private$.treeData
-      )
+      # back-up
+      old_countData <- private$.countData
+      old_featureData <- private$.featureData
+      old_metaData <- private$.metaData
+      old_treeData <- private$.treeData
 
-      # Returns on failure
+      # restore on error
       success <- FALSE
       on.exit({
         if (!success) {
-          private$tmp_restore()
+          message("Restoring...")
+          private$.countData <- old_countData
+          private$.featureData <- old_featureData
+          private$.metaData <- old_metaData
+          private$.treeData <- old_treeData
         }
       }, add = TRUE)
 
       if (missing(value)) {
+        success <- TRUE
         private$.featureData
       } else if (inherits(value, "data.table")){
         private$.featureData <- value
         private$sync()
         success <- TRUE
+        self$print()
         invisible(self)
-      } else stop("Data input requires to be of the same class as `featureData`")
+      } else {
+        cli::cli_abort("Data input must be {.cls data.table} like {.field featureData}.")
+      }
     },
     #' @field countData A dense or sparse \link[Matrix]{Matrix}.
     countData = function(value) {
-      # Restores omics class components
-      private$tmp_link(
-        .countData = private$.countData,
-        .featureData = private$.featureData,
-        .metaData = private$.metaData,
-        .treeData = private$.treeData
-      )
+      # back-up
+      old_countData <- private$.countData
+      old_featureData <- private$.featureData
+      old_metaData <- private$.metaData
+      old_treeData <- private$.treeData
 
-      # Returns on failure
+      # restore on error
       success <- FALSE
       on.exit({
         if (!success) {
-          private$tmp_restore()
+          message("Restoring...")
+          private$.countData <- old_countData
+          private$.featureData <- old_featureData
+          private$.metaData <- old_metaData
+          private$.treeData <- old_treeData
         }
       }, add = TRUE)
 
       if (missing(value)) {
+        success <- TRUE
         private$.countData
-      } else if (inherits(value, "Matrix")){
+      } else if (inherits(value, "Matrix")) {
         private$.countData <- value
         private$sync()
         success <- TRUE
+        self$print()
         invisible(self)
-      } else stop("Data input requires to be of the same class as `countData`")
+      } else {
+        cli::cli_abort("Data input must be {.cls Matrix} like {.field countData}.")
+      }
     }
   ),
   public = list(
@@ -122,7 +140,7 @@ omics <- R6::R6Class(
         self$validate()
 
         if (private$.valid_schema) {
-          cli::cli_alert_success("Metadata template passed the JSON validation.")
+          cli::cli_alert_success("{.field metaData} template passed the JSON validation.")
 
           #--------------------------------------------------------------------#
           ## Checking for duplicated sample identifiers
@@ -132,7 +150,7 @@ omics <- R6::R6Class(
 
           duplicated_sample_ids <- any(duplicated(private$.metaData, by = private$.sample_id))
           if (duplicated_sample_ids)
-            cli::cli_abort("Found duplicated SAMPLE_ID, make sure SAMPLE_ID column contains unique identifiers!")
+            cli::cli_abort("Found duplicated SAMPLE_ID, make sure SAMPLE_ID column contains {.strong unique} identifiers!")
 
           #--------------------------------------------------------------------#
           ## Disable samplepair_id if not supplied
@@ -149,7 +167,7 @@ omics <- R6::R6Class(
 
       } else {
         cli::cli_abort(
-          "metaData cannot be empty, please provide a data.frame, data.table or filepath"
+          "{.field metaData} cannot be empty, please provide a {.clas data.frame}, {.cls data.table} or {.val filepath}"
         )
       }
 
@@ -164,14 +182,14 @@ omics <- R6::R6Class(
           duplicated_feature_ids <- any(duplicated(private$.featureData, by = private$.feature_id))
 
           if (duplicated_feature_ids)
-            cli::cli_abort("Found duplicated FEATURE_ID, make sure FEATURE_ID column contains unique identifiers!")
+            cli::cli_abort("Found duplicated FEATURE_ID, make sure FEATURE_ID column contains {.strong unique} identifiers!")
 
         } else {
 
           FEATURE_ID <- paste0("feature_", 1:nrow(private$.featureData))
           private$.featureData[, private$.feature_id := FEATURE_ID]
         }
-        cli::cli_alert_success("featureData is loaded.")
+        cli::cli_alert_success("{.field featureData} is loaded.")
       }
 
       #-------------------#
@@ -179,20 +197,11 @@ omics <- R6::R6Class(
       #-------------------#
       if (!is.null(countData)) {
         private$.countData <- private$check_matrix(countData)
-        cli::cli_alert_success("countData is loaded.")
+        cli::cli_alert_success("{.field countData} is loaded.")
 
         if (is.null(private$.featureData)) {
-          private$.featureData <- data.table::data.table()
-          countData_with_rownames <- rownames(private$.countData)
-
-          if (is.null(countData_with_rownames)) {
-            FEATURE_ID <- paste0("feature_", 1:nrow(private$.countData))
-            private$.featureData <- private$.featureData[, (private$.feature_id) := FEATURE_ID]
-            rownames(private$.countData) <- FEATURE_ID
-          } else {
-            private$.featureData <- private$.featureData[, (private$.feature_id) := countData_with_rownames]
-          }          
-          cli::cli_alert_warning("Placeholder featureData created.")
+          private$add_featureData()
+          cli::cli_alert_warning("Created placeholder {.field featureData}.")
         } else {
           rownames(private$.countData) <- private$.featureData[[ private$.feature_id ]]
         }
@@ -272,11 +281,15 @@ omics <- R6::R6Class(
     #'
     #' @return object in place
     print = function() {
-      cat("## omics-class object \n")
-      if (length(private$.countData) > 0) cat(paste0("## countData:\t[ ", ncol(private$.countData), " Samples and ", nrow(private$.countData), " Features\t] \n"))
-      if (length(private$.metaData) > 0) cat(paste0("## metaData:\t[ ", ncol(private$.metaData), " Variables and ", nrow(private$.metaData), " Samples\t] \n"))
-      if (length(private$.featureData) > 0) cat(paste0("## featureData:\t[ ", ncol(private$.featureData)-1, " Attributes and ", nrow(private$.featureData), " Features\t] \n"))
-      if (length(private$.treeData) > 0) cat(paste0("## treeData:\t[ ", length(private$.treeData$tip.label), " Tips and ", private$.treeData$Nnode, " Nodes\t] \n"))
+      cli::cli_h3("{.cls {class(self)[1]}} object")
+      if (length(private$.metaData) > 0) 
+        cli::cli_inform("{.field metaData}: {.val {ncol(private$.metaData)}} variables × {.val {nrow(private$.metaData)}} samples")
+      if (length(private$.countData) > 0) 
+        cli::cli_inform("{.field countData}: {.val {ncol(private$.countData)}} samples × {.val {nrow(private$.countData)}} features")
+      if (length(private$.featureData) > 0)
+        cli::cli_inform("{.field featureData}: {.val {ncol(private$.featureData)-1}} attributes × {.val {nrow(private$.featureData)}} features")
+      if (length(private$.treeData) > 0)
+        cli::cli_inform("{.field treeData}: {.val {length(private$.treeData$tip.label)}} tips × {.val {private$.treeData$Nnode}} nodes")
     },
     #' @description
     #' Upon creation of a new `omics` object a small backup of the original data is created.
@@ -307,11 +320,13 @@ omics <- R6::R6Class(
     #'
     #' @return object in place
     reset = function() {
-      private$.countData = private$original_data$counts
-      private$.featureData = private$original_data$features
-      private$.metaData = private$original_data$metadata
-      private$.treeData = private$original_data$tree
-      invisible(self)
+      if (!is.null(private$original_data)) {
+        private$.countData = private$original_data$counts
+        private$.featureData = private$original_data$features
+        private$.metaData = private$original_data$metadata
+        private$.treeData = private$original_data$tree
+        invisible(self)
+      } else cli::cli_alert_warning("There is no back-up of the data made. This typically happens when the class is not initialized via the {fun. new}.")
     },
     #' @description
     #' Remove NAs from `metaData` and updates the `countData`.
@@ -341,10 +356,10 @@ omics <- R6::R6Class(
         column <- colnames(private$.metaData[column])
 
       if (!is.character(column))
-        cli::cli_abort("{column} needs to be a character or an integer.")
+        cli::cli_abort("{.val {column}} needs to be a character or an integer.")
 
       if (!column_exists(column, private$.metaData))
-        cli::cli_abort("{column} do not exist in the metaData or one of the specified columns is completely empty!")
+        cli::cli_abort("{.val {column}} does not exist in the {.field metaData} or one of the specified columns is completely empty!")
 
       ## MAIN
       #--------------------------------------------------------------------#
@@ -429,7 +444,7 @@ omics <- R6::R6Class(
       #--------------------------------------------------------------------#
 
       if (!is.null(num_unique_pairs) && !is.wholenumber(num_unique_pairs))
-        cli::cli_abort("{num_unique_pairs} must contain integers!")
+        cli::cli_abort("{.val {num_unique_pairs}} must contain integers!")
 
       ## MAIN
       #--------------------------------------------------------------------#
@@ -471,13 +486,13 @@ omics <- R6::R6Class(
       #--------------------------------------------------------------------#
 
       if (!is.character(feature_rank))
-        cli::cli_abort("{feature_rank} needs to be a character or vector containing characters")
+        cli::cli_abort("{.val {feature_rank}} needs to be a character or vector containing characters")
 
       if (!is.null(feature_filter) && !is.character(feature_filter))
-        cli::cli_abort("{feature_filter} needs to be a character or vector containing characters")
+        cli::cli_abort("{.val {feature_filter}} needs to be a character or vector containing characters")
 
       if (!column_exists(feature_rank, private$.featureData))
-        cli::cli_abort("{feature_rank} does not exist in featureData!")
+        cli::cli_abort("{.val {feature_rank}} does not exist in {.field featureData}!")
 
       ## MAIN
       #--------------------------------------------------------------------#
@@ -623,13 +638,13 @@ omics <- R6::R6Class(
       #--------------------------------------------------------------------#
 
       if (!is.character(feature_ranks))
-        cli::cli_abort("{feature_ranks} needs to be of character or integer type.")
+        cli::cli_abort("<{.val {feature_ranks}}> needs to be of character or integer type.")
 
       if (all(is.wholenumber(feature_ranks)) && length(feature_ranks) > length(colnames(private$.featureData)))
         feature_ranks <- colnames(private$.featureData[feature_ranks])
 
       if (!column_exists(feature_ranks, private$.featureData))
-        cli::cli_abort("Specified {feature_ranks} do not exist in the featureData.")
+        cli::cli_abort("Specified <{.val {feature_ranks}}> do not exist in the featureData.")
 
       ## MAIN
       #--------------------------------------------------------------------#
@@ -713,13 +728,13 @@ omics <- R6::R6Class(
       #--------------------------------------------------------------------#
 
       if (!is.character(col_name) && length(col_name) != 1) {
-        cli::cli_abort("{col_name} must be a character and of length 1")
+        cli::cli_abort("{.val {col_name}} must be a character and of length 1")
       } else if (!column_exists(col_name, private$.metaData)) {
-        cli::cli_abort("The specified {col_name} does not exist in the metaData.")
+        cli::cli_abort("The specified {.val {col_name}} does not exist in the {.field metaData}.")
       }
 
       if (!c(p.adjust.method %in% p.adjust.methods))
-        cli::cli_abort("Specified {p.adjust.method} is not valid. \nValid options: {p.adjust.methods}")
+        cli::cli_abort("Specified {.val {p.adjust.method}} is not valid. \nValid options: <{.val {p.adjust.methods}}>")
 
       ## MAIN
       #--------------------------------------------------------------------#
@@ -819,20 +834,20 @@ omics <- R6::R6Class(
 
       if (!is.null(col_name)) {
         if (!is.character(col_name) && length(col_name) != 1) {
-          cli::cli_abort("{col_name} must be a character and of length 1")
+          cli::cli_abort("{.val {col_name}} must be a character and of length 1")
         } else if (!column_exists(col_name, private$.metaData)) {
-          cli::cli_abort("The specified {col_name} does not exist in the metaData.")
+          cli::cli_abort("The specified {.val {col_name}} does not exist in the {.field metaData}.")
         }
       }
 
       if (!is.wholenumber(feature_top)) {
-        cli::cli_abort("{feature_top} must be an integer!")
+        cli::cli_abort("{.val {feature_top}} must be an integer!")
       } else if (feature_top > 15) {
-        cli::cli_alert_warning("The {feature_top} is set to an integer higher than 15.\n This may lead that colors are difficult to be distinguished.\n For color-blind people it is recommended to use a feature_top of maximum 15.")
+        cli::cli_alert_warning("The {.val {feature_top}} is set to an integer higher than 15.\n This may lead that colors are difficult to be distinguished.\n For color-blind people it is recommended to use a feature_top of maximum 15.")
       }
 
       if (!is.character(Brewer.palID) && length(Brewer.palID) != 1)
-        cli::cli_abort("{Brewer.palID} must be a character and of length 1")
+        cli::cli_abort("{.val {Brewer.palID}} must be a character and of length 1")
 
       ## MAIN
       #--------------------------------------------------------------------#
@@ -1761,7 +1776,7 @@ omics <- R6::R6Class(
     sync = function() {
       if (!is.null(private$.metaData)) {
         if (!column_exists(private$.sample_id, private$.metaData))
-          cli::cli_abort("{private$.sample_id} doesn't exist in metaData.")
+          return("{private$.sample_id} doesn't exist in metaData.")
 
         private$.metaData <- private$.metaData[, lapply(.SD, function(x) ifelse(x == "", NA, x)),
                                         .SDcols = colnames(private$.metaData)]
@@ -1806,7 +1821,10 @@ omics <- R6::R6Class(
           private$.countData <- private$.countData[common_features, ]
           private$removeZeros()
         }
-      }     
+      } else if (!is.null(private$.countData)) {
+        private$add_featureData()
+        cli::cli_alert_warning("Placeholder featureData created.")
+      }
     },
     removeZeros = function() {
       keep_cols <- Matrix::colSums(private$.countData) > 0
@@ -1818,6 +1836,18 @@ omics <- R6::R6Class(
 
       if (!is.null(private$.treeData))
         private$.treeData <- ape::keep.tip(private$.treeData, private$.featureData[[ private$.feature_id ]])
+    },
+    add_featureData = function() {
+      private$.featureData <- data.table::data.table()
+      countData_with_rownames <- rownames(private$.countData)
+
+      if (is.null(countData_with_rownames)) {
+        FEATURE_ID <- paste0("feature_", 1:nrow(private$.countData))
+        private$.featureData <- private$.featureData[, (private$.feature_id) := FEATURE_ID]
+        rownames(private$.countData) <- FEATURE_ID
+      } else {
+        private$.featureData <- private$.featureData[, (private$.feature_id) := countData_with_rownames]
+      }          
     },
     # Temporary data fields
     #-------------------------#
