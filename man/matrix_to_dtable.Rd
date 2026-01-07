@@ -4,7 +4,7 @@
 \alias{matrix_to_dtable}
 \title{Converting a Matrix to data.table}
 \usage{
-matrix_to_dtable(mat)
+matrix_to_dtable(x)
 }
 \arguments{
 \item{mat}{A \link[Matrix]{Matrix} class.}

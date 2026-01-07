@@ -78,27 +78,27 @@ composition_plot <- function(data,
   #--------------------------------------------------------------------#
 
   if (!inherits(data, "data.frame") && !inherits(data, "data.table"))
-    cli::cli_abort("Data must be a data.frame or data.table.")
+    cli::cli_abort("Data must be a {.cls data.frame} or {.cls data.table}.")
 
   if (!is.character(palette))
-    cli::cli_abort("{palette} needs to contain characters.")
+    cli::cli_abort("{.val {palette}} needs to contain characters.")
 
   if (!is.character(feature_rank) && length(feature_rank) != 1)
-    cli::cli_abort("{feature_rank} needs to contain characters with length of 1.")
+    cli::cli_abort("{.val {feature_rank}} needs to contain characters with length of 1.")
 
   if (!is.null(title_name) && !is.character(title_name))
-    cli::cli_abort("{title_name} needs to be of type character.")
+    cli::cli_abort("{.val {title_name}} needs to be of type character.")
 
   if (!is.null(group_by)) {
     if (!is.character(group_by) && length(group_by) != 1) {
-      cli::cli_abort("{group_by} must be a character and of length 1")
+      cli::cli_abort("{.val {group_by}} must be a character and of length 1")
     } else if (!column_exists(group_by, data)) {
-      cli::cli_abort("The specified {group_by} does not exist in the metaData.")
+      cli::cli_abort("The specified {.val {group_by}} does not exist in the provided {.arg data}.")
     }
   }
 
   if (!column_exists("SAMPLE_ID", data))
-    cli::cli_abort("SAMPLE_ID needs to exist within the provided data.frame/data.table.")
+    cli::cli_abort("{.arg SAMPLE_ID} needs to exist within the provided {.arg data}.")
 
   ## MAIN
   #--------------------------------------------------------------------#

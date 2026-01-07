@@ -5,8 +5,10 @@
 #' @param mat A \link[Matrix]{Matrix} class.
 #' @return A \link[data.table]{data.table} class.
 #' @export
-matrix_to_dtable <- function(mat) {
-  return(data.table::data.table(as.matrix(mat)))
+matrix_to_dtable <- function(x) {
+  if (inherits(x, "denseMatrix") || inherits(x, "matrix") || inherits(x, "sparseMatrix")) {
+      return(data.table::data.table(as.matrix(x)))
+  } else cli::cli_abort("Input isn't a {.cls matrix}, {.cls denseMatrix} or {.cls sparseMatrix}.")
 }
 
 #' Loads a rarefied alpha diversity table from Qiime2
@@ -22,7 +24,7 @@ read_rarefraction_qiime <- function(filepath) {
   #--------------------------------------------------------------------#
 
   if (!file.exists(filepath))
-    cli::cli_abort("{filepath} does not exist.")
+    cli::cli_abort("{.filename {filepath}} does not exist.")
 
   ## MAIN
   #--------------------------------------------------------------------#
@@ -55,10 +57,10 @@ column_exists <- function(column, table) {
   #--------------------------------------------------------------------#
 
   if (!is.character(column) && length(column) != 1)
-    cli::cli_abort("{column} needs to contain characters with length of 1.")
+    cli::cli_abort("{.val {column}} needs to contain characters with length of 1.")
 
   if (!inherits(table, "data.frame") && !inherits(table, "data.table"))
-    cli::cli_abort("table must be a data.frame or data.table.")
+    cli::cli_abort("{.arg table} must be a {.cls data.frame} or {.cls data.table}.")
 
   ## MAIN
   #--------------------------------------------------------------------#
@@ -88,10 +90,10 @@ is.wholenumber <- function(x, tol = .Machine$double.eps^0.5) {
 combine_conditions <- function(condition1, condition2) {
   if (!is.null(condition1) && !is.null(condition2)) {
     if (!inherits(condition1, "data.frame") && !inherits(condition1, "data.table"))
-      cli::cli_abort("condition1 must be a data.frame or data.table.")
+      cli::cli_abort("{.arg condition1} must be a {.cls data.frame} or {.cls data.table}.")
 
     if (!inherits(condition2, "data.frame") && !inherits(condition2, "data.table"))
-      cli::cli_abort("condition2 must be a data.frame or data.table.")
+      cli::cli_abort("{.arg condition2} must be a {.cls data.frame} or {.cls data.table}.")
   }
 
   # Combine to strings for easy comparison

@@ -51,22 +51,22 @@ ordination_plot <- function(data,
   #--------------------------------------------------------------------#
 
   if (!inherits(data, "data.frame") && !inherits(data, "data.table"))
-    cli::cli_abort("data must be a data.frame or data.table.")
+    cli::cli_abort("Data must be a {.cls data.frame} or {.cls data.table}.")
 
   if (!is.character(pair) && length(pair) != 2)
-    cli::cli_abort("{pair} needs to contain characters with length of 2.")
+    cli::cli_abort("{.val {pair}} needs to contain characters with length of 2.")
 
   if (!is.character(col_name) && length(col_name) != 1) {
-    cli::cli_abort("{col_name} needs to contain characters with length of 1.")
+    cli::cli_abort("{.val {col_name}} needs to contain characters with length of 1.")
   } else if (!column_exists(col_name, data)) {
-    cli::cli_abort("The {col_name} column does not exist in the provided data.")
+    cli::cli_abort("The {.val {col_name}} column does not exist in the provided {.arg data}.")
   }
 
   if (!is.null(dist_explained) && !is.numeric(dist_explained))
-    cli::cli_abort("{dist_explained} needs to be a numeric vector.")
+    cli::cli_abort("{.val {dist_explained}} needs to be a numeric {.cls vector}.")
 
   if (!is.null(dist_metric) && !is.character(dist_metric) && length(dist_metric) != 1)
-    cli::cli_abort("{dist_metric} needs to contain characters with length of 1.")
+    cli::cli_abort("{.val {dist_metric}} needs to contain characters with length of 1.")
 
   ## MAIN
   #--------------------------------------------------------------------#

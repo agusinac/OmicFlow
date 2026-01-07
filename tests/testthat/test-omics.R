@@ -28,7 +28,7 @@ test_that("Testing omics loading from file", {
   expect_snapshot(without_features_with_rownames)
   
   without_features_without_rownames <- omics$new(
-    countData = counts_file,
+    countData = counts_sparse_file,
     metaData = metadata_file
   )
   expect_snapshot(without_features_without_rownames)

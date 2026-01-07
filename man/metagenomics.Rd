@@ -13,31 +13,6 @@ Every omics class creates an internal memory efficient back-up of the data, the 
 \examples{
 
 ## ------------------------------------------------
-## Method `metagenomics$print`
-## ------------------------------------------------
-
-library("OmicFlow")
-
-metadata_file <- system.file("extdata", "metadata.tsv", package = "OmicFlow")
-counts_file <- system.file("extdata", "counts.tsv", package = "OmicFlow")
-features_file <- system.file("extdata", "features.tsv", package = "OmicFlow")
-tree_file <- system.file("extdata", "tree.newick", package = "OmicFlow")
-
-taxa <- metagenomics$new(
- metaData = metadata_file,
- countData = counts_file,
- featureData = features_file,
- treeData = tree_file
-)
-
-# method 1 to call print function
-taxa
-
-# method 2 to call print function
-taxa$print()
-
-
-## ------------------------------------------------
 ## Method `metagenomics$write_biom`
 ## ------------------------------------------------
 
@@ -76,7 +51,6 @@ file.remove("output.biom")
 \subsection{Public methods}{
 \itemize{
 \item \href{#method-metagenomics-new}{\code{metagenomics$new()}}
-\item \href{#method-metagenomics-print}{\code{metagenomics$print()}}
 \item \href{#method-metagenomics-write_biom}{\code{metagenomics$write_biom()}}
 \item \href{#method-metagenomics-clone}{\code{metagenomics$clone()}}
 }
@@ -93,6 +67,7 @@ file.remove("output.biom")
 <li><span class="pkg-link" data-pkg="OmicFlow" data-topic="omics" data-id="feature_subset"><a href='../../OmicFlow/html/omics.html#method-omics-feature_subset'><code>OmicFlow::omics$feature_subset()</code></a></span></li>
 <li><span class="pkg-link" data-pkg="OmicFlow" data-topic="omics" data-id="normalize"><a href='../../OmicFlow/html/omics.html#method-omics-normalize'><code>OmicFlow::omics$normalize()</code></a></span></li>
 <li><span class="pkg-link" data-pkg="OmicFlow" data-topic="omics" data-id="ordination"><a href='../../OmicFlow/html/omics.html#method-omics-ordination'><code>OmicFlow::omics$ordination()</code></a></span></li>
+<li><span class="pkg-link" data-pkg="OmicFlow" data-topic="omics" data-id="print"><a href='../../OmicFlow/html/omics.html#method-omics-print'><code>OmicFlow::omics$print()</code></a></span></li>
 <li><span class="pkg-link" data-pkg="OmicFlow" data-topic="omics" data-id="rankstat"><a href='../../OmicFlow/html/omics.html#method-omics-rankstat'><code>OmicFlow::omics$rankstat()</code></a></span></li>
 <li><span class="pkg-link" data-pkg="OmicFlow" data-topic="omics" data-id="removeNAs"><a href='../../OmicFlow/html/omics.html#method-omics-removeNAs'><code>OmicFlow::omics$removeNAs()</code></a></span></li>
 <li><span class="pkg-link" data-pkg="OmicFlow" data-topic="omics" data-id="reset"><a href='../../OmicFlow/html/omics.html#method-omics-reset'><code>OmicFlow::omics$reset()</code></a></span></li>
@@ -139,46 +114,6 @@ Initializes the metagenomics class object with \code{metagenomics$new()}
 \subsection{Returns}{
 A new \code{metagenomics} object.
 }
-}
-\if{html}{\out{<hr>}}
-\if{html}{\out{<a id="method-metagenomics-print"></a>}}
-\if{latex}{\out{\hypertarget{method-metagenomics-print}{}}}
-\subsection{Method \code{print()}}{
-Displays parameters of the metagenomics class via stdout.
-\subsection{Usage}{
-\if{html}{\out{<div class="r">}}\preformatted{metagenomics$print()}\if{html}{\out{</div>}}
-}
-
-\subsection{Returns}{
-object in place
-}
-\subsection{Examples}{
-\if{html}{\out{<div class="r example copy">}}
-\preformatted{library("OmicFlow")
-
-metadata_file <- system.file("extdata", "metadata.tsv", package = "OmicFlow")
-counts_file <- system.file("extdata", "counts.tsv", package = "OmicFlow")
-features_file <- system.file("extdata", "features.tsv", package = "OmicFlow")
-tree_file <- system.file("extdata", "tree.newick", package = "OmicFlow")
-
-taxa <- metagenomics$new(
- metaData = metadata_file,
- countData = counts_file,
- featureData = features_file,
- treeData = tree_file
-)
-
-# method 1 to call print function
-taxa
-
-# method 2 to call print function
-taxa$print()
-
-}
-\if{html}{\out{</div>}}
-
-}
-
 }
 \if{html}{\out{<hr>}}
 \if{html}{\out{<a id="method-metagenomics-write_biom"></a>}}

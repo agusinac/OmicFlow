@@ -21,20 +21,19 @@ metagenomics <- R6::R6Class(
     #' @field treeData A "phylo" class, see \link[ape]{as.phylo}.
     treeData = function(value) {
       # back-up
-      old_countData <- private$.countData
-      old_featureData <- private$.featureData
-      old_metaData <- private$.metaData
-      old_treeData <- private$.treeData
+      .countData <- private$.countData
+      .featureData <- private$.featureData
+      .metaData <- private$.metaData
+      .treeData <- private$.treeData
 
       # restore on error
       success <- FALSE
       on.exit({
         if (!success) {
-          message("Restoring...")
-          private$.countData <- old_countData
-          private$.featureData <- old_featureData
-          private$.metaData <- old_metaData
-          private$.treeData <- old_treeData
+          private$.countData <- .countData
+          private$.featureData <- .featureData
+          private$.metaData <- .metaData
+          private$.treeData <- .treeData
         }
       }, add = TRUE)
 
@@ -127,7 +126,7 @@ metagenomics <- R6::R6Class(
             private$construct_json_countData()
 
           } else {
-            cli::cli_abort("biomData could not be loaded. Not a valid JSON or HDF5 format!")
+            cli::cli_abort("{.field biomData} could not be loaded. Not a valid JSON or HDF5 format!")
           }
 
           # Create placeholder featureData
@@ -136,7 +135,7 @@ metagenomics <- R6::R6Class(
             private$.featureData <- data.table::data.table()
             private$.featureData <- private$.featureData[, (private$.feature_id) := FEATURE_ID]
             rownames(private$.countData) <- private$.featureData[[ private$.feature_id ]]
-            cli::cli_alert_warning("Placeholder featureData created.")
+            cli::cli_alert_warning("Created placeholder {.field featureData}.")
           }
           rownames(private$.countData) <- private$.featureData[[ private$.feature_id ]]
           data.table::setcolorder(
@@ -156,12 +155,12 @@ metagenomics <- R6::R6Class(
       if (!is.null(treeData)) {
         if (is.character(treeData) && length(treeData) == 1 && file.exists(treeData)) {
           private$.treeData <- ape::read.tree(treeData)
-          cli::cli_alert_success("treeData is loaded.")
+          cli::cli_alert_success("{.field treeData} is loaded.")
         } else if (inherits(treeData, "phylo")) {
           private$.treeData <- treeData
-          cli::cli_alert_success("treeData is loaded.")
+          cli::cli_alert_success("{.field treeData} is loaded.")
         } else {
-          cli::cli_alert_warning("The provided TreeData could not be loaded. Make sure the tree is supported by `ape::read.tree`")
+          cli::cli_alert_warning("The provided {.field treeData} could not be loaded. Make sure the tree is supported by {.fun ape::read.tree}")
         }
 
         # Aligning featureData and countData rows by tree tips
@@ -372,7 +371,7 @@ metagenomics <- R6::R6Class(
         private$.featureData[[ private$.feature_id ]] <- FEATURE_ID
       }
 
-      cli::cli_alert_success("featureData is loaded.")
+      cli::cli_alert_success("{.field featureData} is loaded.")
     },
     construct_hdf5_countData = function() {
       indptr <- as.numeric(private$.biomData$observation$matrix$indptr)
@@ -387,7 +386,7 @@ metagenomics <- R6::R6Class(
           as.character(private$.biomData$sample$ids)
         ))
 
-      cli::cli_alert_success("countData is loaded.")
+      cli::cli_alert_success("{.field countData} is loaded.")
     },
     construct_json_featureData = function(feature_names) {
       # Create empty featureData
@@ -419,7 +418,7 @@ metagenomics <- R6::R6Class(
         FEATURE_ID <- private$.metaData[[private$.feature_id]]
         private$.featureData[, (private$.feature_id) := FEATURE_ID]
       }
-      cli::cli_alert_success("featureData is loaded.")
+      cli::cli_alert_success("{.field featureData} is loaded.")
     },
     construct_json_countData = function() {
       feature_ids <- sapply(private$.biomData$rows, function(x) unlist(x$id))
@@ -435,7 +434,7 @@ metagenomics <- R6::R6Class(
           as.character(sample_ids)
         )
       )
-      cli::cli_alert_success("countData is loaded.")
+      cli::cli_alert_success("{.field countData} is loaded.")
     }
   )
 )

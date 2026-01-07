@@ -71,28 +71,28 @@ diversity_plot <- function(data,
   #--------------------------------------------------------------------#
 
   if (!inherits(data, "data.frame") && !inherits(data, "data.table"))
-    cli::cli_abort("data must be a data.frame or data.table.")
+    cli::cli_abort("Data must be a {.cls data.frame} or {.cls data.table}.")
 
   if (!is.character(palette))
-    cli::cli_abort("{palette} needs to contain characters.")
+    cli::cli_abort("{.val {palette}} needs to contain characters.")
 
   if (!is.character(method) && length(method) != 1)
-    cli::cli_abort("{method} needs to contain characters with length of 1.")
+    cli::cli_abort("{.val {method}} needs to contain characters with length of 1.")
 
   if (!is.character(values) && length(values) != 1) {
-    cli::cli_abort("Column name: {values} needs to contain characters with length of 1.")
+    cli::cli_abort("{.val {values}} needs to contain characters with length of 1.")
   } else if (!column_exists(values, data)) {
-    cli::cli_abort("The {values} column does not exist in the provided data.")
+    cli::cli_abort("The {.val values}} column does not exist in the provided {.arg data}.")
   }
 
   if (!is.character(col_name) && length(col_name) != 1) {
-    cli::cli_abort("values needs to contain characters with length of 1.")
+    cli::cli_abort("{.val {col_name}} needs to contain characters with length of 1.")
   } else if (!column_exists(col_name, data)) {
-    cli::cli_abort("The {col_name} column does not exist in the provided data.")
+    cli::cli_abort("The {.val {col_name}} column does not exist in the provided {.arg data}.")
   }
 
   if (!c(p.adjust.method %in% p.adjust.methods))
-    cli::cli_abort("Specified {p.adjust.method} is not valid. \nValid options: {p.adjust.methods}")
+    cli::cli_abort("Specified {.val {p.adjust.method}} is not valid. \nValid options: <{.val {p.adjust.methods}}>")
 
   ## MAIN
   #--------------------------------------------------------------------#

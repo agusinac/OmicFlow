@@ -50,7 +50,7 @@ diversity <- function(x,
 
   if (inherits(x, "denseMatrix") || inherits(x, "matrix") || inherits(x, "sparseMatrix")) {
     x <- as(x, "CsparseMatrix")
-  } else cli::cli_abort("Input isn't a base::matrix, dense- or sparseMatrix.")
+  } else cli::cli_abort("Input isn't a {.cls matrix}, {.cls denseMatrix} or {.cls sparseMatrix}.")
 
   if (!is.numeric(x@x))
     cli::cli_abort("Input data must be numeric")
@@ -60,9 +60,9 @@ diversity <- function(x,
 
   OPTIONS <- c("shannon", "simpson", "invsimpson")
   if (!is.character(metric) && length(metric) != 1) {
-    cli::cli_abort("{metric} needs to contain characters with length of 1.")
+    cli::cli_abort("{.val {metric}} needs to contain characters with length of 1.")
   } else if (!metric %in% OPTIONS) {
-    cli::cli_abort("{metric} is not a valid metric. Valid options: {OPTIONS}")
+    cli::cli_abort("{.val {metric}} is not a valid metric. Valid options: <{.val {OPTIONS}}>")
   }
 
   ## MAIN

@@ -10,33 +10,6 @@ It supports pre-existing data structures or paths to text files.
 When omics data is very large, data loading becomes very expensive. It is therefore recommended to use the \href{#method-reset}{\code{reset()}} method to reset your changes.
 Every omics class creates an internal memory efficient back-up of the data, the resetting of changes is an instant process.
 }
-\examples{
-
-## ------------------------------------------------
-## Method `proteomics$print`
-## ------------------------------------------------
-
-library("OmicFlow")
-
-metadata_file <- system.file("extdata", "metadata.tsv", package = "OmicFlow")
-counts_file <- system.file("extdata", "counts.tsv", package = "OmicFlow")
-features_file <- system.file("extdata", "features.tsv", package = "OmicFlow")
-tree_file <- system.file("extdata", "tree.newick", package = "OmicFlow")
-
-prot <- proteomics$new(
- metaData = metadata_file,
- countData = counts_file,
- featureData = features_file,
- treeData = tree_file
-)
-
-# method 1 to call print function
-prot
-
-# method 2 to call print function
-prot$print()
-
-}
 \seealso{
 \link{omics}
 }
@@ -54,7 +27,6 @@ prot$print()
 \subsection{Public methods}{
 \itemize{
 \item \href{#method-proteomics-new}{\code{proteomics$new()}}
-\item \href{#method-proteomics-print}{\code{proteomics$print()}}
 \item \href{#method-proteomics-clone}{\code{proteomics$clone()}}
 }
 }
@@ -70,6 +42,7 @@ prot$print()
 <li><span class="pkg-link" data-pkg="OmicFlow" data-topic="omics" data-id="feature_subset"><a href='../../OmicFlow/html/omics.html#method-omics-feature_subset'><code>OmicFlow::omics$feature_subset()</code></a></span></li>
 <li><span class="pkg-link" data-pkg="OmicFlow" data-topic="omics" data-id="normalize"><a href='../../OmicFlow/html/omics.html#method-omics-normalize'><code>OmicFlow::omics$normalize()</code></a></span></li>
 <li><span class="pkg-link" data-pkg="OmicFlow" data-topic="omics" data-id="ordination"><a href='../../OmicFlow/html/omics.html#method-omics-ordination'><code>OmicFlow::omics$ordination()</code></a></span></li>
+<li><span class="pkg-link" data-pkg="OmicFlow" data-topic="omics" data-id="print"><a href='../../OmicFlow/html/omics.html#method-omics-print'><code>OmicFlow::omics$print()</code></a></span></li>
 <li><span class="pkg-link" data-pkg="OmicFlow" data-topic="omics" data-id="rankstat"><a href='../../OmicFlow/html/omics.html#method-omics-rankstat'><code>OmicFlow::omics$rankstat()</code></a></span></li>
 <li><span class="pkg-link" data-pkg="OmicFlow" data-topic="omics" data-id="removeNAs"><a href='../../OmicFlow/html/omics.html#method-omics-removeNAs'><code>OmicFlow::omics$removeNAs()</code></a></span></li>
 <li><span class="pkg-link" data-pkg="OmicFlow" data-topic="omics" data-id="reset"><a href='../../OmicFlow/html/omics.html#method-omics-reset'><code>OmicFlow::omics$reset()</code></a></span></li>
@@ -110,46 +83,6 @@ Initializes the proteomics class object with \code{proteomics$new()}
 \subsection{Returns}{
 A new \code{proteomics} object.
 }
-}
-\if{html}{\out{<hr>}}
-\if{html}{\out{<a id="method-proteomics-print"></a>}}
-\if{latex}{\out{\hypertarget{method-proteomics-print}{}}}
-\subsection{Method \code{print()}}{
-Displays parameters of the proteomics class via stdout.
-\subsection{Usage}{
-\if{html}{\out{<div class="r">}}\preformatted{proteomics$print()}\if{html}{\out{</div>}}
-}
-
-\subsection{Returns}{
-object in place
-}
-\subsection{Examples}{
-\if{html}{\out{<div class="r example copy">}}
-\preformatted{library("OmicFlow")
-
-metadata_file <- system.file("extdata", "metadata.tsv", package = "OmicFlow")
-counts_file <- system.file("extdata", "counts.tsv", package = "OmicFlow")
-features_file <- system.file("extdata", "features.tsv", package = "OmicFlow")
-tree_file <- system.file("extdata", "tree.newick", package = "OmicFlow")
-
-prot <- proteomics$new(
- metaData = metadata_file,
- countData = counts_file,
- featureData = features_file,
- treeData = tree_file
-)
-
-# method 1 to call print function
-prot
-
-# method 2 to call print function
-prot$print()
-
-}
-\if{html}{\out{</div>}}
-
-}
-
 }
 \if{html}{\out{<hr>}}
 \if{html}{\out{<a id="method-proteomics-clone"></a>}}

@@ -2,43 +2,47 @@
 
     Code
       taxa
-    Output
-      ## metagenomics-class object 
-      ## countData:	[ 4 Samples and 185 Features	] 
-      ## metaData:	[ 9 Variables and 4 Samples	] 
-      ## taxData:	[ 7 Ranks and 185 Taxa	] 
-      ## treeData:	[ 185 Tips and 184 Nodes	] 
+    Message
+      
+      -- <metagenomics> object 
+      metaData: 9 variables × 4 samples
+      countData: 4 samples × 185 features
+      featureData: 7 attributes × 185 features
+      treeData: 185 tips × 184 nodes
 
 ---
 
     Code
       taxa
-    Output
-      ## metagenomics-class object 
-      ## countData:	[ 2 Samples and 115 Features	] 
-      ## metaData:	[ 9 Variables and 2 Samples	] 
-      ## taxData:	[ 7 Ranks and 115 Taxa	] 
-      ## treeData:	[ 115 Tips and 114 Nodes	] 
+    Message
+      
+      -- <metagenomics> object 
+      metaData: 9 variables × 2 samples
+      countData: 2 samples × 115 features
+      featureData: 7 attributes × 115 features
+      treeData: 115 tips × 114 nodes
 
 ---
 
     Code
       taxa
-    Output
-      ## metagenomics-class object 
-      ## countData:	[ 4 Samples and 200 Features	] 
-      ## metaData:	[ 9 Variables and 4 Samples	] 
-      ## taxData:	[ 7 Ranks and 200 Taxa	] 
-      ## treeData:	[ 200 Tips and 199 Nodes	] 
+    Message
+      
+      -- <metagenomics> object 
+      metaData: 9 variables × 4 samples
+      countData: 4 samples × 200 features
+      featureData: 7 attributes × 200 features
+      treeData: 200 tips × 199 nodes
 
 ---
 
     Code
       taxa
-    Output
-      ## metagenomics-class object 
-      ## countData:	[ 4 Samples and 50 Features	] 
-      ## metaData:	[ 9 Variables and 4 Samples	] 
-      ## taxData:	[ 7 Ranks and 50 Taxa	] 
-      ## treeData:	[ 50 Tips and 49 Nodes	] 
+    Message
+      
+      -- <metagenomics> object 
+      metaData: 9 variables × 4 samples
+      countData: 4 samples × 50 features
+      featureData: 7 attributes × 50 features
+      treeData: 50 tips × 49 nodes
 

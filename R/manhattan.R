@@ -47,13 +47,13 @@ manhattan <- function(x, weighted = TRUE, threads = 1) {
     #--------------------------------------------------------------------#
     if (inherits(x, "denseMatrix") || inherits(x, "matrix") || inherits(x, "sparseMatrix")) {
         x <- as(x, "CsparseMatrix")
-    } else cli::cli_abort("Input isn't a base::matrix, dense- or sparseMatrix.")
+    } else cli::cli_abort("Input isn't a {.cls matrix}, {.cls denseMatrix} or {.cls sparseMatrix}.")
     
     if (!is.numeric(x@x))
         cli::cli_abort("Input data must be numeric.")
 
     if (!is.wholenumber(threads))
-        cli::cli_abort("{threads} must be a whole number.")
+        cli::cli_abort("{.val {threads}} must be a whole number.")
 
     ## MAIN
     #--------------------------------------------------------------------#

@@ -20,20 +20,19 @@ omics <- R6::R6Class(
     #' @field metaData A \link[data.table]{data.table} with `SAMPLE_ID` column.
     metaData = function(value) {
       # back-up
-      old_countData <- private$.countData
-      old_featureData <- private$.featureData
-      old_metaData <- private$.metaData
-      old_treeData <- private$.treeData
+      .countData <- private$.countData
+      .featureData <- private$.featureData
+      .metaData <- private$.metaData
+      .treeData <- private$.treeData
 
       # restore on error
       success <- FALSE
       on.exit({
         if (!success) {
-          message("Restoring...")
-          private$.countData <- old_countData
-          private$.featureData <- old_featureData
-          private$.metaData <- old_metaData
-          private$.treeData <- old_treeData
+          private$.countData <- .countData
+          private$.featureData <- .featureData
+          private$.metaData <- .metaData
+          private$.treeData <- .treeData
         }
       }, add = TRUE)
 
@@ -53,20 +52,19 @@ omics <- R6::R6Class(
     #' @field featureData A \link[data.table]{data.table} with `FEATURE_ID` column.
     featureData = function(value) {
       # back-up
-      old_countData <- private$.countData
-      old_featureData <- private$.featureData
-      old_metaData <- private$.metaData
-      old_treeData <- private$.treeData
+      .countData <- private$.countData
+      .featureData <- private$.featureData
+      .metaData <- private$.metaData
+      .treeData <- private$.treeData
 
       # restore on error
       success <- FALSE
       on.exit({
         if (!success) {
-          message("Restoring...")
-          private$.countData <- old_countData
-          private$.featureData <- old_featureData
-          private$.metaData <- old_metaData
-          private$.treeData <- old_treeData
+          private$.countData <- .countData
+          private$.featureData <- .featureData
+          private$.metaData <- .metaData
+          private$.treeData <- .treeData
         }
       }, add = TRUE)
 
@@ -86,20 +84,19 @@ omics <- R6::R6Class(
     #' @field countData A dense or sparse \link[Matrix]{Matrix}.
     countData = function(value) {
       # back-up
-      old_countData <- private$.countData
-      old_featureData <- private$.featureData
-      old_metaData <- private$.metaData
-      old_treeData <- private$.treeData
+      .countData <- private$.countData
+      .featureData <- private$.featureData
+      .metaData <- private$.metaData
+      .treeData <- private$.treeData
 
       # restore on error
       success <- FALSE
       on.exit({
         if (!success) {
-          message("Restoring...")
-          private$.countData <- old_countData
-          private$.featureData <- old_featureData
-          private$.metaData <- old_metaData
-          private$.treeData <- old_treeData
+          private$.countData <- .countData
+          private$.featureData <- .featureData
+          private$.metaData <- .metaData
+          private$.treeData <- .treeData
         }
       }, add = TRUE)
 
@@ -977,16 +974,16 @@ omics <- R6::R6Class(
         )
 
       if (!is.character(metric) && length(metric) != 1) {
-        cli::cli_abort("{metric} needs to be a character with a length of 1")
+        cli::cli_abort("{.val {metric}} needs to be a character with a length of 1")
       } else if (!metric %in% OPTIONS) {
-        cli::cli_abort("{metric} is not a valid metric. Valid options: {OPTIONS}")
+        cli::cli_abort("{.val {metric}} is not a valid metric. Valid options: <{.val {OPTIONS}}>")
       }
 
       if (!is.wholenumber(threads))
-        cli::cli_abort("{threads} need to be an integer!")
+        cli::cli_abort("{.val {threads}} need to be an integer!")
 
       if (is.null(private$.treeData) && metric == "unifrac")
-        cli::cli_abort("The specified {metric} is invalid since no `treeData` is supplied.")
+        cli::cli_abort("The specified {.val {metric}} is invalid since no {.field treeData} is supplied.")
 
       ## MAIN
       #--------------------------------------------------------------------#
@@ -1074,25 +1071,25 @@ omics <- R6::R6Class(
       ## Error handling
       #--------------------------------------------------------------------#
       if (!is.character(method) && length(method) != 1)
-        cli::cli_abort("{method} needs to be a character with a length of 1")
+        cli::cli_abort("{.val {method}} needs to be a character with a length of 1")
 
       if (!is.character(group_by) && length(group_by) != 1) {
-        cli::cli_abort("{group_by} needs to be a character with a length of 1")
+        cli::cli_abort("{.val {group_by}} needs to be a character with a length of 1")
       } else if (!column_exists(group_by, private$.metaData)) {
-        cli::cli_abort("{group_by} does not exist in the metaData or is empty.")
+        cli::cli_abort("{.val {group_by}} does not exist in the metaData or is empty.")
       }
 
       if (!is.null(perm_design) && !is.function(perm_design))
         cli::cli_abort("perm_design must be a function.")
 
       if (!is.wholenumber(perm))
-        cli::cli_abort("Permutations {perm} need to be an integer")
+        cli::cli_abort("Permutations {.val {perm}} need to be an integer")
 
       if (!is.null(distmat) && (!inherits(distmat, "Matrix") && !inherits(distmat, "dist")))
-        cli::cli_abort("custom distance matrix (distmat) need to be of class Matrix or dist")
+        cli::cli_abort("{.arg distmat} need to be {.cls Matrix} or {.cls dist}")
 
       if (is.null(private$.treeData) && metric == "unifrac") {
-        cli::cli_alert_warning("The specified {metric} is invalid since no tree is supplied.\n Switching to bray-curtis metric.")
+        cli::cli_alert_warning("The specified {.val {metric}} is invalid since no tree is supplied.\n Switching to bray-curtis metric.")
         metric <- "bray"
       }
 
@@ -1275,27 +1272,27 @@ omics <- R6::R6Class(
       #--------------------------------------------------------------------#
 
       if (!is.character(feature_rank) && length(feature_rank) != 1)
-        cli::cli_abort("{feature_rank} needs to be a character with a length of 1")
+        cli::cli_abort("{.val {feature_rank}} needs to be a character with a length of 1")
 
       if (!is.character(condition.group) && length(condition.group) != 1) {
-        cli::cli_abort("{condition.group} needs to be a character with a length of 1")
+        cli::cli_abort("{.val {condition.group}} needs to be a character with a length of 1")
       } else if (!column_exists(condition.group, private$.metaData)) {
-        cli::cli_abort("{condition.group} does not exist in the metaData or is empty.")
+        cli::cli_abort("{.val {condition.group}} does not exist in the metaData or is empty.")
       }
       if (!is.character(condition_A))
-        cli::cli_abort("{condition_A} needs to be a character.")
+        cli::cli_abort("{.val {condition_A}} needs to be a character.")
 
       if (!is.character(condition_B))
-        cli::cli_abort("{condition_B} needs to be a character.")
+        cli::cli_abort("{.val {condition_B}} needs to be a character.")
 
       if (!is.numeric(pvalue.threshold))
-        cli::cli_abort("{pvalue.threshold} need to be numeric.")
+        cli::cli_abort("{.val {pvalue.threshold}} need to be numeric.")
 
       if (!is.numeric(foldchange.threshold))
-        cli::cli_abort("{foldchange.threshold} need to be numeric.")
+        cli::cli_abort("{.val {foldchange.threshold}} need to be numeric.")
 
       if (paired && is.null(private$.samplepair_id)) {
-        cli::cli_alert_warning("Paired is set to {paired} but SAMPLEPAIR_ID does not exist in the metaData.\n Differential feature analysis will not be done with paired set to FALSE!")
+        cli::cli_alert_warning("Paired is set to {.val {paired}} but {.arg SAMPLEPAIR_ID} does not exist in the {.field metaData}.\n Differential feature analysis will continue now with paired set to {.val FALSE}!")
         paired <- FALSE
       }
 
@@ -1420,26 +1417,26 @@ omics <- R6::R6Class(
     #--------------------------------------------------------------------#
 
     if (!is.character(filename) && length(filename) != 1)
-      cli::cli_abort("{filename} needs to be a character with a length of 1")
+      cli::cli_abort("{.val {filename}} needs to be a character with a length of 1")
       
     if (!is.character(feature_contrast) && length(feature_contrast) != 1) {
-      cli::cli_abort("{feature_contrast} needs to be a character with a length of 1")
+      cli::cli_abort("{.val {feature_contrast}} needs to be a character with a length of 1")
     } else if (!column_exists(feature_contrast, private$.featureData)) {
-      cli::cli_abort("{feature_contrast} does not exist in featureData!")
+      cli::cli_abort("{.val {feature_contrast}} does not exist in {.field featureData}!")
     }
 
     if (!is.null(beta_div_table) && !is.character(beta_div_table) && length(beta_div_table) != 1) {
-      cli::cli_abort("{beta_div_table} needs to be a character with a length of 1")
+      cli::cli_abort("{.arg beta_div_table} needs to be a character with a length of 1")
     
-      if (file.exists(beta_div_table))
-        cli::cli_abort("{beta_div_table} already exists!")
+      if (!file.exists(beta_div_table))
+        cli::cli_abort("{.arg beta_div_table} does not exists!")
     }
 
     if (!is.null(alpha_div_table) && !is.character(alpha_div_table) && length(alpha_div_table) != 1) {
-      cli::cli_abort("{alpha_div_table} needs to be a character with a length of 1")
+      cli::cli_abort("{.arg alpha_div_table} needs to be a character with a length of 1")
 
-      if (file.exists(alpha_div_table))
-        cli::cli_abort("{alpha_div_table} already exists!")
+      if (!file.exists(alpha_div_table))
+        cli::cli_abort("{.arg alpha_div_table} does not exists!")
     }
 
     ## MAIN
@@ -1776,7 +1773,7 @@ omics <- R6::R6Class(
     sync = function() {
       if (!is.null(private$.metaData)) {
         if (!column_exists(private$.sample_id, private$.metaData))
-          return("{private$.sample_id} doesn't exist in metaData.")
+          return("{private$.sample_id} doesn't exist in {.field metaData}.")
 
         private$.metaData <- private$.metaData[, lapply(.SD, function(x) ifelse(x == "", NA, x)),
                                         .SDcols = colnames(private$.metaData)]
@@ -1794,7 +1791,7 @@ omics <- R6::R6Class(
 
       if (!is.null(private$.featureData)) {
         if (!column_exists(private$.feature_id, private$.featureData))
-          cli::cli_abort("{private$.feature_id} doesn't exist in featureData.")
+          cli::cli_abort("{private$.feature_id} doesn't exist in {.field featureData}.")
 
         private$.featureData <- private$check_table(private$.featureData)
         colnames(private$.featureData) <- gsub("\\s+", "_", colnames(private$.featureData))
@@ -1804,7 +1801,7 @@ omics <- R6::R6Class(
           common_tips <- base::intersect(private$.treeData$tip.label, private$.featureData[[ private$.feature_id ]])
 
           if (length(common_tips) == 0)
-            cli::cli_abort("None FEATURE_IDs are matching, check if FEATURE_ID exists in `treeData` tip labels!")
+            cli::cli_abort("None FEATURE_IDs are matching, check if {.val FEATURE_ID} matches the tip labels in {.field treeData}!")
 
           private$.treeData <- ape::keep.tip(private$.treeData, common_tips)
           private$.featureData <- private$.featureData[private$.featureData[[ private$.feature_id ]] %in% common_tips, ]
@@ -1815,7 +1812,7 @@ omics <- R6::R6Class(
           common_features <- base::intersect(private$.featureData[[ private$.feature_id ]], rownames(private$.countData))
           
           if (length(common_features) == 0)
-            cli::cli_abort("None FEATURE_IDs are matching, check if FEATURE_ID exists in `countData` rownames!")
+            cli::cli_abort("None FEATURE_IDs are matching, check if {.val FEATURE_ID} matches the rownames in {.field countData}!")
 
           private$.featureData <- private$.featureData[private$.featureData[[ private$.feature_id ]] %in% common_features, ]
           private$.countData <- private$.countData[common_features, ]
@@ -1823,7 +1820,7 @@ omics <- R6::R6Class(
         }
       } else if (!is.null(private$.countData)) {
         private$add_featureData()
-        cli::cli_alert_warning("Placeholder featureData created.")
+        cli::cli_alert_warning("Placeholder {.field featureData} created.")
       }
     },
     removeZeros = function() {
@@ -1880,7 +1877,7 @@ omics <- R6::R6Class(
     if (is.data.frame(data))
       return(data.table::as.data.table(data))
 
-    stop("Input must be a filepath, data.frame, or data.table.")
+    cli::cli_abort("Input must be an existing {.val filepath}, {.cls data.frame} or {.cls data.table}.")
   },
 
   # Checks & loads input matrix/filepath
@@ -1917,7 +1914,7 @@ omics <- R6::R6Class(
     if (is.matrix(data) || inherits(data, "denseMatrix")) {
       return(as(data, "CsparseMatrix"))
     }      
-    stop("Input must be an existing filepath, base::matrix or Matrix::Matrix.")
+    stop("Input must be an existing {.val filepath}, {.cls matrix} or {.cls Matrix}.")
     }
   )
 )
