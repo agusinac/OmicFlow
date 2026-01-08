@@ -7,7 +7,7 @@
 matrix_to_dtable(x)
 }
 \arguments{
-\item{mat}{A \link[Matrix]{Matrix} class.}
+\item{x}{A \link[base]{matrix}, \link[Matrix]{sparseMatrix} or \link[Matrix]{Matrix}.}
 }
 \value{
 A \link[data.table]{data.table} class.

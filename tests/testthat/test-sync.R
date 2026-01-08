@@ -22,7 +22,4 @@ test_that("Testing omics loading from existing data objects", {
   ends_with_countData$countData <- counts
 
   expect_snapshot(ends_with_countData)
-
-  
-  
 })

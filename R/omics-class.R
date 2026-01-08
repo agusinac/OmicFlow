@@ -71,7 +71,7 @@ omics <- R6::R6Class(
       if (missing(value)) {
         success <- TRUE
         private$.featureData
-      } else if (inherits(value, "data.table")){
+      } else if (inherits(value, "data.table")) {
         private$.featureData <- value
         private$sync()
         success <- TRUE
@@ -164,7 +164,7 @@ omics <- R6::R6Class(
 
       } else {
         cli::cli_abort(
-          "{.field metaData} cannot be empty, please provide a {.clas data.frame}, {.cls data.table} or {.val filepath}"
+          "{.field metaData} cannot be empty, please provide a {.cls data.frame}, {.cls data.table} or {.val filepath}"
         )
       }
 
@@ -280,13 +280,13 @@ omics <- R6::R6Class(
     print = function() {
       cli::cli_h3("{.cls {class(self)[1]}} object")
       if (length(private$.metaData) > 0) 
-        cli::cli_inform("{.field metaData}: {.val {ncol(private$.metaData)}} variables × {.val {nrow(private$.metaData)}} samples")
+        cli::cli_inform("{.field metaData}: {.val {ncol(private$.metaData)}} variables {cli::symbol$times} {.val {nrow(private$.metaData)}} samples")
       if (length(private$.countData) > 0) 
-        cli::cli_inform("{.field countData}: {.val {ncol(private$.countData)}} samples × {.val {nrow(private$.countData)}} features")
+        cli::cli_inform("{.field countData}: {.val {ncol(private$.countData)}} samples {cli::symbol$times} {.val {nrow(private$.countData)}} features")
       if (length(private$.featureData) > 0)
-        cli::cli_inform("{.field featureData}: {.val {ncol(private$.featureData)-1}} attributes × {.val {nrow(private$.featureData)}} features")
+        cli::cli_inform("{.field featureData}: {.val {ncol(private$.featureData)-1}} attributes {cli::symbol$times} {.val {nrow(private$.featureData)}} features")
       if (length(private$.treeData) > 0)
-        cli::cli_inform("{.field treeData}: {.val {length(private$.treeData$tip.label)}} tips × {.val {private$.treeData$Nnode}} nodes")
+        cli::cli_inform("{.field treeData}: {.val {length(private$.treeData$tip.label)}} tips {cli::symbol$times} {.val {private$.treeData$Nnode}} nodes")
     },
     #' @description
     #' Upon creation of a new `omics` object a small backup of the original data is created.
@@ -635,13 +635,13 @@ omics <- R6::R6Class(
       #--------------------------------------------------------------------#
 
       if (!is.character(feature_ranks))
-        cli::cli_abort("<{.val {feature_ranks}}> needs to be of character or integer type.")
+        cli::cli_abort("{.val {feature_ranks}} needs to be of character or integer type.")
 
       if (all(is.wholenumber(feature_ranks)) && length(feature_ranks) > length(colnames(private$.featureData)))
         feature_ranks <- colnames(private$.featureData[feature_ranks])
 
       if (!column_exists(feature_ranks, private$.featureData))
-        cli::cli_abort("Specified <{.val {feature_ranks}}> do not exist in the featureData.")
+        cli::cli_abort("Specified {.val {feature_ranks}} do not exist in the {.field featureData}.")
 
       ## MAIN
       #--------------------------------------------------------------------#
@@ -731,7 +731,7 @@ omics <- R6::R6Class(
       }
 
       if (!c(p.adjust.method %in% p.adjust.methods))
-        cli::cli_abort("Specified {.val {p.adjust.method}} is not valid. \nValid options: <{.val {p.adjust.methods}}>")
+        cli::cli_abort("Specified {.val {p.adjust.method}} is not valid. \nValid options: {.val {p.adjust.methods}}")
 
       ## MAIN
       #--------------------------------------------------------------------#
@@ -976,7 +976,7 @@ omics <- R6::R6Class(
       if (!is.character(metric) && length(metric) != 1) {
         cli::cli_abort("{.val {metric}} needs to be a character with a length of 1")
       } else if (!metric %in% OPTIONS) {
-        cli::cli_abort("{.val {metric}} is not a valid metric. Valid options: <{.val {OPTIONS}}>")
+        cli::cli_abort("{.val {metric}} is not a valid metric. Valid options: {.val {OPTIONS}}")
       }
 
       if (!is.wholenumber(threads))
@@ -1914,7 +1914,7 @@ omics <- R6::R6Class(
     if (is.matrix(data) || inherits(data, "denseMatrix")) {
       return(as(data, "CsparseMatrix"))
     }      
-    stop("Input must be an existing {.val filepath}, {.cls matrix} or {.cls Matrix}.")
+    cli::cli_abort("Input must be an existing {.val filepath}, {.cls matrix} or {.cls Matrix}.")
     }
   )
 )

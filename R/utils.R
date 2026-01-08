@@ -2,7 +2,7 @@
 #'
 #' @description Wrapper function that converts a sparseMatrix to data.table
 #'
-#' @param mat A \link[Matrix]{Matrix} class.
+#' @param x A \link[base]{matrix}, \link[Matrix]{sparseMatrix} or \link[Matrix]{Matrix}.
 #' @return A \link[data.table]{data.table} class.
 #' @export
 matrix_to_dtable <- function(x) {

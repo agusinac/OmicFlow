@@ -5,10 +5,10 @@
     Message
       
       -- <metagenomics> object 
-      metaData: 9 variables × 4 samples
-      countData: 4 samples × 185 features
-      featureData: 7 attributes × 185 features
-      treeData: 185 tips × 184 nodes
+      metaData: 9 variables x 4 samples
+      countData: 4 samples x 185 features
+      featureData: 7 attributes x 185 features
+      treeData: 185 tips x 184 nodes
 
 ---
 
@@ -17,10 +17,10 @@
     Message
       
       -- <metagenomics> object 
-      metaData: 9 variables × 2 samples
-      countData: 2 samples × 115 features
-      featureData: 7 attributes × 115 features
-      treeData: 115 tips × 114 nodes
+      metaData: 9 variables x 2 samples
+      countData: 2 samples x 115 features
+      featureData: 7 attributes x 115 features
+      treeData: 115 tips x 114 nodes
 
 ---
 
@@ -29,10 +29,10 @@
     Message
       
       -- <metagenomics> object 
-      metaData: 9 variables × 4 samples
-      countData: 4 samples × 200 features
-      featureData: 7 attributes × 200 features
-      treeData: 200 tips × 199 nodes
+      metaData: 9 variables x 4 samples
+      countData: 4 samples x 200 features
+      featureData: 7 attributes x 200 features
+      treeData: 200 tips x 199 nodes
 
 ---
 
@@ -41,8 +41,8 @@
     Message
       
       -- <metagenomics> object 
-      metaData: 9 variables × 4 samples
-      countData: 4 samples × 50 features
-      featureData: 7 attributes × 50 features
-      treeData: 50 tips × 49 nodes
+      metaData: 9 variables x 4 samples
+      countData: 4 samples x 50 features
+      featureData: 7 attributes x 50 features
+      treeData: 50 tips x 49 nodes
 

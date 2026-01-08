@@ -1,4 +1,4 @@
-# Testing dissimilarity metrics
+# Testing dissimilarity metrics on sparse data
 
     Code
       cat(wunifrac_n)

@@ -5,9 +5,9 @@
     Message
       
       -- <omics> object 
-      metaData: 1 variables × 5 samples
-      countData: 5 samples × 100 features
-      featureData: 0 attributes × 100 features
+      metaData: 1 variables x 5 samples
+      countData: 5 samples x 100 features
+      featureData: 0 attributes x 100 features
 
 ---
 
@@ -16,7 +16,7 @@
     Message
       
       -- <omics> object 
-      metaData: 1 variables × 5 samples
-      countData: 5 samples × 100 features
-      featureData: 0 attributes × 100 features
+      metaData: 1 variables x 5 samples
+      countData: 5 samples x 100 features
+      featureData: 0 attributes x 100 features
 
