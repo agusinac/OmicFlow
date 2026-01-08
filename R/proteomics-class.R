@@ -80,7 +80,7 @@ proteomics <- R6::R6Class(
         private$.featureData <- private$.featureData[order(match(private$.featureData[[ private$.feature_id ]], private$.treeData$tip.label))]
         private$.countData <- private$.countData[private$.featureData[[ private$.feature_id ]], ]
       }
-
+      private$sync()
       self$print()
 
       # saves data for reset function

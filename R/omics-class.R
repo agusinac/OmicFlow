@@ -133,6 +133,7 @@ omics <- R6::R6Class(
       ###   metaData    ###
       #-------------------#
       if (!is.null(metaData)) {
+        duplicated_sample_ids <- FALSE
         private$.metaData <- private$check_table(metaData)
         self$validate()
 
@@ -144,11 +145,15 @@ omics <- R6::R6Class(
           #--------------------------------------------------------------------#
 
           cli::cli_alert_info("Checking for duplicated identifiers ..")
-
-          duplicated_sample_ids <- any(duplicated(private$.metaData, by = private$.sample_id))
-          if (duplicated_sample_ids)
-            cli::cli_abort("Found duplicated SAMPLE_ID, make sure SAMPLE_ID column contains {.strong unique} identifiers!")
-
+          duplicated_sample_idx <- duplicated(private$.metaData, by = private$.sample_id)
+          duplicated_sample_ids <- any(duplicated_sample_idx)
+          if (duplicated_sample_ids) {
+            duplicated_sample_names <- private$.metaData[[private$.sample_id]][duplicated_sample_idx]
+            cli::cli_abort(
+              "Found duplicated: {.val {duplicated_sample_names}}\
+              \n Make sure {.arg SAMPLE_ID} column contains {.strong unique} identifiers!"
+            )
+          }
           #--------------------------------------------------------------------#
           ## Disable samplepair_id if not supplied
           #--------------------------------------------------------------------#
@@ -176,10 +181,16 @@ omics <- R6::R6Class(
         private$.featureData <- private$check_table(featureData)
 
         if (column_exists(private$.feature_id, private$.featureData)) {
-          duplicated_feature_ids <- any(duplicated(private$.featureData, by = private$.feature_id))
+          duplicated_feature_idx <- duplicated(private$.featureData, by = private$.feature_id)
+          duplicated_feature_ids <- any(duplicated_feature_idx)
 
-          if (duplicated_feature_ids)
-            cli::cli_abort("Found duplicated FEATURE_ID, make sure FEATURE_ID column contains {.strong unique} identifiers!")
+          if (duplicated_feature_ids) {
+            duplicated_feature_names <- private$.featureData[[private$.feature_id]][duplicated_feature_idx]
+            cli::cli_abort(
+              "Found duplicated: {.val {duplicated_feature_names}} \
+              \n Make sure {.arg FEATURE_ID} column contains {.strong unique} identifiers!"
+            )
+          }
 
         } else {
 
@@ -208,7 +219,6 @@ omics <- R6::R6Class(
       ###     sync      ###
       #-------------------#
       private$sync()
-      self$print()
 
       # saves data for reset function
       private$original_data = list(

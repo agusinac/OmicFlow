@@ -183,8 +183,7 @@ metagenomics <- R6::R6Class(
       colnames(private$.featureData)[n_cols_featureData:(n_cols_featureData - n_feature_names + 1)] <- base::rev(feature_names)
 
       # Subsetting countData by metadata
-      private$.countData <- private$.countData[, private$.metaData[[ private$.sample_id ]], drop = FALSE]
-
+      private$sync()
       self$print()
 
       # saves data for reset function
