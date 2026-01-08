@@ -78,7 +78,7 @@ test_that("Testing dissimilarity metrics on sparse data", {
 )
 
 test_that("Testing dissimilarity metrics on dense data", {
-    prot_file <- proteomics$new(
+    prot <- proteomics$new(
         metaData = "input/proteomics/metadata.csv",
         countData = "input/proteomics/counts.csv",
         treeData = "input/proteomics/tree.newick"
