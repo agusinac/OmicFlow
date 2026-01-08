@@ -14,9 +14,15 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - [#23](https://github.com/agusinac/OmicFlow/issues/23) `removeZeros()` function is now private.
 - [#26](https://github.com/agusinac/OmicFlow/issues/26) clarified `initialize` and field tags.
 - [#27](https://github.com/agusinac/OmicFlow/issues/27) Both `denseMatrix` as `sparseMatrix` are converted to `CsparseMatrix`, compatible to `omics$normalize`, `omics$feature_merge`, `diversity`, `hill_taxa` and `C-functions`. 
+- Replaced `tmp_link` and `tmp_restore` with inline code. Seems like `private$.countData` doesn't work with a private function.
+- Improved the `cli` formatting and visualisation of different arguments.
+- `print()` inherited for each sub-class from `omics` and uses `cli::cli_inform` instead of `cat`
 
 ### `Fixed`
 - [#25](https://github.com/agusinac/OmicFlow/issues/25) changed default value of `initialize` function.
+
+### `Deprecated`
+- Removed `tmp_restore` and `tmp_link`
 
 ## v1.4.2 - [2025-11-30]
 

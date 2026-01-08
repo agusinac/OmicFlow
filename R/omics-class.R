@@ -750,15 +750,18 @@ omics <- R6::R6Class(
       plot_list <- list()
 
       # Save omics class components
-      private$tmp_link(
-        .countData = private$.countData,
-        .featureData = private$.featureData,
-        .metaData = private$.metaData,
-        .treeData = private$.treeData
-      )
-      
-      # Restores omics class components
-      on.exit(private$tmp_restore(), add = TRUE)
+      .countData <- private$.countData
+      .featureData <- private$.featureData
+      .metaData <- private$.metaData
+      .treeData <- private$.treeData
+
+      # restore on error
+      on.exit({
+        private$.countData <- .countData
+        private$.featureData <- .featureData
+        private$.metaData <- .metaData
+        private$.treeData <- .treeData
+      }, add = TRUE)
 
       # Remove NAs when col_name is specified
       if (!is.null(col_name))
@@ -858,17 +861,19 @@ omics <- R6::R6Class(
 
       ## MAIN
       #--------------------------------------------------------------------#
-
       # Copies object to prevent modification of omics class components
-      private$tmp_link(
-        .countData = private$.countData,
-        .featureData = private$.featureData,
-        .metaData = private$.metaData,
-        .treeData = private$.treeData
-      )
-      
-      # Restores omics class components
-      on.exit(private$tmp_restore(), add = TRUE)
+      .countData <- private$.countData
+      .featureData <- private$.featureData
+      .metaData <- private$.metaData
+      .treeData <- private$.treeData
+
+      # restore on error
+      on.exit({
+        private$.countData <- .countData
+        private$.featureData <- .featureData
+        private$.metaData <- .metaData
+        private$.treeData <- .treeData
+      }, add = TRUE)
 
       # Normalizes sample counts
       if (normalize)
@@ -999,15 +1004,18 @@ omics <- R6::R6Class(
       #--------------------------------------------------------------------#
 
       # Copies object to prevent modification of omics class components
-      private$tmp_link(
-        .countData = private$.countData,
-        .featureData = private$.featureData,
-        .metaData = private$.metaData,
-        .treeData = private$.treeData
-      )
-      
-      # Restores omics class components
-      on.exit(private$tmp_restore(), add = TRUE)
+      .countData <- private$.countData
+      .featureData <- private$.featureData
+      .metaData <- private$.metaData
+      .treeData <- private$.treeData
+
+      # restore on error
+      on.exit({
+        private$.countData <- .countData
+        private$.featureData <- .featureData
+        private$.metaData <- .metaData
+        private$.treeData <- .treeData
+      }, add = TRUE)
 
       # Normalizes counts
       if (normalized)
@@ -1105,17 +1113,19 @@ omics <- R6::R6Class(
 
       ## MAIN
       #--------------------------------------------------------------------#
-
       # Copies object to prevent modification of omics class components
-      private$tmp_link(
-        .countData = private$.countData,
-        .featureData = private$.featureData,
-        .metaData = private$.metaData,
-        .treeData = private$.treeData
-      )
-      
-      # Restores omics class components
-      on.exit(private$tmp_restore(), add = TRUE)
+      .countData <- private$.countData
+      .featureData <- private$.featureData
+      .metaData <- private$.metaData
+      .treeData <- private$.treeData
+
+      # restore on error
+      on.exit({
+        private$.countData <- .countData
+        private$.featureData <- .featureData
+        private$.metaData <- .metaData
+        private$.treeData <- .treeData
+      }, add = TRUE)
 
       # Subset by missing values
       self$removeNAs(group_by)
@@ -1313,15 +1323,18 @@ omics <- R6::R6Class(
       plot_list <- list()
 
       # Copies object to prevent modification of omics class components
-      private$tmp_link(
-        .countData = private$.countData,
-        .featureData = private$.featureData,
-        .metaData = private$.metaData,
-        .treeData = private$.treeData
-      )
-      
-      # Restores omics class components
-      on.exit(private$tmp_restore(), add = TRUE)
+      .countData <- private$.countData
+      .featureData <- private$.featureData
+      .metaData <- private$.metaData
+      .treeData <- private$.treeData
+
+      # restore on error
+      on.exit({
+        private$.countData <- .countData
+        private$.featureData <- .featureData
+        private$.metaData <- .metaData
+        private$.treeData <- .treeData
+      }, add = TRUE)
 
       # normalization if applicable
       if (normalize)
@@ -1464,15 +1477,18 @@ omics <- R6::R6Class(
     data <- list()
     
     # Save omics class components
-    private$tmp_link(
-      .countData = private$.countData,
-      .featureData = private$.featureData,
-      .metaData = private$.metaData,
-      .treeData = private$.treeData
-    )
-    
-    # Restores omics class components
-    on.exit(private$tmp_restore(), add = TRUE)
+    .countData <- private$.countData
+    .featureData <- private$.featureData
+    .metaData <- private$.metaData
+    .treeData <- private$.treeData
+
+    # restore on error
+    on.exit({
+      private$.countData <- .countData
+      private$.featureData <- .featureData
+      private$.metaData <- .metaData
+      private$.treeData <- .treeData
+    }, add = TRUE)
 
     # Collect columns: CONTRAST_ and VARIABLE_
     metacols <- colnames(private$.metaData)
@@ -1856,25 +1872,6 @@ omics <- R6::R6Class(
         private$.featureData <- private$.featureData[, (private$.feature_id) := countData_with_rownames]
       }          
     },
-    # Temporary data fields
-    #-------------------------#
-    tmp_store = NULL,
-    tmp_link = function(.countData = NULL, .featureData = NULL, .metaData = NULL, .treeData = NULL) {
-      private$tmp_store <<- list(
-                            .countData = .countData,
-                            .metaData = .metaData,
-                            .featureData = .featureData,
-                            .treeData = .treeData
-                            )
-    },
-    tmp_restore = function() {
-      if (!is.null(private$tmp_store$.countData)) private$.countData <- private$tmp_store$.countData
-      if (!is.null(private$tmp_store$.metaData)) private$.metaData <- private$tmp_store$.metaData
-      if (!is.null(private$tmp_store$.featureData)) private$.featureData <- private$tmp_store$.featureData
-      if (!is.null(private$tmp_store$.treeData)) private$.treeData <- private$tmp_store$.treeData
-      return(invisible(self))
-    },
-
     # Checks & loads input table/filepath
     #--------------------------------------#
     check_table = function(data) {
