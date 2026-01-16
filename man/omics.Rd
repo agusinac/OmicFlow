@@ -846,6 +846,7 @@ Alpha diversity based on \link{diversity}
   col_name,
   metric = c("shannon", "invsimpson", "simpson"),
   Brewer.palID = "Set2",
+  group_by = NULL,
   evenness = FALSE,
   paired = FALSE,
   p.adjust.method = "fdr"
@@ -860,6 +861,8 @@ Alpha diversity based on \link{diversity}
 \item{\code{metric}}{An alpha diversity metric as input to \link{diversity}.}
 
 \item{\code{Brewer.palID}}{A character name for the palette set to be applied, see \link[RColorBrewer]{brewer.pal} or \link{colormap}.}
+
+\item{\code{group_by}}{A column name to perform grouped statistical test in \link{diversity_plot} (default: NULL).}
 
 \item{\code{evenness}}{A boolean wether to divide diversity by number of species, see \link[vegan]{specnumber}.}
 

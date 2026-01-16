@@ -405,6 +405,7 @@ omics <- R6::R6Class(
       private$.featureData <- private$.featureData[rows_to_keep, ]
       private$.countData <- private$.countData[rows_to_keep, ]
       private$sync()
+      self$print()
       invisible(self)
     },
     #' @description
@@ -436,6 +437,7 @@ omics <- R6::R6Class(
       # NAs can occur in rows_to_keep, which then doesnt work on sparse Matrix.
       private$.countData <- private$.countData[, private$.metaData[[ private$.sample_id ]] ]
       private$sync()
+      self$print()
       invisible(self)
     },
     #' @description
@@ -464,6 +466,7 @@ omics <- R6::R6Class(
 
       private$.metaData <- private$.metaData[SAMPLEPAIR_ID %in% counts[unique_count == num_unique_pairs, SAMPLEPAIR_ID]]
       private$sync()
+      self$print()
       invisible(self)
     },
     #' @description
@@ -558,6 +561,7 @@ omics <- R6::R6Class(
       rownames(private$.countData) <- private$.featureData[[ private$.feature_id ]]
 
       private$sync()
+      self$print()
       invisible(self)
     },
     #' @description
@@ -697,6 +701,7 @@ omics <- R6::R6Class(
     #' Alpha diversity based on \link{diversity}
     #' @param col_name A character variable from the `metaData`.
     #' @param metric An alpha diversity metric as input to \link{diversity}.
+    #' @param group_by A column name to perform grouped statistical test in \link{diversity_plot} (default: NULL).
     #' @param Brewer.palID A character name for the palette set to be applied, see \link[RColorBrewer]{brewer.pal} or \link{colormap}.
     #' @param evenness A boolean wether to divide diversity by number of species, see \link[vegan]{specnumber}.
     #' @param paired A boolean value to perform paired analysis in \link[stats]{wilcox.test} and samplepair subsetting via [`samplepair_subset()`](#method-samplepair_subset)
@@ -727,6 +732,7 @@ omics <- R6::R6Class(
     alpha_diversity = function(col_name,
                                metric = c("shannon", "invsimpson", "simpson"),
                                Brewer.palID = "Set2",
+                               group_by = NULL,
                                evenness = FALSE,
                                paired = FALSE,
                                p.adjust.method = "fdr") {
@@ -786,6 +792,7 @@ omics <- R6::R6Class(
         data = na.omit(div),
         values = "V1",
         col_name = col_name,
+        group_by = group_by,
         palette = colors,
         method = metric,
         paired = paired,

@@ -17,6 +17,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - Replaced `tmp_link` and `tmp_restore` with inline code. Seems like `private$.countData` doesn't work with a private function.
 - Improved the `cli` formatting and visualisation of different arguments.
 - `print()` inherited for each sub-class from `omics` and uses `cli::cli_inform` instead of `cat`
+- [#21](https://github.com/agusinac/OmicFlow/issues/21) introduced custom half boxplot/point in `diversity_plot`, now also added `group_by` to perform grouped statistical tests.
 
 ### `Fixed`
 - [#25](https://github.com/agusinac/OmicFlow/issues/25) changed default value of `initialize` function.

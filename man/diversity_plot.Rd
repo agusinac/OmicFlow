@@ -8,6 +8,7 @@ diversity_plot(
   data,
   values,
   col_name,
+  group_by = NULL,
   palette,
   method,
   paired = FALSE,
@@ -20,6 +21,8 @@ diversity_plot(
 \item{values}{A column name of a continuous variable.}
 
 \item{col_name}{A column name of a categorical variable.}
+
+\item{group_by}{A column name to perform grouped statistical test (default: NULL).}
 
 \item{palette}{An object with names and hexcode or color names, see \link{colormap}.}
 
