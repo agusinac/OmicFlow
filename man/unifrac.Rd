@@ -2,12 +2,12 @@
 % Please edit documentation in R/unifrac.R
 \name{unifrac}
 \alias{unifrac}
-\title{Compute UniFrac Dissimilarity from a Sparse Matrix.}
+\title{Compute UniFrac Dissimilarity from a Dense or Sparse Matrix.}
 \usage{
 unifrac(x, tree, weighted = TRUE, normalized = TRUE, threads = 1)
 }
 \arguments{
-\item{x}{A \link[Matrix]{sparseMatrix} of strictly positive counts or presence/absence data.}
+\item{x}{A \link[base]{matrix}, \link[Matrix]{sparseMatrix} or \link[Matrix]{Matrix} of strictly positive counts or presence/absence data.}
 
 \item{tree}{A \code{phylo} class tree.}
 

@@ -184,21 +184,6 @@ if (!is.null(plots$pcoa_plots)) {
     show_data = TRUE
     )
 }
-
-```
-
-```{r}
-if (!is.null(plots$nmds_plots)) {
-  cat("## Beta Diversity: NMDS {.tabset} \n")
-  create_plot_tabs(
-    plots = plots$nmds_plots, 
-    data = data$nmds_data,
-    method = "matrix",
-    label_col = CONTRAST_names,
-    label_row = distance_metrics,
-    show_data = TRUE
-    )
-}
 ```
 
 ```{r}

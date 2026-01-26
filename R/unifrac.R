@@ -1,4 +1,4 @@
-#' Compute UniFrac Dissimilarity from a Sparse Matrix.
+#' Compute UniFrac Dissimilarity from a Dense or Sparse Matrix.
 #'
 #' @description Calculates the UniFrac dissimilarity between samples based on phylogenetic branch lengths and abundance or presence/absence data.
 #' 
@@ -16,7 +16,7 @@
 #'      \eqn{d(A,B) = \frac{\sum_{i}^n L_i |A_i - B_i|}{\sum_{i}^n L_i \max(A_i, B_i)}}
 #'  }
 #'}
-#' @param x A \link[Matrix]{sparseMatrix} of strictly positive counts or presence/absence data.
+#' @param x A \link[base]{matrix}, \link[Matrix]{sparseMatrix} or \link[Matrix]{Matrix} of strictly positive counts or presence/absence data.
 #' @param tree A `phylo` class tree.
 #' @param weighted A boolean value, to use abundances (\code{weighted = TRUE}) or absence/presence (\code{weighted=FALSE}) (default: TRUE).
 #' @param normalized A boolean value, whether to normalize weighted UniFrac distances to be between 0 and 1 (default: TRUE). Unweighted UniFrac is always normalized.
@@ -59,13 +59,13 @@ unifrac <- function(x, tree, weighted = TRUE, normalized = TRUE, threads = 1) {
 
     ## Error handling
     #--------------------------------------------------------------------#
-    if (is.vector(x))
-        cli::cli_abort("Input must a matrix of class matrix or Matrix, not a vector.")
-
     if (!inherits(tree, "phylo"))
         cli::cli_abort("Tree must be of class `phylo`.")
 
-    x <- drop(as(x, "sparseMatrix"))
+    if (inherits(x, "denseMatrix") || inherits(x, "matrix") || inherits(x, "sparseMatrix")) {
+        x <- as(x, "CsparseMatrix")
+    } else cli::cli_abort("Input isn't a {.cls matrix}, {.cls denseMatrix} or {.cls sparseMatrix}.")
+
     if (!is.numeric(x@x))
         cli::cli_abort("Input data must be numeric.")
 
@@ -73,7 +73,7 @@ unifrac <- function(x, tree, weighted = TRUE, normalized = TRUE, threads = 1) {
         cli::cli_abort("Input data must be non-negative.")
 
     if (!is.wholenumber(threads))
-        cli::cli_abort("{threads} must be a whole number.")
+        cli::cli_abort("{.val {threads}} must be a whole number.")
 
     ## MAIN
     #--------------------------------------------------------------------#

@@ -51,6 +51,7 @@
       43:      S120           Aquabacterium 0.00000000         male
       44:      S120                   Other 0.20828790         male
           SAMPLE_ID                   Genus      value CONTRAST_sex
+             <char>                  <fctr>      <num>       <char>
 
 ---
 

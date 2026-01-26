@@ -113,16 +113,16 @@ foldchange <- function(data,
   #--------------------------------------------------------------------#
 
   if (!inherits(data, "data.frame") && !inherits(data, "data.table"))
-    cli::cli_abort("data must be a data.frame or data.table.")
+    cli::cli_abort("Data must be a {.cls data.frame} or {.cls data.table}.")
 
   if (!is.character(feature_rank) && length(feature_rank) != 1) {
-    cli::cli_abort("Column name: {feature_rank} needs to contain characters with length of 1.")
+    cli::cli_abort("{.val {feature_rank}} needs to contain characters with length of 1.")
   } else if (!column_exists(feature_rank, data)) {
-    cli::cli_abort("The {feature_rank} column does not exist in the provided data.")
+    cli::cli_abort("The {.val {feature_rank}} column does not exist in the provided {.arg data}.")
   }
 
   if (!is.vector(condition_labels))
-    cli::cli_abort("{condition_labels} needs to be a vector.")
+    cli::cli_abort("{.val {condition_labels}} needs to be {.cls vector}.")
 
   ## MAIN
   #--------------------------------------------------------------------#
@@ -182,13 +182,15 @@ foldchange <- function(data,
     # Compute pvalues with wilcox test
     for (k in seq_along(feature_labels)) {
       # save p-values in data.table
-      foldchange_dt[
-        k, (paste0("pvalue_", i)) := stats::wilcox.test(
-          mat_A[k, ], mat_B[k, ],
-          correct = TRUE,
-          paired = paired
-          )$p.value
-        ]
+      suppressWarnings(
+        foldchange_dt[
+          k, (paste0("pvalue_", i)) := stats::wilcox.test(
+            mat_A[k, ], mat_B[k, ],
+            correct = TRUE,
+            paired = paired
+            )$p.value
+          ]
+      )
     }
   }
 

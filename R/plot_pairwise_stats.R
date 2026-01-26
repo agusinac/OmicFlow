@@ -64,28 +64,28 @@ plot_pairwise_stats <- function(data,
   #--------------------------------------------------------------------#
 
   if (!inherits(data, "data.frame") && !inherits(data, "data.table"))
-    cli::cli_abort("Data must be a data.frame or data.table.")
+    cli::cli_abort("Data must be a {.cls data.frame} or {.cls data.table}.")
 
   if (!is.character(stats_col) && length(stats_col) != 1) {
-    cli::cli_abort("{stats_col} needs to contain characters with length of 1.")
+    cli::cli_abort("{.val {stats_col}} needs to contain characters with length of 1.")
   } else if (!column_exists(stats_col, data)) {
-    cli::cli_abort("The {stats_col} column does not exist in the provided data.")
+    cli::cli_abort("The {.val {stats_col}} column does not exist in the provided {.arg data}.")
   }
 
   if (!is.character(group_col) && length(group_col) != 1) {
-    cli::cli_abort("{group_col} needs to contain characters with length of 1.")
+    cli::cli_abort("{.val {group_col}} needs to contain characters with length of 1.")
   } else if (!column_exists(group_col, data)) {
-    cli::cli_abort("The {group_col} column does not exist in the provided data.")
+    cli::cli_abort("The {.val {group_col}} column does not exist in the provided {.arg data}.")
   }
 
   if (!is.character(label_col))
-    cli::cli_abort("{label_col} needs to contain characters.")
+    cli::cli_abort("{.val {label_col}} needs to contain characters.")
 
   if (!is.null(y_axis_title) && !is.character(y_axis_title))
-    cli::cli_abort("{y_axis_title} needs to contain characters.")
+    cli::cli_abort("{.val {y_axis_title}} needs to contain characters.")
 
   if (!is.null(plot_title) && !is.character(plot_title))
-    cli::cli_abort("{plot_title} needs to contain characters.")
+    cli::cli_abort("{.val {plot_title}} needs to contain characters.")
 
   ## MAIN
   #--------------------------------------------------------------------#

@@ -53,7 +53,6 @@ Example:
 #### 🔹 Optional standard columns
 | Column         | Type    | Rules                                                               |
 |----------------|---------|---------------------------------------------------------------------|
-| `FEATURE_ID`   | string  | Optional — no spaces. Naming of the feature identifiers to include or exclude certain features  |
 | `SAMPLEPAIR_ID`| string  | Optional — no spaces. Use when samples are paired and belong to an individual source/subject |
 
 #### 🔹 Pattern‑based columns

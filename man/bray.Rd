@@ -2,12 +2,12 @@
 % Please edit documentation in R/bray.R
 \name{bray}
 \alias{bray}
-\title{Compute Bray-Curtis Dissimilarity from a Sparse Matrix.}
+\title{Compute Bray-Curtis Dissimilarity from a Dense or Sparse Matrix.}
 \usage{
 bray(x, weighted = TRUE, threads = 1)
 }
 \arguments{
-\item{x}{A \link[Matrix]{sparseMatrix}.}
+\item{x}{A \link[base]{matrix}, \link[Matrix]{sparseMatrix} or \link[Matrix]{Matrix}.}
 
 \item{weighted}{A boolean value, to use abundances (\code{weighted = TRUE}) or absence/presence (\code{weighted=FALSE}) (default: TRUE).}
 
@@ -17,7 +17,7 @@ bray(x, weighted = TRUE, threads = 1)
 A column x column \link[stats]{dist} object.
 }
 \description{
-Calculates the Bray-Curtis dissimilarity of a \link[Matrix]{sparseMatrix} pairwise for each column.
+Calculates the Bray-Curtis dissimilarity of a Matrix pairwise for each column.
 }
 \details{
 The Bray-Curtis dissimilarity between two samples \eqn{A} and \eqn{B}, each of length \eqn{n}, is defined as:

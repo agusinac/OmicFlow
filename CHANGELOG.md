@@ -3,6 +3,31 @@
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/)
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## v1.5.0 - [2026-01-26]
+
+### `Added`
+- [#23](https://github.com/agusinac/OmicFlow/issues/23) active bindings on data types, in place modification and automatic synchronisation between other data types by default via private function `sync`.
+- [#23](https://github.com/agusinac/OmicFlow/issues/23) `featureData` is now always created as placeholder.
+
+### `Changed`
+- [#23](https://github.com/agusinac/OmicFlow/issues/23) omics classes are now cloneable.
+- [#23](https://github.com/agusinac/OmicFlow/issues/23) `removeZeros()` function is now private.
+- [#26](https://github.com/agusinac/OmicFlow/issues/26) clarified `initialize` and field tags.
+- [#27](https://github.com/agusinac/OmicFlow/issues/27) Both `denseMatrix` as `sparseMatrix` are converted to `CsparseMatrix`, compatible to `omics$normalize`, `omics$feature_merge`, `diversity`, `hill_taxa` and `C-functions`. 
+- Replaced `tmp_link` and `tmp_restore` with inline code. Seems like `private$.countData` doesn't work with a private function.
+- Improved the `cli` formatting and visualisation of different arguments.
+- `print()` inherited for each sub-class from `omics` and uses `cli::cli_inform` instead of `cat`
+- [#21](https://github.com/agusinac/OmicFlow/issues/21) introduced custom half boxplot/point in `diversity_plot`, now also added `group_by` to perform grouped statistical tests.
+- Replaced `read_rarefraction_qiime` by `check_table` from private function of class `omics.`
+- `autoFlow` compatible to denseMatrix formats, applies fdr correction in other omics layers, report can be set to False, removed `nmds`.
+
+### `Fixed`
+- [#25](https://github.com/agusinac/OmicFlow/issues/25) changed default value of `initialize` function.
+
+### `Deprecated`
+- Removed `tmp_restore` and `tmp_link`
+- Utils function `read_rarefraction_qiime`
+
 ## v1.4.2 - [2025-11-30]
 
 ### `Fixed`
@@ -17,7 +42,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - [#22](https://github.com/agusinac/OmicFlow/issues/22) `private$check_matrix` checks if any zero's are present before creating a `sparseMatrix`.
 - [#20](https://github.com/agusinac/OmicFlow/issues/20) `omics$compositon` Doesn't show `Others` when there are none.
 - [#24](https://github.com/agusinac/OmicFlow/issues/24) `volcano_plot` only sizes the points if there are significant features found.
-
+ 
 ### `Deprecated`
 - [#21](https://github.com/agusinac/OmicFlow/issues/21) Removed `gghalves` in `diversity_plot`
 

@@ -28,22 +28,24 @@ colormap <- function(data,
   #--------------------------------------------------------------------#
 
   if (!inherits(data, "data.frame") && !inherits(data, "data.table"))
-    cli::cli_abort("Data must be a data.frame or data.table.")
+    cli::cli_abort("Data must be a {.cls data.frame} or {.cls data.table}.")
 
   if (!is.character(col_name) && length(col_name) != 1) {
-    cli::cli_abort("Column name: {col_name} needs to contain characters with length of 1.")
+    cli::cli_abort("{.val {col_name}} needs to contain characters with length of 1.")
   } else if (!column_exists(col_name, data)) {
-    cli::cli_abort("The {col_name} column does not exist in the provided data.")
+    cli::cli_abort("The {.val {col_name}} column does not exist in the provided data.")
   }
 
   if (!is.character(Brewer.palID) && length(Brewer.palID) != 1)
-    cli::cli_abort("The {Brewer.palID} needs to contain characters with length of 1.")
+    cli::cli_abort("The {.val {Brewer.palID}} needs to contain characters with length of 1.")
 
   ## MAIN
   #--------------------------------------------------------------------#
 
   unique_groups <- unique(data[[col_name]])
-  chosen_palette <- RColorBrewer::brewer.pal(length(unique_groups), Brewer.palID)
+  suppressWarnings(
+    chosen_palette <- RColorBrewer::brewer.pal(length(unique_groups), Brewer.palID)
+  )
   colors <- stats::setNames(chosen_palette, unique_groups)
   return(colors)
 }

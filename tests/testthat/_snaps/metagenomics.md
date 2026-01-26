@@ -2,21 +2,23 @@
 
     Code
       taxa_hdf5
-    Output
-      ## metagenomics-class object 
-      ## countData:	[ 4 Samples and 242 Features	] 
-      ## metaData:	[ 9 Variables and 4 Samples	] 
-      ## taxData:	[ 7 Ranks and 242 Taxa	] 
-      ## treeData:	[ 242 Tips and 241 Nodes	] 
+    Message
+      
+      -- <metagenomics> object 
+      metaData: 9 variables x 4 samples
+      countData: 4 samples x 242 features
+      featureData: 7 attributes x 242 features
+      treeData: 242 tips x 241 nodes
 
 ---
 
     Code
       taxa_ref
-    Output
-      ## metagenomics-class object 
-      ## countData:	[ 4 Samples and 242 Features	] 
-      ## metaData:	[ 9 Variables and 4 Samples	] 
-      ## taxData:	[ 7 Ranks and 242 Taxa	] 
-      ## treeData:	[ 242 Tips and 241 Nodes	] 
+    Message
+      
+      -- <metagenomics> object 
+      metaData: 9 variables x 4 samples
+      countData: 4 samples x 242 features
+      featureData: 7 attributes x 242 features
+      treeData: 242 tips x 241 nodes
 

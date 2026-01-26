@@ -44,22 +44,51 @@ The method by reference is very efficient when dealing with big data.
 \examples{
 
 ## ------------------------------------------------
-## Method `omics$removeZeros`
+## Method `omics$print`
 ## ------------------------------------------------
 
 library("OmicFlow")
 
 metadata_file <- system.file("extdata", "metadata.tsv", package = "OmicFlow")
 counts_file <- system.file("extdata", "counts.tsv", package = "OmicFlow")
-features_file <- system.file("extdata", "features.tsv", package = "OmicFlow")
 
-obj <- metagenomics$new(
+obj <- omics$new(
  metaData = metadata_file,
- countData = counts_file,
- featureData = features_file,
+ countData = counts_file
 )
 
-obj$removeZeros()
+# method 1 to call print function
+obj
+
+# method 2 to call print function
+obj$print()
+
+
+## ------------------------------------------------
+## Method `omics$reset`
+## ------------------------------------------------
+
+library(ggplot2)
+library("OmicFlow")
+
+metadata_file <- system.file("extdata", "metadata.tsv", package = "OmicFlow")
+counts_file <- system.file("extdata", "counts.tsv", package = "OmicFlow")
+features_file <- system.file("extdata", "features.tsv", package = "OmicFlow")
+
+taxa <- omics$new(
+ metaData = metadata_file,
+ countData = counts_file,
+ featureData = features_file
+)
+
+# Performs modifications
+taxa$transform(log2)
+
+# resets
+taxa$reset()
+
+# An inbuilt reset function prevents unwanted modification to the taxa object.
+taxa$rankstat(feature_ranks = c("Kingdom", "Phylum", "Family", "Genus", "Species"))
 
 
 ## ------------------------------------------------
@@ -97,7 +126,7 @@ obj <- metagenomics$new(
  featureData = features_file,
 )
 
-obj$feature_subset(Genus == "Streptococcus")
+obj$feature_subset(Genus == "Pseudomonas")
 
 
 ## ------------------------------------------------
@@ -323,22 +352,14 @@ unpaired <- obj$DFE(feature_rank = "Genus",
 
 \link{volcano_plot}, \link{foldchange}
 }
-\section{Public fields}{
-\if{html}{\out{<div class="r6-fields">}}
+\section{Active bindings}{
+\if{html}{\out{<div class="r6-active-bindings">}}
 \describe{
-\item{\code{countData}}{A path to an existing file, data.table, data.frame, matrix or sparseMatrix with zero values.}
+\item{\code{metaData}}{A \link[data.table]{data.table} with \code{SAMPLE_ID} column.}
 
-\item{\code{featureData}}{A path to an existing file, data.table or data.frame.}
+\item{\code{featureData}}{A \link[data.table]{data.table} with \code{FEATURE_ID} column.}
 
-\item{\code{metaData}}{A path to an existing file, data.table or data.frame.}
-
-\item{\code{.valid_schema}}{Boolean value for schema validation via JSON}
-
-\item{\code{.feature_id}}{A character, default name for the feature identifiers.}
-
-\item{\code{.sample_id}}{A character, default name for the sample identifiers.}
-
-\item{\code{.samplepair_id}}{A character, default name for the sample pair identifiers.}
+\item{\code{countData}}{A dense or sparse \link[Matrix]{Matrix}.}
 }
 \if{html}{\out{</div>}}
 }
@@ -347,7 +368,8 @@ unpaired <- obj$DFE(feature_rank = "Genus",
 \itemize{
 \item \href{#method-omics-new}{\code{omics$new()}}
 \item \href{#method-omics-validate}{\code{omics$validate()}}
-\item \href{#method-omics-removeZeros}{\code{omics$removeZeros()}}
+\item \href{#method-omics-print}{\code{omics$print()}}
+\item \href{#method-omics-reset}{\code{omics$reset()}}
 \item \href{#method-omics-removeNAs}{\code{omics$removeNAs()}}
 \item \href{#method-omics-feature_subset}{\code{omics$feature_subset()}}
 \item \href{#method-omics-sample_subset}{\code{omics$sample_subset()}}
@@ -362,6 +384,7 @@ unpaired <- obj$DFE(feature_rank = "Genus",
 \item \href{#method-omics-ordination}{\code{omics$ordination()}}
 \item \href{#method-omics-DFE}{\code{omics$DFE()}}
 \item \href{#method-omics-autoFlow}{\code{omics$autoFlow()}}
+\item \href{#method-omics-clone}{\code{omics$clone()}}
 }
 }
 \if{html}{\out{<hr>}}
@@ -370,7 +393,7 @@ unpaired <- obj$DFE(feature_rank = "Genus",
 \subsection{Method \code{new()}}{
 Wrapper function that is inherited and adapted for each omics class.
 The omics classes requires a metadata samplesheet, that is validated by the metadata_schema.json.
-It requires a column \code{SAMPLE_ID} and optionally a \code{SAMPLEPAIR_ID} or \code{FEATURE_ID} can be supplied.
+It requires a column \code{SAMPLE_ID} and optionally a \code{SAMPLEPAIR_ID} can be supplied.
 The \code{SAMPLE_ID} will be used to link the metaData to the countData, and will act as the key during subsetting of other columns.
 To create a new object use \href{#method-new}{\code{new()}} method. Do notice that the abstract class only checks if the metadata is valid!
 The \code{countData} and \code{featureData} will not be checked, these are handled by the sub-classes.
@@ -382,11 +405,11 @@ Using the omics class to load your data is not supported and still experimental.
 \subsection{Arguments}{
 \if{html}{\out{<div class="arguments">}}
 \describe{
-\item{\code{countData}}{A path to an existing file, data.table, data.frame, matrix or sparseMatrix with zero values.}
+\item{\code{countData}}{A path to an existing file or a dense/sparse \link[Matrix]{Matrix} format.}
 
-\item{\code{featureData}}{A path to an existing file, data.table or data.frame.}
+\item{\code{featureData}}{A path to an existing file, \link[data.table]{data.table} or data.frame.}
 
-\item{\code{metaData}}{A path to an existing file, data.table or data.frame.}
+\item{\code{metaData}}{A path to an existing file, \link[data.table]{data.table} or data.frame.}
 }
 \if{html}{\out{</div>}}
 }
@@ -405,7 +428,6 @@ Acceptable column headers:
 \itemize{
 \item SAMPLE_ID (required)
 \item SAMPLEPAIR_ID (optional)
-\item FEATURE_ID (optional)
 \item CONTRAST_ (optional), used for \href{#method-autoFlow}{\code{autoFlow()}}.
 \item VARIABLE_ (optional), not supported yet.
 }
@@ -421,13 +443,12 @@ None
 }
 }
 \if{html}{\out{<hr>}}
-\if{html}{\out{<a id="method-omics-removeZeros"></a>}}
-\if{latex}{\out{\hypertarget{method-omics-removeZeros}{}}}
-\subsection{Method \code{removeZeros()}}{
-Removes empty (zero) values by row and column from the \code{countData}.
-This method is performed automatically during subsetting of the object.
+\if{html}{\out{<a id="method-omics-print"></a>}}
+\if{latex}{\out{\hypertarget{method-omics-print}{}}}
+\subsection{Method \code{print()}}{
+Displays parameters of the omics class via stdout.
 \subsection{Usage}{
-\if{html}{\out{<div class="r">}}\preformatted{omics$removeZeros()}\if{html}{\out{</div>}}
+\if{html}{\out{<div class="r">}}\preformatted{omics$print()}\if{html}{\out{</div>}}
 }
 
 \subsection{Returns}{
@@ -439,15 +460,61 @@ object in place
 
 metadata_file <- system.file("extdata", "metadata.tsv", package = "OmicFlow")
 counts_file <- system.file("extdata", "counts.tsv", package = "OmicFlow")
-features_file <- system.file("extdata", "features.tsv", package = "OmicFlow")
 
-obj <- metagenomics$new(
+obj <- omics$new(
  metaData = metadata_file,
- countData = counts_file,
- featureData = features_file,
+ countData = counts_file
 )
 
-obj$removeZeros()
+# method 1 to call print function
+obj
+
+# method 2 to call print function
+obj$print()
+
+}
+\if{html}{\out{</div>}}
+
+}
+
+}
+\if{html}{\out{<hr>}}
+\if{html}{\out{<a id="method-omics-reset"></a>}}
+\if{latex}{\out{\hypertarget{method-omics-reset}{}}}
+\subsection{Method \code{reset()}}{
+Upon creation of a new \code{omics} object a small backup of the original data is created.
+Since modification of the object is done by reference and duplicates are not made, it is possible to \code{reset} changes to the class.
+The methods from the abstract class \link{omics} also contains a private method to prevent any changes to the original object when using methods such as \code{ordination} \code{alpha_diversity} or \code{$DFE}.
+\subsection{Usage}{
+\if{html}{\out{<div class="r">}}\preformatted{omics$reset()}\if{html}{\out{</div>}}
+}
+
+\subsection{Returns}{
+object in place
+}
+\subsection{Examples}{
+\if{html}{\out{<div class="r example copy">}}
+\preformatted{library(ggplot2)
+library("OmicFlow")
+
+metadata_file <- system.file("extdata", "metadata.tsv", package = "OmicFlow")
+counts_file <- system.file("extdata", "counts.tsv", package = "OmicFlow")
+features_file <- system.file("extdata", "features.tsv", package = "OmicFlow")
+
+taxa <- omics$new(
+ metaData = metadata_file,
+ countData = counts_file,
+ featureData = features_file
+)
+
+# Performs modifications
+taxa$transform(log2)
+
+# resets
+taxa$reset()
+
+# An inbuilt reset function prevents unwanted modification to the taxa object.
+taxa$rankstat(feature_ranks = c("Kingdom", "Phylum", "Family", "Genus", "Species"))
 
 }
 \if{html}{\out{</div>}}
@@ -500,7 +567,7 @@ obj$removeNAs(column = "treatment")
 \if{html}{\out{<a id="method-omics-feature_subset"></a>}}
 \if{latex}{\out{\hypertarget{method-omics-feature_subset}{}}}
 \subsection{Method \code{feature_subset()}}{
-Feature subset (based on \code{featureData}), automatically applies \href{#method-removeZeros}{\code{removeZeros()}}.
+Feature subset (based on \code{featureData}), automatically applies data synchronization.
 \subsection{Usage}{
 \if{html}{\out{<div class="r">}}\preformatted{omics$feature_subset(...)}\if{html}{\out{</div>}}
 }
@@ -530,7 +597,7 @@ obj <- metagenomics$new(
  featureData = features_file,
 )
 
-obj$feature_subset(Genus == "Streptococcus")
+obj$feature_subset(Genus == "Pseudomonas")
 
 }
 \if{html}{\out{</div>}}
@@ -542,7 +609,7 @@ obj$feature_subset(Genus == "Streptococcus")
 \if{html}{\out{<a id="method-omics-sample_subset"></a>}}
 \if{latex}{\out{\hypertarget{method-omics-sample_subset}{}}}
 \subsection{Method \code{sample_subset()}}{
-Sample subset (based on \code{metaData}), automatically applies \href{#method-removeZeros}{\code{removeZeros()}}.
+Sample subset (based on \code{metaData}), automatically applies synchronization.
 \subsection{Usage}{
 \if{html}{\out{<div class="r">}}\preformatted{omics$sample_subset(...)}\if{html}{\out{</div>}}
 }
@@ -584,7 +651,7 @@ obj$sample_subset(treatment == "tumor")
 \if{html}{\out{<a id="method-omics-samplepair_subset"></a>}}
 \if{latex}{\out{\hypertarget{method-omics-samplepair_subset}{}}}
 \subsection{Method \code{samplepair_subset()}}{
-Samplepair subset (based on \code{metaData}), automatically applies \href{#method-removeZeros}{\code{removeZeros()}}.
+Samplepair subset (based on \code{metaData}), automatically applies synchronization.
 \subsection{Usage}{
 \if{html}{\out{<div class="r">}}\preformatted{omics$samplepair_subset(num_unique_pairs = NULL)}\if{html}{\out{</div>}}
 }
@@ -606,7 +673,7 @@ object in place
 \if{html}{\out{<a id="method-omics-feature_merge"></a>}}
 \if{latex}{\out{\hypertarget{method-omics-feature_merge}{}}}
 \subsection{Method \code{feature_merge()}}{
-Agglomerates features by column, automatically applies \href{#method-removeZeros}{\code{removeZeros()}}.
+Agglomerates features by column, automatically applies synchronization.
 \subsection{Usage}{
 \if{html}{\out{<div class="r">}}\preformatted{omics$feature_merge(feature_rank, feature_filter = NULL)}\if{html}{\out{</div>}}
 }
@@ -779,6 +846,7 @@ Alpha diversity based on \link{diversity}
   col_name,
   metric = c("shannon", "invsimpson", "simpson"),
   Brewer.palID = "Set2",
+  group_by = NULL,
   evenness = FALSE,
   paired = FALSE,
   p.adjust.method = "fdr"
@@ -793,6 +861,8 @@ Alpha diversity based on \link{diversity}
 \item{\code{metric}}{An alpha diversity metric as input to \link{diversity}.}
 
 \item{\code{Brewer.palID}}{A character name for the palette set to be applied, see \link[RColorBrewer]{brewer.pal} or \link{colormap}.}
+
+\item{\code{group_by}}{A column name to perform grouped statistical test in \link{diversity_plot} (default: NULL).}
 
 \item{\code{evenness}}{A boolean wether to divide diversity by number of species, see \link[vegan]{specnumber}.}
 
@@ -1022,7 +1092,7 @@ Differential feature expression (DFE) using the \link{foldchange} for both paire
   condition_A,
   condition_B,
   pvalue.threshold = 0.05,
-  foldchange.threshold = 0.06,
+  logfold.threshold = 0.06,
   abundance.threshold = 0
 )}\if{html}{\out{</div>}}
 }
@@ -1046,9 +1116,9 @@ Differential feature expression (DFE) using the \link{foldchange} for both paire
 
 \item{\code{pvalue.threshold}}{A numeric value used as a p-value threshold to label and color significant features (Default: 0.05).}
 
-\item{\code{foldchange.threshold}}{A numeric value used as a fold-change threshold to label and color significantly expressed features (Default: 0.06).}
+\item{\code{logfold.threshold}}{A numeric value used as a fold-change threshold to label and color significantly expressed features (Default: 0.06).}
 
-\item{\code{abundance.threshold}}{A numeric value used as an abundance threshold to size the scatter dots based on their mean relative abundance (default: 0.01).}
+\item{\code{abundance.threshold}}{A numeric value used as an abundance threshold to size the scatter dots based on their mean abundance (default: 0.01).}
 }
 \if{html}{\out{</div>}}
 }
@@ -1084,20 +1154,23 @@ unpaired <- obj$DFE(feature_rank = "Genus",
 \if{latex}{\out{\hypertarget{method-omics-autoFlow}{}}}
 \subsection{Method \code{autoFlow()}}{
 Automated Omics Analysis based on the \code{metaData}, see \href{#method-validate}{\code{validate()}}.
-For now only works with headers that start with prefix \code{CONTRAST_}.
+For now only works with headers that start with prefix \code{CONTRAST_}. If the data is from the class \code{omics} or \code{proteomics} than FDR adjusted p-values are computed for the volcano plots.
 \subsection{Usage}{
 \if{html}{\out{<div class="r">}}\preformatted{omics$autoFlow(
-  feature_ranks = c("Kingdom", "Phylum", "Class", "Order", "Family", "Genus", "Species"),
-  feature_contrast = c("Phylum", "Family", "Genus"),
-  feature_filter = c("uncultured"),
+  feature_contrast = "FEATURE_ID",
+  feature_filter = NULL,
+  feature_ranks = NULL,
   distance_metrics = c("unifrac"),
   beta_div_table = NULL,
   alpha_div_table = NULL,
   normalize = TRUE,
   weighted = TRUE,
   pvalue.threshold = 0.05,
+  logfold.threshold = 1,
+  abundance.threshold = 0.01,
   perm = 999,
   threads = 1,
+  report = TRUE,
   filename = paste0(getwd(), "/report.html")
 )}\if{html}{\out{</div>}}
 }
@@ -1105,34 +1178,57 @@ For now only works with headers that start with prefix \code{CONTRAST_}.
 \subsection{Arguments}{
 \if{html}{\out{<div class="arguments">}}
 \describe{
-\item{\code{feature_ranks}}{A character vector as input to \href{#method-rankstat}{\code{rankstat()}}.}
+\item{\code{feature_contrast}}{A character vector of feature columns in the \code{featureData} to aggregate via \href{#method-feature_merge}{\code{feature_merge()}} (default: \code{"FEATURE_ID"}).}
 
-\item{\code{feature_contrast}}{A character vector of feature columns in the \code{featureData} to aggregate via \href{#method-feature_merge}{\code{feature_merge()}}.}
+\item{\code{feature_filter}}{A character vector to filter unwanted features, (default: \code{NULL}).}
 
-\item{\code{feature_filter}}{A character vector to filter unwanted features, default: \code{c("uncultured")}}
+\item{\code{feature_ranks}}{A character vector as input to \href{#method-rankstat}{\code{rankstat()}} (default: \code{NULL}).}
 
-\item{\code{distance_metrics}}{A character vector specifying what (dis)similarity metrics to use, default \code{c("unifrac")}}
+\item{\code{distance_metrics}}{A character vector specifying what (dis)similarity metrics to use (default: \code{c("unifrac")}).}
 
-\item{\code{beta_div_table}}{A path to pre-computed distance matrix, expects tsv/csv/txt file.}
+\item{\code{beta_div_table}}{A path to an existing file or a dense/sparse \link[Matrix]{Matrix} format (default: \code{NULL}).}
 
-\item{\code{alpha_div_table}}{A path to pre-computed alpha diversity with rarefraction depth, expects tsv/csv/txt from qiime2, see \link{read_rarefraction_qiime}.}
+\item{\code{alpha_div_table}}{A path to pre-computed alpha diversity table, with columns: \code{alpha_div} (containing diversity values) and the same CONTRAST columns from \code{metaData} (default: \code{NULL}).}
 
-\item{\code{normalize}}{A boolean value, whether to \href{#method-normalize}{\code{normalize()}} by total sample sums (Default: TRUE).}
+\item{\code{normalize}}{A boolean value, whether to \href{#method-normalize}{\code{normalize()}} by total sample sums (default: \code{TRUE}).}
 
-\item{\code{weighted}}{A boolean value, whether to compute weighted or unweighted dissimilarities (Default: TRUE).}
+\item{\code{weighted}}{A boolean value, whether to compute weighted or unweighted dissimilarities (default: \code{TRUE}).}
 
-\item{\code{pvalue.threshold}}{A numeric value, the p-value is used to include/exclude composition and foldchanges plots coming from alpha- and beta diversity analysis (Default: 0.05).}
+\item{\code{pvalue.threshold}}{A numeric value, the p-value is used to include/exclude composition and foldchanges plots coming from alpha- and beta diversity analysis (default: 0.05).}
 
-\item{\code{perm}}{A wholenumber, number of permutations to compare against the null hypothesis of \link[vegan]{adonis2} or \link[vegan]{anosim} (default: \code{perm=999}).}
+\item{\code{logfold.threshold}}{A numeric value used as a fold-change threshold to label and color significantly expressed features, see \href{#method-DFE}{\code{DFE()}} (Default: 1).}
 
-\item{\code{threads}}{Number of threads to use, only used in \href{#method-ordination}{\code{ordination()}} when beta_div_table is not supplied (default: 1).}
+\item{\code{abundance.threshold}}{A numeric value used as an abundance threshold to size the scatter dots based on their mean abundance, see \href{#method-DFE}{\code{DFE()}} (default: 0.01).}
 
-\item{\code{filename}}{A character to name the HTML report, it can also be a filepath (e.g. \code{"/path/to/report.html"}). Default: "report.html" in your current work directory.}
+\item{\code{perm}}{A wholenumber, number of permutations to compare against the null hypothesis of \link[vegan]{adonis2} or \link[vegan]{anosim} (default: 999).}
+
+\item{\code{threads}}{Number of threads to use, only used in \href{#method-distance}{\code{distance()}} when beta_div_table is not supplied (default: 1).}
+
+\item{\code{report}}{A boolean value to create a HTML markdown report (default: \code{FALSE}). If \code{FALSE} a nested list of the plots and data is returned.}
+
+\item{\code{filename}}{A character to name the HTML report to be saved in the current working directory (default: \code{paste0(getwd(), "/report.html")}). The \code{getwd()} is required for rmarkdown to save it in the right path.}
 }
 \if{html}{\out{</div>}}
 }
 \subsection{Returns}{
-A report in HTML format
+List of plots/data or rendered HTML report
+}
+}
+\if{html}{\out{<hr>}}
+\if{html}{\out{<a id="method-omics-clone"></a>}}
+\if{latex}{\out{\hypertarget{method-omics-clone}{}}}
+\subsection{Method \code{clone()}}{
+The objects of this class are cloneable with this method.
+\subsection{Usage}{
+\if{html}{\out{<div class="r">}}\preformatted{omics$clone(deep = FALSE)}\if{html}{\out{</div>}}
+}
+
+\subsection{Arguments}{
+\if{html}{\out{<div class="arguments">}}
+\describe{
+\item{\code{deep}}{Whether to make a deep clone.}
+}
+\if{html}{\out{</div>}}
 }
 }
 }

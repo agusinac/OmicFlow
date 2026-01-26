@@ -1,7 +1,7 @@
-#' Compute Jensen-Shannon Divergence from a Sparse Matrix.
+#' Compute Jensen-Shannon Divergence from a Dense or Sparse Matrix.
 #'
 #' @description
-#' Calculates the Jensen-Shannon divergence of a \link[Matrix]{sparseMatrix} pairwise for each column.
+#' Calculates the Jensen-Shannon divergence of a Matrix pairwise for each column.
 #' 
 #' @details
 #' The Jensen-Shannon divergence between two probability distributions \eqn{A} and \eqn{B}, each of length \eqn{n}, is defined as:
@@ -12,7 +12,7 @@
 #' and \eqn{D_{KL}} is the Kullback-Leibler divergence.
 #' When weighted is set to FALSE, counts are replaced by presence/absence data.
 #'
-#' @param x A \link[Matrix]{sparseMatrix}.
+#' @param x A \link[base]{matrix}, \link[Matrix]{sparseMatrix} or \link[Matrix]{Matrix}.
 #' @param weighted A boolean value, to use abundances (\code{weighted = TRUE}) or absence/presence (\code{weighted=FALSE}) (default: TRUE).
 #' @param threads A wholenumber, the number of threads to use in \link[RcppParallel]{setThreadOptions} (default: 1).
 #' @return A column x column \link[stats]{dist} object.
@@ -46,10 +46,10 @@ jsd <- function(x, weighted = TRUE, threads = 1) {
 
     ## Error handling
     #--------------------------------------------------------------------#
-    if (is.vector(x))
-        cli::cli_abort("Input must a matrix of class matrix or Matrix, not a vector.")
-
-    x <- drop(as(x, "sparseMatrix"))
+    if (inherits(x, "denseMatrix") || inherits(x, "matrix") || inherits(x, "sparseMatrix")) {
+        x <- as(x, "CsparseMatrix")
+    } else cli::cli_abort("Input isn't a {.cls matrix}, {.cls denseMatrix} or {.cls sparseMatrix}.")
+    
     if (!is.numeric(x@x))
         cli::cli_abort("Input data must be numeric.")
 
@@ -57,7 +57,7 @@ jsd <- function(x, weighted = TRUE, threads = 1) {
         cli::cli_abort("Input data must be non-negative.")
 
     if (!is.wholenumber(threads))
-        cli::cli_abort("{threads} must be a whole number.")
+        cli::cli_abort("{.val {threads}} must be a whole number.")
 
     ## MAIN
     #--------------------------------------------------------------------#

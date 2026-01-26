@@ -2,12 +2,12 @@
 % Please edit documentation in R/canberra.R
 \name{canberra}
 \alias{canberra}
-\title{Compute Canberra Dissimilarity from a Sparse Matrix.}
+\title{Compute Canberra Dissimilarity from a from a Dense or Sparse Matrix.}
 \usage{
 canberra(x, weighted = TRUE, threads = 1)
 }
 \arguments{
-\item{x}{A \link[Matrix]{sparseMatrix}.}
+\item{x}{A \link[base]{matrix}, \link[Matrix]{sparseMatrix} or \link[Matrix]{Matrix}.}
 
 \item{weighted}{A boolean value, to use abundances (\code{weighted = TRUE}) or absence/presence (\code{weighted=FALSE}) (default: TRUE).}
 
@@ -17,7 +17,7 @@ canberra(x, weighted = TRUE, threads = 1)
 A column x column \link[stats]{dist} object.
 }
 \description{
-Calculates the Canberra dissimilarity of a \link[Matrix]{sparseMatrix} pairwise for each column.
+Calculates the Canberra dissimilarity of a Matrix pairwise for each column.
 }
 \details{
 The Canberra dissimilarity between two samples \eqn{A} and \eqn{B}, each of length \eqn{n}, is defined as:

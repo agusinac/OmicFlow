@@ -2,12 +2,12 @@
 % Please edit documentation in R/manhattan.R
 \name{manhattan}
 \alias{manhattan}
-\title{Compute Manhattan Dissimilarity from a Sparse Matrix.}
+\title{Compute Manhattan Dissimilarity from a Dense or Sparse Matrix.}
 \usage{
 manhattan(x, weighted = TRUE, threads = 1)
 }
 \arguments{
-\item{x}{A \link[Matrix]{sparseMatrix}.}
+\item{x}{A \link[base]{matrix}, \link[Matrix]{sparseMatrix} or \link[Matrix]{Matrix}.}
 
 \item{weighted}{A boolean value, to use abundances (\code{weighted = TRUE}) or absence/presence (\code{weighted=FALSE}) (default: TRUE).}
 
@@ -17,7 +17,7 @@ manhattan(x, weighted = TRUE, threads = 1)
 A column x column \link[stats]{dist} object.
 }
 \description{
-Calculates the Manhattan dissimilarity of a \link[Matrix]{sparseMatrix} pairwise for each column.
+Calculates the Manhattan dissimilarity of a Matrix pairwise for each column.
 }
 \details{
 The Manhattan dissimilarity between two samples \eqn{A} and \eqn{B}, each of length \eqn{n}, is defined as:

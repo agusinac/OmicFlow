@@ -1,23 +1,13 @@
 test_that("Testing utils functions", {
-    ## Testing read_rarefraction_qiime
-
-    mock_df <- data.frame(
-        SAMPLE_ID = c("SampleA", "SampleB", "SampleC"),
-        `depth-1` = c(4.01, 3.95, NA),
-        `depth-2` = c(4.22, 4.06, 4.32),
-        `depth-3` = c(4.31, NA, 4.41),
-        check.names = FALSE
-    )
-    data.table::fwrite(mock_df, "mock_rarefaction.txt", sep = "\t")
-    result <- read_rarefraction_qiime("mock_rarefaction.txt")
-
-    # check & cleanup
-    expect_snapshot(result)
-    file.remove("mock_rarefaction.txt")
-
     ## Testing column_exists
-    expect_true(column_exists("iters", result))
-    expect_false(column_exists("features", result))
+    taxa <- metagenomics$new(
+        biomData = "input/metagenomics/biom_with_taxonomy_hdf5.biom",
+        metaData = "input/metagenomics/metadata.tsv",
+        treeData = "input/metagenomics/rooted_tree.newick"
+    )
+
+    expect_true(column_exists("CONTRAST_sex", taxa$metaData))
+    expect_false(column_exists("features", taxa$metaData))
 
     ## Testing sparse_to_dtable
     sparsemat <- Matrix::sparseMatrix(
@@ -27,6 +17,6 @@ test_that("Testing utils functions", {
         dims = c(5, 4)
         )
 
-    dt_sparse <- sparse_to_dtable(sparsemat)
+    dt_sparse <- matrix_to_dtable(sparsemat)
     expect_snapshot(dt_sparse)
 })

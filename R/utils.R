@@ -1,56 +1,15 @@
-#' Converting a sparse matrix to data.table
+#' Converting a Matrix to data.table
 #'
 #' @description Wrapper function that converts a sparseMatrix to data.table
 #'
-#' @param sparsemat A \link[Matrix]{sparseMatrix} class.
+#' @param x A \link[base]{matrix}, \link[Matrix]{sparseMatrix} or \link[Matrix]{Matrix}.
 #' @return A \link[data.table]{data.table} class.
 #' @export
-sparse_to_dtable <- function(sparsemat) {
-
-  ## Error handling
-  #--------------------------------------------------------------------#
-
-  if (!inherits(sparsemat, "sparseMatrix"))
-    cli::cli_abort("sparsemat must be a sparseMatrix.")
-
-  ## MAIN
-  #--------------------------------------------------------------------#
-
-  return(data.table::data.table(as.matrix(sparsemat)))
+matrix_to_dtable <- function(x) {
+  if (inherits(x, "denseMatrix") || inherits(x, "matrix") || inherits(x, "sparseMatrix")) {
+      return(data.table::data.table(as.matrix(x)))
+  } else cli::cli_abort("Input isn't a {.cls matrix}, {.cls denseMatrix} or {.cls sparseMatrix}.")
 }
-
-#' Loads a rarefied alpha diversity table from Qiime2
-#'
-#' @description Parses a QIIME2 table of rarefied data into a data.table as input to \link{diversity_plot}
-#'
-#' @param filepath A character value, filename or filepath to existing file.
-#' @return A \link[data.table]{data.table}.
-#' @export
-read_rarefraction_qiime <- function(filepath) {
-
-  ## Error handling
-  #--------------------------------------------------------------------#
-
-  if (!file.exists(filepath))
-    cli::cli_abort("{filepath} does not exist.")
-
-  ## MAIN
-  #--------------------------------------------------------------------#
-
-  df_shannon <- data.table::fread(filepath)
-
-  # Pivot into long table
-  shannon_long <- data.table::melt(data = df_shannon,
-                                   measure.vars = colnames(df_shannon)[grepl("depth-", colnames(df_shannon))],
-                                   variable.name = "iters",
-                                   variable.factor = FALSE,
-                                   value.name = "alpha_div")
-  # Corrects colnames
-  colnames(shannon_long) <- c("SAMPLE_ID", "iters", "alpha_div")
-
-  return(shannon_long)
-}
-
 #' Checks if column exists in table
 #'
 #' @description Mainly used within \link{omics} and other functions to check if given column name does exist in the table and is not completely empty (containing NAs).
@@ -65,10 +24,10 @@ column_exists <- function(column, table) {
   #--------------------------------------------------------------------#
 
   if (!is.character(column) && length(column) != 1)
-    cli::cli_abort("{column} needs to contain characters with length of 1.")
+    cli::cli_abort("{.val {column}} needs to contain characters with length of 1.")
 
   if (!inherits(table, "data.frame") && !inherits(table, "data.table"))
-    cli::cli_abort("table must be a data.frame or data.table.")
+    cli::cli_abort("{.arg table} must be a {.cls data.frame} or {.cls data.table}.")
 
   ## MAIN
   #--------------------------------------------------------------------#
@@ -98,10 +57,10 @@ is.wholenumber <- function(x, tol = .Machine$double.eps^0.5) {
 combine_conditions <- function(condition1, condition2) {
   if (!is.null(condition1) && !is.null(condition2)) {
     if (!inherits(condition1, "data.frame") && !inherits(condition1, "data.table"))
-      cli::cli_abort("condition1 must be a data.frame or data.table.")
+      cli::cli_abort("{.arg condition1} must be a {.cls data.frame} or {.cls data.table}.")
 
     if (!inherits(condition2, "data.frame") && !inherits(condition2, "data.table"))
-      cli::cli_abort("condition2 must be a data.frame or data.table.")
+      cli::cli_abort("{.arg condition2} must be a {.cls data.frame} or {.cls data.table}.")
   }
 
   # Combine to strings for easy comparison

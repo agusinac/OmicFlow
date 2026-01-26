@@ -13,85 +13,6 @@ Every omics class creates an internal memory efficient back-up of the data, the 
 \examples{
 
 ## ------------------------------------------------
-## Method `metagenomics$print`
-## ------------------------------------------------
-
-library("OmicFlow")
-
-metadata_file <- system.file("extdata", "metadata.tsv", package = "OmicFlow")
-counts_file <- system.file("extdata", "counts.tsv", package = "OmicFlow")
-features_file <- system.file("extdata", "features.tsv", package = "OmicFlow")
-tree_file <- system.file("extdata", "tree.newick", package = "OmicFlow")
-
-taxa <- metagenomics$new(
- metaData = metadata_file,
- countData = counts_file,
- featureData = features_file,
- treeData = tree_file
-)
-
-# method 1 to call print function
-taxa
-
-# method 2 to call print function
-taxa$print()
-
-
-## ------------------------------------------------
-## Method `metagenomics$reset`
-## ------------------------------------------------
-
-library(ggplot2)
-library("OmicFlow")
-
-metadata_file <- system.file("extdata", "metadata.tsv", package = "OmicFlow")
-counts_file <- system.file("extdata", "counts.tsv", package = "OmicFlow")
-features_file <- system.file("extdata", "features.tsv", package = "OmicFlow")
-tree_file <- system.file("extdata", "tree.newick", package = "OmicFlow")
-
-taxa <- metagenomics$new(
- metaData = metadata_file,
- countData = counts_file,
- featureData = features_file,
- treeData = tree_file
-)
-
-# Performs modifications
-taxa$transform(log2)
-
-# resets
-taxa$reset()
-
-# An inbuilt reset function prevents unwanted modification to the taxa object.
-taxa$rankstat(feature_ranks = c("Kingdom", "Phylum", "Family", "Genus", "Species"))
-
-
-## ------------------------------------------------
-## Method `metagenomics$removeZeros`
-## ------------------------------------------------
-
-library("OmicFlow")
-
-metadata_file <- system.file("extdata", "metadata.tsv", package = "OmicFlow")
-counts_file <- system.file("extdata", "counts.tsv", package = "OmicFlow")
-features_file <- system.file("extdata", "features.tsv", package = "OmicFlow")
-tree_file <- system.file("extdata", "tree.newick", package = "OmicFlow")
-
-taxa <- metagenomics$new(
- metaData = metadata_file,
- countData = counts_file,
- featureData = features_file,
- treeData = tree_file
-)
-
-# Sample subset induces empty features
-taxa$sample_subset(treatment == "tumor")
-
-# Remove empty features from countData and treeData
-taxa$removeZeros()
-
-
-## ------------------------------------------------
 ## Method `metagenomics$write_biom`
 ## ------------------------------------------------
 
@@ -119,18 +40,10 @@ file.remove("output.biom")
 \section{Super class}{
 \code{\link[OmicFlow:omics]{OmicFlow::omics}} -> \code{metagenomics}
 }
-\section{Public fields}{
-\if{html}{\out{<div class="r6-fields">}}
+\section{Active bindings}{
+\if{html}{\out{<div class="r6-active-bindings">}}
 \describe{
-\item{\code{countData}}{A path to an existing file, data.table, data.frame, matrix or sparseMatrix with zero values.}
-
-\item{\code{metaData}}{A path to an existing file, data.table or data.frame.}
-
-\item{\code{featureData}}{A path to an existing file, data.table or data.frame.}
-
-\item{\code{treeData}}{A path to an existing newick file or class "phylo", see \link[ape]{read.tree}.}
-
-\item{\code{biomData}}{A path to an existing biom file or hdf5 file, see \link[rhdf5]{h5read}.}
+\item{\code{treeData}}{A "phylo" class, see \link[ape]{as.phylo}.}
 }
 \if{html}{\out{</div>}}
 }
@@ -138,10 +51,8 @@ file.remove("output.biom")
 \subsection{Public methods}{
 \itemize{
 \item \href{#method-metagenomics-new}{\code{metagenomics$new()}}
-\item \href{#method-metagenomics-print}{\code{metagenomics$print()}}
-\item \href{#method-metagenomics-reset}{\code{metagenomics$reset()}}
-\item \href{#method-metagenomics-removeZeros}{\code{metagenomics$removeZeros()}}
 \item \href{#method-metagenomics-write_biom}{\code{metagenomics$write_biom()}}
+\item \href{#method-metagenomics-clone}{\code{metagenomics$clone()}}
 }
 }
 \if{html}{\out{
@@ -156,8 +67,10 @@ file.remove("output.biom")
 <li><span class="pkg-link" data-pkg="OmicFlow" data-topic="omics" data-id="feature_subset"><a href='../../OmicFlow/html/omics.html#method-omics-feature_subset'><code>OmicFlow::omics$feature_subset()</code></a></span></li>
 <li><span class="pkg-link" data-pkg="OmicFlow" data-topic="omics" data-id="normalize"><a href='../../OmicFlow/html/omics.html#method-omics-normalize'><code>OmicFlow::omics$normalize()</code></a></span></li>
 <li><span class="pkg-link" data-pkg="OmicFlow" data-topic="omics" data-id="ordination"><a href='../../OmicFlow/html/omics.html#method-omics-ordination'><code>OmicFlow::omics$ordination()</code></a></span></li>
+<li><span class="pkg-link" data-pkg="OmicFlow" data-topic="omics" data-id="print"><a href='../../OmicFlow/html/omics.html#method-omics-print'><code>OmicFlow::omics$print()</code></a></span></li>
 <li><span class="pkg-link" data-pkg="OmicFlow" data-topic="omics" data-id="rankstat"><a href='../../OmicFlow/html/omics.html#method-omics-rankstat'><code>OmicFlow::omics$rankstat()</code></a></span></li>
 <li><span class="pkg-link" data-pkg="OmicFlow" data-topic="omics" data-id="removeNAs"><a href='../../OmicFlow/html/omics.html#method-omics-removeNAs'><code>OmicFlow::omics$removeNAs()</code></a></span></li>
+<li><span class="pkg-link" data-pkg="OmicFlow" data-topic="omics" data-id="reset"><a href='../../OmicFlow/html/omics.html#method-omics-reset'><code>OmicFlow::omics$reset()</code></a></span></li>
 <li><span class="pkg-link" data-pkg="OmicFlow" data-topic="omics" data-id="sample_subset"><a href='../../OmicFlow/html/omics.html#method-omics-sample_subset'><code>OmicFlow::omics$sample_subset()</code></a></span></li>
 <li><span class="pkg-link" data-pkg="OmicFlow" data-topic="omics" data-id="samplepair_subset"><a href='../../OmicFlow/html/omics.html#method-omics-samplepair_subset'><code>OmicFlow::omics$samplepair_subset()</code></a></span></li>
 <li><span class="pkg-link" data-pkg="OmicFlow" data-topic="omics" data-id="transform"><a href='../../OmicFlow/html/omics.html#method-omics-transform'><code>OmicFlow::omics$transform()</code></a></span></li>
@@ -184,11 +97,11 @@ Initializes the metagenomics class object with \code{metagenomics$new()}
 \subsection{Arguments}{
 \if{html}{\out{<div class="arguments">}}
 \describe{
-\item{\code{countData}}{countData A path to an existing file, data.table, data.frame, matrix or sparseMatrix with zero values.}
+\item{\code{countData}}{A path to an existing file or a dense/sparse \link[Matrix]{Matrix} format.}
 
-\item{\code{metaData}}{A path to an existing file, data.table or data.frame.}
+\item{\code{metaData}}{A path to an existing file, \link[data.table]{data.table} or data.frame.}
 
-\item{\code{featureData}}{A path to an existing file, data.table or data.frame.}
+\item{\code{featureData}}{A path to an existing file, \link[data.table]{data.table} or data.frame.}
 
 \item{\code{treeData}}{A path to an existing newick file or class "phylo", see \link[ape]{read.tree}.}
 
@@ -201,133 +114,6 @@ Initializes the metagenomics class object with \code{metagenomics$new()}
 \subsection{Returns}{
 A new \code{metagenomics} object.
 }
-}
-\if{html}{\out{<hr>}}
-\if{html}{\out{<a id="method-metagenomics-print"></a>}}
-\if{latex}{\out{\hypertarget{method-metagenomics-print}{}}}
-\subsection{Method \code{print()}}{
-Displays parameters of the metagenomics object via stdout.
-\subsection{Usage}{
-\if{html}{\out{<div class="r">}}\preformatted{metagenomics$print()}\if{html}{\out{</div>}}
-}
-
-\subsection{Returns}{
-object in place
-}
-\subsection{Examples}{
-\if{html}{\out{<div class="r example copy">}}
-\preformatted{library("OmicFlow")
-
-metadata_file <- system.file("extdata", "metadata.tsv", package = "OmicFlow")
-counts_file <- system.file("extdata", "counts.tsv", package = "OmicFlow")
-features_file <- system.file("extdata", "features.tsv", package = "OmicFlow")
-tree_file <- system.file("extdata", "tree.newick", package = "OmicFlow")
-
-taxa <- metagenomics$new(
- metaData = metadata_file,
- countData = counts_file,
- featureData = features_file,
- treeData = tree_file
-)
-
-# method 1 to call print function
-taxa
-
-# method 2 to call print function
-taxa$print()
-
-}
-\if{html}{\out{</div>}}
-
-}
-
-}
-\if{html}{\out{<hr>}}
-\if{html}{\out{<a id="method-metagenomics-reset"></a>}}
-\if{latex}{\out{\hypertarget{method-metagenomics-reset}{}}}
-\subsection{Method \code{reset()}}{
-Upon creation of a new \code{metagenomics} object a small backup of the original data is created.
-Since modification of the object is done by reference and duplicates are not made, it is possible to \code{reset} changes to the class.
-The methods from the abstract class \link{omics} also contains a private method to prevent any changes to the original object when using methods such as \code{ordination} \code{alpha_diversity} or \code{$DFE}.
-\subsection{Usage}{
-\if{html}{\out{<div class="r">}}\preformatted{metagenomics$reset()}\if{html}{\out{</div>}}
-}
-
-\subsection{Returns}{
-object in place
-}
-\subsection{Examples}{
-\if{html}{\out{<div class="r example copy">}}
-\preformatted{library(ggplot2)
-library("OmicFlow")
-
-metadata_file <- system.file("extdata", "metadata.tsv", package = "OmicFlow")
-counts_file <- system.file("extdata", "counts.tsv", package = "OmicFlow")
-features_file <- system.file("extdata", "features.tsv", package = "OmicFlow")
-tree_file <- system.file("extdata", "tree.newick", package = "OmicFlow")
-
-taxa <- metagenomics$new(
- metaData = metadata_file,
- countData = counts_file,
- featureData = features_file,
- treeData = tree_file
-)
-
-# Performs modifications
-taxa$transform(log2)
-
-# resets
-taxa$reset()
-
-# An inbuilt reset function prevents unwanted modification to the taxa object.
-taxa$rankstat(feature_ranks = c("Kingdom", "Phylum", "Family", "Genus", "Species"))
-
-}
-\if{html}{\out{</div>}}
-
-}
-
-}
-\if{html}{\out{<hr>}}
-\if{html}{\out{<a id="method-metagenomics-removeZeros"></a>}}
-\if{latex}{\out{\hypertarget{method-metagenomics-removeZeros}{}}}
-\subsection{Method \code{removeZeros()}}{
-Removes empty (zero) values by row, column and tips from the \code{countData} and \code{treeData}.
-This method is performed automatically during subsetting of the object.
-\subsection{Usage}{
-\if{html}{\out{<div class="r">}}\preformatted{metagenomics$removeZeros()}\if{html}{\out{</div>}}
-}
-
-\subsection{Returns}{
-object in place
-}
-\subsection{Examples}{
-\if{html}{\out{<div class="r example copy">}}
-\preformatted{library("OmicFlow")
-
-metadata_file <- system.file("extdata", "metadata.tsv", package = "OmicFlow")
-counts_file <- system.file("extdata", "counts.tsv", package = "OmicFlow")
-features_file <- system.file("extdata", "features.tsv", package = "OmicFlow")
-tree_file <- system.file("extdata", "tree.newick", package = "OmicFlow")
-
-taxa <- metagenomics$new(
- metaData = metadata_file,
- countData = counts_file,
- featureData = features_file,
- treeData = tree_file
-)
-
-# Sample subset induces empty features
-taxa$sample_subset(treatment == "tumor")
-
-# Remove empty features from countData and treeData
-taxa$removeZeros()
-
-}
-\if{html}{\out{</div>}}
-
-}
-
 }
 \if{html}{\out{<hr>}}
 \if{html}{\out{<a id="method-metagenomics-write_biom"></a>}}
@@ -369,5 +155,22 @@ file.remove("output.biom")
 
 }
 
+}
+\if{html}{\out{<hr>}}
+\if{html}{\out{<a id="method-metagenomics-clone"></a>}}
+\if{latex}{\out{\hypertarget{method-metagenomics-clone}{}}}
+\subsection{Method \code{clone()}}{
+The objects of this class are cloneable with this method.
+\subsection{Usage}{
+\if{html}{\out{<div class="r">}}\preformatted{metagenomics$clone(deep = FALSE)}\if{html}{\out{</div>}}
+}
+
+\subsection{Arguments}{
+\if{html}{\out{<div class="arguments">}}
+\describe{
+\item{\code{deep}}{Whether to make a deep clone.}
+}
+\if{html}{\out{</div>}}
+}
 }
 }

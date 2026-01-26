@@ -10,99 +10,16 @@ It supports pre-existing data structures or paths to text files.
 When omics data is very large, data loading becomes very expensive. It is therefore recommended to use the \href{#method-reset}{\code{reset()}} method to reset your changes.
 Every omics class creates an internal memory efficient back-up of the data, the resetting of changes is an instant process.
 }
-\examples{
-
-## ------------------------------------------------
-## Method `proteomics$print`
-## ------------------------------------------------
-
-library("OmicFlow")
-
-metadata_file <- system.file("extdata", "metadata.tsv", package = "OmicFlow")
-counts_file <- system.file("extdata", "counts.tsv", package = "OmicFlow")
-features_file <- system.file("extdata", "features.tsv", package = "OmicFlow")
-tree_file <- system.file("extdata", "tree.newick", package = "OmicFlow")
-
-prot <- proteomics$new(
- metaData = metadata_file,
- countData = counts_file,
- featureData = features_file,
- treeData = tree_file
-)
-
-# method 1 to call print function
-prot
-
-# method 2 to call print function
-prot$print()
-
-
-## ------------------------------------------------
-## Method `proteomics$reset`
-## ------------------------------------------------
-
-library("OmicFlow")
-
-metadata_file <- system.file("extdata", "metadata.tsv", package = "OmicFlow")
-counts_file <- system.file("extdata", "counts.tsv", package = "OmicFlow")
-features_file <- system.file("extdata", "features.tsv", package = "OmicFlow")
-tree_file <- system.file("extdata", "tree.newick", package = "OmicFlow")
-
-prot <- proteomics$new(
- metaData = metadata_file,
- countData = counts_file,
- featureData = features_file,
- treeData = tree_file
-)
-
-# Performs modifications
-prot$transform(log2)
-
-# resets
-prot$reset()
-
-
-## ------------------------------------------------
-## Method `proteomics$removeZeros`
-## ------------------------------------------------
-
-library("OmicFlow")
-
-metadata_file <- system.file("extdata", "metadata.tsv", package = "OmicFlow")
-counts_file <- system.file("extdata", "counts.tsv", package = "OmicFlow")
-features_file <- system.file("extdata", "features.tsv", package = "OmicFlow")
-tree_file <- system.file("extdata", "tree.newick", package = "OmicFlow")
-
-prot <- proteomics$new(
- metaData = metadata_file,
- countData = counts_file,
- featureData = features_file,
- treeData = tree_file
-)
-
-# Sample subset induces empty features
-prot$sample_subset(treatment == "tumor")
-
-# Remove empty features from countData and treeData
-prot$removeZeros()
-
-}
 \seealso{
 \link{omics}
 }
 \section{Super class}{
 \code{\link[OmicFlow:omics]{OmicFlow::omics}} -> \code{proteomics}
 }
-\section{Public fields}{
-\if{html}{\out{<div class="r6-fields">}}
+\section{Active bindings}{
+\if{html}{\out{<div class="r6-active-bindings">}}
 \describe{
-\item{\code{countData}}{A path to an existing file, data.table, data.frame, matrix or sparseMatrix with zero values.}
-
-\item{\code{metaData}}{A path to an existing file, data.table or data.frame.}
-
-\item{\code{featureData}}{A path to an existing file, data.table or data.frame.}
-
-\item{\code{treeData}}{A path to an existing newick file or class "phylo", see \link[ape]{read.tree}.}
+\item{\code{treeData}}{A "phylo" class, see \link[ape]{as.phylo}.}
 }
 \if{html}{\out{</div>}}
 }
@@ -110,9 +27,7 @@ prot$removeZeros()
 \subsection{Public methods}{
 \itemize{
 \item \href{#method-proteomics-new}{\code{proteomics$new()}}
-\item \href{#method-proteomics-print}{\code{proteomics$print()}}
-\item \href{#method-proteomics-reset}{\code{proteomics$reset()}}
-\item \href{#method-proteomics-removeZeros}{\code{proteomics$removeZeros()}}
+\item \href{#method-proteomics-clone}{\code{proteomics$clone()}}
 }
 }
 \if{html}{\out{
@@ -127,8 +42,10 @@ prot$removeZeros()
 <li><span class="pkg-link" data-pkg="OmicFlow" data-topic="omics" data-id="feature_subset"><a href='../../OmicFlow/html/omics.html#method-omics-feature_subset'><code>OmicFlow::omics$feature_subset()</code></a></span></li>
 <li><span class="pkg-link" data-pkg="OmicFlow" data-topic="omics" data-id="normalize"><a href='../../OmicFlow/html/omics.html#method-omics-normalize'><code>OmicFlow::omics$normalize()</code></a></span></li>
 <li><span class="pkg-link" data-pkg="OmicFlow" data-topic="omics" data-id="ordination"><a href='../../OmicFlow/html/omics.html#method-omics-ordination'><code>OmicFlow::omics$ordination()</code></a></span></li>
+<li><span class="pkg-link" data-pkg="OmicFlow" data-topic="omics" data-id="print"><a href='../../OmicFlow/html/omics.html#method-omics-print'><code>OmicFlow::omics$print()</code></a></span></li>
 <li><span class="pkg-link" data-pkg="OmicFlow" data-topic="omics" data-id="rankstat"><a href='../../OmicFlow/html/omics.html#method-omics-rankstat'><code>OmicFlow::omics$rankstat()</code></a></span></li>
 <li><span class="pkg-link" data-pkg="OmicFlow" data-topic="omics" data-id="removeNAs"><a href='../../OmicFlow/html/omics.html#method-omics-removeNAs'><code>OmicFlow::omics$removeNAs()</code></a></span></li>
+<li><span class="pkg-link" data-pkg="OmicFlow" data-topic="omics" data-id="reset"><a href='../../OmicFlow/html/omics.html#method-omics-reset'><code>OmicFlow::omics$reset()</code></a></span></li>
 <li><span class="pkg-link" data-pkg="OmicFlow" data-topic="omics" data-id="sample_subset"><a href='../../OmicFlow/html/omics.html#method-omics-sample_subset'><code>OmicFlow::omics$sample_subset()</code></a></span></li>
 <li><span class="pkg-link" data-pkg="OmicFlow" data-topic="omics" data-id="samplepair_subset"><a href='../../OmicFlow/html/omics.html#method-omics-samplepair_subset'><code>OmicFlow::omics$samplepair_subset()</code></a></span></li>
 <li><span class="pkg-link" data-pkg="OmicFlow" data-topic="omics" data-id="transform"><a href='../../OmicFlow/html/omics.html#method-omics-transform'><code>OmicFlow::omics$transform()</code></a></span></li>
@@ -142,17 +59,22 @@ prot$removeZeros()
 \subsection{Method \code{new()}}{
 Initializes the proteomics class object with \code{proteomics$new()}
 \subsection{Usage}{
-\if{html}{\out{<div class="r">}}\preformatted{proteomics$new(countData = NA, metaData = NA, featureData = NA, treeData = NA)}\if{html}{\out{</div>}}
+\if{html}{\out{<div class="r">}}\preformatted{proteomics$new(
+  countData = NULL,
+  metaData = NULL,
+  featureData = NULL,
+  treeData = NULL
+)}\if{html}{\out{</div>}}
 }
 
 \subsection{Arguments}{
 \if{html}{\out{<div class="arguments">}}
 \describe{
-\item{\code{countData}}{A path to an existing file, data.table, data.frame, matrix or sparseMatrix with zero values.}
+\item{\code{countData}}{A path to an existing file or a dense/sparse \link[Matrix]{Matrix} format.}
 
-\item{\code{metaData}}{A path to an existing file, data.table or data.frame.}
+\item{\code{metaData}}{A path to an existing file, \link[data.table]{data.table} or data.frame.}
 
-\item{\code{featureData}}{A path to an existing file, data.table or data.frame.}
+\item{\code{featureData}}{A path to an existing file, \link[data.table]{data.table} or data.frame.}
 
 \item{\code{treeData}}{A path to an existing newick file or class "phylo", see \link[ape]{read.tree}.}
 }
@@ -163,126 +85,20 @@ A new \code{proteomics} object.
 }
 }
 \if{html}{\out{<hr>}}
-\if{html}{\out{<a id="method-proteomics-print"></a>}}
-\if{latex}{\out{\hypertarget{method-proteomics-print}{}}}
-\subsection{Method \code{print()}}{
-Displays parameters of the proteomics object via stdout.
+\if{html}{\out{<a id="method-proteomics-clone"></a>}}
+\if{latex}{\out{\hypertarget{method-proteomics-clone}{}}}
+\subsection{Method \code{clone()}}{
+The objects of this class are cloneable with this method.
 \subsection{Usage}{
-\if{html}{\out{<div class="r">}}\preformatted{proteomics$print()}\if{html}{\out{</div>}}
+\if{html}{\out{<div class="r">}}\preformatted{proteomics$clone(deep = FALSE)}\if{html}{\out{</div>}}
 }
 
-\subsection{Returns}{
-object in place
-}
-\subsection{Examples}{
-\if{html}{\out{<div class="r example copy">}}
-\preformatted{library("OmicFlow")
-
-metadata_file <- system.file("extdata", "metadata.tsv", package = "OmicFlow")
-counts_file <- system.file("extdata", "counts.tsv", package = "OmicFlow")
-features_file <- system.file("extdata", "features.tsv", package = "OmicFlow")
-tree_file <- system.file("extdata", "tree.newick", package = "OmicFlow")
-
-prot <- proteomics$new(
- metaData = metadata_file,
- countData = counts_file,
- featureData = features_file,
- treeData = tree_file
-)
-
-# method 1 to call print function
-prot
-
-# method 2 to call print function
-prot$print()
-
+\subsection{Arguments}{
+\if{html}{\out{<div class="arguments">}}
+\describe{
+\item{\code{deep}}{Whether to make a deep clone.}
 }
 \if{html}{\out{</div>}}
-
 }
-
-}
-\if{html}{\out{<hr>}}
-\if{html}{\out{<a id="method-proteomics-reset"></a>}}
-\if{latex}{\out{\hypertarget{method-proteomics-reset}{}}}
-\subsection{Method \code{reset()}}{
-Upon creation of a new \code{proteomics} object a small backup of the original data is created.
-Since modification of the object is done by reference and duplicates are not made, it is possible to \code{reset} changes to the class.
-The methods from the abstract class \link{omics} also contains a private method to prevent any changes to the original object when using methods such as \code{ordination} \code{alpha_diversity} or \code{$DFE}.
-\subsection{Usage}{
-\if{html}{\out{<div class="r">}}\preformatted{proteomics$reset()}\if{html}{\out{</div>}}
-}
-
-\subsection{Returns}{
-object in place
-}
-\subsection{Examples}{
-\if{html}{\out{<div class="r example copy">}}
-\preformatted{library("OmicFlow")
-
-metadata_file <- system.file("extdata", "metadata.tsv", package = "OmicFlow")
-counts_file <- system.file("extdata", "counts.tsv", package = "OmicFlow")
-features_file <- system.file("extdata", "features.tsv", package = "OmicFlow")
-tree_file <- system.file("extdata", "tree.newick", package = "OmicFlow")
-
-prot <- proteomics$new(
- metaData = metadata_file,
- countData = counts_file,
- featureData = features_file,
- treeData = tree_file
-)
-
-# Performs modifications
-prot$transform(log2)
-
-# resets
-prot$reset()
-
-}
-\if{html}{\out{</div>}}
-
-}
-
-}
-\if{html}{\out{<hr>}}
-\if{html}{\out{<a id="method-proteomics-removeZeros"></a>}}
-\if{latex}{\out{\hypertarget{method-proteomics-removeZeros}{}}}
-\subsection{Method \code{removeZeros()}}{
-Removes empty (zero) values by row, column and tips from the \code{countData} and \code{treeData}.
-This method is performed automatically during subsetting of the object.
-\subsection{Usage}{
-\if{html}{\out{<div class="r">}}\preformatted{proteomics$removeZeros()}\if{html}{\out{</div>}}
-}
-
-\subsection{Returns}{
-object in place
-}
-\subsection{Examples}{
-\if{html}{\out{<div class="r example copy">}}
-\preformatted{library("OmicFlow")
-
-metadata_file <- system.file("extdata", "metadata.tsv", package = "OmicFlow")
-counts_file <- system.file("extdata", "counts.tsv", package = "OmicFlow")
-features_file <- system.file("extdata", "features.tsv", package = "OmicFlow")
-tree_file <- system.file("extdata", "tree.newick", package = "OmicFlow")
-
-prot <- proteomics$new(
- metaData = metadata_file,
- countData = counts_file,
- featureData = features_file,
- treeData = tree_file
-)
-
-# Sample subset induces empty features
-prot$sample_subset(treatment == "tumor")
-
-# Remove empty features from countData and treeData
-prot$removeZeros()
-
-}
-\if{html}{\out{</div>}}
-
-}
-
 }
 }

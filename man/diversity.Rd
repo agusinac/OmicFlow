@@ -12,7 +12,7 @@ diversity(
 )
 }
 \arguments{
-\item{x}{A \link[base]{matrix} or \link[Matrix]{sparseMatrix}.}
+\item{x}{A \link[base]{matrix}, \link[Matrix]{sparseMatrix} or \link[Matrix]{Matrix}.}
 
 \item{metric}{A character variable for metric; shannon, simpson or invsimpson.}
 

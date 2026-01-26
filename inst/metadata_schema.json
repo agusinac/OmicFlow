@@ -10,10 +10,6 @@
                 "type": "string",
                 "pattern": "^(\\S*)$"
             },
-            "FEATURE_ID": {
-                "type": "string",
-                "pattern": "^(\\S*)$"
-            },
             "SAMPLEPAIR_ID": {
                 "type": "string",
                 "pattern": "^(\\S*)$"

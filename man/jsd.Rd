@@ -2,12 +2,12 @@
 % Please edit documentation in R/jsd.R
 \name{jsd}
 \alias{jsd}
-\title{Compute Jensen-Shannon Divergence from a Sparse Matrix.}
+\title{Compute Jensen-Shannon Divergence from a Dense or Sparse Matrix.}
 \usage{
 jsd(x, weighted = TRUE, threads = 1)
 }
 \arguments{
-\item{x}{A \link[Matrix]{sparseMatrix}.}
+\item{x}{A \link[base]{matrix}, \link[Matrix]{sparseMatrix} or \link[Matrix]{Matrix}.}
 
 \item{weighted}{A boolean value, to use abundances (\code{weighted = TRUE}) or absence/presence (\code{weighted=FALSE}) (default: TRUE).}
 
@@ -17,7 +17,7 @@ jsd(x, weighted = TRUE, threads = 1)
 A column x column \link[stats]{dist} object.
 }
 \description{
-Calculates the Jensen-Shannon divergence of a \link[Matrix]{sparseMatrix} pairwise for each column.
+Calculates the Jensen-Shannon divergence of a Matrix pairwise for each column.
 }
 \details{
 The Jensen-Shannon divergence between two probability distributions \eqn{A} and \eqn{B}, each of length \eqn{n}, is defined as:

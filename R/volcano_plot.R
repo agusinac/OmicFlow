@@ -68,46 +68,46 @@ volcano_plot <- function(data,
   #--------------------------------------------------------------------#
 
   if (!inherits(data, "data.table"))
-    cli::cli_abort("Data must be a data.table.")
+    cli::cli_abort("Data must be a {.cls data.table}.")
 
   if (!is.character(logfold_col) && length(logfold_col) != 1) {
-    cli::cli_abort("{logfold_col} needs to contain characters with length of 1.")
+    cli::cli_abort("{.val {logfold_col}} needs to contain characters with length of 1.")
   } else if (!column_exists(logfold_col, data)) {
-    cli::cli_abort("The {logfold_col} column does not exist in the provided data.")
+    cli::cli_abort("The {.val {logfold_col}} column does not exist in the provided {.arg data}.")
   }
 
   if (!is.character(pvalue_col) && length(pvalue_col) != 1) {
-    cli::cli_abort("{pvalue_col} needs to contain characters with length of 1.")
+    cli::cli_abort("{.val {pvalue_col}} needs to contain characters with length of 1.")
   } else if (!column_exists(pvalue_col, data)) {
-    cli::cli_abort("The {pvalue_col} column does not exist in the provided data.")
+    cli::cli_abort("The {.val {pvalue_col}} column does not exist in the provided {.arg data}.")
   }
 
   if (!is.character(abundance_col) && length(abundance_col) != 1) {
-    cli::cli_abort("{abundance_col} needs to contain characters with length of 1.")
+    cli::cli_abort("{.val {abundance_col}} needs to contain characters with length of 1.")
   } else if (!column_exists(abundance_col, data)) {
-    cli::cli_abort("The {abundance_col} column does not exist in the provided data.")
+    cli::cli_abort("The {.val {abundance_col}} column does not exist in the provided {.arg data}.")
   }
 
   if (!is.character(feature_rank) && length(feature_rank) != 1) {
-    cli::cli_abort("{feature_rank} needs to contain characters with length of 1.")
+    cli::cli_abort("{.val {feature_rank}} needs to contain characters with length of 1.")
   } else if (!column_exists(feature_rank, data)) {
-    cli::cli_abort("The {feature_rank} column does not exist in the provided data.")
+    cli::cli_abort("The {.val {feature_rank}} column does not exist in the provided {.arg data}.")
   }
 
   if (!is.numeric(pvalue.threshold))
-    cli::cli_abort("{pvalue.threshold} need to be numeric.")
+    cli::cli_abort("{.val {pvalue.threshold}} need to be numeric.")
 
   if (!is.numeric(logfold.threshold))
-    cli::cli_abort("{logfold.threshold} need to be numeric.")
+    cli::cli_abort("{.val {logfold.threshold}} need to be numeric.")
 
   if (!is.numeric(abundance.threshold))
-    cli::cli_abort("{abundance.threshold} need to be numeric.")
+    cli::cli_abort("{.val {abundance.threshold}} need to be numeric.")
 
   if (!is.character(label_A))
-    cli::cli_abort("{label_A} needs to contain characters.")
+    cli::cli_abort("{.val {label_A}} needs to contain characters.")
 
   if (!is.character(label_B))
-    cli::cli_abort("{label_B} needs to contain characters.")
+    cli::cli_abort("{.val {label_B}} needs to contain characters.")
 
   ## MAIN
   #--------------------------------------------------------------------#
