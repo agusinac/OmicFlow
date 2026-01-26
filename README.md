@@ -77,8 +77,9 @@ taxa$autoFlow(
 > [!NOTE]
 > Make sure your metadata meets the requirements!
 ---
+The abstract class `omics` can be used for any type of omics data where a `treeData` is not required. Let's say you have a `metaData` and `countData` (file or a matrix with rownames), these can be supplied directly to `omics` and a `featureData` field is then automatically generated. You can change all fields via `<-` and these will be automatically synced in the background.
 
-Only the `metagenomics` class supports biom files in both HDF5 ([version 2](https://biom-format.org/documentation/format_versions/biom-2.0.html)) as JSON data structure to be passed via `biomData`. The `proteomics` class only supports the `countData` and `featureData`. The `treeData` is optional in both `omics` sub-classes and when supplied, both the rows of the `countData` as `featureData` will be aligned by the tree tip labels. 
+The `metagenomics` class has extra support for biom files in both HDF5 ([version 2](https://biom-format.org/documentation/format_versions/biom-2.0.html)) as JSON data structure to be passed via `biomData` on top of the default `omics` fields. The `proteomics` class is more an extension of the `omics` class that also allows the input of a `treeData` and performs alignment by the `treeData` tip labels.
 ```R
 library("OmicFlow")
 
@@ -103,9 +104,11 @@ taxa$countData
 taxa$featureData
 taxa$treeData
 
+# Change variables & enjoy the automatic sync
+taxa$featureData <- taxa$featureData[1:100, ]
+
 # Inspect what functions variables are available to the class
 str(taxa)
-
 ```
 
 ### Visualisations
@@ -126,6 +129,9 @@ alpha_div$plot
 ![](docs/figures/alphadiv_readme.png)
 
 #### 🔹Beta diversity
+> [!NOTE]
+> Since v1.5 OmicFlow computes dissimilarity metrics from both sparse and dense matrices!
+
 By default PERMANOVA is applied pairwise against each group within the specified contrast, via `group_by` that is used in `pairwise_adonis`. The permutation design in `vegan::adonis2` is by default set to `free`. But this may not always be the right test when you have paired samples and you also want to restrict permutations between different sites or genders. Therefore, `pairwise_adonis` supports a custom permutation design, which can be constructed via [permute](https://cran.r-project.org/web/packages/permute/vignettes/permutations.html) and fed into `vegan::adonis2` as a function via `pairwise_adonis` with the flag `perm_design`. See the examples below. 
 ```R
 set.seed(1970)
