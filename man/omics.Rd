@@ -1154,12 +1154,12 @@ unpaired <- obj$DFE(feature_rank = "Genus",
 \if{latex}{\out{\hypertarget{method-omics-autoFlow}{}}}
 \subsection{Method \code{autoFlow()}}{
 Automated Omics Analysis based on the \code{metaData}, see \href{#method-validate}{\code{validate()}}.
-For now only works with headers that start with prefix \code{CONTRAST_}.
+For now only works with headers that start with prefix \code{CONTRAST_}. If the data is from the class \code{omics} or \code{proteomics} than FDR adjusted p-values are computed for the volcano plots.
 \subsection{Usage}{
 \if{html}{\out{<div class="r">}}\preformatted{omics$autoFlow(
-  feature_ranks = c("Kingdom", "Phylum", "Class", "Order", "Family", "Genus", "Species"),
-  feature_contrast = c("Phylum", "Family", "Genus"),
-  feature_filter = c("uncultured"),
+  feature_contrast = "FEATURE_ID",
+  feature_filter = NULL,
+  feature_ranks = NULL,
   distance_metrics = c("unifrac"),
   beta_div_table = NULL,
   alpha_div_table = NULL,
@@ -1168,41 +1168,44 @@ For now only works with headers that start with prefix \code{CONTRAST_}.
   pvalue.threshold = 0.05,
   perm = 999,
   threads = 1,
-  filename = paste0(getwd(), "/report.html")
+  report = TRUE,
+  filename = "report.html"
 )}\if{html}{\out{</div>}}
 }
 
 \subsection{Arguments}{
 \if{html}{\out{<div class="arguments">}}
 \describe{
-\item{\code{feature_ranks}}{A character vector as input to \href{#method-rankstat}{\code{rankstat()}}.}
+\item{\code{feature_contrast}}{A character vector of feature columns in the \code{featureData} to aggregate via \href{#method-feature_merge}{\code{feature_merge()}} (default: \code{"FEATURE_ID"}).}
 
-\item{\code{feature_contrast}}{A character vector of feature columns in the \code{featureData} to aggregate via \href{#method-feature_merge}{\code{feature_merge()}}.}
+\item{\code{feature_filter}}{A character vector to filter unwanted features, (default: \code{NULL}).}
 
-\item{\code{feature_filter}}{A character vector to filter unwanted features, default: \code{c("uncultured")}}
+\item{\code{feature_ranks}}{A character vector as input to \href{#method-rankstat}{\code{rankstat()}} (default: \code{NULL}).}
 
-\item{\code{distance_metrics}}{A character vector specifying what (dis)similarity metrics to use, default \code{c("unifrac")}}
+\item{\code{distance_metrics}}{A character vector specifying what (dis)similarity metrics to use (default: \code{c("unifrac")}).}
 
-\item{\code{beta_div_table}}{A path to pre-computed distance matrix, expects tsv/csv/txt file.}
+\item{\code{beta_div_table}}{A path to an existing file or a dense/sparse \link[Matrix]{Matrix} format (default: \code{NULL}).}
 
-\item{\code{alpha_div_table}}{A path to pre-computed alpha diversity with rarefraction depth, expects tsv/csv/txt from qiime2, see \link{read_rarefraction_qiime}.}
+\item{\code{alpha_div_table}}{A path to pre-computed alpha diversity table, with columns: \code{alpha_div} (containing diversity values) and the same CONTRAST columns from \code{metaData} (default: \code{NULL}).}
 
-\item{\code{normalize}}{A boolean value, whether to \href{#method-normalize}{\code{normalize()}} by total sample sums (Default: TRUE).}
+\item{\code{normalize}}{A boolean value, whether to \href{#method-normalize}{\code{normalize()}} by total sample sums (default: \code{TRUE}).}
 
-\item{\code{weighted}}{A boolean value, whether to compute weighted or unweighted dissimilarities (Default: TRUE).}
+\item{\code{weighted}}{A boolean value, whether to compute weighted or unweighted dissimilarities (default: \code{TRUE}).}
 
-\item{\code{pvalue.threshold}}{A numeric value, the p-value is used to include/exclude composition and foldchanges plots coming from alpha- and beta diversity analysis (Default: 0.05).}
+\item{\code{pvalue.threshold}}{A numeric value, the p-value is used to include/exclude composition and foldchanges plots coming from alpha- and beta diversity analysis (default: 0.05).}
 
-\item{\code{perm}}{A wholenumber, number of permutations to compare against the null hypothesis of \link[vegan]{adonis2} or \link[vegan]{anosim} (default: \code{perm=999}).}
+\item{\code{perm}}{A wholenumber, number of permutations to compare against the null hypothesis of \link[vegan]{adonis2} or \link[vegan]{anosim} (default: 999).}
 
-\item{\code{threads}}{Number of threads to use, only used in \href{#method-ordination}{\code{ordination()}} when beta_div_table is not supplied (default: 1).}
+\item{\code{threads}}{Number of threads to use, only used in \href{#method-distance}{\code{distance()}} when beta_div_table is not supplied (default: 1).}
 
-\item{\code{filename}}{A character to name the HTML report, it can also be a filepath (e.g. \code{"/path/to/report.html"}). Default: "report.html" in your current work directory.}
+\item{\code{report}}{A boolean value to create a HTML markdown report (default: \code{FALSE}). If \code{FALSE} a nested list of the plots and data is returned.}
+
+\item{\code{filename}}{A character to name the HTML report to be saved in the current working directory (default: \code{"report.html"}).}
 }
 \if{html}{\out{</div>}}
 }
 \subsection{Returns}{
-A report in HTML format
+List of plots/data or rendered HTML report
 }
 }
 \if{html}{\out{<hr>}}

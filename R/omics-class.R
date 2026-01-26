@@ -148,7 +148,7 @@ omics <- R6::R6Class(
           duplicated_sample_idx <- duplicated(private$.metaData, by = private$.sample_id)
           duplicated_sample_ids <- any(duplicated_sample_idx)
           if (duplicated_sample_ids) {
-            duplicated_sample_names <- private$.metaData[[private$.sample_id]][duplicated_sample_idx]
+            duplicated_sample_names <- unique(private$.metaData[[private$.sample_id]][duplicated_sample_idx])
             cli::cli_abort(
               "Found duplicated: {.val {duplicated_sample_names}}\
               \n Make sure {.arg SAMPLE_ID} column contains {.strong unique} identifiers!"
@@ -185,7 +185,7 @@ omics <- R6::R6Class(
           duplicated_feature_ids <- any(duplicated_feature_idx)
 
           if (duplicated_feature_ids) {
-            duplicated_feature_names <- private$.featureData[[private$.feature_id]][duplicated_feature_idx]
+            duplicated_feature_names <- unique(private$.featureData[[private$.feature_id]][duplicated_feature_idx])
             cli::cli_abort(
               "Found duplicated: {.val {duplicated_feature_names}} \
               \n Make sure {.arg FEATURE_ID} column contains {.strong unique} identifiers!"
@@ -1415,24 +1415,25 @@ omics <- R6::R6Class(
     },
     #' @description
     #' Automated Omics Analysis based on the `metaData`, see [`validate()`](#method-validate).
-    #' For now only works with headers that start with prefix `CONTRAST_`.
-    #' @param feature_ranks A character vector as input to [`rankstat()`](#method-rankstat).
-    #' @param feature_contrast A character vector of feature columns in the `featureData` to aggregate via [`feature_merge()`](#method-feature_merge).
-    #' @param feature_filter A character vector to filter unwanted features, default: \code{c("uncultured")}
-    #' @param distance_metrics A character vector specifying what (dis)similarity metrics to use, default \code{c("unifrac")}
-    #' @param beta_div_table A path to pre-computed distance matrix, expects tsv/csv/txt file.
-    #' @param alpha_div_table A path to pre-computed alpha diversity with rarefraction depth, expects tsv/csv/txt from qiime2, see \link{read_rarefraction_qiime}.
-    #' @param normalize A boolean value, whether to [`normalize()`](#method-normalize) by total sample sums (Default: TRUE).
-    #' @param weighted A boolean value, whether to compute weighted or unweighted dissimilarities (Default: TRUE).
-    #' @param pvalue.threshold A numeric value, the p-value is used to include/exclude composition and foldchanges plots coming from alpha- and beta diversity analysis (Default: 0.05).
-    #' @param perm A wholenumber, number of permutations to compare against the null hypothesis of \link[vegan]{adonis2} or \link[vegan]{anosim} (default: \code{perm=999}).
-    #' @param threads Number of threads to use, only used in [`ordination()`](#method-ordination) when beta_div_table is not supplied (default: 1).
-    #' @param filename A character to name the HTML report, it can also be a filepath (e.g. \code{"/path/to/report.html"}). Default: "report.html" in your current work directory.
+    #' For now only works with headers that start with prefix `CONTRAST_`. If the data is from the class `omics` or `proteomics` than FDR adjusted p-values are computed for the volcano plots.
+    #' @param feature_contrast A character vector of feature columns in the `featureData` to aggregate via [`feature_merge()`](#method-feature_merge) (default: \code{"FEATURE_ID"}).
+    #' @param feature_filter A character vector to filter unwanted features, (default: \code{NULL}).
+    #' @param feature_ranks A character vector as input to [`rankstat()`](#method-rankstat) (default: \code{NULL}).
+    #' @param distance_metrics A character vector specifying what (dis)similarity metrics to use (default: \code{c("unifrac")}).
+    #' @param beta_div_table A path to an existing file or a dense/sparse \link[Matrix]{Matrix} format (default: \code{NULL}).
+    #' @param alpha_div_table A path to pre-computed alpha diversity table, with columns: `alpha_div` (containing diversity values) and the same CONTRAST columns from `metaData` (default: \code{NULL}).
+    #' @param normalize A boolean value, whether to [`normalize()`](#method-normalize) by total sample sums (default: \code{TRUE}).
+    #' @param weighted A boolean value, whether to compute weighted or unweighted dissimilarities (default: \code{TRUE}).
+    #' @param pvalue.threshold A numeric value, the p-value is used to include/exclude composition and foldchanges plots coming from alpha- and beta diversity analysis (default: 0.05).
+    #' @param perm A wholenumber, number of permutations to compare against the null hypothesis of \link[vegan]{adonis2} or \link[vegan]{anosim} (default: 999).
+    #' @param threads Number of threads to use, only used in [`distance()`](#method-distance) when beta_div_table is not supplied (default: 1).
+    #' @param report A boolean value to create a HTML markdown report (default: \code{FALSE}). If \code{FALSE} a nested list of the plots and data is returned.
+    #' @param filename A character to name the HTML report to be saved in the current working directory (default: \code{"report.html"}).
     #' @importFrom patchwork plot_layout wrap_plots
-    #' @return A report in HTML format
-    autoFlow = function(feature_ranks = c("Kingdom", "Phylum", "Class", "Order", "Family", "Genus", "Species"),
-                        feature_contrast = c("Phylum", "Family", "Genus"),
-                        feature_filter = c("uncultured"),
+    #' @return List of plots/data or rendered HTML report
+    autoFlow = function(feature_contrast = "FEATURE_ID",
+                        feature_filter = NULL,
+                        feature_ranks = NULL,
                         distance_metrics = c("unifrac"),
                         beta_div_table = NULL,
                         alpha_div_table = NULL,
@@ -1441,7 +1442,8 @@ omics <- R6::R6Class(
                         pvalue.threshold = 0.05,
                         perm = 999,
                         threads = 1,
-                        filename = paste0(getwd(), "/report.html")
+                        report = TRUE,
+                        filename = "report.html"
                       ) {
     ## Error handling
     #--------------------------------------------------------------------#
@@ -1506,7 +1508,9 @@ omics <- R6::R6Class(
     VARIABLE_data <- private$.metaData[, .SD, .SDcols = grepl("VARIABLE_", metacols)]
     VARIABLE_names <- colnames(VARIABLE_data)
 
-    #
+    if (ncol(CONTRAST_data) == 0)
+      cli::cli_abort("No columns with prefix {.val CONTRAST} found.. Did you forgot to add a prefix?")
+
     #---------------------------------------------#
     # Perform standard visualizations             #
     #---------------------------------------------#
@@ -1518,20 +1522,22 @@ omics <- R6::R6Class(
     VARIABLE_ncol <- length(VARIABLE_data)
 
     # Standard rank stats
-    plots$rankstat_plot <- self$rankstat(feature_ranks)
+    if (!is.null(feature_ranks)) {
+      plots$rankstat_plot <- self$rankstat(feature_ranks)
+    }
 
     # Main loop
     if (CONTRAST_ncol > 0) {
 
       # Load custom distance matrix if supplied
       if (!is.null(beta_div_table)) {
-        beta_div_table <- check_matrix(filepath = beta_div_table)
+        beta_div_table <- private$check_matrix(filepath = beta_div_table)
         beta_div_table <- beta_div_table[private$.metaData[[private$.sample_id]], private$.metaData[[private$.sample_id]]]
       }
 
       # Load custom rarefraction alpha diversity table if supplied
       if (!is.null(alpha_div_table)) {
-        alpha_div_table <- read_rarefraction_qiime(filepath = alpha_div_table)
+        alpha_div_table <- private$check_table(alpha_div_table)
       }
 
       # Initialize plot containers
@@ -1540,14 +1546,12 @@ omics <- R6::R6Class(
       alpha_div_plots <- list()
       metrics_nrow <- length(distance_metrics)
       pcoa_plots <- matrix(list(), CONTRAST_ncol, metrics_nrow)
-      nmds_plots <- matrix(list(), CONTRAST_ncol, metrics_nrow)
 
       # Initialize data containers
       composition_data <- matrix(list(), CONTRAST_ncol, feature_nrow)
       Log2FC_data <- matrix(list(), CONTRAST_ncol, feature_nrow)
       alpha_div_data <- list()
       pcoa_data <- matrix(list(), CONTRAST_ncol, metrics_nrow)
-      nmds_data <- matrix(list(), CONTRAST_ncol, metrics_nrow)
 
       for (i in 1:CONTRAST_ncol) {
         col_name <- CONTRAST_names[i]
@@ -1558,14 +1562,8 @@ omics <- R6::R6Class(
         ## Alpha diversity
         #--------------------------------------------------------------------#
         if (inherits(alpha_div_table, "data.table")) {
-          dt_final <- base::merge(alpha_div_table,
-                                  private$.metaData[, .SD, .SDcols = c(private$.sample_id, col_name)],
-                                  by = private$.sample_id,
-                                  all.x = TRUE) %>%
-            na.omit(cols = col_name)
-
           res <- diversity_plot(
-            data = dt_final,
+            data = alpha_div_table,
             values = "alpha_div",
             col_name = col_name,
             palette = colormap(dt_final, col_name, "Set2"),
@@ -1683,17 +1681,6 @@ omics <- R6::R6Class(
             
             conditions <- combine_conditions(conditions, signif_pairs)
           }      
-
-          ### Store plot and data
-          nmds_plots[[i, j]] <- patchwork::wrap_plots(res[c("anova_plot", "scores_plot")],
-                                                      nrow = 1) +
-            patchwork::plot_layout(widths = c(rep(5, 3)),
-                                   guides = "collect")
-          nmds_data[[i, j]] <- list(
-            stats = res$anova_data,
-            dist_mat = res$dist,
-            pcs = res$pcs
-          )
         }
       
         #--------------------------------------------------------------------#
@@ -1745,7 +1732,20 @@ omics <- R6::R6Class(
                   condition_B = c(conditions$group2)
                   )
               }
-            )  
+            )
+            if (class(self)[1] %in% c("omics", "proteomics")) {
+              dfe$data$p.adj <- p.adjust(p = dfe$data$pvalue_1, method = "fdr")
+              dfe$volcano_plot <- volcano_plot(
+                data = dfe$data,
+                logfold_col = "Log2FC_1",
+                pvalue_col = "p.adj",
+                feature_rank = feature_contrast[j],
+                abundance_col = "rel_abun",
+                logfold.threshold = 2,
+                label_A = conditions$group1,
+                label_B = conditions$group2
+              )
+            }
             Log2FC_plots[[i, j]] <- patchwork::wrap_plots(dfe$volcano_plot, nrow=1)
             Log2FC_data[[i, j]] <- list(data = dfe$data)
           }
@@ -1757,34 +1757,38 @@ omics <- R6::R6Class(
       plots$composition_plots <- is_empty(composition_plots)
       plots$Log2FC_plots <- is_empty(Log2FC_plots)
       plots$pcoa_plots <- is_empty(pcoa_plots)
-      plots$nmds_plots <- is_empty(nmds_plots)
 
       # Checks if data aren't empty
       data$composition_data <- is_empty(composition_data)
       data$Log2FC_data <- is_empty(Log2FC_data)
       data$alpha_div_data <- is_empty(alpha_div_data)
       data$pcoa_data <- is_empty(pcoa_data)
-      data$nmds_data <- is_empty(nmds_data)
     }
     
     #--------------------------------------------------------------------#
     ## CREATING REPORT
     #--------------------------------------------------------------------#
+    if (report) {
+      # Locate the template Rmd and CSS within the installed package
+      rmd_path <- system.file("report.Rmd", package = "OmicFlow")
+      css_path <- system.file("styles.css", package = "OmicFlow")
 
-    # Locate the template Rmd and CSS within the installed package
-    rmd_path <- system.file("report.Rmd", package = "OmicFlow")
-    css_path <- system.file("styles.css", package = "OmicFlow")
-
-    ## To bypass R CMD error and define for docker
-    knit_dir <- dirname(filename)
-    
-    rmarkdown::render(
-      input = rmd_path,
-      output_file = filename,
-      intermediates_dir = knit_dir,
-      knit_root_dir = knit_dir,
-      output_options = list(css = css_path)
-    )
+      ## To bypass R CMD error and define for docker
+      knit_dir <- dirname(paste0(getwd(), filename))
+      
+      rmarkdown::render(
+        input = rmd_path,
+        output_file = filename,
+        intermediates_dir = knit_dir,
+        knit_root_dir = knit_dir,
+        output_options = list(css = css_path)
+      )
+    } else {
+      return(list(
+        plots = plots,
+        data = data
+      ))
+    }
   }
   ),
   private = list(

@@ -1,4 +1,4 @@
-SAMPLE_ID,treatment
+SAMPLE_ID,CONTRAST_treatment
 Sample_01,tumor
 Sample_02,tumor
 Sample_03,tumor

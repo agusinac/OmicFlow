@@ -182,13 +182,15 @@ foldchange <- function(data,
     # Compute pvalues with wilcox test
     for (k in seq_along(feature_labels)) {
       # save p-values in data.table
-      foldchange_dt[
-        k, (paste0("pvalue_", i)) := stats::wilcox.test(
-          mat_A[k, ], mat_B[k, ],
-          correct = TRUE,
-          paired = paired
-          )$p.value
-        ]
+      suppressWarnings(
+        foldchange_dt[
+          k, (paste0("pvalue_", i)) := stats::wilcox.test(
+            mat_A[k, ], mat_B[k, ],
+            correct = TRUE,
+            paired = paired
+            )$p.value
+          ]
+      )
     }
   }
 

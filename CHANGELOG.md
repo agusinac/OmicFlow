@@ -3,7 +3,7 @@
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/)
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
-## v1.5.0 - [2026-01-]
+## v1.5.0 - [2026-01-26]
 
 ### `Added`
 - [#23](https://github.com/agusinac/OmicFlow/issues/23) active bindings on data types, in place modification and automatic synchronisation between other data types by default via private function `sync`.
@@ -18,12 +18,14 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - Improved the `cli` formatting and visualisation of different arguments.
 - `print()` inherited for each sub-class from `omics` and uses `cli::cli_inform` instead of `cat`
 - [#21](https://github.com/agusinac/OmicFlow/issues/21) introduced custom half boxplot/point in `diversity_plot`, now also added `group_by` to perform grouped statistical tests.
+- Replaced `read_rarefraction_qiime` by `check_table` from private function of class `omics.`
 
 ### `Fixed`
 - [#25](https://github.com/agusinac/OmicFlow/issues/25) changed default value of `initialize` function.
 
 ### `Deprecated`
 - Removed `tmp_restore` and `tmp_link`
+- Utils function `read_rarefraction_qiime`
 
 ## v1.4.2 - [2025-11-30]
 

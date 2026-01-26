@@ -10,39 +10,6 @@ matrix_to_dtable <- function(x) {
       return(data.table::data.table(as.matrix(x)))
   } else cli::cli_abort("Input isn't a {.cls matrix}, {.cls denseMatrix} or {.cls sparseMatrix}.")
 }
-
-#' Loads a rarefied alpha diversity table from Qiime2
-#'
-#' @description Parses a QIIME2 table of rarefied data into a data.table as input to \link{diversity_plot}
-#'
-#' @param filepath A character value, filename or filepath to existing file.
-#' @return A \link[data.table]{data.table}.
-#' @export
-read_rarefraction_qiime <- function(filepath) {
-
-  ## Error handling
-  #--------------------------------------------------------------------#
-
-  if (!file.exists(filepath))
-    cli::cli_abort("{.filename {filepath}} does not exist.")
-
-  ## MAIN
-  #--------------------------------------------------------------------#
-
-  df_shannon <- data.table::fread(filepath)
-
-  # Pivot into long table
-  shannon_long <- data.table::melt(data = df_shannon,
-                                   measure.vars = colnames(df_shannon)[grepl("depth-", colnames(df_shannon))],
-                                   variable.name = "iters",
-                                   variable.factor = FALSE,
-                                   value.name = "alpha_div")
-  # Corrects colnames
-  colnames(shannon_long) <- c("SAMPLE_ID", "iters", "alpha_div")
-
-  return(shannon_long)
-}
-
 #' Checks if column exists in table
 #'
 #' @description Mainly used within \link{omics} and other functions to check if given column name does exist in the table and is not completely empty (containing NAs).

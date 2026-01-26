@@ -13,7 +13,7 @@
 #' @return A \link[ggplot2]{ggplot2} object to be further modified
 #'
 #' @importFrom ggplot2 ggplot aes .data theme_bw theme element_text scale_colour_manual scale_x_continuous labs geom_boxplot geom_segment geom_point facet_wrap position_nudge 
-#' @importFrom stats p.adjust.methods
+#' @importFrom stats p.adjust.methods quantile median
 #' 
 #' @examples
 #' library("ggplot2")
@@ -43,7 +43,7 @@
 #' )
 #' 
 #' dt <- data.table::data.table(
-#'   "values" = div,
+#'   "shannon" = div,
 #'   "treatment" = c(rep("healthy", n_col / 2), rep("tumor", n_col / 2))
 #' )
 #' 
@@ -51,7 +51,7 @@
 #' 
 #' plt <- OmicFlow::diversity_plot(
 #'  data = dt,
-#'  values = "values",
+#'  values = "shannon",
 #'  col_name = "treatment",
 #'  palette = colors,
 #'  method = "shannon",
@@ -123,15 +123,15 @@ diversity_plot <- function(data,
       }, by = group_by]
 
       # Creates box_stats for half geom_box/geom_point
-      setnames(data, old = group_by, new = "group_col")
+      data.table::setnames(data, old = group_by, new = "group_col")
       group_by <- "group_col"
       box_stats <- data[, .(
-        ymin = min(get(values)),
-        ymax = max(get(values)),
-        lower = quantile(get(values), 0.25),
-        middle = median(get(values)),
-        upper = quantile(get(values), 0.75)
-      ), by = .(group_numeric = as.numeric(as.factor(get(col_name))), group_col)]
+        ymin = base::min(base::get(values)),
+        ymax = base::max(base::get(values)),
+        lower = quantile(base::get(values), 0.25),
+        middle = median(base::get(values)),
+        upper = quantile(base::get(values), 0.75)
+      ), by = .(group_numeric = as.numeric(as.factor(base::get(col_name))), group_col)]
     } else {
       pvalues_adjusted <- data %>%
         rstatix::pairwise_wilcox_test(formula = stats::reformulate(col_name, response = values),
@@ -142,11 +142,11 @@ diversity_plot <- function(data,
 
       # Creates box_stats for half geom_box/geom_point
       box_stats <- data[, .(
-        ymin = min(get(values)),
-        ymax = max(get(values)),
-        lower = quantile(get(values), 0.25),
-        middle = median(get(values)),
-        upper = quantile(get(values), 0.75)
+        ymin = base::min(base::get(values)),
+        ymax = base::max(base::get(values)),
+        lower = quantile(base::get(values), 0.25),
+        middle = median(base::get(values)),
+        upper = quantile(base::get(values), 0.75)
       ), by = .(group_numeric = as.numeric(as.factor(get(col_name))))]
     }
     pvalues_adjusted.filtered <- pvalues_adjusted[grepl("\\*", pvalues_adjusted$p.adj.signif) ,]
@@ -155,30 +155,34 @@ diversity_plot <- function(data,
       ggplot(mapping = aes(x = as.numeric(as.factor(.data[[col_name]])), y = .data[[values]]))
     # Custom half-boxplot using pre-computed stats
     if (!is.null(group_by)) {
-      plt <- plt + geom_boxplot(
-        data = box_stats,
-        aes(x = group_numeric - 0.2,
-            ymin = lower, ymax = upper,
-            lower = lower, middle = middle, upper = upper,
-            width = 0.4,
-            group = interaction(group_numeric, group_col)),
-        stat = "identity",
-        fill = "white", color = "black",
-        alpha = 0.8,
-        inherit.aes = FALSE 
+      suppressWarnings(
+        plt <- plt + geom_boxplot(
+          data = box_stats,
+          aes(x = .data$group_numeric - 0.2,
+              ymin = .data$lower, ymax = .data$upper,
+              lower = .data$lower, middle = .data$middle, upper = .data$upper,
+              width = 0.4,
+              group = base::interaction(.data$group_numeric, .data$group_col)),
+          stat = "identity",
+          fill = "white", color = "black",
+          alpha = 0.8,
+          inherit.aes = FALSE 
+        )
       )
     } else {
-      plt <- plt + geom_boxplot(
-        data = box_stats,
-        aes(x = group_numeric - 0.2,
-            ymin = lower, ymax = upper,
-            lower = lower, middle = middle, upper = upper,
-            width = 0.4,
-            group = interaction(group_numeric)),
-        stat = "identity",
-        fill = "white", color = "black",
-        alpha = 0.8,
-        inherit.aes = FALSE 
+      suppressWarnings(
+        plt <- plt + geom_boxplot(
+          data = box_stats,
+          aes(x = .data$group_numeric - 0.2,
+              ymin = .data$lower, ymax = .data$upper,
+              lower = .data$lower, middle = .data$middle, upper = .data$upper,
+              width = 0.4,
+              group = base::interaction(.data$group_numeric)),
+          stat = "identity",
+          fill = "white", color = "black",
+          alpha = 0.8,
+          inherit.aes = FALSE 
+        )
       )
     }
     plt <- plt +
@@ -188,22 +192,22 @@ diversity_plot <- function(data,
                 shape = 20, size = 2) +
       geom_segment(
         data = box_stats,
-        aes(x = group_numeric, y = ymin,
-            xend = group_numeric, yend = ymax),
+        aes(x = .data$group_numeric, y = .data$ymin,
+            xend = .data$group_numeric, yend = .data$ymax),
         color = "black", size = 0.3
       ) +
       # Top horizontal segment
       geom_segment(
         data = box_stats,
-        aes(x = group_numeric - 0.1, y = ymax,
-            xend = group_numeric, yend = ymax),
+        aes(x = .data$group_numeric - 0.1, y = .data$ymax,
+            xend = .data$group_numeric, yend = .data$ymax),
         color = "black", size = 0.3
       ) +
       # Bottom horizontal segment  
       geom_segment(
         data = box_stats,
-        aes(x = group_numeric - 0.1, y = ymin,
-            xend = group_numeric, yend = ymin),
+        aes(x = .data$group_numeric - 0.1, y = .data$ymin,
+            xend = .data$group_numeric, yend = .data$ymin),
         color = "black", size = 0.3
       )
     

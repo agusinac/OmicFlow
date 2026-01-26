@@ -67,7 +67,7 @@ div <- OmicFlow::diversity(
 )
 
 dt <- data.table::data.table(
-  "values" = div,
+  "shannon" = div,
   "treatment" = c(rep("healthy", n_col / 2), rep("tumor", n_col / 2))
 )
 
@@ -75,7 +75,7 @@ colors <- OmicFlow::colormap(dt, "treatment")
 
 plt <- OmicFlow::diversity_plot(
  data = dt,
- values = "values",
+ values = "shannon",
  col_name = "treatment",
  palette = colors,
  method = "shannon",
