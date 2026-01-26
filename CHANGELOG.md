@@ -19,6 +19,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - `print()` inherited for each sub-class from `omics` and uses `cli::cli_inform` instead of `cat`
 - [#21](https://github.com/agusinac/OmicFlow/issues/21) introduced custom half boxplot/point in `diversity_plot`, now also added `group_by` to perform grouped statistical tests.
 - Replaced `read_rarefraction_qiime` by `check_table` from private function of class `omics.`
+- `autoFlow` compatible to denseMatrix formats, applies fdr correction in other omics layers, report can be set to False, removed `nmds`.
 
 ### `Fixed`
 - [#25](https://github.com/agusinac/OmicFlow/issues/25) changed default value of `initialize` function.

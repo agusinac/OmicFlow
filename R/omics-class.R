@@ -1255,7 +1255,7 @@ omics <- R6::R6Class(
     #' @param condition_A A character value or vector of characters.
     #' @param condition_B A character value or vector of characters.
     #' @param pvalue.threshold A numeric value used as a p-value threshold to label and color significant features (Default: 0.05).
-    #' @param foldchange.threshold A numeric value used as a fold-change threshold to label and color significantly expressed features (Default: 0.06).
+    #' @param logfold.threshold A numeric value used as a fold-change threshold to label and color significantly expressed features (Default: 0.06).
     #' @param abundance.threshold A numeric value used as an abundance threshold to size the scatter dots based on their mean relative abundance (default: 0.01).
     #' @param normalize A boolean value, whether to [`normalize()`](#method-normalize) by total sample sums (Default: TRUE).
     #' @examples
@@ -1291,7 +1291,7 @@ omics <- R6::R6Class(
                    condition_A,
                    condition_B,
                    pvalue.threshold = 0.05,
-                   foldchange.threshold = 0.06,
+                   logfold.threshold = 0.06,
                    abundance.threshold = 0
                    ) {
 
@@ -1315,8 +1315,8 @@ omics <- R6::R6Class(
       if (!is.numeric(pvalue.threshold))
         cli::cli_abort("{.val {pvalue.threshold}} need to be numeric.")
 
-      if (!is.numeric(foldchange.threshold))
-        cli::cli_abort("{.val {foldchange.threshold}} need to be numeric.")
+      if (!is.numeric(logfold.threshold))
+        cli::cli_abort("{.val {logfold.threshold}} need to be numeric.")
 
       if (paired && is.null(private$.samplepair_id)) {
         cli::cli_alert_warning("Paired is set to {.val {paired}} but {.arg SAMPLEPAIR_ID} does not exist in the {.field metaData}.\n Differential feature analysis will continue now with paired set to {.val FALSE}!")
@@ -1399,7 +1399,7 @@ omics <- R6::R6Class(
                        feature_rank = feature_rank,
                        abundance_col = "rel_abun",
                        pvalue.threshold = pvalue.threshold,
-                       logfold.threshold = foldchange.threshold,
+                       logfold.threshold = logfold.threshold,
                        abundance.threshold = abundance.threshold,
                        label_A = condition_A,
                        label_B = condition_B) +
@@ -1425,10 +1425,12 @@ omics <- R6::R6Class(
     #' @param normalize A boolean value, whether to [`normalize()`](#method-normalize) by total sample sums (default: \code{TRUE}).
     #' @param weighted A boolean value, whether to compute weighted or unweighted dissimilarities (default: \code{TRUE}).
     #' @param pvalue.threshold A numeric value, the p-value is used to include/exclude composition and foldchanges plots coming from alpha- and beta diversity analysis (default: 0.05).
+    #' @param logfold.threshold A numeric value used as a fold-change threshold to label and color significantly expressed features, see [`DFE()`](#method-DFE) (Default: 0.06).
+    #' @param abundance.threshold A numeric value used as an abundance threshold to size the scatter dots based on their mean relative abundance, see [`DFE()`](#method-DFE) (default: 0.01).
     #' @param perm A wholenumber, number of permutations to compare against the null hypothesis of \link[vegan]{adonis2} or \link[vegan]{anosim} (default: 999).
     #' @param threads Number of threads to use, only used in [`distance()`](#method-distance) when beta_div_table is not supplied (default: 1).
     #' @param report A boolean value to create a HTML markdown report (default: \code{FALSE}). If \code{FALSE} a nested list of the plots and data is returned.
-    #' @param filename A character to name the HTML report to be saved in the current working directory (default: \code{"report.html"}).
+    #' @param filename A character to name the HTML report to be saved in the current working directory (default: \code{"paste0(getwd(), report.html")}). The \code{getwd()} is required for rmarkdown to save it in the right path.
     #' @importFrom patchwork plot_layout wrap_plots
     #' @return List of plots/data or rendered HTML report
     autoFlow = function(feature_contrast = "FEATURE_ID",
@@ -1440,10 +1442,12 @@ omics <- R6::R6Class(
                         normalize = TRUE,
                         weighted = TRUE,
                         pvalue.threshold = 0.05,
+                        logfold.threshold = 1,
+                        abundance.threshold = 0.01,
                         perm = 999,
                         threads = 1,
                         report = TRUE,
-                        filename = "report.html"
+                        filename = paste0(getwd(), "report.html")
                       ) {
     ## Error handling
     #--------------------------------------------------------------------#
@@ -1717,7 +1721,10 @@ omics <- R6::R6Class(
                 normalize = normalize,
                 condition.group = col_name,
                 condition_A = c(conditions$group1),
-                condition_B = c(conditions$group2)
+                condition_B = c(conditions$group2),
+                pvalue.threshold = pvalue.threshold,
+                abundance.threshold = abundance.threshold,
+                logfold.threshold = logfold.threshold
                 )
               },
               error = function(e) {
@@ -1729,7 +1736,10 @@ omics <- R6::R6Class(
                   normalize = normalize,
                   condition.group = col_name,
                   condition_A = c(conditions$group1),
-                  condition_B = c(conditions$group2)
+                  condition_B = c(conditions$group2),
+                  pvalue.threshold = pvalue.threshold,
+                  abundance.threshold = abundance.threshold,
+                  logfold.threshold = logfold.threshold
                   )
               }
             )
@@ -1743,7 +1753,10 @@ omics <- R6::R6Class(
                 abundance_col = "rel_abun",
                 logfold.threshold = 2,
                 label_A = conditions$group1,
-                label_B = conditions$group2
+                label_B = conditions$group2,
+                pvalue.threshold = pvalue.threshold,
+                abundance.threshold = abundance.threshold,
+                logfold.threshold = logfold.threshold
               )
             }
             Log2FC_plots[[i, j]] <- patchwork::wrap_plots(dfe$volcano_plot, nrow=1)
@@ -1774,7 +1787,7 @@ omics <- R6::R6Class(
       css_path <- system.file("styles.css", package = "OmicFlow")
 
       ## To bypass R CMD error and define for docker
-      knit_dir <- dirname(paste0(getwd(), filename))
+      knit_dir <- dirname(filename)
       
       rmarkdown::render(
         input = rmd_path,

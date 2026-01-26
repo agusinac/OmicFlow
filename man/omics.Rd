@@ -1092,7 +1092,7 @@ Differential feature expression (DFE) using the \link{foldchange} for both paire
   condition_A,
   condition_B,
   pvalue.threshold = 0.05,
-  foldchange.threshold = 0.06,
+  logfold.threshold = 0.06,
   abundance.threshold = 0
 )}\if{html}{\out{</div>}}
 }
@@ -1116,7 +1116,7 @@ Differential feature expression (DFE) using the \link{foldchange} for both paire
 
 \item{\code{pvalue.threshold}}{A numeric value used as a p-value threshold to label and color significant features (Default: 0.05).}
 
-\item{\code{foldchange.threshold}}{A numeric value used as a fold-change threshold to label and color significantly expressed features (Default: 0.06).}
+\item{\code{logfold.threshold}}{A numeric value used as a fold-change threshold to label and color significantly expressed features (Default: 0.06).}
 
 \item{\code{abundance.threshold}}{A numeric value used as an abundance threshold to size the scatter dots based on their mean relative abundance (default: 0.01).}
 }
@@ -1166,10 +1166,12 @@ For now only works with headers that start with prefix \code{CONTRAST_}. If the 
   normalize = TRUE,
   weighted = TRUE,
   pvalue.threshold = 0.05,
+  logfold.threshold = 1,
+  abundance.threshold = 0.01,
   perm = 999,
   threads = 1,
   report = TRUE,
-  filename = "report.html"
+  filename = paste0(getwd(), "report.html")
 )}\if{html}{\out{</div>}}
 }
 
@@ -1194,13 +1196,17 @@ For now only works with headers that start with prefix \code{CONTRAST_}. If the 
 
 \item{\code{pvalue.threshold}}{A numeric value, the p-value is used to include/exclude composition and foldchanges plots coming from alpha- and beta diversity analysis (default: 0.05).}
 
+\item{\code{logfold.threshold}}{A numeric value used as a fold-change threshold to label and color significantly expressed features, see \href{#method-DFE}{\code{DFE()}} (Default: 0.06).}
+
+\item{\code{abundance.threshold}}{A numeric value used as an abundance threshold to size the scatter dots based on their mean relative abundance, see \href{#method-DFE}{\code{DFE()}} (default: 0.01).}
+
 \item{\code{perm}}{A wholenumber, number of permutations to compare against the null hypothesis of \link[vegan]{adonis2} or \link[vegan]{anosim} (default: 999).}
 
 \item{\code{threads}}{Number of threads to use, only used in \href{#method-distance}{\code{distance()}} when beta_div_table is not supplied (default: 1).}
 
 \item{\code{report}}{A boolean value to create a HTML markdown report (default: \code{FALSE}). If \code{FALSE} a nested list of the plots and data is returned.}
 
-\item{\code{filename}}{A character to name the HTML report to be saved in the current working directory (default: \code{"report.html"}).}
+\item{\code{filename}}{A character to name the HTML report to be saved in the current working directory (default: \code{"paste0(getwd(), report.html")}). The \code{getwd()} is required for rmarkdown to save it in the right path.}
 }
 \if{html}{\out{</div>}}
 }
