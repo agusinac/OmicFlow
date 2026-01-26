@@ -1256,7 +1256,7 @@ omics <- R6::R6Class(
     #' @param condition_B A character value or vector of characters.
     #' @param pvalue.threshold A numeric value used as a p-value threshold to label and color significant features (Default: 0.05).
     #' @param logfold.threshold A numeric value used as a fold-change threshold to label and color significantly expressed features (Default: 0.06).
-    #' @param abundance.threshold A numeric value used as an abundance threshold to size the scatter dots based on their mean relative abundance (default: 0.01).
+    #' @param abundance.threshold A numeric value used as an abundance threshold to size the scatter dots based on their mean abundance (default: 0.01).
     #' @param normalize A boolean value, whether to [`normalize()`](#method-normalize) by total sample sums (Default: TRUE).
     #' @examples
     #' library("ggplot2")
@@ -1358,11 +1358,11 @@ omics <- R6::R6Class(
       self$feature_merge(feature_rank = feature_rank,
                         feature_filter = feature_filter)
 
-      # Extract mean relative abundance
-      rel_abun <- as.matrix(Matrix::rowSums(private$.countData) / ncol(private$.countData))
-      rownames(rel_abun) <- private$.featureData[[ feature_rank ]]
+      # Extract mean abundance
+      abun <- as.matrix(Matrix::rowSums(private$.countData) / ncol(private$.countData))
+      rownames(abun) <- private$.featureData[[ feature_rank ]]
 
-      # Get data.table format relative abundances
+      # Get data.table format abundances
       dt <- matrix_to_dtable(private$.countData)[, (feature_rank) := private$.featureData[[feature_rank]]]
 
       # Compute 2-fold expression based on (un)paired samples
@@ -1385,8 +1385,8 @@ omics <- R6::R6Class(
         # Visualization        #
         #----------------------#
 
-        # Add relative abundance, and save data as output list
-        dfe <- dfe[, "rel_abun" := rel_abun]
+        # Add abundance, and save data as output list
+        dfe <- dfe[, "abun" := abun]
         plot_list$data <- dfe
 
         # Create & save volcano plot
@@ -1397,7 +1397,7 @@ omics <- R6::R6Class(
                        logfold_col = paste0("Log2FC_", i),
                        pvalue_col = paste0("pvalue_", i),
                        feature_rank = feature_rank,
-                       abundance_col = "rel_abun",
+                       abundance_col = "abun",
                        pvalue.threshold = pvalue.threshold,
                        logfold.threshold = logfold.threshold,
                        abundance.threshold = abundance.threshold,
@@ -1425,8 +1425,8 @@ omics <- R6::R6Class(
     #' @param normalize A boolean value, whether to [`normalize()`](#method-normalize) by total sample sums (default: \code{TRUE}).
     #' @param weighted A boolean value, whether to compute weighted or unweighted dissimilarities (default: \code{TRUE}).
     #' @param pvalue.threshold A numeric value, the p-value is used to include/exclude composition and foldchanges plots coming from alpha- and beta diversity analysis (default: 0.05).
-    #' @param logfold.threshold A numeric value used as a fold-change threshold to label and color significantly expressed features, see [`DFE()`](#method-DFE) (Default: 0.06).
-    #' @param abundance.threshold A numeric value used as an abundance threshold to size the scatter dots based on their mean relative abundance, see [`DFE()`](#method-DFE) (default: 0.01).
+    #' @param logfold.threshold A numeric value used as a fold-change threshold to label and color significantly expressed features, see [`DFE()`](#method-DFE) (Default: 1).
+    #' @param abundance.threshold A numeric value used as an abundance threshold to size the scatter dots based on their mean abundance, see [`DFE()`](#method-DFE) (default: 0.01).
     #' @param perm A wholenumber, number of permutations to compare against the null hypothesis of \link[vegan]{adonis2} or \link[vegan]{anosim} (default: 999).
     #' @param threads Number of threads to use, only used in [`distance()`](#method-distance) when beta_div_table is not supplied (default: 1).
     #' @param report A boolean value to create a HTML markdown report (default: \code{FALSE}). If \code{FALSE} a nested list of the plots and data is returned.
@@ -1750,8 +1750,7 @@ omics <- R6::R6Class(
                 logfold_col = "Log2FC_1",
                 pvalue_col = "p.adj",
                 feature_rank = feature_contrast[j],
-                abundance_col = "rel_abun",
-                logfold.threshold = 2,
+                abundance_col = "abun",
                 label_A = conditions$group1,
                 label_B = conditions$group2,
                 pvalue.threshold = pvalue.threshold,

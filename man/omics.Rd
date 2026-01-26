@@ -1118,7 +1118,7 @@ Differential feature expression (DFE) using the \link{foldchange} for both paire
 
 \item{\code{logfold.threshold}}{A numeric value used as a fold-change threshold to label and color significantly expressed features (Default: 0.06).}
 
-\item{\code{abundance.threshold}}{A numeric value used as an abundance threshold to size the scatter dots based on their mean relative abundance (default: 0.01).}
+\item{\code{abundance.threshold}}{A numeric value used as an abundance threshold to size the scatter dots based on their mean abundance (default: 0.01).}
 }
 \if{html}{\out{</div>}}
 }
@@ -1196,9 +1196,9 @@ For now only works with headers that start with prefix \code{CONTRAST_}. If the 
 
 \item{\code{pvalue.threshold}}{A numeric value, the p-value is used to include/exclude composition and foldchanges plots coming from alpha- and beta diversity analysis (default: 0.05).}
 
-\item{\code{logfold.threshold}}{A numeric value used as a fold-change threshold to label and color significantly expressed features, see \href{#method-DFE}{\code{DFE()}} (Default: 0.06).}
+\item{\code{logfold.threshold}}{A numeric value used as a fold-change threshold to label and color significantly expressed features, see \href{#method-DFE}{\code{DFE()}} (Default: 1).}
 
-\item{\code{abundance.threshold}}{A numeric value used as an abundance threshold to size the scatter dots based on their mean relative abundance, see \href{#method-DFE}{\code{DFE()}} (default: 0.01).}
+\item{\code{abundance.threshold}}{A numeric value used as an abundance threshold to size the scatter dots based on their mean abundance, see \href{#method-DFE}{\code{DFE()}} (default: 0.01).}
 
 \item{\code{perm}}{A wholenumber, number of permutations to compare against the null hypothesis of \link[vegan]{adonis2} or \link[vegan]{anosim} (default: 999).}
 
