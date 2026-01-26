@@ -1171,7 +1171,7 @@ For now only works with headers that start with prefix \code{CONTRAST_}. If the 
   perm = 999,
   threads = 1,
   report = TRUE,
-  filename = paste0(getwd(), "report.html")
+  filename = paste0(getwd(), "/report.html")
 )}\if{html}{\out{</div>}}
 }
 
@@ -1206,7 +1206,7 @@ For now only works with headers that start with prefix \code{CONTRAST_}. If the 
 
 \item{\code{report}}{A boolean value to create a HTML markdown report (default: \code{FALSE}). If \code{FALSE} a nested list of the plots and data is returned.}
 
-\item{\code{filename}}{A character to name the HTML report to be saved in the current working directory (default: \code{"paste0(getwd(), report.html")}). The \code{getwd()} is required for rmarkdown to save it in the right path.}
+\item{\code{filename}}{A character to name the HTML report to be saved in the current working directory (default: \code{paste0(getwd(), "/report.html")}). The \code{getwd()} is required for rmarkdown to save it in the right path.}
 }
 \if{html}{\out{</div>}}
 }

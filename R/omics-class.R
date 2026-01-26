@@ -1430,7 +1430,7 @@ omics <- R6::R6Class(
     #' @param perm A wholenumber, number of permutations to compare against the null hypothesis of \link[vegan]{adonis2} or \link[vegan]{anosim} (default: 999).
     #' @param threads Number of threads to use, only used in [`distance()`](#method-distance) when beta_div_table is not supplied (default: 1).
     #' @param report A boolean value to create a HTML markdown report (default: \code{FALSE}). If \code{FALSE} a nested list of the plots and data is returned.
-    #' @param filename A character to name the HTML report to be saved in the current working directory (default: \code{"paste0(getwd(), report.html")}). The \code{getwd()} is required for rmarkdown to save it in the right path.
+    #' @param filename A character to name the HTML report to be saved in the current working directory (default: \code{paste0(getwd(), "/report.html")}). The \code{getwd()} is required for rmarkdown to save it in the right path.
     #' @importFrom patchwork plot_layout wrap_plots
     #' @return List of plots/data or rendered HTML report
     autoFlow = function(feature_contrast = "FEATURE_ID",
@@ -1447,7 +1447,7 @@ omics <- R6::R6Class(
                         perm = 999,
                         threads = 1,
                         report = TRUE,
-                        filename = paste0(getwd(), "report.html")
+                        filename = paste0(getwd(), "/report.html")
                       ) {
     ## Error handling
     #--------------------------------------------------------------------#
