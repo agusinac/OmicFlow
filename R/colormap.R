@@ -43,9 +43,10 @@ colormap <- function(data,
   #--------------------------------------------------------------------#
 
   unique_groups <- unique(data[[col_name]])
+  len_unique_groups <- length(unique_groups)
   suppressWarnings(
-    chosen_palette <- RColorBrewer::brewer.pal(length(unique_groups), Brewer.palID)
+    chosen_palette <- RColorBrewer::brewer.pal(len_unique_groups, Brewer.palID)
   )
-  colors <- stats::setNames(chosen_palette, unique_groups)
+  colors <- stats::setNames(chosen_palette[1:len_unique_groups], unique_groups)
   return(colors)
 }
