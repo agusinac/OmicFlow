@@ -773,13 +773,19 @@ omics <- R6::R6Class(
       if (!is.null(col_name))
         self$removeNAs(col_name)
 
+      if (!is.null(group_by)) {
+        combined_cols <- c(col_name, group_by)
+      } else {
+        combined_cols <- col_name
+      }
+
       # Subset by samplepair completion
       if ( paired && !is.null(private$.samplepair_id) )
         self$samplepair_subset()
 
       # Alpha diversity based on 'metric'
       div <- data.table::data.table(diversity(x = private$.countData, metric=metric))
-      div[, (col_name) := private$.metaData[, .SD, .SDcols = c(col_name)]]
+      div[, (combined_cols) := private$.metaData[, .SD, .SDcols = c(combined_cols)]]
       # Adjusts for evenness
       if (evenness) div$V1 <- div$V1 / log(vegan::specnumber(div$V1))
 

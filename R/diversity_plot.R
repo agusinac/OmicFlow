@@ -12,7 +12,8 @@
 #' @param p.adjust.method A character variable to specify the p.adjust.method to be used (Default: fdr).
 #' @return A \link[ggplot2]{ggplot2} object to be further modified
 #'
-#' @importFrom ggplot2 ggplot aes .data theme_bw theme element_text scale_colour_manual scale_x_continuous labs geom_boxplot geom_segment geom_point facet_wrap position_nudge 
+#' @importFrom ggplot2 ggplot aes .data theme_bw theme element_text scale_colour_manual scale_x_continuous labs geom_boxplot geom_segment geom_point facet_wrap
+#' @importFrom ggpp position_jitternudge 
 #' @importFrom stats p.adjust.methods quantile median
 #' 
 #' @examples
@@ -188,7 +189,10 @@ diversity_plot <- function(data,
     plt <- plt +
       # Points on right side
       geom_point(aes(color = as.factor(.data[[col_name]])), 
-                position = position_nudge(x = 0.2), 
+                position = position_jitternudge(
+                  width = 0.15, 
+                  height = 0, 
+                  x = 0.2), 
                 shape = 20, size = 2) +
       geom_segment(
         data = box_stats,
