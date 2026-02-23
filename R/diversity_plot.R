@@ -12,7 +12,7 @@
 #' @param p.adjust.method A character variable to specify the p.adjust.method to be used (Default: fdr).
 #' @return A \link[ggplot2]{ggplot2} object to be further modified
 #'
-#' @importFrom ggplot2 ggplot aes .data theme_bw theme element_text scale_colour_manual scale_x_continuous labs geom_boxplot geom_segment geom_point facet_wrap position_jitterdodge
+#' @importFrom ggplot2 ggplot aes .data theme_bw theme element_text scale_colour_manual scale_x_continuous labs geom_boxplot geom_segment geom_point facet_wrap position_jitter
 #' @importFrom stats p.adjust.methods quantile median
 #' 
 #' @examples
