@@ -53,8 +53,11 @@ ordination_plot <- function(data,
   if (!inherits(data, "data.frame") && !inherits(data, "data.table"))
     cli::cli_abort("Data must be a {.cls data.frame} or {.cls data.table}.")
 
-  if (!is.character(pair) && length(pair) != 2)
-    cli::cli_abort("{.val {pair}} needs to contain characters with length of 2.")
+  if (!is.character(pair)) {
+    cli::cli_abort("{.val {pair}} needs to be a characters {.cls vector}.")
+  } else if (length(pair) != 2) {
+    cli::cli_abort("{.val {pair}} needs to be a {.cls vector} of length 2.")
+  }
 
   if (!is.character(col_name) && length(col_name) != 1) {
     cli::cli_abort("{.val {col_name}} needs to contain characters with length of 1.")
@@ -62,8 +65,11 @@ ordination_plot <- function(data,
     cli::cli_abort("The {.val {col_name}} column does not exist in the provided {.arg data}.")
   }
 
-  if (!is.null(dist_explained) && !is.numeric(dist_explained))
+  if (!is.null(dist_explained) && !is.numeric(dist_explained)) {
     cli::cli_abort("{.val {dist_explained}} needs to be a numeric {.cls vector}.")
+  } else if (!is.null(dist_explained) && length(dist_explained) < 2) {
+    cli::cli_abort("{.val {dist_explained}} needs to be a {.cls vector} of at least length is 2.")
+  }
 
   if (!is.null(dist_metric) && !is.character(dist_metric) && length(dist_metric) != 1)
     cli::cli_abort("{.val {dist_metric}} needs to contain characters with length of 1.")
@@ -71,18 +77,15 @@ ordination_plot <- function(data,
   ## MAIN
   #--------------------------------------------------------------------#
 
-  if (!is.null(dist_metric)) {
-    plot_title = paste0("Distance metric used: ", dist_metric)
-  } else {
-    plot_title <- NULL
-  }
+  if (!is.null(dist_metric))
+    dist_metric <- paste0("Distance metric used: ", dist_metric)
   
   if (!is.null(dist_explained)) {
-    x_label = paste0(pair[1], " (", round(as.numeric(dist_explained[1]), 2), "%)")
-    y_label = paste0(pair[2], " (", round(as.numeric(dist_explained[2]), 2), "%)")
+    x_label <- paste0(pair[1], " (", round(as.numeric(dist_explained[1]), 2), "%)")
+    y_label <- paste0(pair[2], " (", round(as.numeric(dist_explained[2]), 2), "%)")
   } else {
-    x_label = paste0(pair[1])
-    y_label = paste0(pair[2])
+    x_label <- paste0(pair[1])
+    y_label <- paste0(pair[2])
   }
 
   data[[ col_name ]] <- as.factor(data[[ col_name ]])
@@ -103,7 +106,7 @@ ordination_plot <- function(data,
             axis.text.y = element_text(size=12),
             axis.text.x = element_text(size=12)
       ) +
-      labs(title = NULL,
+      labs(title = dist_metric,
            subtitle = NULL,
            x = x_label,
            y = y_label

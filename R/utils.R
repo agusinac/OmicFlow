@@ -74,16 +74,13 @@ combine_conditions <- function(condition1, condition2) {
     pmax(condition2$group1, condition2$group2), 
     sep = "_")
 
-  # Find which condition2 are NOT already in condition1
+  # Extend new unique pairs
   new_pairs_idx <- !cond2_str %in% cond1_str
 
   if (any(new_pairs_idx)) {
-    # There are new pairs in condition2 not in condition1;
-    # append only the new ones
     new_rows <- condition2[new_pairs_idx, ]
     updated_conditions <- rbind(condition1, new_rows)
   } else {
-    # All pairs in condition2 are already included
     updated_conditions <- condition1
   }
 

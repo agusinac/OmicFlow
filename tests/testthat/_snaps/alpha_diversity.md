@@ -23,6 +23,30 @@
 ---
 
     Code
+      res_grouped_shannon$data
+    Output
+               V1 CONTRAST_sex group_col
+            <num>       <char>    <char>
+      1: 3.403898         male     tumor
+      2: 3.776849       female     tumor
+      3: 3.682609       female   healthy
+      4: 3.686005         male   healthy
+
+---
+
+    Code
+      res_grouped_shannon$stats
+    Output
+        treatment .y. group1 group2 n1 n2 statistic p p.adj p.adj.signif y.position
+      1     tumor  V1 female   male  1  1         1 1     1           ns    3.82176
+      2   healthy  V1 female   male  1  1         0 1     1           ns    3.68636
+              groups xmin xmax
+      1 female, male   NA   NA
+      2 female, male   NA   NA
+
+---
+
+    Code
       res_invsimpson$data
     Output
                V1 CONTRAST_sex

@@ -83,8 +83,11 @@ composition_plot <- function(data,
   if (!is.character(palette))
     cli::cli_abort("{.val {palette}} needs to contain characters.")
 
-  if (!is.character(feature_rank) && length(feature_rank) != 1)
+  if (!is.character(feature_rank) && length(feature_rank) != 1) {
     cli::cli_abort("{.val {feature_rank}} needs to contain characters with length of 1.")
+  } else if (!column_exists(feature_rank, data)) {
+    cli::cli_abort("The {.val {feature_rank}} column does not exist in the provided {.arg data}.")
+  }
 
   if (!is.null(title_name) && !is.character(title_name))
     cli::cli_abort("{.val {title_name}} needs to be of type character.")

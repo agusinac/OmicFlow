@@ -412,11 +412,6 @@ metagenomics <- R6::R6Class(
         col_positions <- tax_indices + 1
         private$.featureData[i, (col_positions) := as.list(tax_values)]
       }
-
-      if (any(grepl(private$.feature_id, colnames(private$.metaData))) && !all(is.na(private$.metaData[[private$.feature_id]]))) {
-        FEATURE_ID <- private$.metaData[[private$.feature_id]]
-        private$.featureData[, (private$.feature_id) := FEATURE_ID]
-      }
       cli::cli_alert_success("{.field featureData} is loaded.")
     },
     construct_json_countData = function() {

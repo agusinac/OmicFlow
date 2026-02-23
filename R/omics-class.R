@@ -1007,7 +1007,7 @@ omics <- R6::R6Class(
       if (!is.character(metric) && length(metric) != 1) {
         cli::cli_abort("{.val {metric}} needs to be a character with a length of 1")
       } else if (!metric %in% OPTIONS) {
-        cli::cli_abort("{.val {metric}} is not a valid metric. Valid options: {.val {OPTIONS}}")
+        cli::cli_abort("{.val {metric}} is not a valid metric. \nValid options: {.val {OPTIONS}}")
       }
 
       if (!is.wholenumber(threads))
@@ -1248,7 +1248,6 @@ omics <- R6::R6Class(
           data = df_pcs_points,
           col_name = "groups",
           pair=c("MDS1", "MDS2"),
-          dist_explained = pcs$eig_norm,
           dist_metric = metric
         )
       }
@@ -1950,9 +1949,9 @@ omics <- R6::R6Class(
     if (inherits(data, "sparseMatrix"))
       return(data)
 
-    if (is.matrix(data) || inherits(data, "denseMatrix")) {
+    if (is.matrix(data) || inherits(data, "denseMatrix"))
       return(as(data, "CsparseMatrix"))
-    }      
+      
     cli::cli_abort("Input must be an existing {.val filepath}, {.cls matrix} or {.cls Matrix}.")
     }
   )

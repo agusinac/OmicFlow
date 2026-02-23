@@ -12,8 +12,7 @@
 #' @param p.adjust.method A character variable to specify the p.adjust.method to be used (Default: fdr).
 #' @return A \link[ggplot2]{ggplot2} object to be further modified
 #'
-#' @importFrom ggplot2 ggplot aes .data theme_bw theme element_text scale_colour_manual scale_x_continuous labs geom_boxplot geom_segment geom_point facet_wrap
-#' @importFrom ggpp position_jitternudge 
+#' @importFrom ggplot2 ggplot aes .data theme_bw theme element_text scale_colour_manual scale_x_continuous labs geom_boxplot geom_segment geom_point facet_wrap position_jitterdodge
 #' @importFrom stats p.adjust.methods quantile median
 #' 
 #' @examples
@@ -45,15 +44,29 @@
 #' 
 #' dt <- data.table::data.table(
 #'   "shannon" = div,
-#'   "treatment" = c(rep("healthy", n_col / 2), rep("tumor", n_col / 2))
+#'   "treatment" = c(rep("healthy", n_col / 2), rep("tumor", n_col / 2)),
+#'   "sex" = c(rep("male", n_col / 4), rep("female", n_col / 4))
 #' )
 #' 
 #' colors <- OmicFlow::colormap(dt, "treatment")
 #' 
+#' # Comparing two groups
 #' plt <- OmicFlow::diversity_plot(
 #'  data = dt,
 #'  values = "shannon",
 #'  col_name = "treatment",
+#'  palette = colors,
+#'  method = "shannon",
+#'  paired = FALSE,
+#'  p.adjust.method = "fdr"
+#' )
+#' 
+#' Performing a test while stratifying the plot in two groups
+#' plt <- OmicFlow::diversity_plot(
+#'  data = dt,
+#'  values = "shannon",
+#'  col_name = "treatment",
+#'  group_by = "sex",
 #'  palette = colors,
 #'  method = "shannon",
 #'  paired = FALSE,
@@ -79,8 +92,9 @@ diversity_plot <- function(data,
   if (!is.character(palette))
     cli::cli_abort("{.val {palette}} needs to contain characters.")
 
-  if (!is.character(method) && length(method) != 1)
-    cli::cli_abort("{.val {method}} needs to contain characters with length of 1.")
+  if (!is.character(method)) {
+    cli::cli_abort("{.val {method}} needs to be a character {.cls vector}.")
+  }
 
   if (!is.character(values) && length(values) != 1) {
     cli::cli_abort("{.val {values}} needs to contain characters with length of 1.")
@@ -103,7 +117,7 @@ diversity_plot <- function(data,
   }
 
   if (!c(p.adjust.method %in% p.adjust.methods))
-    cli::cli_abort("Specified {.val {p.adjust.method}} is not valid. \nValid options: <{.val {p.adjust.methods}}>")
+    cli::cli_abort("{.val {p.adjust.method}} is not a valid option. \nValid options: {.val {p.adjust.methods}}")
 
   ## MAIN
   #--------------------------------------------------------------------#
@@ -189,30 +203,27 @@ diversity_plot <- function(data,
     plt <- plt +
       # Points on right side
       geom_point(aes(color = as.factor(.data[[col_name]])), 
-                position = position_jitternudge(
-                  width = 0.15, 
-                  height = 0, 
-                  x = 0.2), 
+                position = position_jitterdodge(), 
                 shape = 20, size = 2) +
       geom_segment(
         data = box_stats,
         aes(x = .data$group_numeric, y = .data$ymin,
             xend = .data$group_numeric, yend = .data$ymax),
-        color = "black", size = 0.3
+        color = "black", linewidth = 0.3
       ) +
       # Top horizontal segment
       geom_segment(
         data = box_stats,
         aes(x = .data$group_numeric - 0.1, y = .data$ymax,
             xend = .data$group_numeric, yend = .data$ymax),
-        color = "black", size = 0.3
+        color = "black", linewidth = 0.3
       ) +
       # Bottom horizontal segment  
       geom_segment(
         data = box_stats,
         aes(x = .data$group_numeric - 0.1, y = .data$ymin,
             xend = .data$group_numeric, yend = .data$ymin),
-        color = "black", size = 0.3
+        color = "black", linewidth = 0.3
       )
     
     if (!is.null(group_by)) {

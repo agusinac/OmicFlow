@@ -11,9 +11,20 @@ test_that("Testing Alpha diversity", {
       metric = "shannon",
       col_name = "CONTRAST_sex",
     ))
-  
+
   expect_snapshot(res_shannon$data)
   expect_snapshot(res_shannon$stats)
+
+  # with stratification
+  res_grouped_shannon <- suppressWarnings(
+    taxa$alpha_diversity(
+      metric = "shannon",
+      col_name = "CONTRAST_sex",
+      group_by = "treatment"
+    ))
+
+  expect_snapshot(res_grouped_shannon$data)
+  expect_snapshot(res_grouped_shannon$stats)
   
   ## Testing inverse simpson
   res_invsimpson <- suppressWarnings(
