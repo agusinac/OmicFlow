@@ -193,9 +193,12 @@ omics <- R6::R6Class(
           }
 
         } else {
-
           FEATURE_ID <- paste0("feature_", 1:nrow(private$.featureData))
           private$.featureData[, private$.feature_id := FEATURE_ID]
+          data.table::setcolorder(
+            x = private$.featureData,
+            neworder = c(private$.feature_id, base::setdiff(colnames(private$.featureData), private$.feature_id))
+          )
         }
         cli::cli_alert_success("{.field featureData} is loaded.")
       }
