@@ -61,7 +61,7 @@
 #'  p.adjust.method = "fdr"
 #' )
 #' 
-#' Performing a test while stratifying the plot in two groups
+#' # Performing a test while stratifying the plot in two groups
 #' plt <- OmicFlow::diversity_plot(
 #'  data = dt,
 #'  values = "shannon",
