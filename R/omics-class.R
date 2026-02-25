@@ -1841,6 +1841,10 @@ omics <- R6::R6Class(
         if (!is.null(private$.countData)) {
           private$.countData <- private$check_matrix(private$.countData)
           common_samples <- base::intersect(private$.metaData[[ private$.sample_id ]], colnames(private$.countData))
+
+          if (length(common_samples) == 0)
+            cli::cli_abort("None SAMPLE_IDs are matching, check if {.val SAMPLE_ID} are matching the colnames in {.field countData}!")
+
           private$.countData <- private$.countData[, common_samples, drop = FALSE]
           private$.metaData <- private$.metaData[private$.metaData[[ private$.sample_id ]] %in% common_samples, ]
         }
