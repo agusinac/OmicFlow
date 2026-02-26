@@ -142,8 +142,8 @@ foldchange <- function(data,
   for (i in seq_along(condition_A)) {
     # Subset by condition_A value
     ## TODO: convert dt_A to a sparseMatrix
-    dt_A <- tmp_dt[, .SD, .SDcols = colnames(tmp_dt)[grepl(condition_A[i], condition_labels)]]
-    dt_B <- tmp_dt[, .SD, .SDcols = colnames(tmp_dt)[grepl(condition_B[i], condition_labels)]]
+    dt_A <- tmp_dt[, .SD, .SDcols = colnames(tmp_dt)[condition_labels %in% condition_A[i]]]
+    dt_B <- tmp_dt[, .SD, .SDcols = colnames(tmp_dt)[condition_labels %in% condition_B[i]]]
 
     # Convert to dense matrix
     mat_A <- as.matrix(dt_A)

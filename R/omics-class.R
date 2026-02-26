@@ -1364,7 +1364,7 @@ omics <- R6::R6Class(
 
       # Agglomerate taxa by feature rank and filter unwanted taxa
       self$feature_merge(feature_rank = feature_rank,
-                        feature_filter = feature_filter)
+                         feature_filter = feature_filter)
 
       # Extract mean abundance
       abun <- as.matrix(Matrix::rowSums(private$.countData) / ncol(private$.countData))
@@ -1376,48 +1376,44 @@ omics <- R6::R6Class(
       # Compute 2-fold expression based on (un)paired samples
       # Computes on equation of log2(A) - log2(B)
       # Supports multiple inputs for A and B.
-      condition.labels <- data.table::setorderv(private$.metaData,
-                                                cols = c(private$.sample_id, condition.group))[[ condition.group ]]
-
-      # paired samples
       dfe <- foldchange(
         data = dt,
         condition_A = condition_A,
         condition_B = condition_B,
         paired = paired,
-        condition_labels = condition.labels,
+        condition_labels = private$.metaData[[ condition.group ]],
         feature_rank = feature_rank
-        )
+      )
 
-        #----------------------#
-        # Visualization        #
-        #----------------------#
+      #----------------------#
+      # Visualization        #
+      #----------------------#
 
-        # Add abundance, and save data as output list
-        dfe <- dfe[, "abun" := abun]
-        plot_list$data <- dfe
+      # Add abundance, and save data as output list
+      dfe <- dfe[, "abun" := abun]
+      plot_list$data <- dfe
 
-        # Create & save volcano plot
-        n_diff_columns <- sum(grepl("^Log2FC_", colnames(dfe)))
+      # Create & save volcano plot
+      n_diff_columns <- sum(grepl("^Log2FC_", colnames(dfe)))
 
-        plot_list$volcano_plot <- lapply(1:n_diff_columns, function(i) {
-          volcano_plot(data = dfe,
-                       logfold_col = paste0("Log2FC_", i),
-                       pvalue_col = paste0("pvalue_", i),
-                       feature_rank = feature_rank,
-                       abundance_col = "abun",
-                       pvalue.threshold = pvalue.threshold,
-                       logfold.threshold = logfold.threshold,
-                       abundance.threshold = abundance.threshold,
-                       label_A = condition_A,
-                       label_B = condition_B) +
-            labs(
-              subtitle = paste0(
-                "Attribute: ", condition.group,
-                ", test: ", ifelse(paired, "Wilcox signed rank test", "Mann-Whitney U test")
-                )
-            )
-        })
+      plot_list$volcano_plot <- lapply(1:n_diff_columns, function(i) {
+        volcano_plot(data = dfe,
+                      logfold_col = paste0("Log2FC_", i),
+                      pvalue_col = paste0("pvalue_", i),
+                      feature_rank = feature_rank,
+                      abundance_col = "abun",
+                      pvalue.threshold = pvalue.threshold,
+                      logfold.threshold = logfold.threshold,
+                      abundance.threshold = abundance.threshold,
+                      label_A = condition_A,
+                      label_B = condition_B) +
+          labs(
+            subtitle = paste0(
+              "Attribute: ", condition.group,
+              ", test: ", ifelse(paired, "Wilcox signed rank test", "Mann-Whitney U test")
+              )
+          )
+      })
 
       return(plot_list)
     },
