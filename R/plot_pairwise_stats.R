@@ -78,8 +78,11 @@ plot_pairwise_stats <- function(data,
     cli::cli_abort("The {.val {group_col}} column does not exist in the provided {.arg data}.")
   }
 
-  if (!is.character(label_col))
-    cli::cli_abort("{.val {label_col}} needs to contain characters.")
+  if (!is.character(label_col) && length(group_col) != 1) {
+    cli::cli_abort("{.val {label_col}} needs to contain characters with length of 1.")
+  } else if (!column_exists(label_col, data)) {
+    cli::cli_abort("The {.val {label_col}} column does not exist in the provided {.arg data}.")
+  }
 
   if (!is.null(y_axis_title) && !is.character(y_axis_title))
     cli::cli_abort("{.val {y_axis_title}} needs to contain characters.")

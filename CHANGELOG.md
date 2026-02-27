@@ -3,6 +3,20 @@
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/)
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## v1.5.1 - [2026-02-27]
+
+### `Added`
+- Extended unit-tests to uncovered code sections.
+
+### `Changed`
+- Added error handling when none `SAMPLE_ID`s are matching during `private$sync`
+
+### `Fixed`
+- [#31](https://github.com/agusinac/OmicFlow/issues/31#issue-3962339783) `colormap` doesn't return any NAs.
+- [#30](https://github.com/agusinac/OmicFlow/issues/30#issue-3930823920) Placed `FEATURE_ID` as first column.
+- [#29](https://github.com/agusinac/OmicFlow/issues/29#issue-3930786231) replaced `position_nudge` with `position_jitter`
+- foldchange was matching sub-strings, fixed by changing it to exact matching.
+
 ## v1.5.0 - [2026-01-26]
 
 ### `Added`

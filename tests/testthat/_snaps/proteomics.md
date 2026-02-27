@@ -1,7 +1,18 @@
 # Testing Proteomics loading
 
     Code
-      prot_file
+      counts_without_rownames
+    Message
+      
+      -- <proteomics> object 
+      metaData: 2 variables x 10 samples
+      countData: 10 samples x 50 features
+      featureData: 0 attributes x 50 features
+
+---
+
+    Code
+      counts_with_rownames
     Message
       
       -- <proteomics> object 

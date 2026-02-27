@@ -68,15 +68,29 @@ div <- OmicFlow::diversity(
 
 dt <- data.table::data.table(
   "shannon" = div,
-  "treatment" = c(rep("healthy", n_col / 2), rep("tumor", n_col / 2))
+  "treatment" = c(rep("healthy", n_col / 2), rep("tumor", n_col / 2)),
+  "sex" = c(rep("male", n_col / 4), rep("female", n_col / 4))
 )
 
 colors <- OmicFlow::colormap(dt, "treatment")
 
+# Comparing two groups
 plt <- OmicFlow::diversity_plot(
  data = dt,
  values = "shannon",
  col_name = "treatment",
+ palette = colors,
+ method = "shannon",
+ paired = FALSE,
+ p.adjust.method = "fdr"
+)
+
+# Performing a test while stratifying the plot in two groups
+plt <- OmicFlow::diversity_plot(
+ data = dt,
+ values = "shannon",
+ col_name = "treatment",
+ group_by = "sex",
  palette = colors,
  method = "shannon",
  paired = FALSE,

@@ -12,6 +12,8 @@ test_that("Testing Hill numbers on sparse data", {
   expect_snapshot(cat(res_0))
   expect_snapshot(cat(res_1))
   expect_snapshot(cat(res_2))
+  expect_error(hill_taxa(x = matrix_to_dtable(taxa$countData), q = 0))
+  expect_error(hill_taxa(x = taxa$countData, q = 5))
 })
 
 test_that("Testing Hill numbers on dense data", {

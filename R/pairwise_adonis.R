@@ -50,22 +50,22 @@ pairwise_adonis <- function(x,
   #--------------------------------------------------------------------#
 
   if (!inherits(x, "dist"))
-    cli::cli_abort("x must be of class dist.")
+    cli::cli_abort("{.val x} must be a {.cls dist}")
 
-  if (!is.vector(groups))
-    cli::cli_abort("groups must be a vector.")
+  if (is.list(groups))
+    cli::cli_abort("{.val groups} must be a {.cls vector} and not a {.cls list}.")
   
   if (!is.null(metadata) && !inherits(metadata, "data.frame") && !inherits(metadata, "data.table"))
-    cli::cli_abort("metadata must be a data.frame or data.table.")
+    cli::cli_abort("{.val metadata} must be a {.cls data.frame} or {.cls data.table}.")
   
   if (!is.null(perm_design) && !is.function(perm_design))
-    cli::cli_abort("perm_design must be a function.")
+    cli::cli_abort("{.val perm_design} must be a function.")
 
   if (!c(p.adjust.method %in% p.adjust.methods))
-    cli::cli_abort("Specified {p.adjust.method} is not valid. \nValid options: {p.adjust.methods}.")
+    cli::cli_abort("{.val {p.adjust.method}} is not a valid method. \nValid options: {.val {p.adjust.methods}}.")
 
   if (!is.wholenumber(perm))
-    cli::cli_abort("Permutations {perm} need to be an integer.")
+    cli::cli_abort("{perm} needs to be an integer.")
 
   ## MAIN
   #--------------------------------------------------------------------#

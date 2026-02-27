@@ -55,8 +55,11 @@ hill_taxa <- function (x,
   if (!is.numeric(x@x))
     cli::cli_abort("input data must be numeric")
 
-  if (!is.wholenumber(q) && q %in% c(0, 1, 2)) 
+  if (!is.wholenumber(q)) {
+    cli::cli_abort("{.val {q}} needs to be an integer.")
+  } else if (!c(q %in% c(0, 1, 2))) {
     cli::cli_abort("{.val {q}} needs to be a whole number of either {.val 0}, {.val 1} or {.val 2}.")
+  }
 
   if (any(x@x < 0, na.rm = TRUE))
     cli::cli_abort("input data must be non-negative")

@@ -18,6 +18,7 @@
 #'
 #' colors <- colormap(data = dt,
 #'                    col_name = "treatment")
+#' @importFrom RColorBrewer brewer.pal.info brewer.pal
 #' @export
 
 colormap <- function(data,
@@ -26,6 +27,7 @@ colormap <- function(data,
 
   ## Error handling
   #--------------------------------------------------------------------#
+  OPTIONS <- rownames(RColorBrewer::brewer.pal.info)
 
   if (!inherits(data, "data.frame") && !inherits(data, "data.table"))
     cli::cli_abort("Data must be a {.cls data.frame} or {.cls data.table}.")
@@ -36,16 +38,20 @@ colormap <- function(data,
     cli::cli_abort("The {.val {col_name}} column does not exist in the provided data.")
   }
 
-  if (!is.character(Brewer.palID) && length(Brewer.palID) != 1)
+  if (!is.character(Brewer.palID) && length(Brewer.palID) != 1) {
     cli::cli_abort("The {.val {Brewer.palID}} needs to contain characters with length of 1.")
+  } else if (!c(Brewer.palID %in% OPTIONS)) {
+    cli::cli_abort("{.val {Brewer.palID}} is not a valid Brewer pal ID. \nValid options: {.val {OPTIONS}}.")
+  }
 
   ## MAIN
   #--------------------------------------------------------------------#
 
   unique_groups <- unique(data[[col_name]])
+  len_unique_groups <- length(unique_groups)
   suppressWarnings(
-    chosen_palette <- RColorBrewer::brewer.pal(length(unique_groups), Brewer.palID)
+    chosen_palette <- RColorBrewer::brewer.pal(len_unique_groups, Brewer.palID)
   )
-  colors <- stats::setNames(chosen_palette, unique_groups)
+  colors <- stats::setNames(chosen_palette[1:len_unique_groups], unique_groups)
   return(colors)
 }

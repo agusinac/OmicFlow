@@ -193,9 +193,12 @@ omics <- R6::R6Class(
           }
 
         } else {
-
           FEATURE_ID <- paste0("feature_", 1:nrow(private$.featureData))
           private$.featureData[, private$.feature_id := FEATURE_ID]
+          data.table::setcolorder(
+            x = private$.featureData,
+            neworder = c(private$.feature_id, base::setdiff(colnames(private$.featureData), private$.feature_id))
+          )
         }
         cli::cli_alert_success("{.field featureData} is loaded.")
       }
@@ -773,13 +776,19 @@ omics <- R6::R6Class(
       if (!is.null(col_name))
         self$removeNAs(col_name)
 
+      if (!is.null(group_by)) {
+        combined_cols <- c(col_name, group_by)
+      } else {
+        combined_cols <- col_name
+      }
+
       # Subset by samplepair completion
       if ( paired && !is.null(private$.samplepair_id) )
         self$samplepair_subset()
 
       # Alpha diversity based on 'metric'
       div <- data.table::data.table(diversity(x = private$.countData, metric=metric))
-      div[, (col_name) := private$.metaData[, .SD, .SDcols = c(col_name)]]
+      div[, (combined_cols) := private$.metaData[, .SD, .SDcols = c(combined_cols)]]
       # Adjusts for evenness
       if (evenness) div$V1 <- div$V1 / log(vegan::specnumber(div$V1))
 
@@ -998,7 +1007,7 @@ omics <- R6::R6Class(
       if (!is.character(metric) && length(metric) != 1) {
         cli::cli_abort("{.val {metric}} needs to be a character with a length of 1")
       } else if (!metric %in% OPTIONS) {
-        cli::cli_abort("{.val {metric}} is not a valid metric. Valid options: {.val {OPTIONS}}")
+        cli::cli_abort("{.val {metric}} is not a valid metric. \nValid options: {.val {OPTIONS}}")
       }
 
       if (!is.wholenumber(threads))
@@ -1239,7 +1248,6 @@ omics <- R6::R6Class(
           data = df_pcs_points,
           col_name = "groups",
           pair=c("MDS1", "MDS2"),
-          dist_explained = pcs$eig_norm,
           dist_metric = metric
         )
       }
@@ -1356,7 +1364,7 @@ omics <- R6::R6Class(
 
       # Agglomerate taxa by feature rank and filter unwanted taxa
       self$feature_merge(feature_rank = feature_rank,
-                        feature_filter = feature_filter)
+                         feature_filter = feature_filter)
 
       # Extract mean abundance
       abun <- as.matrix(Matrix::rowSums(private$.countData) / ncol(private$.countData))
@@ -1368,48 +1376,44 @@ omics <- R6::R6Class(
       # Compute 2-fold expression based on (un)paired samples
       # Computes on equation of log2(A) - log2(B)
       # Supports multiple inputs for A and B.
-      condition.labels <- data.table::setorderv(private$.metaData,
-                                                cols = c(private$.sample_id, condition.group))[[ condition.group ]]
-
-      # paired samples
       dfe <- foldchange(
         data = dt,
         condition_A = condition_A,
         condition_B = condition_B,
         paired = paired,
-        condition_labels = condition.labels,
+        condition_labels = private$.metaData[[ condition.group ]],
         feature_rank = feature_rank
-        )
+      )
 
-        #----------------------#
-        # Visualization        #
-        #----------------------#
+      #----------------------#
+      # Visualization        #
+      #----------------------#
 
-        # Add abundance, and save data as output list
-        dfe <- dfe[, "abun" := abun]
-        plot_list$data <- dfe
+      # Add abundance, and save data as output list
+      dfe <- dfe[, "abun" := abun]
+      plot_list$data <- dfe
 
-        # Create & save volcano plot
-        n_diff_columns <- sum(grepl("^Log2FC_", colnames(dfe)))
+      # Create & save volcano plot
+      n_diff_columns <- sum(grepl("^Log2FC_", colnames(dfe)))
 
-        plot_list$volcano_plot <- lapply(1:n_diff_columns, function(i) {
-          volcano_plot(data = dfe,
-                       logfold_col = paste0("Log2FC_", i),
-                       pvalue_col = paste0("pvalue_", i),
-                       feature_rank = feature_rank,
-                       abundance_col = "abun",
-                       pvalue.threshold = pvalue.threshold,
-                       logfold.threshold = logfold.threshold,
-                       abundance.threshold = abundance.threshold,
-                       label_A = condition_A,
-                       label_B = condition_B) +
-            labs(
-              subtitle = paste0(
-                "Attribute: ", condition.group,
-                ", test: ", ifelse(paired, "Wilcox signed rank test", "Mann-Whitney U test")
-                )
-            )
-        })
+      plot_list$volcano_plot <- lapply(1:n_diff_columns, function(i) {
+        volcano_plot(data = dfe,
+                      logfold_col = paste0("Log2FC_", i),
+                      pvalue_col = paste0("pvalue_", i),
+                      feature_rank = feature_rank,
+                      abundance_col = "abun",
+                      pvalue.threshold = pvalue.threshold,
+                      logfold.threshold = logfold.threshold,
+                      abundance.threshold = abundance.threshold,
+                      label_A = condition_A,
+                      label_B = condition_B) +
+          labs(
+            subtitle = paste0(
+              "Attribute: ", condition.group,
+              ", test: ", ifelse(paired, "Wilcox signed rank test", "Mann-Whitney U test")
+              )
+          )
+      })
 
       return(plot_list)
     },
@@ -1833,6 +1837,10 @@ omics <- R6::R6Class(
         if (!is.null(private$.countData)) {
           private$.countData <- private$check_matrix(private$.countData)
           common_samples <- base::intersect(private$.metaData[[ private$.sample_id ]], colnames(private$.countData))
+
+          if (length(common_samples) == 0)
+            cli::cli_abort("None SAMPLE_IDs are matching, check if {.val SAMPLE_ID} are matching the colnames in {.field countData}!")
+
           private$.countData <- private$.countData[, common_samples, drop = FALSE]
           private$.metaData <- private$.metaData[private$.metaData[[ private$.sample_id ]] %in% common_samples, ]
         }
@@ -1941,9 +1949,9 @@ omics <- R6::R6Class(
     if (inherits(data, "sparseMatrix"))
       return(data)
 
-    if (is.matrix(data) || inherits(data, "denseMatrix")) {
+    if (is.matrix(data) || inherits(data, "denseMatrix"))
       return(as(data, "CsparseMatrix"))
-    }      
+      
     cli::cli_abort("Input must be an existing {.val filepath}, {.cls matrix} or {.cls Matrix}.")
     }
   )
