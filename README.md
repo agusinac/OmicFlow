@@ -230,13 +230,13 @@ res$volcano_plot
 
 Example: **Outputs a `report.html` file in current work directory**
 ```bash
-docker pull agusinac/autoflow:1.4.0
+docker pull agusinac/autoflow:latest
 
 docker run -it --rm -v \
     "$(pwd)":/data \             # Mount the data in a temporary directory
     -w /data \                   # set working directory
     -u $(id -u):$(id -g) \       # non-root user
-    agusinac/autoflow:1.4.0 \
+    agusinac/autoflow:latest \
     autoflow \                   # autoflow R script
     -b /data/biom_with_taxonomy_hdf5.biom \
     -m /data/metadata.tsv
