@@ -15,19 +15,6 @@
 ```
 
 
-## gghalves
-
-```
-@Manual{,
-  title = {gghalves: Compose Half-Half Plots Using Your Favourite Geoms},
-  author = {Frederik Tiedemann},
-  year = {2022},
-  note = {R package version 0.1.4},
-  url = {https://CRAN.R-project.org/package=gghalves},
-}
-```
-
-
 ## ggpubr
 
 ```

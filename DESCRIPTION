@@ -36,7 +36,7 @@ Depends:
 Imports: 
     ape,
     ggpubr,
-    ggrepel (>= 0.9.6),
+    ggrepel,
     ggplot2,
     jsonlite,
     jsonvalidate,
