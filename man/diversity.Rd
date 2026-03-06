@@ -18,7 +18,7 @@ diversity(
 
 \item{normalize}{A boolean variable for sample normalization by column sums.}
 
-\item{base}{Input for \link[base]{log} to use natural logarithmic scale, log2, log10 or other.}
+\item{base}{Input for \link[base]{log} to use natural logarithmic scale, log2, log10 or other (default: \code{exp(1)}).}
 }
 \value{
 A numeric vector with type double.

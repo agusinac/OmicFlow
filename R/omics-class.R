@@ -601,7 +601,10 @@ omics <- R6::R6Class(
       invisible(self)
     },
     #' @description
-    #' Relative abundance computation by column sums on the `countData`.
+    #' Normalisation of the `countData` by either Total Sample Sums (TSS) or Centered Log Transformation (CLR) on the feature level.
+    #' @param method A character to choose a normalisation method, options: `tss` or `clr` (default: `tss`).
+    #' @param pseudocount A numeric value to replace zero's, used in \code{method = 'clr'} (default: \code{1e-15}).
+    #' @param base Input for \link[base]{log} to use natural logarithmic scale, log2, log10 or other (default: \code{exp(1)}).
     #' @examples
     #' library("OmicFlow")
     #'
@@ -614,12 +617,41 @@ omics <- R6::R6Class(
     #'  countData = counts_file,
     #'  featureData = features_file,
     #' )
-    #' 
+    #' # standard relative abundance computation
     #' obj$normalize()
+    #' 
+    #' # clr transformation with log10
+    #' obj$normalize(method = 'clr', base = 10)
     #'
     #' @return object in place
-    normalize = function() {
-      private$.countData@x <- private$.countData@x / rep(Matrix::colSums(private$.countData), base::diff(private$.countData@p))
+    normalize = function(method = "tss", pseudocount = 1e-15, base = exp(1)) {
+
+    ## Error handling
+    #--------------------------------------------------------------------#
+      OPTIONS <- c("tss", "clr")
+      if (!is.character(method) && length(method) != 1) {
+        cli::cli_abort("{.val {method}} needs to contain characters with length of 1.")
+      } else if (!method %in% OPTIONS) {
+        cli::cli_abort("{.val {method}} is not a valid method. Valid options: <{.val {OPTIONS}}>")
+      }
+
+      if (!is.numeric(pseudocount))
+        cli::cli_abort("{.val {pseudocount}} needs to be a {.cls numeric} type.")
+
+      if (!is.numeric(base))
+        cli::cli_abort("{.val {base}} needs to be a {.cls numeric} type.")
+
+      ## MAIN
+      #--------------------------------------------------------------------#
+
+      if (method == "tss")
+        private$.countData@x <- private$.countData@x / rep(Matrix::colSums(private$.countData), base::diff(private$.countData@p))
+      
+      if (method == "clr") {
+        ref <- t(private$.countData) + pseudocount
+        ref_log <- log(ref, base=base)
+        private$.countData <- ref_log - Matrix::rowMeans(ref_log)
+      }
       invisible(self)
     },
     #' @description
@@ -974,11 +1006,15 @@ omics <- R6::R6Class(
     #' @description
     #' Compute a distance metric from `countData`
     #' @param metric A dissimilarity metric to be applied on the `countData`, 
-    #' thus far supports 'bray', 'jaccard', 'cosine', 'manhattan', 'jsd' (jensen-shannon divergence), 'canberra' and 'unifrac' when a tree is provided via `treeData`, see [`distance()`](#method-distance).
+    #' thus far supports 'bray', 'jaccard', 'cosine', 'manhattan', 'aitchison', 'euclidean', 'jsd' (jensen-shannon divergence), 'canberra' and 'unifrac' when a tree is provided via `treeData`, see [`distance()`](#method-distance).
     #' @param weighted A boolean value, to use abundances (\code{weighted = TRUE}) or absence/presence (\code{weighted=FALSE}) (default: TRUE).
+    #' @param pseudocount A numeric value to replace zero's, used in [`normalize()`](#method-normalize) (default: \code{1e-15}).
+    #' @param base Input for \link[base]{log} to use natural logarithmic scale, log2, log10 or other (default: \code{exp(1)}).
     #' @param normalized A boolean value, whether to [`normalize()`](#method-normalize) by total sample sums (Default: TRUE).
     #' @param threads A wholenumber, indicating the number of threads to use (Default: 1).
     #' @return A column x column \link[stats]{dist} object.
+    #' @references
+    #' Aitchison, J. (1986) The Statistical Analysis of Compositional Data. Chapman and Hall, London, 416 p.
     #' @examples
     #' library("OmicFlow")
     #'
@@ -1001,7 +1037,8 @@ omics <- R6::R6Class(
       #--------------------------------------------------------------------#
       OPTIONS <- c(
         "bray", "jaccard", "cosine", "manhattan",
-        "jsd", "canberra", "unifrac"
+        "jsd", "canberra", "unifrac", "euclidean", 
+        "aitchison"
         )
 
       if (!is.character(metric) && length(metric) != 1) {
@@ -1045,8 +1082,19 @@ omics <- R6::R6Class(
         "jaccard" = OmicFlow::jaccard(x = private$.countData, weighted=weighted, threads=threads),
         "bray" = OmicFlow::bray(x = private$.countData, weighted=weighted, threads=threads),
         "jsd" = OmicFlow::jsd(x = private$.countData, weighted=weighted, threads=threads),
-        "cosine" = OmicFlow::cosine(x = private$.countData, weighted=weighted, threads=threads)
+        "cosine" = OmicFlow::cosine(x = private$.countData, weighted=weighted, threads=threads),
+        "euclidean" = OmicFlow::euclidean(x = private$.countData, weighted=weighted, threads=threads)
       )
+
+      if (metric == "aitchison") {
+        self$normalize(
+          method = "clr", 
+          base=base, 
+          pseudocount=pseudocount
+        )
+
+        distmat <- OmicFlow::euclidean(x = private$.countData, weighted=weighted, threads=threads)
+      }
 
       return(distmat)
     },

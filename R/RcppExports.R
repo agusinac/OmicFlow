@@ -5,6 +5,10 @@ bray <- function(mat) {
     .Call(`_OmicFlow_bray`, mat)
 }
 
+euclidean <- function(mat) {
+    .Call(`_OmicFlow_euclidean`, mat)
+}
+
 jsd <- function(mat) {
     .Call(`_OmicFlow_jsd`, mat)
 }

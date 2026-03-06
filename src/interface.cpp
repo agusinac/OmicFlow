@@ -4,9 +4,19 @@
 
 // [[Rcpp::depends(RcppArmadillo)]]
 
+//------------------------------------------------------------------------//
+// Dissimilarity metrics
+//------------------------------------------------------------------------//
+
 // [[Rcpp::export]]
 arma::mat bray(const arma::sp_mat& mat) {
     BrayCurtis dist;
+    return pairwise_dist(mat, dist);
+}
+
+// [[Rcpp::export]]
+arma::mat euclidean(const arma::sp_mat& mat) {
+    Euclidean dist;
     return pairwise_dist(mat, dist);
 }
 

@@ -11,6 +11,10 @@ struct Manhattan {
     double operator()(const arma::sp_mat& A, const arma::sp_mat& B) const;
 };
 
+struct Euclidean { 
+    double operator()(const arma::sp_mat& A, const arma::sp_mat& B) const;
+};
+
 struct Jaccard { 
     double operator()(const arma::sp_mat& A, const arma::sp_mat& B) const;
 };

@@ -202,8 +202,11 @@ obj <- metagenomics$new(
  countData = counts_file,
  featureData = features_file,
 )
-
+# standard relative abundance computation
 obj$normalize()
+
+# clr transformation with log10
+obj$normalize(method = 'clr', base = 10)
 
 
 ## ------------------------------------------------
@@ -340,6 +343,9 @@ unpaired <- obj$DFE(feature_rank = "Genus",
                     condition_A = c("healthy"),
                     condition_B = c("tumor"))
 
+}
+\references{
+Aitchison, J. (1986) The Statistical Analysis of Compositional Data. Chapman and Hall, London, 416 p.
 }
 \seealso{
 \link{diversity_plot}
@@ -758,11 +764,22 @@ obj$transform(log2)
 \if{html}{\out{<a id="method-omics-normalize"></a>}}
 \if{latex}{\out{\hypertarget{method-omics-normalize}{}}}
 \subsection{Method \code{normalize()}}{
-Relative abundance computation by column sums on the \code{countData}.
+Normalisation of the \code{countData} by either Total Sample Sums (TSS) or Centered Log Transformation (CLR) on the feature level.
 \subsection{Usage}{
-\if{html}{\out{<div class="r">}}\preformatted{omics$normalize()}\if{html}{\out{</div>}}
+\if{html}{\out{<div class="r">}}\preformatted{omics$normalize(method = "tss", pseudocount = 1e-15, base = exp(1))}\if{html}{\out{</div>}}
 }
 
+\subsection{Arguments}{
+\if{html}{\out{<div class="arguments">}}
+\describe{
+\item{\code{method}}{A character to choose a normalisation method, options: \code{tss} or \code{clr} (default: \code{tss}).}
+
+\item{\code{pseudocount}}{A numeric value to replace zero's, used in \code{method = 'clr'} (default: \code{1e-15}).}
+
+\item{\code{base}}{Input for \link[base]{log} to use natural logarithmic scale, log2, log10 or other (default: \code{exp(1)}).}
+}
+\if{html}{\out{</div>}}
+}
 \subsection{Returns}{
 object in place
 }
@@ -779,8 +796,11 @@ obj <- metagenomics$new(
  countData = counts_file,
  featureData = features_file,
 )
-
+# standard relative abundance computation
 obj$normalize()
+
+# clr transformation with log10
+obj$normalize(method = 'clr', base = 10)
 
 }
 \if{html}{\out{</div>}}
@@ -971,13 +991,17 @@ Compute a distance metric from \code{countData}
 \if{html}{\out{<div class="arguments">}}
 \describe{
 \item{\code{metric}}{A dissimilarity metric to be applied on the \code{countData},
-thus far supports 'bray', 'jaccard', 'cosine', 'manhattan', 'jsd' (jensen-shannon divergence), 'canberra' and 'unifrac' when a tree is provided via \code{treeData}, see \href{#method-distance}{\code{distance()}}.}
+thus far supports 'bray', 'jaccard', 'cosine', 'manhattan', 'aitchison', 'euclidean', 'jsd' (jensen-shannon divergence), 'canberra' and 'unifrac' when a tree is provided via \code{treeData}, see \href{#method-distance}{\code{distance()}}.}
 
 \item{\code{normalized}}{A boolean value, whether to \href{#method-normalize}{\code{normalize()}} by total sample sums (Default: TRUE).}
 
 \item{\code{weighted}}{A boolean value, to use abundances (\code{weighted = TRUE}) or absence/presence (\code{weighted=FALSE}) (default: TRUE).}
 
 \item{\code{threads}}{A wholenumber, indicating the number of threads to use (Default: 1).}
+
+\item{\code{pseudocount}}{A numeric value to replace zero's, used in \href{#method-normalize}{\code{normalize()}} (default: \code{1e-15}).}
+
+\item{\code{base}}{Input for \link[base]{log} to use natural logarithmic scale, log2, log10 or other (default: \code{exp(1)}).}
 }
 \if{html}{\out{</div>}}
 }

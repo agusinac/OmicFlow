@@ -22,6 +22,17 @@ BEGIN_RCPP
     return rcpp_result_gen;
 END_RCPP
 }
+// euclidean
+arma::mat euclidean(const arma::sp_mat& mat);
+RcppExport SEXP _OmicFlow_euclidean(SEXP matSEXP) {
+BEGIN_RCPP
+    Rcpp::RObject rcpp_result_gen;
+    Rcpp::RNGScope rcpp_rngScope_gen;
+    Rcpp::traits::input_parameter< const arma::sp_mat& >::type mat(matSEXP);
+    rcpp_result_gen = Rcpp::wrap(euclidean(mat));
+    return rcpp_result_gen;
+END_RCPP
+}
 // jsd
 arma::mat jsd(const arma::sp_mat& mat);
 RcppExport SEXP _OmicFlow_jsd(SEXP matSEXP) {
@@ -95,6 +106,7 @@ END_RCPP
 
 static const R_CallMethodDef CallEntries[] = {
     {"_OmicFlow_bray", (DL_FUNC) &_OmicFlow_bray, 1},
+    {"_OmicFlow_euclidean", (DL_FUNC) &_OmicFlow_euclidean, 1},
     {"_OmicFlow_jsd", (DL_FUNC) &_OmicFlow_jsd, 1},
     {"_OmicFlow_cosine", (DL_FUNC) &_OmicFlow_cosine, 1},
     {"_OmicFlow_jaccard", (DL_FUNC) &_OmicFlow_jaccard, 1},

@@ -25,6 +25,14 @@ double Manhattan::operator()(const arma::sp_mat& A, const arma::sp_mat& B) const
 };
 
 /*----------------------------
+    Euclidean Dissimilarity
+-----------------------------*/
+
+double Euclidean::operator()(const arma::sp_mat& A, const arma::sp_mat& B) const {
+    return std::sqrt(arma::accu(arma::square(A - B)));
+};
+
+/*----------------------------
     Jaccard Dissimilarity
 -----------------------------*/
 
