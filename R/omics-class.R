@@ -1929,8 +1929,8 @@ omics <- R6::R6Class(
       }
     },
     removeZeros = function() {
-      keep_cols <- Matrix::colSums(private$.countData) > 0
-      keep_rows <- Matrix::rowSums(private$.countData) > 0
+      keep_cols <- base::diff(private$.countData@p) > 0
+      keep_rows <- base::diff(t(private$.countData)@p) > 0
 
       private$.countData <- private$.countData[keep_rows, keep_cols]
       private$.metaData <- private$.metaData[keep_cols, ]
