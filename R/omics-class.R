@@ -232,6 +232,45 @@ omics <- R6::R6Class(
       )
     },
     #' @description
+    #' Create a copy of the object-class
+    #' 
+    #' This method is very similar to the existing [`clone()`](#method-clone) function, except it also resets the back-up of the OmicFlow data types that is invoked with [`reset()`](#method-reset)
+    #' 
+    #' @param deep A boolean value to create a shallow or deep copy.
+    #' @examples
+    #' library("OmicFlow")
+    #'
+    #' metadata_file <- system.file("extdata", "metadata.tsv", package = "OmicFlow")
+    #' counts_file <- system.file("extdata", "counts.tsv", package = "OmicFlow")
+    #'
+    #' obj <- omics$new(
+    #'  metaData = metadata_file,
+    #'  countData = counts_file
+    #' )
+    #'
+    #' # Perform a modification and copy
+    #' obj$scale()
+    #'
+    #' cloned <- obj$copy(deep=TRUE)
+    #' cloned$scale(method = "clr")
+    #' cloned$reset() # resets to data after clone creation.
+    #' 
+    #' @return A copy of `omics` object
+    copy = function(deep = FALSE) {
+      # Base clone
+      cloned <- self$clone(deep)
+
+      # Resetting back-up
+      cloned$.__enclos_env__$private$original_data <- list(
+        counts = private$.countData,
+        features = private$.featureData,
+        metadata = private$.metaData,
+        tree = private$.treeData
+      )
+
+      cloned
+    },
+    #' @description
     #' Validates an input metadata against the JSON schema. The metadata should look as follows and should not contain any empty spaces.
     #' For example; \code{'sample 1'} is not allowed, whereas \code{'sample1'} is allowed!
     #' 
@@ -710,7 +749,6 @@ omics <- R6::R6Class(
 
       # Sets order level of taxonomic ranks
       long_values[, variable := factor(variable, levels = base::rev(feature_ranks))]
-
 
       # Returns rankstat plot
       return(long_values %>%

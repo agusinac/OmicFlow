@@ -44,6 +44,28 @@ The method by reference is very efficient when dealing with big data.
 \examples{
 
 ## ------------------------------------------------
+## Method `omics$copy`
+## ------------------------------------------------
+
+library("OmicFlow")
+
+metadata_file <- system.file("extdata", "metadata.tsv", package = "OmicFlow")
+counts_file <- system.file("extdata", "counts.tsv", package = "OmicFlow")
+
+obj <- omics$new(
+ metaData = metadata_file,
+ countData = counts_file
+)
+
+# Perform a modification and copy
+obj$scale()
+
+cloned <- obj$copy(deep=TRUE)
+cloned$scale(method = "clr")
+cloned$reset() # resets to data after clone creation.
+
+
+## ------------------------------------------------
 ## Method `omics$print`
 ## ------------------------------------------------
 
@@ -354,6 +376,7 @@ Aitchison, J. (1986) The Statistical Analysis of Compositional Data. Chapman and
 \subsection{Public methods}{
 \itemize{
 \item \href{#method-omics-new}{\code{omics$new()}}
+\item \href{#method-omics-copy}{\code{omics$copy()}}
 \item \href{#method-omics-validate}{\code{omics$validate()}}
 \item \href{#method-omics-print}{\code{omics$print()}}
 \item \href{#method-omics-reset}{\code{omics$reset()}}
@@ -402,6 +425,52 @@ Using the omics class to load your data is not supported and still experimental.
 \subsection{Returns}{
 A new \code{omics} object.
 }
+}
+\if{html}{\out{<hr>}}
+\if{html}{\out{<a id="method-omics-copy"></a>}}
+\if{latex}{\out{\hypertarget{method-omics-copy}{}}}
+\subsection{Method \code{copy()}}{
+Create a copy of the object-class
+
+This method is very similar to the existing \href{#method-clone}{\code{clone()}} function, except it also resets the back-up of the OmicFlow data types that is invoked with \href{#method-reset}{\code{reset()}}
+\subsection{Usage}{
+\if{html}{\out{<div class="r">}}\preformatted{omics$copy(deep = FALSE)}\if{html}{\out{</div>}}
+}
+
+\subsection{Arguments}{
+\if{html}{\out{<div class="arguments">}}
+\describe{
+\item{\code{deep}}{A boolean value to create a shallow or deep copy.}
+}
+\if{html}{\out{</div>}}
+}
+\subsection{Returns}{
+A copy of \code{omics} object
+}
+\subsection{Examples}{
+\if{html}{\out{<div class="r example copy">}}
+\preformatted{library("OmicFlow")
+
+metadata_file <- system.file("extdata", "metadata.tsv", package = "OmicFlow")
+counts_file <- system.file("extdata", "counts.tsv", package = "OmicFlow")
+
+obj <- omics$new(
+ metaData = metadata_file,
+ countData = counts_file
+)
+
+# Perform a modification and copy
+obj$scale()
+
+cloned <- obj$copy(deep=TRUE)
+cloned$scale(method = "clr")
+cloned$reset() # resets to data after clone creation.
+
+}
+\if{html}{\out{</div>}}
+
+}
+
 }
 \if{html}{\out{<hr>}}
 \if{html}{\out{<a id="method-omics-validate"></a>}}

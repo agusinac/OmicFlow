@@ -7,10 +7,10 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### `Changed`
 - [#33](https://github.com/agusinac/OmicFlow/issues/33) Combined two methods into a single `omics$scale()`, added euclidean method and aitchison
-- []
 
 ### `Fixed`
 - [#35](https://github.com/agusinac/OmicFlow/issues/35) changed removezeros by using `@p` of `CsparseMatrix`
+- [#37](https://github.com/agusinac/OmicFlow/issues/37) `omics$reset` works with `omics$copy`
 
 ## v1.5.1 - [2026-02-27]
 

@@ -37,6 +37,7 @@ Every omics class creates an internal memory efficient back-up of the data, the 
 <li><span class="pkg-link" data-pkg="OmicFlow" data-topic="omics" data-id="alpha_diversity"><a href='../../OmicFlow/html/omics.html#method-omics-alpha_diversity'><code>OmicFlow::omics$alpha_diversity()</code></a></span></li>
 <li><span class="pkg-link" data-pkg="OmicFlow" data-topic="omics" data-id="autoFlow"><a href='../../OmicFlow/html/omics.html#method-omics-autoFlow'><code>OmicFlow::omics$autoFlow()</code></a></span></li>
 <li><span class="pkg-link" data-pkg="OmicFlow" data-topic="omics" data-id="composition"><a href='../../OmicFlow/html/omics.html#method-omics-composition'><code>OmicFlow::omics$composition()</code></a></span></li>
+<li><span class="pkg-link" data-pkg="OmicFlow" data-topic="omics" data-id="copy"><a href='../../OmicFlow/html/omics.html#method-omics-copy'><code>OmicFlow::omics$copy()</code></a></span></li>
 <li><span class="pkg-link" data-pkg="OmicFlow" data-topic="omics" data-id="distance"><a href='../../OmicFlow/html/omics.html#method-omics-distance'><code>OmicFlow::omics$distance()</code></a></span></li>
 <li><span class="pkg-link" data-pkg="OmicFlow" data-topic="omics" data-id="feature_merge"><a href='../../OmicFlow/html/omics.html#method-omics-feature_merge'><code>OmicFlow::omics$feature_merge()</code></a></span></li>
 <li><span class="pkg-link" data-pkg="OmicFlow" data-topic="omics" data-id="feature_subset"><a href='../../OmicFlow/html/omics.html#method-omics-feature_subset'><code>OmicFlow::omics$feature_subset()</code></a></span></li>
