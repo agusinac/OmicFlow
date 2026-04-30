@@ -10,7 +10,7 @@ test_that("Testing UniFrac ordination", {
     method = "pcoa",
     group_by = "CONTRAST_sex",
     weighted = TRUE,
-    normalize = TRUE,
+    scale = "tss",
     threads = 1
   )
   

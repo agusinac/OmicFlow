@@ -82,7 +82,7 @@ taxa <- omics$new(
 )
 
 # Performs modifications
-taxa$transform(log2)
+taxa$scale(transform = log2)
 
 # resets
 taxa$reset()
@@ -169,26 +169,7 @@ obj$feature_merge(feature_rank = "Genus", feature_filter = c("uncultured", "meta
 
 
 ## ------------------------------------------------
-## Method `omics$transform`
-## ------------------------------------------------
-
-library("OmicFlow")
-
-metadata_file <- system.file("extdata", "metadata.tsv", package = "OmicFlow")
-counts_file <- system.file("extdata", "counts.tsv", package = "OmicFlow")
-features_file <- system.file("extdata", "features.tsv", package = "OmicFlow")
-
-obj <- metagenomics$new(
- metaData = metadata_file,
- countData = counts_file,
- featureData = features_file,
-)
-
-obj$transform(log2)
-
-
-## ------------------------------------------------
-## Method `omics$normalize`
+## Method `omics$scale`
 ## ------------------------------------------------
 
 library("OmicFlow")
@@ -203,10 +184,11 @@ obj <- metagenomics$new(
  featureData = features_file,
 )
 # standard relative abundance computation
-obj$normalize()
+obj$scale()
 
-# clr transformation with log10
-obj$normalize(method = 'clr', base = 10)
+# CLR
+obj$reset()
+obj$scale(method = "clr")
 
 
 ## ------------------------------------------------
@@ -315,8 +297,7 @@ obj <- metagenomics$new(
 pcoa_plots <- obj$ordination(metric = "bray",
                              method = "pcoa",
                              group_by = "treatment",
-                             weighted = TRUE,
-                             normalize = TRUE)
+                             weighted = TRUE)
 pcoa_plots
 
 
@@ -381,8 +362,7 @@ Aitchison, J. (1986) The Statistical Analysis of Compositional Data. Chapman and
 \item \href{#method-omics-sample_subset}{\code{omics$sample_subset()}}
 \item \href{#method-omics-samplepair_subset}{\code{omics$samplepair_subset()}}
 \item \href{#method-omics-feature_merge}{\code{omics$feature_merge()}}
-\item \href{#method-omics-transform}{\code{omics$transform()}}
-\item \href{#method-omics-normalize}{\code{omics$normalize()}}
+\item \href{#method-omics-scale}{\code{omics$scale()}}
 \item \href{#method-omics-rankstat}{\code{omics$rankstat()}}
 \item \href{#method-omics-alpha_diversity}{\code{omics$alpha_diversity()}}
 \item \href{#method-omics-composition}{\code{omics$composition()}}
@@ -514,7 +494,7 @@ taxa <- omics$new(
 )
 
 # Performs modifications
-taxa$transform(log2)
+taxa$scale(transform = log2)
 
 # resets
 taxa$reset()
@@ -720,63 +700,29 @@ obj$feature_merge(feature_rank = "Genus", feature_filter = c("uncultured", "meta
 
 }
 \if{html}{\out{<hr>}}
-\if{html}{\out{<a id="method-omics-transform"></a>}}
-\if{latex}{\out{\hypertarget{method-omics-transform}{}}}
-\subsection{Method \code{transform()}}{
-Performs transformation on the positive values from the \code{countData}.
+\if{html}{\out{<a id="method-omics-scale"></a>}}
+\if{latex}{\out{\hypertarget{method-omics-scale}{}}}
+\subsection{Method \code{scale()}}{
+Feature scaling on the \code{countData}. The \code{scale} function is able to apply transformations element-wise on the positive values, (optional: add pseudocounts) and perform normalisation or standardisation methods.
 \subsection{Usage}{
-\if{html}{\out{<div class="r">}}\preformatted{omics$transform(FUN)}\if{html}{\out{</div>}}
+\if{html}{\out{<div class="r">}}\preformatted{omics$scale(
+  method = "tss",
+  transform = NULL,
+  base = exp(1),
+  pseudocount = NULL
+)}\if{html}{\out{</div>}}
 }
 
 \subsection{Arguments}{
 \if{html}{\out{<div class="arguments">}}
 \describe{
-\item{\code{FUN}}{A function such as \code{log2}, \code{log}}
-}
-\if{html}{\out{</div>}}
-}
-\subsection{Returns}{
-object in place
-}
-\subsection{Examples}{
-\if{html}{\out{<div class="r example copy">}}
-\preformatted{library("OmicFlow")
+\item{\code{method}}{A character to choose a standardisation/normalisation method, options: \code{tss}, \code{clr}, \code{binary}, \code{hellinger} (default: \code{"tss"}).}
 
-metadata_file <- system.file("extdata", "metadata.tsv", package = "OmicFlow")
-counts_file <- system.file("extdata", "counts.tsv", package = "OmicFlow")
-features_file <- system.file("extdata", "features.tsv", package = "OmicFlow")
-
-obj <- metagenomics$new(
- metaData = metadata_file,
- countData = counts_file,
- featureData = features_file,
-)
-
-obj$transform(log2)
-
-}
-\if{html}{\out{</div>}}
-
-}
-
-}
-\if{html}{\out{<hr>}}
-\if{html}{\out{<a id="method-omics-normalize"></a>}}
-\if{latex}{\out{\hypertarget{method-omics-normalize}{}}}
-\subsection{Method \code{normalize()}}{
-Normalisation of the \code{countData} by either Total Sample Sums (TSS) or Centered Log Transformation (CLR) on the feature level.
-\subsection{Usage}{
-\if{html}{\out{<div class="r">}}\preformatted{omics$normalize(method = "tss", pseudocount = 1e-15, base = exp(1))}\if{html}{\out{</div>}}
-}
-
-\subsection{Arguments}{
-\if{html}{\out{<div class="arguments">}}
-\describe{
-\item{\code{method}}{A character to choose a normalisation method, options: \code{tss} or \code{clr} (default: \code{tss}).}
-
-\item{\code{pseudocount}}{A numeric value to replace zero's, used in \code{method = 'clr'} (default: \code{1e-15}).}
+\item{\code{transform}}{A function to apply on the positive values of \code{countData} (default: \code{NULL}).}
 
 \item{\code{base}}{Input for \link[base]{log} to use natural logarithmic scale, log2, log10 or other (default: \code{exp(1)}).}
+
+\item{\code{pseudocount}}{A numeric value to replace zero's (default: \code{NULL}).}
 }
 \if{html}{\out{</div>}}
 }
@@ -797,10 +743,11 @@ obj <- metagenomics$new(
  featureData = features_file,
 )
 # standard relative abundance computation
-obj$normalize()
+obj$scale()
 
-# clr transformation with log10
-obj$normalize(method = 'clr', base = 10)
+# CLR
+obj$reset()
+obj$scale(method = "clr")
 
 }
 \if{html}{\out{</div>}}
@@ -926,7 +873,7 @@ Creates a table most abundant compositional features. Also assigns a color blind
   feature_rank,
   feature_filter = NULL,
   col_name = NULL,
-  normalize = TRUE,
+  scale = NULL,
   feature_top = c(10, 15),
   Brewer.palID = "RdYlBu"
 )}\if{html}{\out{</div>}}
@@ -941,7 +888,7 @@ Creates a table most abundant compositional features. Also assigns a color blind
 
 \item{\code{col_name}}{Optional, a character or vector of characters to add to the final compositional data output.}
 
-\item{\code{normalize}}{A boolean value, whether to \href{#method-normalize}{\code{normalize()}} by total sample sums (Default: TRUE).}
+\item{\code{scale}}{A character value, the method to use for feature scaling via \href{#method-scale}{\code{scale()}} (default: \code{NULL}).}
 
 \item{\code{feature_top}}{A wholenumber of the top features to visualize, the max is 15, due to a limit of palettes.}
 
@@ -984,7 +931,13 @@ plt <- composition_plot(data = result$data,
 \subsection{Method \code{distance()}}{
 Compute a distance metric from \code{countData}
 \subsection{Usage}{
-\if{html}{\out{<div class="r">}}\preformatted{omics$distance(metric, normalized = TRUE, weighted = TRUE, threads = 1)}\if{html}{\out{</div>}}
+\if{html}{\out{<div class="r">}}\preformatted{omics$distance(
+  metric,
+  scale = NULL,
+  weighted = TRUE,
+  threads = 1,
+  normalized = TRUE
+)}\if{html}{\out{</div>}}
 }
 
 \subsection{Arguments}{
@@ -993,13 +946,15 @@ Compute a distance metric from \code{countData}
 \item{\code{metric}}{A dissimilarity metric to be applied on the \code{countData},
 thus far supports 'bray', 'jaccard', 'cosine', 'manhattan', 'aitchison', 'euclidean', 'jsd' (jensen-shannon divergence), 'canberra' and 'unifrac' when a tree is provided via \code{treeData}, see \href{#method-distance}{\code{distance()}}.}
 
-\item{\code{normalized}}{A boolean value, whether to \href{#method-normalize}{\code{normalize()}} by total sample sums (Default: TRUE).}
+\item{\code{scale}}{A character value, the method to use for feature scaling via \href{#method-scale}{\code{scale()}} (default: \code{NULL}).}
 
 \item{\code{weighted}}{A boolean value, to use abundances (\code{weighted = TRUE}) or absence/presence (\code{weighted=FALSE}) (default: TRUE).}
 
 \item{\code{threads}}{A wholenumber, indicating the number of threads to use (Default: 1).}
 
-\item{\code{pseudocount}}{A numeric value to replace zero's, used in \href{#method-normalize}{\code{normalize()}} (default: \code{1e-15}).}
+\item{\code{normalized}}{A boolean value, whether to normalize weighted UniFrac distances to be between 0 and 1. Unweighted UniFrac is always normalized (default: TRUE).}
+
+\item{\code{pseudocount}}{A numeric value to replace zero's, used in \href{#method-scale}{\code{scale()}} (default: \code{1e-15}).}
 
 \item{\code{base}}{Input for \link[base]{log} to use natural logarithmic scale, log2, log10 or other (default: \code{exp(1)}).}
 }
@@ -1042,7 +997,7 @@ Ordination of \code{countData} with statistical testing.
   group_by,
   distmat = NULL,
   weighted = TRUE,
-  normalize = TRUE,
+  scale = NULL,
   threads = 1,
   perm_design = NULL,
   perm = 999
@@ -1061,13 +1016,13 @@ thus far supports 'bray', 'jaccard', 'cosine', 'manhattan', 'jsd' (jensen-shanno
 
 \item{\code{distmat}}{A custom distance matrix in either \link[stats]{dist} or \link[Matrix]{Matrix} format.}
 
-\item{\code{weighted}}{A boolean value, whether to compute weighted or unweighted dissimilarities (Default: TRUE).}
+\item{\code{weighted}}{A boolean value, whether to compute weighted or unweighted dissimilarities (default: \code{TRUE}).}
 
-\item{\code{normalize}}{A boolean value, whether to \href{#method-normalize}{\code{normalize()}} by total sample sums (Default: TRUE).}
+\item{\code{scale}}{A character value, the method to use for feature scaling via \href{#method-scale}{\code{scale()}} (default: \code{NULL}).}
 
 \item{\code{threads}}{A wholenumber, indicating the number of threads to use (Default: 1).}
 
-\item{\code{perm_design}}{A function that takes \code{metaData} and constructs a permutation design with \link[permute]{how} (default: NULL).}
+\item{\code{perm_design}}{A function that takes \code{metaData} and constructs a permutation design with \link[permute]{how} (default: \code{NULL}).}
 
 \item{\code{perm}}{A wholenumber, number of permutations to compare against the null hypothesis of \link[vegan]{adonis2} and \link[vegan]{anosim} (default: \code{perm=999}).}
 }
@@ -1091,8 +1046,7 @@ obj <- metagenomics$new(
 pcoa_plots <- obj$ordination(metric = "bray",
                              method = "pcoa",
                              group_by = "treatment",
-                             weighted = TRUE,
-                             normalize = TRUE)
+                             weighted = TRUE)
 pcoa_plots
 
 }
@@ -1111,7 +1065,7 @@ Differential feature expression (DFE) using the \link{foldchange} for both paire
   feature_rank,
   feature_filter = NULL,
   paired = FALSE,
-  normalize = TRUE,
+  scale = NULL,
   condition.group,
   condition_A,
   condition_B,
@@ -1126,11 +1080,11 @@ Differential feature expression (DFE) using the \link{foldchange} for both paire
 \describe{
 \item{\code{feature_rank}}{A character or vector of characters in the \code{featureData} to aggregate via \href{#method-feature_merge}{\code{feature_merge()}}.}
 
-\item{\code{feature_filter}}{A character or vector of characters to remove features via regex pattern (Default: NULL).}
+\item{\code{feature_filter}}{A character or vector of characters to remove features via regex pattern (default: \code{NULL}).}
 
 \item{\code{paired}}{A boolean value, the paired is only applicable when a \code{SAMPLEPAIR_ID} column exists within the \code{metaData}. See \link[stats]{wilcox.test} and \href{#method-samplepair_subset}{\code{samplepair_subset()}}.}
 
-\item{\code{normalize}}{A boolean value, whether to \href{#method-normalize}{\code{normalize()}} by total sample sums (Default: TRUE).}
+\item{\code{scale}}{A character value, the method to use for feature scaling via \href{#method-scale}{\code{scale()}} (default: \code{NULL}).}
 
 \item{\code{condition.group}}{A character variable of an existing column name in \code{metaData}, wherein the conditions A and B are located.}
 
@@ -1138,9 +1092,9 @@ Differential feature expression (DFE) using the \link{foldchange} for both paire
 
 \item{\code{condition_B}}{A character value or vector of characters.}
 
-\item{\code{pvalue.threshold}}{A numeric value used as a p-value threshold to label and color significant features (Default: 0.05).}
+\item{\code{pvalue.threshold}}{A numeric value used as a p-value threshold to label and color significant features (default: 0.05).}
 
-\item{\code{logfold.threshold}}{A numeric value used as a fold-change threshold to label and color significantly expressed features (Default: 0.06).}
+\item{\code{logfold.threshold}}{A numeric value used as a fold-change threshold to label and color significantly expressed features (default: 0.06).}
 
 \item{\code{abundance.threshold}}{A numeric value used as an abundance threshold to size the scatter dots based on their mean abundance (default: 0.01).}
 }
@@ -1187,7 +1141,7 @@ For now only works with headers that start with prefix \code{CONTRAST_}. If the 
   distance_metrics = c("unifrac"),
   beta_div_table = NULL,
   alpha_div_table = NULL,
-  normalize = TRUE,
+  scale = NULL,
   weighted = TRUE,
   pvalue.threshold = 0.05,
   logfold.threshold = 1,
@@ -1214,7 +1168,7 @@ For now only works with headers that start with prefix \code{CONTRAST_}. If the 
 
 \item{\code{alpha_div_table}}{A path to pre-computed alpha diversity table, with columns: \code{alpha_div} (containing diversity values) and the same CONTRAST columns from \code{metaData} (default: \code{NULL}).}
 
-\item{\code{normalize}}{A boolean value, whether to \href{#method-normalize}{\code{normalize()}} by total sample sums (default: \code{TRUE}).}
+\item{\code{scale}}{A character value, the method to use for feature scaling via \href{#method-scale}{\code{scale()}} (default: \code{NULL}).}
 
 \item{\code{weighted}}{A boolean value, whether to compute weighted or unweighted dissimilarities (default: \code{TRUE}).}
 

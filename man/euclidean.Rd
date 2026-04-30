@@ -24,7 +24,7 @@ The Euclidean dissimilarity between two samples \eqn{A} and \eqn{B}, each of len
 
 \eqn{d(A,B) = \sqrt{\sum_{i=1}^n (A_i - B_i)^2}}
 
-where \eqn{A_i} and \eqn{B_i} are the abundances of the \eqn{i}-th feature in sample \eqn{A} and \eqn{B}, respectively.\link[=web:13]{web:7}
+where \eqn{A_i} and \eqn{B_i} are the abundances of the \eqn{i}-th feature in sample \eqn{A} and \eqn{B}, respectively.
 When weighted is set to FALSE, counts are replaced by presence/absence data.
 }
 \examples{
@@ -43,7 +43,7 @@ taxa <- metagenomics$new(
 )
 
 taxa$feature_subset(Kingdom == "Bacteria")
-taxa$normalize()
+taxa$scale(method = "tss")
 
 euclidean(taxa$countData)
 }

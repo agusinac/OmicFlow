@@ -8,7 +8,7 @@
 #'
 #' \eqn{d(A,B) = \sqrt{\sum_{i=1}^n (A_i - B_i)^2}}
 #'
-#' where \eqn{A_i} and \eqn{B_i} are the abundances of the \eqn{i}-th feature in sample \eqn{A} and \eqn{B}, respectively.[web:7][web:13]
+#' where \eqn{A_i} and \eqn{B_i} are the abundances of the \eqn{i}-th feature in sample \eqn{A} and \eqn{B}, respectively.
 #' When weighted is set to FALSE, counts are replaced by presence/absence data.
 #'
 #' @param x A \link[base]{matrix}, \link[Matrix]{sparseMatrix} or \link[Matrix]{Matrix}.
@@ -31,7 +31,7 @@
 #' )
 #'
 #' taxa$feature_subset(Kingdom == "Bacteria")
-#' taxa$normalize()
+#' taxa$scale(method = "tss")
 #'
 #' euclidean(taxa$countData)
 #' @importFrom RcppParallel setThreadOptions

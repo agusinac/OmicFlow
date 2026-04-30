@@ -6,13 +6,13 @@ test_that("Testing transformations of data", {
   )
   
   # Perform log transformation
-  taxa$transform(log2)
+  taxa$scale(transform = log2)
   expect_snapshot(taxa)
   
   # In between reset
   taxa$reset()
   
   # Perform sqrt transformation
-  taxa$transform(sqrt)
+  taxa$scale(transform = sqrt)
   expect_snapshot(taxa)
 })

@@ -320,7 +320,7 @@ omics <- R6::R6Class(
     #' )
     #'
     #' # Performs modifications
-    #' taxa$transform(log2)
+    #' taxa$scale(transform = log2)
     #'
     #' # resets
     #' taxa$reset()
@@ -568,43 +568,11 @@ omics <- R6::R6Class(
       invisible(self)
     },
     #' @description
-    #' Performs transformation on the positive values from the `countData`.
-    #' @param FUN A function such as \code{log2}, \code{log}
-    #' @examples
-    #' library("OmicFlow")
-    #'
-    #' metadata_file <- system.file("extdata", "metadata.tsv", package = "OmicFlow")
-    #' counts_file <- system.file("extdata", "counts.tsv", package = "OmicFlow")
-    #' features_file <- system.file("extdata", "features.tsv", package = "OmicFlow")
-    #'
-    #' obj <- metagenomics$new(
-    #'  metaData = metadata_file,
-    #'  countData = counts_file,
-    #'  featureData = features_file,
-    #' )
-    #' 
-    #' obj$transform(log2)
-    #'
-    #' @return object in place
-    transform = function(FUN) {
-
-      ## Error handling
-      #--------------------------------------------------------------------#
-
-      if (!inherits(FUN, "function"))
-        cli::cli_abort("{FUN} must be a function!")
-
-      ## MAIN
-      #--------------------------------------------------------------------#
-
-      private$.countData@x <- FUN(private$.countData@x)
-      invisible(self)
-    },
-    #' @description
-    #' Normalisation of the `countData` by either Total Sample Sums (TSS) or Centered Log Transformation (CLR) on the feature level.
-    #' @param method A character to choose a normalisation method, options: `tss` or `clr` (default: `tss`).
-    #' @param pseudocount A numeric value to replace zero's, used in \code{method = 'clr'} (default: \code{1e-15}).
+    #' Feature scaling on the `countData`. The `scale` function is able to apply transformations element-wise on the positive values, (optional: add pseudocounts) and perform normalisation or standardisation methods.
+    #' @param method A character to choose a standardisation/normalisation method, options: `tss`, `clr`, `binary`, `hellinger` (default: \code{"tss"}).
+    #' @param transform A function to apply on the positive values of `countData` (default: \code{NULL}).
     #' @param base Input for \link[base]{log} to use natural logarithmic scale, log2, log10 or other (default: \code{exp(1)}).
+    #' @param pseudocount A numeric value to replace zero's (default: \code{NULL}).
     #' @examples
     #' library("OmicFlow")
     #'
@@ -618,40 +586,68 @@ omics <- R6::R6Class(
     #'  featureData = features_file,
     #' )
     #' # standard relative abundance computation
-    #' obj$normalize()
+    #' obj$scale()
     #' 
-    #' # clr transformation with log10
-    #' obj$normalize(method = 'clr', base = 10)
-    #'
+    #' # CLR
+    #' obj$reset()
+    #' obj$scale(method = "clr")
+    #' 
     #' @return object in place
-    normalize = function(method = "tss", pseudocount = 1e-15, base = exp(1)) {
+    scale = function(method = "tss", transform = NULL, base = exp(1), pseudocount = NULL) {
 
-    ## Error handling
-    #--------------------------------------------------------------------#
-      OPTIONS <- c("tss", "clr")
-      if (!is.character(method) && length(method) != 1) {
+      ## Nested Functions
+      #--------------------------------------------------------------------#
+      tss <- function(x) {
+        x@x <- x@x / rep(Matrix::colSums(x), base::diff(x@p))
+        x
+      }
+
+      ## Error handling
+      #--------------------------------------------------------------------#
+      OPTIONS <- c("tss", "clr", "binary", "hellinger")
+      if (!is.null(method) && !is.character(method) && length(method) != 1) {
         cli::cli_abort("{.val {method}} needs to contain characters with length of 1.")
       } else if (!method %in% OPTIONS) {
         cli::cli_abort("{.val {method}} is not a valid method. Valid options: <{.val {OPTIONS}}>")
       }
 
-      if (!is.numeric(pseudocount))
+      if (!is.null(pseudocount) && !is.numeric(pseudocount))
         cli::cli_abort("{.val {pseudocount}} needs to be a {.cls numeric} type.")
 
       if (!is.numeric(base))
         cli::cli_abort("{.val {base}} needs to be a {.cls numeric} type.")
 
+      if (!is.null(transform) && !is.function(transform))
+        cli::cli_abort("{.val {transform}} must be a function!")
+
       ## MAIN
       #--------------------------------------------------------------------#
-
-      if (method == "tss")
-        private$.countData@x <- private$.countData@x / rep(Matrix::colSums(private$.countData), base::diff(private$.countData@p))
+      if (!is.null(pseudocount)) 
+        private$.countData <- private$.countData + pseudocount
       
-      if (method == "clr") {
-        ref <- t(private$.countData) + pseudocount
-        ref_log <- log(ref, base=base)
-        private$.countData <- ref_log - Matrix::rowMeans(ref_log)
-      }
+      if (is.function(transform))
+        private$.countData@x <- transform(private$.countData@x)
+
+      private$.countData <- switch(
+        method,
+        "tss" = tss(private$.countData),
+        "clr" = {
+          ref <- private$.countData
+          ref@x <- log(ref@x, base=base)
+          ref - Matrix::rowMeans(ref)
+        },
+        "binary" = {
+          ref <- private$.countData
+          ref@x[] <- 1
+          ref
+          },
+        "hellinger" = {
+          ref <- tss(private$.countData)
+          ref@x <- sqrt(ref@x)
+          ref
+        }
+      )
+
       invisible(self)
     },
     #' @description
@@ -851,7 +847,7 @@ omics <- R6::R6Class(
     #' @param feature_filter A character or vector of characters to removes features by regex pattern.
     #' @param col_name Optional, a character or vector of characters to add to the final compositional data output.
     #' @param feature_top A wholenumber of the top features to visualize, the max is 15, due to a limit of palettes.
-    #' @param normalize A boolean value, whether to [`normalize()`](#method-normalize) by total sample sums (Default: TRUE).
+    #' @param scale A character value, the method to use for feature scaling via [`scale()`](#method-scale) (default: \code{NULL}).
     #' @param Brewer.palID A character name for the palette set to be applied, see \link[RColorBrewer]{brewer.pal} or \link{colormap}.
     #' @examples
     #' library("ggplot2")
@@ -883,7 +879,7 @@ omics <- R6::R6Class(
     composition = function(feature_rank,
                            feature_filter = NULL,
                            col_name = NULL,
-                           normalize = TRUE,
+                           scale = NULL,
                            feature_top = c(10, 15),
                            Brewer.palID = "RdYlBu") {
 
@@ -924,8 +920,8 @@ omics <- R6::R6Class(
       }, add = TRUE)
 
       # Normalizes sample counts
-      if (normalize)
-        self$normalize()
+      if (!is.null(scale))
+        self$scale(method=scale)
 
       # Agglomerate by feature_rank
       self$feature_merge(feature_rank = feature_rank, feature_filter = feature_filter)
@@ -1008,9 +1004,10 @@ omics <- R6::R6Class(
     #' @param metric A dissimilarity metric to be applied on the `countData`, 
     #' thus far supports 'bray', 'jaccard', 'cosine', 'manhattan', 'aitchison', 'euclidean', 'jsd' (jensen-shannon divergence), 'canberra' and 'unifrac' when a tree is provided via `treeData`, see [`distance()`](#method-distance).
     #' @param weighted A boolean value, to use abundances (\code{weighted = TRUE}) or absence/presence (\code{weighted=FALSE}) (default: TRUE).
-    #' @param pseudocount A numeric value to replace zero's, used in [`normalize()`](#method-normalize) (default: \code{1e-15}).
+    #' @param normalized A boolean value, whether to normalize weighted UniFrac distances to be between 0 and 1. Unweighted UniFrac is always normalized (default: TRUE).
+    #' @param pseudocount A numeric value to replace zero's, used in [`scale()`](#method-scale) (default: \code{1e-15}).
     #' @param base Input for \link[base]{log} to use natural logarithmic scale, log2, log10 or other (default: \code{exp(1)}).
-    #' @param normalized A boolean value, whether to [`normalize()`](#method-normalize) by total sample sums (Default: TRUE).
+    #' @param scale A character value, the method to use for feature scaling via [`scale()`](#method-scale) (default: \code{NULL}).
     #' @param threads A wholenumber, indicating the number of threads to use (Default: 1).
     #' @return A column x column \link[stats]{dist} object.
     #' @references
@@ -1031,7 +1028,7 @@ omics <- R6::R6Class(
     #' obj$feature_subset(Kingdom == "Bacteria")
     #' dist <- obj$distance(metric = "bray")
     #' @seealso \link{bray}, \link{canberra}, \link{cosine}, \link{jaccard}, \link{jsd}, \link{manhattan}, \link{unifrac}
-    distance = function(metric, normalized = TRUE, weighted = TRUE, threads = 1) {
+    distance = function(metric, scale = NULL, weighted = TRUE, threads = 1, normalized = TRUE) {
 
       ## Error handling
       #--------------------------------------------------------------------#
@@ -1071,8 +1068,8 @@ omics <- R6::R6Class(
       }, add = TRUE)
 
       # Normalizes counts
-      if (normalized)
-        self$normalize()
+      if (!is.null(scale))
+        self$scale(method=scale)
 
       distmat <- switch(
         metric,
@@ -1083,19 +1080,12 @@ omics <- R6::R6Class(
         "bray" = OmicFlow::bray(x = private$.countData, weighted=weighted, threads=threads),
         "jsd" = OmicFlow::jsd(x = private$.countData, weighted=weighted, threads=threads),
         "cosine" = OmicFlow::cosine(x = private$.countData, weighted=weighted, threads=threads),
-        "euclidean" = OmicFlow::euclidean(x = private$.countData, weighted=weighted, threads=threads)
+        "euclidean" = OmicFlow::euclidean(x = private$.countData, weighted=weighted, threads=threads),
+        "aitchison" = {
+            self$scale(method = "clr", base=base, pseudocount=NULL)
+            OmicFlow::euclidean(x = private$.countData, weighted=weighted, threads=threads)
+        }
       )
-
-      if (metric == "aitchison") {
-        self$normalize(
-          method = "clr", 
-          base=base, 
-          pseudocount=pseudocount
-        )
-
-        distmat <- OmicFlow::euclidean(x = private$.countData, weighted=weighted, threads=threads)
-      }
-
       return(distmat)
     },
     #' @description
@@ -1105,10 +1095,10 @@ omics <- R6::R6Class(
     #' @param method Ordination method, supports "pcoa" and "nmds", see \link[vegan]{wcmdscale}.
     #' @param distmat A custom distance matrix in either \link[stats]{dist} or \link[Matrix]{Matrix} format.
     #' @param group_by A character variable in `metaData` to be used for the \link{pairwise_adonis} or \link{pairwise_anosim} statistical test.
-    #' @param weighted A boolean value, whether to compute weighted or unweighted dissimilarities (Default: TRUE).
-    #' @param normalize A boolean value, whether to [`normalize()`](#method-normalize) by total sample sums (Default: TRUE).
+    #' @param weighted A boolean value, whether to compute weighted or unweighted dissimilarities (default: \code{TRUE}).
+    #' @param scale A character value, the method to use for feature scaling via [`scale()`](#method-scale) (default: \code{NULL}).
     #' @param threads A wholenumber, indicating the number of threads to use (Default: 1).
-    #' @param perm_design A function that takes `metaData` and constructs a permutation design with \link[permute]{how} (default: NULL).
+    #' @param perm_design A function that takes `metaData` and constructs a permutation design with \link[permute]{how} (default: \code{NULL}).
     #' @param perm A wholenumber, number of permutations to compare against the null hypothesis of \link[vegan]{adonis2} and \link[vegan]{anosim} (default: \code{perm=999}).
     #' @examples
     #' library("ggplot2")
@@ -1127,8 +1117,7 @@ omics <- R6::R6Class(
     #' pcoa_plots <- obj$ordination(metric = "bray",
     #'                              method = "pcoa",
     #'                              group_by = "treatment",
-    #'                              weighted = TRUE,
-    #'                              normalize = TRUE)
+    #'                              weighted = TRUE)
     #' pcoa_plots
     #'
     #' @returns A list of components:
@@ -1145,7 +1134,7 @@ omics <- R6::R6Class(
                           group_by,
                           distmat = NULL,
                           weighted = TRUE,
-                          normalize = TRUE,
+                          scale = NULL,
                           threads = 1,
                           perm_design = NULL,
                           perm = 999) {
@@ -1204,7 +1193,7 @@ omics <- R6::R6Class(
       if (is.null(distmat)) {
         distmat <- self$distance(
           metric = metric,
-          normalized = normalize,
+          scale = scale,
           weighted = weighted,
           threads = threads
           )
@@ -1305,15 +1294,15 @@ omics <- R6::R6Class(
     #' @description
     #' Differential feature expression (DFE) using the \link{foldchange} for both paired and non-paired test.
     #' @param feature_rank A character or vector of characters in the `featureData` to aggregate via [`feature_merge()`](#method-feature_merge).
-    #' @param feature_filter A character or vector of characters to remove features via regex pattern (Default: NULL).
+    #' @param feature_filter A character or vector of characters to remove features via regex pattern (default: \code{NULL}).
     #' @param paired A boolean value, the paired is only applicable when a `SAMPLEPAIR_ID` column exists within the `metaData`. See \link[stats]{wilcox.test} and [`samplepair_subset()`](#method-samplepair_subset).
     #' @param condition.group A character variable of an existing column name in `metaData`, wherein the conditions A and B are located.
     #' @param condition_A A character value or vector of characters.
     #' @param condition_B A character value or vector of characters.
-    #' @param pvalue.threshold A numeric value used as a p-value threshold to label and color significant features (Default: 0.05).
-    #' @param logfold.threshold A numeric value used as a fold-change threshold to label and color significantly expressed features (Default: 0.06).
+    #' @param pvalue.threshold A numeric value used as a p-value threshold to label and color significant features (default: 0.05).
+    #' @param logfold.threshold A numeric value used as a fold-change threshold to label and color significantly expressed features (default: 0.06).
     #' @param abundance.threshold A numeric value used as an abundance threshold to size the scatter dots based on their mean abundance (default: 0.01).
-    #' @param normalize A boolean value, whether to [`normalize()`](#method-normalize) by total sample sums (Default: TRUE).
+    #' @param scale A character value, the method to use for feature scaling via [`scale()`](#method-scale) (default: \code{NULL}).
     #' @examples
     #' library("ggplot2")
     #' library("OmicFlow")
@@ -1342,7 +1331,7 @@ omics <- R6::R6Class(
     DFE = function(feature_rank,
                    feature_filter = NULL,
                    paired = FALSE,
-                   normalize = TRUE,
+                   scale = NULL,
                    condition.group,
                    condition_A,
                    condition_B,
@@ -1400,8 +1389,8 @@ omics <- R6::R6Class(
       }, add = TRUE)
 
       # normalization if applicable
-      if (normalize)
-        self$normalize()
+      if (!is.null(scale))
+        self$scale(method=scale)
 
       # Subset by missing values
       self$removeNAs(condition.group)
@@ -1474,7 +1463,7 @@ omics <- R6::R6Class(
     #' @param distance_metrics A character vector specifying what (dis)similarity metrics to use (default: \code{c("unifrac")}).
     #' @param beta_div_table A path to an existing file or a dense/sparse \link[Matrix]{Matrix} format (default: \code{NULL}).
     #' @param alpha_div_table A path to pre-computed alpha diversity table, with columns: `alpha_div` (containing diversity values) and the same CONTRAST columns from `metaData` (default: \code{NULL}).
-    #' @param normalize A boolean value, whether to [`normalize()`](#method-normalize) by total sample sums (default: \code{TRUE}).
+    #' @param scale A character value, the method to use for feature scaling via [`scale()`](#method-scale) (default: \code{NULL}).
     #' @param weighted A boolean value, whether to compute weighted or unweighted dissimilarities (default: \code{TRUE}).
     #' @param pvalue.threshold A numeric value, the p-value is used to include/exclude composition and foldchanges plots coming from alpha- and beta diversity analysis (default: 0.05).
     #' @param logfold.threshold A numeric value used as a fold-change threshold to label and color significantly expressed features, see [`DFE()`](#method-DFE) (Default: 1).
@@ -1491,7 +1480,7 @@ omics <- R6::R6Class(
                         distance_metrics = c("unifrac"),
                         beta_div_table = NULL,
                         alpha_div_table = NULL,
-                        normalize = TRUE,
+                        scale = NULL,
                         weighted = TRUE,
                         pvalue.threshold = 0.05,
                         logfold.threshold = 1,
@@ -1672,7 +1661,7 @@ omics <- R6::R6Class(
               metric = distance_metrics[j],
               method = "pcoa",
               group_by = col_name,
-              normalize = normalize,
+              scale = scale,
               weighted = weighted,
               perm = perm,
               threads = threads
@@ -1718,7 +1707,7 @@ omics <- R6::R6Class(
               method = "nmds",
               group_by = col_name,
               weighted = weighted,
-              normalize = normalize,
+              scale = scale,
               perm = perm,
               threads = threads
               )
@@ -1749,7 +1738,7 @@ omics <- R6::R6Class(
             feature_rank = feature_contrast[j],
             feature_filter = feature_filter,
             feature_top = 15,
-            normalize = normalize,
+            scale = scale,
             col_name = col_name
             )
           # Creates composition ggplot and stores plot with data
@@ -1770,7 +1759,7 @@ omics <- R6::R6Class(
                 feature_rank = feature_contrast[j],
                 feature_filter = feature_filter,
                 paired = ifelse(!is.null(private$.samplepair_id), TRUE, FALSE),
-                normalize = normalize,
+                scale = scale,
                 condition.group = col_name,
                 condition_A = c(conditions$group1),
                 condition_B = c(conditions$group2),
@@ -1785,7 +1774,7 @@ omics <- R6::R6Class(
                   feature_rank = feature_contrast[j],
                   feature_filter = feature_filter,
                   paired = FALSE,
-                  normalize = normalize,
+                  scale = scale,
                   condition.group = col_name,
                   condition_A = c(conditions$group1),
                   condition_B = c(conditions$group2),

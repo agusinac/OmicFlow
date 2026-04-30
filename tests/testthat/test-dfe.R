@@ -10,6 +10,7 @@ test_that("Testing Log2 Foldchanges", {
       feature_rank = "Genus",
       feature_filter = c("uncultured"),
       paired = FALSE,
+      scale = "tss",
       condition.group = "CONTRAST_sex",
       condition_A = c("male"),
       condition_B = c("female")

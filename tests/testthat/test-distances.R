@@ -4,7 +4,7 @@ test_that("Testing dissimilarity metrics on sparse data", {
         metaData = "input/metagenomics/metadata.tsv",
         treeData = "input/metagenomics/rooted_tree.newick"
     )
-    taxa$normalize()
+    taxa$scale(method = "tss")
 
     ## Testing Weighted Normalized UniFrac
     wunifrac_n <- unifrac(
@@ -113,7 +113,7 @@ test_that("Testing dissimilarity metrics on dense data", {
         countData = "input/proteomics/counts.csv",
         treeData = "input/proteomics/tree.newick"
     )
-    prot$normalize()
+    prot$scale(method = "tss")
 
     ## Testing Weighted Normalized UniFrac
     wunifrac_n <- unifrac(

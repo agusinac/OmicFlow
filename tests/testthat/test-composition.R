@@ -9,6 +9,7 @@ test_that("Testing Compositional data", {
     feature_rank = "Genus",
     feature_filter = c("uncultured"),
     col_name = "CONTRAST_sex",
+    scale = "tss",
     feature_top = 10
   )
 
