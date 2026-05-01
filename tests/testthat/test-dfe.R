@@ -6,11 +6,11 @@ test_that("Testing Log2 Foldchanges", {
   )
   
   suppressWarnings(
-    dfe <- taxa$DFE(
+    dfe <- taxa$foldchange(
       feature_rank = "Genus",
       feature_filter = c("uncultured"),
       paired = FALSE,
-      scale = "tss",
+      normalize = TRUE,
       condition.group = "CONTRAST_sex",
       condition_A = c("male"),
       condition_B = c("female")

@@ -30,6 +30,8 @@ A list of components:
 \itemize{
 \item \code{dfe} A long \link[data.table]{data.table} table.
 \item \code{volcano_plot} A \link[ggplot2]{ggplot} object.
+\item \code{A} A \link[data.table]{data.table} table for (each) condition A
+\item \code{B} A \link[data.table]{data.table} table for (each) condition B
 }
 }
 \description{
@@ -324,7 +326,7 @@ pcoa_plots
 
 
 ## ------------------------------------------------
-## Method `omics$DFE`
+## Method `omics$foldchange`
 ## ------------------------------------------------
 
 library("ggplot2")
@@ -339,8 +341,8 @@ obj <- metagenomics$new(
  countData = counts_file,
  featureData = features_file,
 )
-
-unpaired <- obj$DFE(feature_rank = "Genus",
+obj$scale(method = "clr")
+unpaired <- obj$foldchange(feature_rank = "Genus",
                     paired = FALSE,
                     condition.group = "treatment",
                     condition_A = c("healthy"),
@@ -359,7 +361,7 @@ Aitchison, J. (1986) The Statistical Analysis of Compositional Data. Chapman and
 
 \link{ordination_plot}, \link{plot_pairwise_stats}, \link{pairwise_anosim}, \link{pairwise_adonis}
 
-\link{volcano_plot}, \link{foldchange}
+\link{volcano_plot}
 }
 \section{Active bindings}{
 \if{html}{\out{<div class="r6-active-bindings">}}
@@ -391,7 +393,7 @@ Aitchison, J. (1986) The Statistical Analysis of Compositional Data. Chapman and
 \item \href{#method-omics-composition}{\code{omics$composition()}}
 \item \href{#method-omics-distance}{\code{omics$distance()}}
 \item \href{#method-omics-ordination}{\code{omics$ordination()}}
-\item \href{#method-omics-DFE}{\code{omics$DFE()}}
+\item \href{#method-omics-foldchange}{\code{omics$foldchange()}}
 \item \href{#method-omics-autoFlow}{\code{omics$autoFlow()}}
 \item \href{#method-omics-clone}{\code{omics$clone()}}
 }
@@ -539,7 +541,7 @@ obj$print()
 \subsection{Method \code{reset()}}{
 Upon creation of a new \code{omics} object a small backup of the original data is created.
 Since modification of the object is done by reference and duplicates are not made, it is possible to \code{reset} changes to the class.
-The methods from the abstract class \link{omics} also contains a private method to prevent any changes to the original object when using methods such as \code{ordination} \code{alpha_diversity} or \code{$DFE}.
+The methods from the abstract class \link{omics} also contains a private method to prevent any changes to the original object when using methods such as \code{ordination} \code{alpha_diversity} or \code{foldchange}.
 \subsection{Usage}{
 \if{html}{\out{<div class="r">}}\preformatted{omics$reset()}\if{html}{\out{</div>}}
 }
@@ -942,7 +944,6 @@ Creates a table most abundant compositional features. Also assigns a color blind
   feature_rank,
   feature_filter = NULL,
   col_name = NULL,
-  scale = NULL,
   feature_top = c(10, 15),
   Brewer.palID = "RdYlBu"
 )}\if{html}{\out{</div>}}
@@ -956,8 +957,6 @@ Creates a table most abundant compositional features. Also assigns a color blind
 \item{\code{feature_filter}}{A character or vector of characters to removes features by regex pattern.}
 
 \item{\code{col_name}}{Optional, a character or vector of characters to add to the final compositional data output.}
-
-\item{\code{scale}}{A character value, the method to use for feature scaling via \href{#method-scale}{\code{scale()}} (default: \code{NULL}).}
 
 \item{\code{feature_top}}{A wholenumber of the top features to visualize, the max is 15, due to a limit of palettes.}
 
@@ -1002,10 +1001,10 @@ Compute a distance metric from \code{countData}
 \subsection{Usage}{
 \if{html}{\out{<div class="r">}}\preformatted{omics$distance(
   metric,
-  scale = NULL,
   weighted = TRUE,
   threads = 1,
-  normalized = TRUE
+  normalized = TRUE,
+  base = exp(1)
 )}\if{html}{\out{</div>}}
 }
 
@@ -1015,17 +1014,15 @@ Compute a distance metric from \code{countData}
 \item{\code{metric}}{A dissimilarity metric to be applied on the \code{countData},
 thus far supports 'bray', 'jaccard', 'cosine', 'manhattan', 'aitchison', 'euclidean', 'jsd' (jensen-shannon divergence), 'canberra' and 'unifrac' when a tree is provided via \code{treeData}, see \href{#method-distance}{\code{distance()}}.}
 
-\item{\code{scale}}{A character value, the method to use for feature scaling via \href{#method-scale}{\code{scale()}} (default: \code{NULL}).}
-
 \item{\code{weighted}}{A boolean value, to use abundances (\code{weighted = TRUE}) or absence/presence (\code{weighted=FALSE}) (default: TRUE).}
 
 \item{\code{threads}}{A wholenumber, indicating the number of threads to use (Default: 1).}
 
 \item{\code{normalized}}{A boolean value, whether to normalize weighted UniFrac distances to be between 0 and 1. Unweighted UniFrac is always normalized (default: TRUE).}
 
-\item{\code{pseudocount}}{A numeric value to replace zero's, used in \href{#method-scale}{\code{scale()}} (default: \code{1e-15}).}
-
 \item{\code{base}}{Input for \link[base]{log} to use natural logarithmic scale, log2, log10 or other (default: \code{exp(1)}).}
+
+\item{\code{pseudocount}}{A numeric value to replace zero's, used in \href{#method-scale}{\code{scale()}} (default: \code{1e-15}).}
 }
 \if{html}{\out{</div>}}
 }
@@ -1066,7 +1063,6 @@ Ordination of \code{countData} with statistical testing.
   group_by,
   distmat = NULL,
   weighted = TRUE,
-  scale = NULL,
   threads = 1,
   perm_design = NULL,
   perm = 999
@@ -1086,8 +1082,6 @@ thus far supports 'bray', 'jaccard', 'cosine', 'manhattan', 'jsd' (jensen-shanno
 \item{\code{distmat}}{A custom distance matrix in either \link[stats]{dist} or \link[Matrix]{Matrix} format.}
 
 \item{\code{weighted}}{A boolean value, whether to compute weighted or unweighted dissimilarities (default: \code{TRUE}).}
-
-\item{\code{scale}}{A character value, the method to use for feature scaling via \href{#method-scale}{\code{scale()}} (default: \code{NULL}).}
 
 \item{\code{threads}}{A wholenumber, indicating the number of threads to use (Default: 1).}
 
@@ -1125,19 +1119,21 @@ pcoa_plots
 
 }
 \if{html}{\out{<hr>}}
-\if{html}{\out{<a id="method-omics-DFE"></a>}}
-\if{latex}{\out{\hypertarget{method-omics-DFE}{}}}
-\subsection{Method \code{DFE()}}{
-Differential feature expression (DFE) using the \link{foldchange} for both paired and non-paired test.
+\if{html}{\out{<a id="method-omics-foldchange"></a>}}
+\if{latex}{\out{\hypertarget{method-omics-foldchange}{}}}
+\subsection{Method \code{foldchange()}}{
+Differential feature expression (DFE) on log-transformed values for both paired and non-paired test.
+
+The function performs feature agglomeration, subsetting to remove NAs in \code{condition.group} and finding samplepairs.
 \subsection{Usage}{
-\if{html}{\out{<div class="r">}}\preformatted{omics$DFE(
-  feature_rank,
-  feature_filter = NULL,
-  paired = FALSE,
-  scale = NULL,
+\if{html}{\out{<div class="r">}}\preformatted{omics$foldchange(
   condition.group,
   condition_A,
   condition_B,
+  group_by = NULL,
+  feature_rank = "FEATURE_ID",
+  feature_filter = NULL,
+  paired = FALSE,
   pvalue.threshold = 0.05,
   logfold.threshold = 0.06,
   abundance.threshold = 0
@@ -1147,19 +1143,19 @@ Differential feature expression (DFE) using the \link{foldchange} for both paire
 \subsection{Arguments}{
 \if{html}{\out{<div class="arguments">}}
 \describe{
-\item{\code{feature_rank}}{A character or vector of characters in the \code{featureData} to aggregate via \href{#method-feature_merge}{\code{feature_merge()}}.}
-
-\item{\code{feature_filter}}{A character or vector of characters to remove features via regex pattern (default: \code{NULL}).}
-
-\item{\code{paired}}{A boolean value, the paired is only applicable when a \code{SAMPLEPAIR_ID} column exists within the \code{metaData}. See \link[stats]{wilcox.test} and \href{#method-samplepair_subset}{\code{samplepair_subset()}}.}
-
-\item{\code{scale}}{A character value, the method to use for feature scaling via \href{#method-scale}{\code{scale()}} (default: \code{NULL}).}
-
 \item{\code{condition.group}}{A character variable of an existing column name in \code{metaData}, wherein the conditions A and B are located.}
 
 \item{\code{condition_A}}{A character value or vector of characters.}
 
 \item{\code{condition_B}}{A character value or vector of characters.}
+
+\item{\code{group_by}}{A character variable of an existing column in \code{metaData} to split the table in chunks prior to fold-change computation (default: NULL).}
+
+\item{\code{feature_rank}}{A character or vector of characters in the \code{featureData} to aggregate via \href{#method-feature_merge}{\code{feature_merge()}} (default: \code{"FEATURE_ID"}).}
+
+\item{\code{feature_filter}}{A character or vector of characters to remove features via regex pattern (default: \code{NULL}).}
+
+\item{\code{paired}}{A boolean value, the paired is only applicable when a \code{SAMPLEPAIR_ID} column exists within the \code{metaData}. See \link[stats]{wilcox.test} and \href{#method-samplepair_subset}{\code{samplepair_subset()}}.}
 
 \item{\code{pvalue.threshold}}{A numeric value used as a p-value threshold to label and color significant features (default: 0.05).}
 
@@ -1183,8 +1179,8 @@ obj <- metagenomics$new(
  countData = counts_file,
  featureData = features_file,
 )
-
-unpaired <- obj$DFE(feature_rank = "Genus",
+obj$scale(method = "clr")
+unpaired <- obj$foldchange(feature_rank = "Genus",
                     paired = FALSE,
                     condition.group = "treatment",
                     condition_A = c("healthy"),
@@ -1210,7 +1206,6 @@ For now only works with headers that start with prefix \code{CONTRAST_}. If the 
   distance_metrics = c("unifrac"),
   beta_div_table = NULL,
   alpha_div_table = NULL,
-  scale = NULL,
   weighted = TRUE,
   pvalue.threshold = 0.05,
   logfold.threshold = 1,
@@ -1237,15 +1232,13 @@ For now only works with headers that start with prefix \code{CONTRAST_}. If the 
 
 \item{\code{alpha_div_table}}{A path to pre-computed alpha diversity table, with columns: \code{alpha_div} (containing diversity values) and the same CONTRAST columns from \code{metaData} (default: \code{NULL}).}
 
-\item{\code{scale}}{A character value, the method to use for feature scaling via \href{#method-scale}{\code{scale()}} (default: \code{NULL}).}
-
 \item{\code{weighted}}{A boolean value, whether to compute weighted or unweighted dissimilarities (default: \code{TRUE}).}
 
 \item{\code{pvalue.threshold}}{A numeric value, the p-value is used to include/exclude composition and foldchanges plots coming from alpha- and beta diversity analysis (default: 0.05).}
 
-\item{\code{logfold.threshold}}{A numeric value used as a fold-change threshold to label and color significantly expressed features, see \href{#method-DFE}{\code{DFE()}} (Default: 1).}
+\item{\code{logfold.threshold}}{A numeric value used as a fold-change threshold to label and color significantly expressed features, see \href{#method-foldchange}{\code{foldchange()}} (Default: 1).}
 
-\item{\code{abundance.threshold}}{A numeric value used as an abundance threshold to size the scatter dots based on their mean abundance, see \href{#method-DFE}{\code{DFE()}} (default: 0.01).}
+\item{\code{abundance.threshold}}{A numeric value used as an abundance threshold to size the scatter dots based on their mean abundance, see \href{#method-foldchange}{\code{foldchange()}} (default: 0.01).}
 
 \item{\code{perm}}{A wholenumber, number of permutations to compare against the null hypothesis of \link[vegan]{adonis2} or \link[vegan]{anosim} (default: 999).}
 
