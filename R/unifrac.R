@@ -40,7 +40,7 @@
 #' )
 #'
 #' taxa$feature_subset(Kingdom == "Bacteria")
-#' taxa$normalize()
+#' taxa$scale(method = "tss")
 #'
 #' # Weighted UniFrac
 #' unifrac(x = taxa$countData, tree = taxa$treeData, weighted=TRUE, normalized=FALSE)

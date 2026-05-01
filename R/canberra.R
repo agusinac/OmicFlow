@@ -33,7 +33,7 @@
 #' )
 #'
 #' taxa$feature_subset(Kingdom == "Bacteria")
-#' taxa$normalize()
+#' taxa$scale(method = "tss")
 #'
 #' canberra(taxa$countData)
 #' @importFrom RcppParallel setThreadOptions
