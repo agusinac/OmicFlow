@@ -1488,7 +1488,7 @@ omics <- R6::R6Class(
           row_means_A <- Matrix::rowMeans(mat_A)
           row_means_B <- Matrix::rowMeans(mat_B)
 
-          # Find zero's to prevent Inf
+          # Log A - log B
           result <- row_means_A - row_means_B
 
           # Combines to final foldchange data table
@@ -1519,13 +1519,16 @@ omics <- R6::R6Class(
       #----------------------#
 
       # Create & save volcano plot
-      n_diff_columns <- sum(grepl("^Log2FC_", colnames(dfe)))
+      colnames_dfe <- colnames(dfe)
+      diff_columns <- colnames_dfe[grepl("*_Log2FC_*", colnames_dfe)]
+      pvalue_columns <- colnames_dfe[grepl("*_pvalue_*", colnames_dfe)]
+      n_diff_columns <- length(diff_columns)
 
       output$volcano_plot <- lapply(1:n_diff_columns, function(i) {
         volcano_plot(
           data = dfe,
-          logfold_col = paste0("Log2FC_", i),
-          pvalue_col = paste0("pvalue_", i),
+          logfold_col = diff_columns[i],
+          pvalue_col = pvalue_columns[i],
           feature_rank = feature_rank,
           abundance_col = "abun",
           pvalue.threshold = pvalue.threshold,
@@ -1533,7 +1536,7 @@ omics <- R6::R6Class(
           abundance.threshold = abundance.threshold,
           label_A = condition_A,
           label_B = condition_B
-          ) + labs(
+        ) + labs(
             subtitle = paste0(
               "Attribute: ", condition.group,
               ", test: ", ifelse(paired, "Wilcox signed rank test", "Mann-Whitney U test")

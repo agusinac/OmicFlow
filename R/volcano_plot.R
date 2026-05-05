@@ -1,6 +1,6 @@
 #' Volcano plot
 #'
-#' @description Creates a Volcano plot from the output of \link{foldchange}, it plots the foldchanges on the x-axis, 
+#' @description Creates a Volcano plot from the output of `foldchange` method from class \link{omics}, it plots the foldchanges on the x-axis, 
 #' log10 trasnformed p-values on the y-axis and adjusts the scatter size based on the percentage abundance of the features. 
 #' This function is built into the class \link{omics} with method \code{DFE()} and inherited by other omics classes, such as;
 #' \link{metagenomics} and \link{proteomics}.
