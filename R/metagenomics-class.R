@@ -367,17 +367,17 @@ metagenomics <- R6::R6Class(
     #' obj <- metagenomics$new(
     #'  metaData = metadata_file,
     #'  countData = counts_file,
-    #'  featureData = features_file,
+    #'  featureData = features_file
     #' )
     #'
-    #' unpaired <- obj$foldchange(feature_rank = "Genus",
-    #'                     paired = FALSE,
-    #'                     condition.group = "treatment",
-    #'                     condition_A = c("healthy"),
-    #'                     condition_B = c("tumor"))
+    #' dfe <- obj$foldchange(feature_rank = "Genus",
+    #'                       paired = FALSE,
+    #'                       condition.group = "treatment",
+    #'                       condition_A = c("healthy"),
+    #'                       condition_B = c("tumor"))
     #'
     #' @returns
-    #'  * `dfe` A long \link[data.table]{data.table} table.
+    #'  * `data` A long \link[data.table]{data.table} table.
     #'  * `volcano_plot` A \link[ggplot2]{ggplot} object.
     #'  * `A` A \link[data.table]{data.table} table for (each) condition A.
     #'  * `B` A \link[data.table]{data.table} table for (each) condition B.
@@ -484,10 +484,9 @@ metagenomics <- R6::R6Class(
 
       # Apply `group_by`
       if (!is.null(group_by)) {
-        chunks <- base::split(private$.metaData, split = group_by)
+        chunks <- base::split(private$.metaData, by = group_by)
       } else {
         chunks <- list(all = private$.metaData)
-        condition_labels <- private$.metaData[[ condition.group ]]
       }
       group_names <- names(chunks)
 
@@ -508,8 +507,8 @@ metagenomics <- R6::R6Class(
           dt_B <- tmp_dt[, .SD, .SDcols = colnames(tmp_dt)[condition_labels %in% condition_B[i]]]
 
           # save intermediate condition tables
-          output[[paste0(group_name, "_A_", i)]] <- dt_A
-          output[[paste0(group_name, "_B_", i)]] <- dt_B
+          output[[paste0(group_name, "_", condition_A[i])]] <- dt_A
+          output[[paste0(group_name, "_", condition_B[i])]] <- dt_B
 
           # Convert to dense matrix
           mat_A <- as.matrix(dt_A)
@@ -543,13 +542,14 @@ metagenomics <- R6::R6Class(
 
           # Combines to final foldchange data table
           foldchange_dt <- cbind(foldchange_dt, result)
-          colnames(foldchange_dt)[grepl("result", colnames(foldchange_dt))] <- paste0(group_name, "_Log2FC_", i)
+          result_col_title <- paste0(condition_A[i], "_vs_", condition_B[i], "_in_", group_name)
+          colnames(foldchange_dt)[grepl("result", colnames(foldchange_dt))] <- paste0("Log2FC_", result_col_title)
 
           for (k in seq_along(feature_labels)) {
             # save p-values in data.table
             suppressWarnings(
               foldchange_dt[
-                k, (paste0(group_name, "_pvalue_", i)) := stats::wilcox.test(
+                k, (paste0("pvalue_", result_col_title)) := stats::wilcox.test(
                   mat_A[k, ], mat_B[k, ],
                   correct = TRUE,
                   paired = paired
@@ -570,8 +570,8 @@ metagenomics <- R6::R6Class(
 
       # Create & save volcano plot
       colnames_dfe <- colnames(dfe)
-      diff_columns <- colnames_dfe[grepl("*_Log2FC_*", colnames_dfe)]
-      pvalue_columns <- colnames_dfe[grepl("*_pvalue_*", colnames_dfe)]
+      diff_columns <- colnames_dfe[grepl("Log2FC", colnames_dfe)]
+      pvalue_columns <- colnames_dfe[grepl("pvalue", colnames_dfe)]
       n_diff_columns <- length(diff_columns)
 
       output$volcano_plot <- lapply(1:n_diff_columns, function(i) {

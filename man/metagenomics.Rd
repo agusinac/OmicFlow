@@ -5,7 +5,7 @@
 \title{Sub-class metagenomics}
 \value{
 \itemize{
-\item \code{dfe} A long \link[data.table]{data.table} table.
+\item \code{data} A long \link[data.table]{data.table} table.
 \item \code{volcano_plot} A \link[ggplot2]{ggplot} object.
 \item \code{A} A \link[data.table]{data.table} table for (each) condition A.
 \item \code{B} A \link[data.table]{data.table} table for (each) condition B.
@@ -56,14 +56,14 @@ features_file <- system.file("extdata", "features.tsv", package = "OmicFlow")
 obj <- metagenomics$new(
  metaData = metadata_file,
  countData = counts_file,
- featureData = features_file,
+ featureData = features_file
 )
 
-unpaired <- obj$foldchange(feature_rank = "Genus",
-                    paired = FALSE,
-                    condition.group = "treatment",
-                    condition_A = c("healthy"),
-                    condition_B = c("tumor"))
+dfe <- obj$foldchange(feature_rank = "Genus",
+                      paired = FALSE,
+                      condition.group = "treatment",
+                      condition_A = c("healthy"),
+                      condition_B = c("tumor"))
 
 }
 \seealso{
@@ -253,14 +253,14 @@ features_file <- system.file("extdata", "features.tsv", package = "OmicFlow")
 obj <- metagenomics$new(
  metaData = metadata_file,
  countData = counts_file,
- featureData = features_file,
+ featureData = features_file
 )
 
-unpaired <- obj$foldchange(feature_rank = "Genus",
-                    paired = FALSE,
-                    condition.group = "treatment",
-                    condition_A = c("healthy"),
-                    condition_B = c("tumor"))
+dfe <- obj$foldchange(feature_rank = "Genus",
+                      paired = FALSE,
+                      condition.group = "treatment",
+                      condition_A = c("healthy"),
+                      condition_B = c("tumor"))
 
 }
 \if{html}{\out{</div>}}

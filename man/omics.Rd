@@ -28,7 +28,7 @@ A list of components:
 }
 
 \itemize{
-\item \code{dfe} A long \link[data.table]{data.table} table.
+\item \code{data} A long \link[data.table]{data.table} table.
 \item \code{volcano_plot} A \link[ggplot2]{ggplot} object.
 \item \code{A} A \link[data.table]{data.table} table for (each) condition A
 \item \code{B} A \link[data.table]{data.table} table for (each) condition B
@@ -336,17 +336,18 @@ metadata_file <- system.file("extdata", "metadata.tsv", package = "OmicFlow")
 counts_file <- system.file("extdata", "counts.tsv", package = "OmicFlow")
 features_file <- system.file("extdata", "features.tsv", package = "OmicFlow")
 
-obj <- metagenomics$new(
+obj <- omics$new(
  metaData = metadata_file,
  countData = counts_file,
- featureData = features_file,
+ featureData = features_file
 )
 obj$scale(method = "clr")
-unpaired <- obj$foldchange(feature_rank = "Genus",
-                    paired = FALSE,
-                    condition.group = "treatment",
-                    condition_A = c("healthy"),
-                    condition_B = c("tumor"))
+
+dfe <- obj$foldchange(feature_rank = "Genus",
+                      paired = FALSE,
+                      condition.group = "treatment",
+                      condition_A = c("healthy"),
+                      condition_B = c("tumor"))
 
 }
 \references{
@@ -1149,7 +1150,7 @@ The function performs feature agglomeration, subsetting to remove NAs in \code{c
 
 \item{\code{condition_B}}{A character value or vector of characters.}
 
-\item{\code{group_by}}{A character variable of an existing column in \code{metaData} to split the table in chunks prior to fold-change computation (default: NULL).}
+\item{\code{group_by}}{A character variable of an existing column in \code{metaData} to split the table in chunks prior to fold-change computation (default: \code{NULL}). When disabled then column names will end with \verb{_in_all}.}
 
 \item{\code{feature_rank}}{A character or vector of characters in the \code{featureData} to aggregate via \href{#method-feature_merge}{\code{feature_merge()}} (default: \code{"FEATURE_ID"}).}
 
@@ -1174,17 +1175,18 @@ metadata_file <- system.file("extdata", "metadata.tsv", package = "OmicFlow")
 counts_file <- system.file("extdata", "counts.tsv", package = "OmicFlow")
 features_file <- system.file("extdata", "features.tsv", package = "OmicFlow")
 
-obj <- metagenomics$new(
+obj <- omics$new(
  metaData = metadata_file,
  countData = counts_file,
- featureData = features_file,
+ featureData = features_file
 )
 obj$scale(method = "clr")
-unpaired <- obj$foldchange(feature_rank = "Genus",
-                    paired = FALSE,
-                    condition.group = "treatment",
-                    condition_A = c("healthy"),
-                    condition_B = c("tumor"))
+
+dfe <- obj$foldchange(feature_rank = "Genus",
+                      paired = FALSE,
+                      condition.group = "treatment",
+                      condition_A = c("healthy"),
+                      condition_B = c("tumor"))
 
 }
 \if{html}{\out{</div>}}

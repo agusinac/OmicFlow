@@ -6,7 +6,7 @@ test_that("Testing Log2 Foldchanges", {
   )
   
   suppressWarnings(
-    dfe <- taxa$foldchange(
+    dfe_ungrouped <- taxa$foldchange(
       feature_rank = "Genus",
       feature_filter = c("uncultured"),
       paired = FALSE,
@@ -16,6 +16,19 @@ test_that("Testing Log2 Foldchanges", {
       condition_B = c("female")
     ))
 
+  suppressWarnings(
+    dfe_grouped <- taxa$foldchange(
+      feature_rank = "Genus",
+      feature_filter = c("uncultured"),
+      paired = FALSE,
+      normalize = TRUE,
+      group_by = "CONTRAST_sex",
+      condition.group = "treatment",
+      condition_A = c("tumor"),
+      condition_B = c("healthy")
+    ))
+
   skip_if(grepl("devel", R.version$status)) # Due to numerical differences in p-value
-  expect_snapshot(dfe$data)
+  expect_snapshot(dfe_ungrouped$data)
+  expect_snapshot(dfe_grouped$data)
 })
