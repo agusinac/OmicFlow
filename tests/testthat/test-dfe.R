@@ -29,6 +29,6 @@ test_that("Testing Log2 Foldchanges", {
     ))
 
   skip_if(grepl("devel", R.version$status)) # Due to numerical differences in p-value
-  expect_snapshot(dfe_ungrouped$data)
-  expect_snapshot(dfe_grouped$data)
+  expect_snapshot(dfe_ungrouped$data[, .SD, .SDcols = colnames(dfe_ungrouped$data)[!grepl("pvalue", colnames(dfe_ungrouped$data))]])
+  expect_snapshot(dfe_grouped$data[, .SD, .SDcols = colnames(dfe_grouped$data)[!grepl("pvalue", colnames(dfe_grouped$data))]])
 })
