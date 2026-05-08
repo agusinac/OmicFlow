@@ -1338,7 +1338,7 @@ omics <- R6::R6Class(
     #' counts_file <- system.file("extdata", "counts.tsv", package = "OmicFlow")
     #' features_file <- system.file("extdata", "features.tsv", package = "OmicFlow")
     #'
-    #' obj <- metagenomics$new(
+    #' obj <- omics$new(
     #'  metaData = metadata_file,
     #'  countData = counts_file,
     #'  featureData = features_file,
