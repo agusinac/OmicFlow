@@ -1,6 +1,7 @@
 #include <RcppArmadillo.h>
 #include "metrics.h"
 #include "utils.h"
+#include "unifrac.h"
 
 // [[Rcpp::depends(RcppArmadillo)]]
 
@@ -43,8 +44,7 @@ arma::mat jsd(const arma::sp_mat& mat) {
     return pairwise_dist(mat, JSD());
 }
 
-// // [[Rcpp::export]]
-// arma::mat unifrac(const arma::sp_mat& mat, const arma::umat& edge, const arma::vec& edge_lengths, bool weighted, bool normalized) {
-//     UniFrac dist(edge, edge_lengths, weighted, normalized);
-//     return pairwise_dist(mat, dist);
-// };
+// [[Rcpp::export]]
+arma::mat unifrac(const arma::sp_mat& mat, const arma::umat& edge, const arma::vec& edge_lengths, bool weighted, bool normalized) {
+    return pairwise_unifrac(mat, edge, edge_lengths, weighted, normalized);
+};

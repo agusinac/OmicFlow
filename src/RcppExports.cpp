@@ -88,6 +88,21 @@ BEGIN_RCPP
     return rcpp_result_gen;
 END_RCPP
 }
+// unifrac
+arma::mat unifrac(const arma::sp_mat& mat, const arma::umat& edge, const arma::vec& edge_lengths, bool weighted, bool normalized);
+RcppExport SEXP _OmicFlow_unifrac(SEXP matSEXP, SEXP edgeSEXP, SEXP edge_lengthsSEXP, SEXP weightedSEXP, SEXP normalizedSEXP) {
+BEGIN_RCPP
+    Rcpp::RObject rcpp_result_gen;
+    Rcpp::RNGScope rcpp_rngScope_gen;
+    Rcpp::traits::input_parameter< const arma::sp_mat& >::type mat(matSEXP);
+    Rcpp::traits::input_parameter< const arma::umat& >::type edge(edgeSEXP);
+    Rcpp::traits::input_parameter< const arma::vec& >::type edge_lengths(edge_lengthsSEXP);
+    Rcpp::traits::input_parameter< bool >::type weighted(weightedSEXP);
+    Rcpp::traits::input_parameter< bool >::type normalized(normalizedSEXP);
+    rcpp_result_gen = Rcpp::wrap(unifrac(mat, edge, edge_lengths, weighted, normalized));
+    return rcpp_result_gen;
+END_RCPP
+}
 
 static const R_CallMethodDef CallEntries[] = {
     {"_OmicFlow_bray", (DL_FUNC) &_OmicFlow_bray, 1},
@@ -97,6 +112,7 @@ static const R_CallMethodDef CallEntries[] = {
     {"_OmicFlow_manhattan", (DL_FUNC) &_OmicFlow_manhattan, 1},
     {"_OmicFlow_canberra", (DL_FUNC) &_OmicFlow_canberra, 1},
     {"_OmicFlow_jsd", (DL_FUNC) &_OmicFlow_jsd, 1},
+    {"_OmicFlow_unifrac", (DL_FUNC) &_OmicFlow_unifrac, 5},
     {NULL, NULL, 0}
 };
 

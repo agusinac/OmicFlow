@@ -79,14 +79,16 @@ unifrac <- function(x, tree, weighted = TRUE, normalized = TRUE, threads = 1) {
     #--------------------------------------------------------------------#
     RcppParallel::setThreadOptions(numThreads = threads)
 
-    # out <- .Call(
-    #     '_OmicFlow_unifrac', PACKAGE = 'OmicFlow', 
-    #     x, tree$edge-1, tree$edge.length, weighted, normalized
-    #     )
+    ## Check if rows are aligned by tip.labels
 
-    # col_names <- colnames(x)
-    # if (!is.null(col_names))
-    #     dimnames(out) <- list(col_names, col_names)
+    out <- .Call(
+        '_OmicFlow_unifrac', PACKAGE = 'OmicFlow', 
+        x, tree$edge-1, tree$edge.length, weighted, normalized
+        )
 
-    # return(as.dist(out))
+    col_names <- colnames(x)
+    if (!is.null(col_names))
+        dimnames(out) <- list(col_names, col_names)
+
+    return(as.dist(out))
 }
