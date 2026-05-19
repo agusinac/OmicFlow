@@ -28,13 +28,15 @@ A list of components:
 }
 
 \itemize{
-\item \code{dfe} A long \link[data.table]{data.table} table.
+\item \code{data} A long \link[data.table]{data.table} table.
 \item \code{volcano_plot} A \link[ggplot2]{ggplot} object.
+\item \code{A} A \link[data.table]{data.table} table for (each) condition A
+\item \code{B} A \link[data.table]{data.table} table for (each) condition B
 }
 }
 \description{
 This is the abstract class 'omics', contains a variety of methods that are inherited and applied in the omics classes:
-\link{metagenomics}, proteomics and metabolomics.
+\link{metagenomics} and \link{proteomics}.
 }
 \details{
 Every class is created with the \link[R6]{R6Class} method. Methods are either public or private, and only the public components are inherited by other omic classes.
@@ -42,6 +44,28 @@ The omics class by default uses a \link[Matrix]{sparseMatrix} and \link[data.tab
 The method by reference is very efficient when dealing with big data.
 }
 \examples{
+
+## ------------------------------------------------
+## Method `omics$copy`
+## ------------------------------------------------
+
+library("OmicFlow")
+
+metadata_file <- system.file("extdata", "metadata.tsv", package = "OmicFlow")
+counts_file <- system.file("extdata", "counts.tsv", package = "OmicFlow")
+
+obj <- omics$new(
+ metaData = metadata_file,
+ countData = counts_file
+)
+
+# Perform a modification and copy
+obj$scale()
+
+cloned <- obj$copy(deep=TRUE)
+cloned$scale(method = "clr")
+cloned$reset() # resets to data after clone creation.
+
 
 ## ------------------------------------------------
 ## Method `omics$print`
@@ -82,7 +106,7 @@ taxa <- omics$new(
 )
 
 # Performs modifications
-taxa$transform(log2)
+taxa$scale(transform = log2)
 
 # resets
 taxa$reset()
@@ -169,7 +193,7 @@ obj$feature_merge(feature_rank = "Genus", feature_filter = c("uncultured", "meta
 
 
 ## ------------------------------------------------
-## Method `omics$transform`
+## Method `omics$scale`
 ## ------------------------------------------------
 
 library("OmicFlow")
@@ -183,27 +207,16 @@ obj <- metagenomics$new(
  countData = counts_file,
  featureData = features_file,
 )
+# standard relative abundance computation
+obj$scale()
 
-obj$transform(log2)
+# CLR
+obj$reset()
+obj$scale(method = "clr")
 
-
-## ------------------------------------------------
-## Method `omics$normalize`
-## ------------------------------------------------
-
-library("OmicFlow")
-
-metadata_file <- system.file("extdata", "metadata.tsv", package = "OmicFlow")
-counts_file <- system.file("extdata", "counts.tsv", package = "OmicFlow")
-features_file <- system.file("extdata", "features.tsv", package = "OmicFlow")
-
-obj <- metagenomics$new(
- metaData = metadata_file,
- countData = counts_file,
- featureData = features_file,
-)
-
-obj$normalize()
+# transform
+obj$reset()
+obj$scale(method = "none", transform = log2)
 
 
 ## ------------------------------------------------
@@ -312,13 +325,12 @@ obj <- metagenomics$new(
 pcoa_plots <- obj$ordination(metric = "bray",
                              method = "pcoa",
                              group_by = "treatment",
-                             weighted = TRUE,
-                             normalize = TRUE)
+                             weighted = TRUE)
 pcoa_plots
 
 
 ## ------------------------------------------------
-## Method `omics$DFE`
+## Method `omics$foldchange`
 ## ------------------------------------------------
 
 library("ggplot2")
@@ -328,18 +340,22 @@ metadata_file <- system.file("extdata", "metadata.tsv", package = "OmicFlow")
 counts_file <- system.file("extdata", "counts.tsv", package = "OmicFlow")
 features_file <- system.file("extdata", "features.tsv", package = "OmicFlow")
 
-obj <- metagenomics$new(
+obj <- omics$new(
  metaData = metadata_file,
  countData = counts_file,
- featureData = features_file,
+ featureData = features_file
 )
+obj$scale(method = "clr")
 
-unpaired <- obj$DFE(feature_rank = "Genus",
-                    paired = FALSE,
-                    condition.group = "treatment",
-                    condition_A = c("healthy"),
-                    condition_B = c("tumor"))
+dfe <- obj$foldchange(feature_rank = "Genus",
+                      paired = FALSE,
+                      condition.group = "treatment",
+                      condition_A = c("healthy"),
+                      condition_B = c("tumor"))
 
+}
+\references{
+Aitchison, J. (1986) The Statistical Analysis of Compositional Data. Chapman and Hall, London, 416 p.
 }
 \seealso{
 \link{diversity_plot}
@@ -350,7 +366,7 @@ unpaired <- obj$DFE(feature_rank = "Genus",
 
 \link{ordination_plot}, \link{plot_pairwise_stats}, \link{pairwise_anosim}, \link{pairwise_adonis}
 
-\link{volcano_plot}, \link{foldchange}
+\link{volcano_plot}
 }
 \section{Active bindings}{
 \if{html}{\out{<div class="r6-active-bindings">}}
@@ -367,6 +383,7 @@ unpaired <- obj$DFE(feature_rank = "Genus",
 \subsection{Public methods}{
 \itemize{
 \item \href{#method-omics-new}{\code{omics$new()}}
+\item \href{#method-omics-copy}{\code{omics$copy()}}
 \item \href{#method-omics-validate}{\code{omics$validate()}}
 \item \href{#method-omics-print}{\code{omics$print()}}
 \item \href{#method-omics-reset}{\code{omics$reset()}}
@@ -375,14 +392,13 @@ unpaired <- obj$DFE(feature_rank = "Genus",
 \item \href{#method-omics-sample_subset}{\code{omics$sample_subset()}}
 \item \href{#method-omics-samplepair_subset}{\code{omics$samplepair_subset()}}
 \item \href{#method-omics-feature_merge}{\code{omics$feature_merge()}}
-\item \href{#method-omics-transform}{\code{omics$transform()}}
-\item \href{#method-omics-normalize}{\code{omics$normalize()}}
+\item \href{#method-omics-scale}{\code{omics$scale()}}
 \item \href{#method-omics-rankstat}{\code{omics$rankstat()}}
 \item \href{#method-omics-alpha_diversity}{\code{omics$alpha_diversity()}}
 \item \href{#method-omics-composition}{\code{omics$composition()}}
 \item \href{#method-omics-distance}{\code{omics$distance()}}
 \item \href{#method-omics-ordination}{\code{omics$ordination()}}
-\item \href{#method-omics-DFE}{\code{omics$DFE()}}
+\item \href{#method-omics-foldchange}{\code{omics$foldchange()}}
 \item \href{#method-omics-autoFlow}{\code{omics$autoFlow()}}
 \item \href{#method-omics-clone}{\code{omics$clone()}}
 }
@@ -416,6 +432,52 @@ Using the omics class to load your data is not supported and still experimental.
 \subsection{Returns}{
 A new \code{omics} object.
 }
+}
+\if{html}{\out{<hr>}}
+\if{html}{\out{<a id="method-omics-copy"></a>}}
+\if{latex}{\out{\hypertarget{method-omics-copy}{}}}
+\subsection{Method \code{copy()}}{
+Create a copy of the object-class
+
+This method is very similar to the existing \href{#method-clone}{\code{clone()}} function, except it also resets the back-up of the OmicFlow data types that is invoked with \href{#method-reset}{\code{reset()}}
+\subsection{Usage}{
+\if{html}{\out{<div class="r">}}\preformatted{omics$copy(deep = FALSE)}\if{html}{\out{</div>}}
+}
+
+\subsection{Arguments}{
+\if{html}{\out{<div class="arguments">}}
+\describe{
+\item{\code{deep}}{A boolean value to create a shallow or deep copy.}
+}
+\if{html}{\out{</div>}}
+}
+\subsection{Returns}{
+A copy of \code{omics} object
+}
+\subsection{Examples}{
+\if{html}{\out{<div class="r example copy">}}
+\preformatted{library("OmicFlow")
+
+metadata_file <- system.file("extdata", "metadata.tsv", package = "OmicFlow")
+counts_file <- system.file("extdata", "counts.tsv", package = "OmicFlow")
+
+obj <- omics$new(
+ metaData = metadata_file,
+ countData = counts_file
+)
+
+# Perform a modification and copy
+obj$scale()
+
+cloned <- obj$copy(deep=TRUE)
+cloned$scale(method = "clr")
+cloned$reset() # resets to data after clone creation.
+
+}
+\if{html}{\out{</div>}}
+
+}
+
 }
 \if{html}{\out{<hr>}}
 \if{html}{\out{<a id="method-omics-validate"></a>}}
@@ -484,7 +546,7 @@ obj$print()
 \subsection{Method \code{reset()}}{
 Upon creation of a new \code{omics} object a small backup of the original data is created.
 Since modification of the object is done by reference and duplicates are not made, it is possible to \code{reset} changes to the class.
-The methods from the abstract class \link{omics} also contains a private method to prevent any changes to the original object when using methods such as \code{ordination} \code{alpha_diversity} or \code{$DFE}.
+The methods from the abstract class \link{omics} also contains a private method to prevent any changes to the original object when using methods such as \code{ordination} \code{alpha_diversity} or \code{foldchange}.
 \subsection{Usage}{
 \if{html}{\out{<div class="r">}}\preformatted{omics$reset()}\if{html}{\out{</div>}}
 }
@@ -508,7 +570,7 @@ taxa <- omics$new(
 )
 
 # Performs modifications
-taxa$transform(log2)
+taxa$scale(transform = log2)
 
 # resets
 taxa$reset()
@@ -714,18 +776,29 @@ obj$feature_merge(feature_rank = "Genus", feature_filter = c("uncultured", "meta
 
 }
 \if{html}{\out{<hr>}}
-\if{html}{\out{<a id="method-omics-transform"></a>}}
-\if{latex}{\out{\hypertarget{method-omics-transform}{}}}
-\subsection{Method \code{transform()}}{
-Performs transformation on the positive values from the \code{countData}.
+\if{html}{\out{<a id="method-omics-scale"></a>}}
+\if{latex}{\out{\hypertarget{method-omics-scale}{}}}
+\subsection{Method \code{scale()}}{
+Feature scaling on the \code{countData}. The \code{scale} function is able to apply transformations element-wise on the positive values, (optional: add pseudocounts) and perform normalisation or standardisation methods.
 \subsection{Usage}{
-\if{html}{\out{<div class="r">}}\preformatted{omics$transform(FUN)}\if{html}{\out{</div>}}
+\if{html}{\out{<div class="r">}}\preformatted{omics$scale(
+  method = "tss",
+  transform = NULL,
+  base = exp(1),
+  pseudocount = NULL
+)}\if{html}{\out{</div>}}
 }
 
 \subsection{Arguments}{
 \if{html}{\out{<div class="arguments">}}
 \describe{
-\item{\code{FUN}}{A function such as \code{log2}, \code{log}}
+\item{\code{method}}{A character to choose a standardisation/normalisation method, options: \code{tss}, \code{clr}, \code{binary}, \code{hellinger}, \code{none} (default: \code{"tss"}).}
+
+\item{\code{transform}}{A function to apply on the positive values of \code{countData}, skip standardisation/normalisation with \code{method = "none"} (default: \code{NULL}).}
+
+\item{\code{base}}{Input for \link[base]{log} to use natural logarithmic scale, log2, log10 or other (default: \code{exp(1)}) in CLR.}
+
+\item{\code{pseudocount}}{A numeric value to replace zero's (default: \code{NULL}).}
 }
 \if{html}{\out{</div>}}
 }
@@ -745,42 +818,16 @@ obj <- metagenomics$new(
  countData = counts_file,
  featureData = features_file,
 )
+# standard relative abundance computation
+obj$scale()
 
-obj$transform(log2)
+# CLR
+obj$reset()
+obj$scale(method = "clr")
 
-}
-\if{html}{\out{</div>}}
-
-}
-
-}
-\if{html}{\out{<hr>}}
-\if{html}{\out{<a id="method-omics-normalize"></a>}}
-\if{latex}{\out{\hypertarget{method-omics-normalize}{}}}
-\subsection{Method \code{normalize()}}{
-Relative abundance computation by column sums on the \code{countData}.
-\subsection{Usage}{
-\if{html}{\out{<div class="r">}}\preformatted{omics$normalize()}\if{html}{\out{</div>}}
-}
-
-\subsection{Returns}{
-object in place
-}
-\subsection{Examples}{
-\if{html}{\out{<div class="r example copy">}}
-\preformatted{library("OmicFlow")
-
-metadata_file <- system.file("extdata", "metadata.tsv", package = "OmicFlow")
-counts_file <- system.file("extdata", "counts.tsv", package = "OmicFlow")
-features_file <- system.file("extdata", "features.tsv", package = "OmicFlow")
-
-obj <- metagenomics$new(
- metaData = metadata_file,
- countData = counts_file,
- featureData = features_file,
-)
-
-obj$normalize()
+# transform
+obj$reset()
+obj$scale(method = "none", transform = log2)
 
 }
 \if{html}{\out{</div>}}
@@ -906,7 +953,6 @@ Creates a table most abundant compositional features. Also assigns a color blind
   feature_rank,
   feature_filter = NULL,
   col_name = NULL,
-  normalize = TRUE,
   feature_top = c(10, 15),
   Brewer.palID = "RdYlBu"
 )}\if{html}{\out{</div>}}
@@ -920,8 +966,6 @@ Creates a table most abundant compositional features. Also assigns a color blind
 \item{\code{feature_filter}}{A character or vector of characters to removes features by regex pattern.}
 
 \item{\code{col_name}}{Optional, a character or vector of characters to add to the final compositional data output.}
-
-\item{\code{normalize}}{A boolean value, whether to \href{#method-normalize}{\code{normalize()}} by total sample sums (Default: TRUE).}
 
 \item{\code{feature_top}}{A wholenumber of the top features to visualize, the max is 15, due to a limit of palettes.}
 
@@ -964,20 +1008,30 @@ plt <- composition_plot(data = result$data,
 \subsection{Method \code{distance()}}{
 Compute a distance metric from \code{countData}
 \subsection{Usage}{
-\if{html}{\out{<div class="r">}}\preformatted{omics$distance(metric, normalized = TRUE, weighted = TRUE, threads = 1)}\if{html}{\out{</div>}}
+\if{html}{\out{<div class="r">}}\preformatted{omics$distance(
+  metric,
+  weighted = TRUE,
+  threads = 1,
+  normalized = TRUE,
+  base = exp(1)
+)}\if{html}{\out{</div>}}
 }
 
 \subsection{Arguments}{
 \if{html}{\out{<div class="arguments">}}
 \describe{
 \item{\code{metric}}{A dissimilarity metric to be applied on the \code{countData},
-thus far supports 'bray', 'jaccard', 'cosine', 'manhattan', 'jsd' (jensen-shannon divergence), 'canberra' and 'unifrac' when a tree is provided via \code{treeData}, see \href{#method-distance}{\code{distance()}}.}
-
-\item{\code{normalized}}{A boolean value, whether to \href{#method-normalize}{\code{normalize()}} by total sample sums (Default: TRUE).}
+thus far supports 'bray', 'jaccard', 'cosine', 'manhattan', 'aitchison', 'euclidean', 'jsd' (jensen-shannon divergence), 'canberra' and 'unifrac' when a tree is provided via \code{treeData}, see \href{#method-distance}{\code{distance()}}.}
 
 \item{\code{weighted}}{A boolean value, to use abundances (\code{weighted = TRUE}) or absence/presence (\code{weighted=FALSE}) (default: TRUE).}
 
 \item{\code{threads}}{A wholenumber, indicating the number of threads to use (Default: 1).}
+
+\item{\code{normalized}}{A boolean value, whether to normalize weighted UniFrac distances to be between 0 and 1. Unweighted UniFrac is always normalized (default: TRUE).}
+
+\item{\code{base}}{Input for \link[base]{log} to use natural logarithmic scale, log2, log10 or other (default: \code{exp(1)}).}
+
+\item{\code{pseudocount}}{A numeric value to replace zero's, used in \href{#method-scale}{\code{scale()}} (default: \code{1e-15}).}
 }
 \if{html}{\out{</div>}}
 }
@@ -1018,7 +1072,6 @@ Ordination of \code{countData} with statistical testing.
   group_by,
   distmat = NULL,
   weighted = TRUE,
-  normalize = TRUE,
   threads = 1,
   perm_design = NULL,
   perm = 999
@@ -1037,13 +1090,11 @@ thus far supports 'bray', 'jaccard', 'cosine', 'manhattan', 'jsd' (jensen-shanno
 
 \item{\code{distmat}}{A custom distance matrix in either \link[stats]{dist} or \link[Matrix]{Matrix} format.}
 
-\item{\code{weighted}}{A boolean value, whether to compute weighted or unweighted dissimilarities (Default: TRUE).}
-
-\item{\code{normalize}}{A boolean value, whether to \href{#method-normalize}{\code{normalize()}} by total sample sums (Default: TRUE).}
+\item{\code{weighted}}{A boolean value, whether to compute weighted or unweighted dissimilarities (default: \code{TRUE}).}
 
 \item{\code{threads}}{A wholenumber, indicating the number of threads to use (Default: 1).}
 
-\item{\code{perm_design}}{A function that takes \code{metaData} and constructs a permutation design with \link[permute]{how} (default: NULL).}
+\item{\code{perm_design}}{A function that takes \code{metaData} and constructs a permutation design with \link[permute]{how} (default: \code{NULL}).}
 
 \item{\code{perm}}{A wholenumber, number of permutations to compare against the null hypothesis of \link[vegan]{adonis2} and \link[vegan]{anosim} (default: \code{perm=999}).}
 }
@@ -1067,8 +1118,7 @@ obj <- metagenomics$new(
 pcoa_plots <- obj$ordination(metric = "bray",
                              method = "pcoa",
                              group_by = "treatment",
-                             weighted = TRUE,
-                             normalize = TRUE)
+                             weighted = TRUE)
 pcoa_plots
 
 }
@@ -1078,19 +1128,21 @@ pcoa_plots
 
 }
 \if{html}{\out{<hr>}}
-\if{html}{\out{<a id="method-omics-DFE"></a>}}
-\if{latex}{\out{\hypertarget{method-omics-DFE}{}}}
-\subsection{Method \code{DFE()}}{
-Differential feature expression (DFE) using the \link{foldchange} for both paired and non-paired test.
+\if{html}{\out{<a id="method-omics-foldchange"></a>}}
+\if{latex}{\out{\hypertarget{method-omics-foldchange}{}}}
+\subsection{Method \code{foldchange()}}{
+Differential feature expression (DFE) on log-transformed values for both paired and non-paired test.
+
+The function performs feature agglomeration, subsetting to remove NAs in \code{condition.group} and finding samplepairs. It expects that the data is already log-transformed, this can be accomplished via \href{#method-scale}{\code{scale()}}
 \subsection{Usage}{
-\if{html}{\out{<div class="r">}}\preformatted{omics$DFE(
-  feature_rank,
-  feature_filter = NULL,
-  paired = FALSE,
-  normalize = TRUE,
+\if{html}{\out{<div class="r">}}\preformatted{omics$foldchange(
   condition.group,
   condition_A,
   condition_B,
+  group_by = NULL,
+  feature_rank = "FEATURE_ID",
+  feature_filter = NULL,
+  paired = FALSE,
   pvalue.threshold = 0.05,
   logfold.threshold = 0.06,
   abundance.threshold = 0
@@ -1100,23 +1152,23 @@ Differential feature expression (DFE) using the \link{foldchange} for both paire
 \subsection{Arguments}{
 \if{html}{\out{<div class="arguments">}}
 \describe{
-\item{\code{feature_rank}}{A character or vector of characters in the \code{featureData} to aggregate via \href{#method-feature_merge}{\code{feature_merge()}}.}
-
-\item{\code{feature_filter}}{A character or vector of characters to remove features via regex pattern (Default: NULL).}
-
-\item{\code{paired}}{A boolean value, the paired is only applicable when a \code{SAMPLEPAIR_ID} column exists within the \code{metaData}. See \link[stats]{wilcox.test} and \href{#method-samplepair_subset}{\code{samplepair_subset()}}.}
-
-\item{\code{normalize}}{A boolean value, whether to \href{#method-normalize}{\code{normalize()}} by total sample sums (Default: TRUE).}
-
 \item{\code{condition.group}}{A character variable of an existing column name in \code{metaData}, wherein the conditions A and B are located.}
 
 \item{\code{condition_A}}{A character value or vector of characters.}
 
 \item{\code{condition_B}}{A character value or vector of characters.}
 
-\item{\code{pvalue.threshold}}{A numeric value used as a p-value threshold to label and color significant features (Default: 0.05).}
+\item{\code{group_by}}{A character variable of an existing column in \code{metaData} to split the table in chunks prior to fold-change computation (default: \code{NULL}). When disabled then column names will end with \verb{_in_all}.}
 
-\item{\code{logfold.threshold}}{A numeric value used as a fold-change threshold to label and color significantly expressed features (Default: 0.06).}
+\item{\code{feature_rank}}{A character or vector of characters in the \code{featureData} to aggregate via \href{#method-feature_merge}{\code{feature_merge()}} (default: \code{"FEATURE_ID"}).}
+
+\item{\code{feature_filter}}{A character or vector of characters to remove features via regex pattern (default: \code{NULL}).}
+
+\item{\code{paired}}{A boolean value, the paired is only applicable when a \code{SAMPLEPAIR_ID} column exists within the \code{metaData}. See \link[stats]{wilcox.test} and \href{#method-samplepair_subset}{\code{samplepair_subset()}}.}
+
+\item{\code{pvalue.threshold}}{A numeric value used as a p-value threshold to label and color significant features (default: 0.05).}
+
+\item{\code{logfold.threshold}}{A numeric value used as a fold-change threshold to label and color significantly expressed features (default: 0.06).}
 
 \item{\code{abundance.threshold}}{A numeric value used as an abundance threshold to size the scatter dots based on their mean abundance (default: 0.01).}
 }
@@ -1131,17 +1183,18 @@ metadata_file <- system.file("extdata", "metadata.tsv", package = "OmicFlow")
 counts_file <- system.file("extdata", "counts.tsv", package = "OmicFlow")
 features_file <- system.file("extdata", "features.tsv", package = "OmicFlow")
 
-obj <- metagenomics$new(
+obj <- omics$new(
  metaData = metadata_file,
  countData = counts_file,
- featureData = features_file,
+ featureData = features_file
 )
+obj$scale(method = "clr")
 
-unpaired <- obj$DFE(feature_rank = "Genus",
-                    paired = FALSE,
-                    condition.group = "treatment",
-                    condition_A = c("healthy"),
-                    condition_B = c("tumor"))
+dfe <- obj$foldchange(feature_rank = "Genus",
+                      paired = FALSE,
+                      condition.group = "treatment",
+                      condition_A = c("healthy"),
+                      condition_B = c("tumor"))
 
 }
 \if{html}{\out{</div>}}
@@ -1154,16 +1207,14 @@ unpaired <- obj$DFE(feature_rank = "Genus",
 \if{latex}{\out{\hypertarget{method-omics-autoFlow}{}}}
 \subsection{Method \code{autoFlow()}}{
 Automated Omics Analysis based on the \code{metaData}, see \href{#method-validate}{\code{validate()}}.
-For now only works with headers that start with prefix \code{CONTRAST_}. If the data is from the class \code{omics} or \code{proteomics} than FDR adjusted p-values are computed for the volcano plots.
+For now only works with headers that start with prefix \code{CONTRAST_}. If the data is from the class \code{omics} or \code{proteomics} than FDR adjusted p-values are computed for the volcano plots. Log-transformed values will lead to the skipping of \href{#method-composition}{\code{composition()}} and \href{#method-alpha_diversity}{\code{alpha_diversity()}} methods.
 \subsection{Usage}{
 \if{html}{\out{<div class="r">}}\preformatted{omics$autoFlow(
   feature_contrast = "FEATURE_ID",
   feature_filter = NULL,
   feature_ranks = NULL,
-  distance_metrics = c("unifrac"),
-  beta_div_table = NULL,
-  alpha_div_table = NULL,
-  normalize = TRUE,
+  distance_metrics = c("bray"),
+  distmat = NULL,
   weighted = TRUE,
   pvalue.threshold = 0.05,
   logfold.threshold = 1,
@@ -1184,25 +1235,21 @@ For now only works with headers that start with prefix \code{CONTRAST_}. If the 
 
 \item{\code{feature_ranks}}{A character vector as input to \href{#method-rankstat}{\code{rankstat()}} (default: \code{NULL}).}
 
-\item{\code{distance_metrics}}{A character vector specifying what (dis)similarity metrics to use (default: \code{c("unifrac")}).}
+\item{\code{distance_metrics}}{A character vector specifying what (dis)similarity metrics to use (default: \code{c("bray")}) When you are working with log-transformed data it is advised to use the \code{euclidean}.}
 
-\item{\code{beta_div_table}}{A path to an existing file or a dense/sparse \link[Matrix]{Matrix} format (default: \code{NULL}).}
-
-\item{\code{alpha_div_table}}{A path to pre-computed alpha diversity table, with columns: \code{alpha_div} (containing diversity values) and the same CONTRAST columns from \code{metaData} (default: \code{NULL}).}
-
-\item{\code{normalize}}{A boolean value, whether to \href{#method-normalize}{\code{normalize()}} by total sample sums (default: \code{TRUE}).}
+\item{\code{distmat}}{A path to an existing file or a dense/sparse \link[Matrix]{Matrix} format (default: \code{NULL}).}
 
 \item{\code{weighted}}{A boolean value, whether to compute weighted or unweighted dissimilarities (default: \code{TRUE}).}
 
 \item{\code{pvalue.threshold}}{A numeric value, the p-value is used to include/exclude composition and foldchanges plots coming from alpha- and beta diversity analysis (default: 0.05).}
 
-\item{\code{logfold.threshold}}{A numeric value used as a fold-change threshold to label and color significantly expressed features, see \href{#method-DFE}{\code{DFE()}} (Default: 1).}
+\item{\code{logfold.threshold}}{A numeric value used as a fold-change threshold to label and color significantly expressed features, see \href{#method-foldchange}{\code{foldchange()}} (Default: 1).}
 
-\item{\code{abundance.threshold}}{A numeric value used as an abundance threshold to size the scatter dots based on their mean abundance, see \href{#method-DFE}{\code{DFE()}} (default: 0.01).}
+\item{\code{abundance.threshold}}{A numeric value used as an abundance threshold to size the scatter dots based on their mean abundance, see \href{#method-foldchange}{\code{foldchange()}} (default: 0.01).}
 
 \item{\code{perm}}{A wholenumber, number of permutations to compare against the null hypothesis of \link[vegan]{adonis2} or \link[vegan]{anosim} (default: 999).}
 
-\item{\code{threads}}{Number of threads to use, only used in \href{#method-distance}{\code{distance()}} when beta_div_table is not supplied (default: 1).}
+\item{\code{threads}}{Number of threads to use, only used in \href{#method-distance}{\code{distance()}} when distmat is not supplied (default: 1).}
 
 \item{\code{report}}{A boolean value to create a HTML markdown report (default: \code{FALSE}). If \code{FALSE} a nested list of the plots and data is returned.}
 

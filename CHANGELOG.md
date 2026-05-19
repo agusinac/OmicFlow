@@ -3,6 +3,23 @@
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/)
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## v1.6.0 - [2026-05-19]
+
+### `Added`
+- [#34](https://github.com/agusinac/OmicFlow/issues/34) Extra argument `group_by` in `foldchange`.
+
+### `Changed`
+- [#33](https://github.com/agusinac/OmicFlow/issues/33) Combined two methods into a single `omics$scale()`, added euclidean method and aitchison. Improved all dissimilarity metrics (except for UniFrac) by 2x speed & 7x less memory, UniFrac is 4x faster.
+- [#36](https://github.com/agusinac/OmicFlow/issues/36) Created `foldchange` method in `omics` abstract class and in `metagenomics` subclass
+- Adapted & tested `autoFlow` with new changes
+
+### `Fixed`
+- [#35](https://github.com/agusinac/OmicFlow/issues/35) changed removezeros by using `@p` of `CsparseMatrix`
+- [#37](https://github.com/agusinac/OmicFlow/issues/37) `omics$reset` works with `omics$copy`
+
+### `Deprecated`
+- [#36](https://github.com/agusinac/OmicFlow/issues/36) Moved `foldchange` from namespace to `omics$foldchange` and `metagenomics$foldchange`
+
 ## v1.5.1 - [2026-02-27]
 
 ### `Added`

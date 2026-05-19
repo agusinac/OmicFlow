@@ -44,7 +44,7 @@ treeData = tree_file
 )
 
 taxa$feature_subset(Kingdom == "Bacteria")
-taxa$normalize()
+taxa$scale(method = "tss")
 
 jaccard(taxa$countData)
 }

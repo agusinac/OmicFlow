@@ -1,7 +1,7 @@
 #' Abstract omics class
 #'
 #' @description This is the abstract class 'omics', contains a variety of methods that are inherited and applied in the omics classes:
-#' \link{metagenomics}, proteomics and metabolomics. 
+#' \link{metagenomics} and \link{proteomics}. 
 #'
 #' @details
 #' Every class is created with the \link[R6]{R6Class} method. Methods are either public or private, and only the public components are inherited by other omic classes.
@@ -232,6 +232,45 @@ omics <- R6::R6Class(
       )
     },
     #' @description
+    #' Create a copy of the object-class
+    #' 
+    #' This method is very similar to the existing [`clone()`](#method-clone) function, except it also resets the back-up of the OmicFlow data types that is invoked with [`reset()`](#method-reset)
+    #' 
+    #' @param deep A boolean value to create a shallow or deep copy.
+    #' @examples
+    #' library("OmicFlow")
+    #'
+    #' metadata_file <- system.file("extdata", "metadata.tsv", package = "OmicFlow")
+    #' counts_file <- system.file("extdata", "counts.tsv", package = "OmicFlow")
+    #'
+    #' obj <- omics$new(
+    #'  metaData = metadata_file,
+    #'  countData = counts_file
+    #' )
+    #'
+    #' # Perform a modification and copy
+    #' obj$scale()
+    #'
+    #' cloned <- obj$copy(deep=TRUE)
+    #' cloned$scale(method = "clr")
+    #' cloned$reset() # resets to data after clone creation.
+    #' 
+    #' @return A copy of `omics` object
+    copy = function(deep = FALSE) {
+      # Base clone
+      cloned <- self$clone(deep)
+
+      # Resetting back-up
+      cloned$.__enclos_env__$private$original_data <- list(
+        counts = private$.countData,
+        features = private$.featureData,
+        metadata = private$.metaData,
+        tree = private$.treeData
+      )
+
+      cloned
+    },
+    #' @description
     #' Validates an input metadata against the JSON schema. The metadata should look as follows and should not contain any empty spaces.
     #' For example; \code{'sample 1'} is not allowed, whereas \code{'sample1'} is allowed!
     #' 
@@ -304,7 +343,7 @@ omics <- R6::R6Class(
     #' @description
     #' Upon creation of a new `omics` object a small backup of the original data is created.
     #' Since modification of the object is done by reference and duplicates are not made, it is possible to `reset` changes to the class.
-    #' The methods from the abstract class \link{omics} also contains a private method to prevent any changes to the original object when using methods such as \code{ordination} \code{alpha_diversity} or \code{$DFE}.
+    #' The methods from the abstract class \link{omics} also contains a private method to prevent any changes to the original object when using methods such as \code{ordination} \code{alpha_diversity} or \code{foldchange}.
     #' @examples
     #' library(ggplot2)
     #' library("OmicFlow")
@@ -320,7 +359,7 @@ omics <- R6::R6Class(
     #' )
     #'
     #' # Performs modifications
-    #' taxa$transform(log2)
+    #' taxa$scale(transform = log2)
     #'
     #' # resets
     #' taxa$reset()
@@ -568,8 +607,11 @@ omics <- R6::R6Class(
       invisible(self)
     },
     #' @description
-    #' Performs transformation on the positive values from the `countData`.
-    #' @param FUN A function such as \code{log2}, \code{log}
+    #' Feature scaling on the `countData`. The `scale` function is able to apply transformations element-wise on the positive values, (optional: add pseudocounts) and perform normalisation or standardisation methods.
+    #' @param method A character to choose a standardisation/normalisation method, options: `tss`, `clr`, `binary`, `hellinger`, `none` (default: \code{"tss"}).
+    #' @param transform A function to apply on the positive values of `countData`, skip standardisation/normalisation with \code{method = "none"} (default: \code{NULL}).
+    #' @param base Input for \link[base]{log} to use natural logarithmic scale, log2, log10 or other (default: \code{exp(1)}) in CLR.
+    #' @param pseudocount A numeric value to replace zero's (default: \code{NULL}).
     #' @examples
     #' library("OmicFlow")
     #'
@@ -582,44 +624,74 @@ omics <- R6::R6Class(
     #'  countData = counts_file,
     #'  featureData = features_file,
     #' )
+    #' # standard relative abundance computation
+    #' obj$scale()
     #' 
-    #' obj$transform(log2)
-    #'
+    #' # CLR
+    #' obj$reset()
+    #' obj$scale(method = "clr")
+    #' 
+    #' # transform
+    #' obj$reset()
+    #' obj$scale(method = "none", transform = log2)
+    #' 
     #' @return object in place
-    transform = function(FUN) {
+    scale = function(method = "tss", transform = NULL, base = exp(1), pseudocount = NULL) {
+
+      ## Nested Functions
+      #--------------------------------------------------------------------#
+      tss <- function(x) {
+        x@x <- x@x / rep(Matrix::colSums(x), base::diff(x@p))
+        x
+      }
 
       ## Error handling
       #--------------------------------------------------------------------#
+      OPTIONS <- c("tss", "clr", "binary", "hellinger", "none")
+      if (!is.null(method) && !is.character(method) && length(method) != 1) {
+        cli::cli_abort("{.val {method}} needs to contain characters with length of 1.")
+      } else if (!method %in% OPTIONS) {
+        cli::cli_abort("{.val {method}} is not a valid method. Valid options: <{.val {OPTIONS}}>")
+      }
 
-      if (!inherits(FUN, "function"))
-        cli::cli_abort("{FUN} must be a function!")
+      if (!is.null(pseudocount) && !is.numeric(pseudocount))
+        cli::cli_abort("{.val {pseudocount}} needs to be a {.cls numeric} type.")
+
+      if (!is.numeric(base))
+        cli::cli_abort("{.val {base}} needs to be a {.cls numeric} type.")
+
+      if (!is.null(transform) && !is.function(transform))
+        cli::cli_abort("{.val {transform}} must be a function!")
 
       ## MAIN
       #--------------------------------------------------------------------#
+      if (!is.null(pseudocount)) 
+        private$.countData <- private$.countData + pseudocount
+      
+      if (is.function(transform))
+        private$.countData@x <- transform(private$.countData@x)
 
-      private$.countData@x <- FUN(private$.countData@x)
-      invisible(self)
-    },
-    #' @description
-    #' Relative abundance computation by column sums on the `countData`.
-    #' @examples
-    #' library("OmicFlow")
-    #'
-    #' metadata_file <- system.file("extdata", "metadata.tsv", package = "OmicFlow")
-    #' counts_file <- system.file("extdata", "counts.tsv", package = "OmicFlow")
-    #' features_file <- system.file("extdata", "features.tsv", package = "OmicFlow")
-    #'
-    #' obj <- metagenomics$new(
-    #'  metaData = metadata_file,
-    #'  countData = counts_file,
-    #'  featureData = features_file,
-    #' )
-    #' 
-    #' obj$normalize()
-    #'
-    #' @return object in place
-    normalize = function() {
-      private$.countData@x <- private$.countData@x / rep(Matrix::colSums(private$.countData), base::diff(private$.countData@p))
+      private$.countData <- switch(
+        method,
+        "tss" = tss(private$.countData),
+        "clr" = {
+          ref <- private$.countData
+          ref@x <- log(ref@x, base=base)
+          ref - Matrix::rowMeans(ref)
+        },
+        "binary" = {
+          ref <- private$.countData
+          ref@x[] <- 1
+          ref
+          },
+        "hellinger" = {
+          ref <- tss(private$.countData)
+          ref@x <- sqrt(ref@x)
+          ref
+        },
+        "none" = private$.countData
+      )
+
       invisible(self)
     },
     #' @description
@@ -682,7 +754,6 @@ omics <- R6::R6Class(
 
       # Sets order level of taxonomic ranks
       long_values[, variable := factor(variable, levels = base::rev(feature_ranks))]
-
 
       # Returns rankstat plot
       return(long_values %>%
@@ -819,7 +890,6 @@ omics <- R6::R6Class(
     #' @param feature_filter A character or vector of characters to removes features by regex pattern.
     #' @param col_name Optional, a character or vector of characters to add to the final compositional data output.
     #' @param feature_top A wholenumber of the top features to visualize, the max is 15, due to a limit of palettes.
-    #' @param normalize A boolean value, whether to [`normalize()`](#method-normalize) by total sample sums (Default: TRUE).
     #' @param Brewer.palID A character name for the palette set to be applied, see \link[RColorBrewer]{brewer.pal} or \link{colormap}.
     #' @examples
     #' library("ggplot2")
@@ -851,7 +921,6 @@ omics <- R6::R6Class(
     composition = function(feature_rank,
                            feature_filter = NULL,
                            col_name = NULL,
-                           normalize = TRUE,
                            feature_top = c(10, 15),
                            Brewer.palID = "RdYlBu") {
 
@@ -890,10 +959,6 @@ omics <- R6::R6Class(
         private$.metaData <- .metaData
         private$.treeData <- .treeData
       }, add = TRUE)
-
-      # Normalizes sample counts
-      if (normalize)
-        self$normalize()
 
       # Agglomerate by feature_rank
       self$feature_merge(feature_rank = feature_rank, feature_filter = feature_filter)
@@ -974,11 +1039,15 @@ omics <- R6::R6Class(
     #' @description
     #' Compute a distance metric from `countData`
     #' @param metric A dissimilarity metric to be applied on the `countData`, 
-    #' thus far supports 'bray', 'jaccard', 'cosine', 'manhattan', 'jsd' (jensen-shannon divergence), 'canberra' and 'unifrac' when a tree is provided via `treeData`, see [`distance()`](#method-distance).
+    #' thus far supports 'bray', 'jaccard', 'cosine', 'manhattan', 'aitchison', 'euclidean', 'jsd' (jensen-shannon divergence), 'canberra' and 'unifrac' when a tree is provided via `treeData`, see [`distance()`](#method-distance).
     #' @param weighted A boolean value, to use abundances (\code{weighted = TRUE}) or absence/presence (\code{weighted=FALSE}) (default: TRUE).
-    #' @param normalized A boolean value, whether to [`normalize()`](#method-normalize) by total sample sums (Default: TRUE).
+    #' @param normalized A boolean value, whether to normalize weighted UniFrac distances to be between 0 and 1. Unweighted UniFrac is always normalized (default: TRUE).
+    #' @param pseudocount A numeric value to replace zero's, used in [`scale()`](#method-scale) (default: \code{1e-15}).
+    #' @param base Input for \link[base]{log} to use natural logarithmic scale, log2, log10 or other (default: \code{exp(1)}).
     #' @param threads A wholenumber, indicating the number of threads to use (Default: 1).
     #' @return A column x column \link[stats]{dist} object.
+    #' @references
+    #' Aitchison, J. (1986) The Statistical Analysis of Compositional Data. Chapman and Hall, London, 416 p.
     #' @examples
     #' library("OmicFlow")
     #'
@@ -995,13 +1064,14 @@ omics <- R6::R6Class(
     #' obj$feature_subset(Kingdom == "Bacteria")
     #' dist <- obj$distance(metric = "bray")
     #' @seealso \link{bray}, \link{canberra}, \link{cosine}, \link{jaccard}, \link{jsd}, \link{manhattan}, \link{unifrac}
-    distance = function(metric, normalized = TRUE, weighted = TRUE, threads = 1) {
+    distance = function(metric, weighted = TRUE, threads = 1, normalized = TRUE, base = exp(1)) {
 
       ## Error handling
       #--------------------------------------------------------------------#
       OPTIONS <- c(
         "bray", "jaccard", "cosine", "manhattan",
-        "jsd", "canberra", "unifrac"
+        "jsd", "canberra", "unifrac", "euclidean", 
+        "aitchison"
         )
 
       if (!is.character(metric) && length(metric) != 1) {
@@ -1033,10 +1103,6 @@ omics <- R6::R6Class(
         private$.treeData <- .treeData
       }, add = TRUE)
 
-      # Normalizes counts
-      if (normalized)
-        self$normalize()
-
       distmat <- switch(
         metric,
         "unifrac" = OmicFlow::unifrac(x = private$.countData, tree = private$.treeData, weighted=weighted, normalized=normalized, threads=threads),
@@ -1045,9 +1111,13 @@ omics <- R6::R6Class(
         "jaccard" = OmicFlow::jaccard(x = private$.countData, weighted=weighted, threads=threads),
         "bray" = OmicFlow::bray(x = private$.countData, weighted=weighted, threads=threads),
         "jsd" = OmicFlow::jsd(x = private$.countData, weighted=weighted, threads=threads),
-        "cosine" = OmicFlow::cosine(x = private$.countData, weighted=weighted, threads=threads)
+        "cosine" = OmicFlow::cosine(x = private$.countData, weighted=weighted, threads=threads),
+        "euclidean" = OmicFlow::euclidean(x = private$.countData, weighted=weighted, threads=threads),
+        "aitchison" = {
+            self$scale(method = "clr", base=base, pseudocount=NULL)
+            OmicFlow::euclidean(x = private$.countData, weighted=weighted, threads=threads)
+        }
       )
-
       return(distmat)
     },
     #' @description
@@ -1057,10 +1127,9 @@ omics <- R6::R6Class(
     #' @param method Ordination method, supports "pcoa" and "nmds", see \link[vegan]{wcmdscale}.
     #' @param distmat A custom distance matrix in either \link[stats]{dist} or \link[Matrix]{Matrix} format.
     #' @param group_by A character variable in `metaData` to be used for the \link{pairwise_adonis} or \link{pairwise_anosim} statistical test.
-    #' @param weighted A boolean value, whether to compute weighted or unweighted dissimilarities (Default: TRUE).
-    #' @param normalize A boolean value, whether to [`normalize()`](#method-normalize) by total sample sums (Default: TRUE).
+    #' @param weighted A boolean value, whether to compute weighted or unweighted dissimilarities (default: \code{TRUE}).
     #' @param threads A wholenumber, indicating the number of threads to use (Default: 1).
-    #' @param perm_design A function that takes `metaData` and constructs a permutation design with \link[permute]{how} (default: NULL).
+    #' @param perm_design A function that takes `metaData` and constructs a permutation design with \link[permute]{how} (default: \code{NULL}).
     #' @param perm A wholenumber, number of permutations to compare against the null hypothesis of \link[vegan]{adonis2} and \link[vegan]{anosim} (default: \code{perm=999}).
     #' @examples
     #' library("ggplot2")
@@ -1079,8 +1148,7 @@ omics <- R6::R6Class(
     #' pcoa_plots <- obj$ordination(metric = "bray",
     #'                              method = "pcoa",
     #'                              group_by = "treatment",
-    #'                              weighted = TRUE,
-    #'                              normalize = TRUE)
+    #'                              weighted = TRUE)
     #' pcoa_plots
     #'
     #' @returns A list of components:
@@ -1097,7 +1165,6 @@ omics <- R6::R6Class(
                           group_by,
                           distmat = NULL,
                           weighted = TRUE,
-                          normalize = TRUE,
                           threads = 1,
                           perm_design = NULL,
                           perm = 999) {
@@ -1156,7 +1223,6 @@ omics <- R6::R6Class(
       if (is.null(distmat)) {
         distmat <- self$distance(
           metric = metric,
-          normalized = normalize,
           weighted = weighted,
           threads = threads
           )
@@ -1255,17 +1321,20 @@ omics <- R6::R6Class(
       return(plot_list)
     },
     #' @description
-    #' Differential feature expression (DFE) using the \link{foldchange} for both paired and non-paired test.
-    #' @param feature_rank A character or vector of characters in the `featureData` to aggregate via [`feature_merge()`](#method-feature_merge).
-    #' @param feature_filter A character or vector of characters to remove features via regex pattern (Default: NULL).
+    #' Differential feature expression (DFE) on log-transformed values for both paired and non-paired test.
+    #' 
+    #' The function performs feature agglomeration, subsetting to remove NAs in `condition.group` and finding samplepairs. It expects that the data is already log-transformed, this can be accomplished via [`scale()`](#method-scale)
+    #' 
+    #' @param feature_rank A character or vector of characters in the `featureData` to aggregate via [`feature_merge()`](#method-feature_merge) (default: \code{"FEATURE_ID"}).
+    #' @param feature_filter A character or vector of characters to remove features via regex pattern (default: \code{NULL}).
     #' @param paired A boolean value, the paired is only applicable when a `SAMPLEPAIR_ID` column exists within the `metaData`. See \link[stats]{wilcox.test} and [`samplepair_subset()`](#method-samplepair_subset).
     #' @param condition.group A character variable of an existing column name in `metaData`, wherein the conditions A and B are located.
+    #' @param group_by A character variable of an existing column in `metaData` to split the table in chunks prior to fold-change computation (default: \code{NULL}). When disabled then column names will end with `_in_all`.
     #' @param condition_A A character value or vector of characters.
     #' @param condition_B A character value or vector of characters.
-    #' @param pvalue.threshold A numeric value used as a p-value threshold to label and color significant features (Default: 0.05).
-    #' @param logfold.threshold A numeric value used as a fold-change threshold to label and color significantly expressed features (Default: 0.06).
+    #' @param pvalue.threshold A numeric value used as a p-value threshold to label and color significant features (default: 0.05).
+    #' @param logfold.threshold A numeric value used as a fold-change threshold to label and color significantly expressed features (default: 0.06).
     #' @param abundance.threshold A numeric value used as an abundance threshold to size the scatter dots based on their mean abundance (default: 0.01).
-    #' @param normalize A boolean value, whether to [`normalize()`](#method-normalize) by total sample sums (Default: TRUE).
     #' @examples
     #' library("ggplot2")
     #' library("OmicFlow")
@@ -1274,45 +1343,52 @@ omics <- R6::R6Class(
     #' counts_file <- system.file("extdata", "counts.tsv", package = "OmicFlow")
     #' features_file <- system.file("extdata", "features.tsv", package = "OmicFlow")
     #'
-    #' obj <- metagenomics$new(
+    #' obj <- omics$new(
     #'  metaData = metadata_file,
     #'  countData = counts_file,
-    #'  featureData = features_file,
+    #'  featureData = features_file
     #' )
-    #'
-    #' unpaired <- obj$DFE(feature_rank = "Genus",
-    #'                     paired = FALSE,
-    #'                     condition.group = "treatment",
-    #'                     condition_A = c("healthy"),
-    #'                     condition_B = c("tumor"))
-    #'
+    #' obj$scale(method = "clr")
+    #' 
+    #' dfe <- obj$foldchange(feature_rank = "Genus",
+    #'                       paired = FALSE,
+    #'                       condition.group = "treatment",
+    #'                       condition_A = c("healthy"),
+    #'                       condition_B = c("tumor"))
+    #' 
     #' @returns
-    #'  * `dfe` A long \link[data.table]{data.table} table.
+    #'  * `data` A long \link[data.table]{data.table} table.
     #'  * `volcano_plot` A \link[ggplot2]{ggplot} object.
+    #'  * `A` A \link[data.table]{data.table} table for (each) condition A
+    #'  * `B` A \link[data.table]{data.table} table for (each) condition B
     #'
-    #' @seealso \link{volcano_plot}, \link{foldchange}
-    DFE = function(feature_rank,
-                   feature_filter = NULL,
-                   paired = FALSE,
-                   normalize = TRUE,
-                   condition.group,
-                   condition_A,
-                   condition_B,
-                   pvalue.threshold = 0.05,
-                   logfold.threshold = 0.06,
-                   abundance.threshold = 0
-                   ) {
+    #' @seealso \link{volcano_plot}
+    foldchange = function(
+      condition.group,
+      condition_A,
+      condition_B,
+      group_by = NULL,
+      feature_rank = "FEATURE_ID",
+      feature_filter = NULL,
+      paired = FALSE,
+      pvalue.threshold = 0.05,
+      logfold.threshold = 0.06,
+      abundance.threshold = 0
+      ) {
 
       ## Error handling
       #--------------------------------------------------------------------#
 
-      if (!is.character(feature_rank) && length(feature_rank) != 1)
+      if (!is.character(feature_rank) && length(feature_rank) != 1) {
         cli::cli_abort("{.val {feature_rank}} needs to be a character with a length of 1")
+      } else if (!column_exists(feature_rank, private$.featureData)) {
+        cli::cli_abort("The {.val {feature_rank}} column does not exist in the {.field featureData}.")
+      }
 
       if (!is.character(condition.group) && length(condition.group) != 1) {
         cli::cli_abort("{.val {condition.group}} needs to be a character with a length of 1")
       } else if (!column_exists(condition.group, private$.metaData)) {
-        cli::cli_abort("{.val {condition.group}} does not exist in the metaData or is empty.")
+        cli::cli_abort("{.val {condition.group}} does not exist in the {.field metaData} or is empty.")
       }
       if (!is.character(condition_A))
         cli::cli_abort("{.val {condition_A}} needs to be a character.")
@@ -1331,11 +1407,19 @@ omics <- R6::R6Class(
         paired <- FALSE
       }
 
+      if (!is.null(group_by)) {
+        if (!is.character(group_by) && length(group_by) != 1) {
+          cli::cli_abort("{.val {group_by}} needs to contain characters with length of 1.")
+        } else if (!column_exists(group_by, private$.metaData)) {
+          cli::cli_abort("The {.val {group_by}} column does not exist in the {.field metaData}.")
+        }
+      }
+
       ## MAIN
       #--------------------------------------------------------------------#
 
       # Final output
-      plot_list <- list()
+      output <- list()
 
       # Copies object to prevent modification of omics class components
       .countData <- private$.countData
@@ -1351,9 +1435,9 @@ omics <- R6::R6Class(
         private$.treeData <- .treeData
       }, add = TRUE)
 
-      # normalization if applicable
-      if (normalize)
-        self$normalize()
+      # Agglomerate taxa by feature rank and filter unwanted taxa
+      self$feature_merge(feature_rank = feature_rank,
+                         feature_filter = feature_filter)
 
       # Subset by missing values
       self$removeNAs(condition.group)
@@ -1361,53 +1445,104 @@ omics <- R6::R6Class(
       # Subset by samplepair completion
       if (paired && !is.null(private$.samplepair_id))
         self$samplepair_subset()
-
-      # Agglomerate taxa by feature rank and filter unwanted taxa
-      self$feature_merge(feature_rank = feature_rank,
-                         feature_filter = feature_filter)
-
+      
       # Extract mean abundance
-      abun <- as.matrix(Matrix::rowSums(private$.countData) / ncol(private$.countData))
+      abun <- as.matrix(Matrix::rowMeans(private$.countData))
       rownames(abun) <- private$.featureData[[ feature_rank ]]
 
       # Get data.table format abundances
       dt <- matrix_to_dtable(private$.countData)[, (feature_rank) := private$.featureData[[feature_rank]]]
 
       # Compute 2-fold expression based on (un)paired samples
-      # Computes on equation of log2(A) - log2(B)
       # Supports multiple inputs for A and B.
-      dfe <- foldchange(
-        data = dt,
-        condition_A = condition_A,
-        condition_B = condition_B,
-        paired = paired,
-        condition_labels = private$.metaData[[ condition.group ]],
-        feature_rank = feature_rank
-      )
+      tmp_dt <- data.table::copy(dt)
+
+      # Apply `group_by`
+      if (!is.null(group_by)) {
+        chunks <- base::split(private$.metaData, by = group_by)
+      } else {
+        chunks <- list(all = private$.metaData)
+      }
+      group_names <- names(chunks)
+
+      # subset feature labels before removing them
+      feature_labels <- tmp_dt[[ feature_rank ]]
+      tmp_dt <- tmp_dt[, .SD, .SDcols = !c(feature_rank)]
+
+      # Create data.tables for results
+      foldchange_dt <- data.table::data.table(feature_rank = feature_labels)
+      colnames(foldchange_dt) <- feature_rank
+
+      for (group_name in group_names) {
+        condition_labels <- chunks[[group_name]][[condition.group]]
+
+        for (i in seq_along(condition_A)) {
+          # Subset by condition_A value
+          dt_A <- tmp_dt[, .SD, .SDcols = colnames(tmp_dt)[condition_labels %in% condition_A[i]]]
+          dt_B <- tmp_dt[, .SD, .SDcols = colnames(tmp_dt)[condition_labels %in% condition_B[i]]]
+
+          # save intermediate condition tables
+          output[[paste0(group_name, "_", condition_A[i])]] <- dt_A
+          output[[paste0(group_name, "_", condition_B[i])]] <- dt_B
+
+          # Convert to dense matrix
+          mat_A <- as.matrix(dt_A)
+          mat_B <- as.matrix(dt_B)
+
+          # Feature means per condition
+          row_means_A <- Matrix::rowMeans(mat_A)
+          row_means_B <- Matrix::rowMeans(mat_B)
+
+          # Log A - log B
+          result <- row_means_A - row_means_B
+
+          # Combines to final foldchange data table
+          foldchange_dt <- cbind(foldchange_dt, result)
+          result_col_title <- paste0(condition_A[i], "_vs_", condition_B[i], "_in_", group_name)
+          colnames(foldchange_dt)[grepl("result", colnames(foldchange_dt))] <- paste0("Log2FC_", result_col_title)
+
+          for (k in seq_along(feature_labels)) {
+            # save p-values in data.table
+            suppressWarnings(
+              foldchange_dt[
+                k, (paste0("pvalue_", result_col_title)) := stats::wilcox.test(
+                  mat_A[k, ], mat_B[k, ],
+                  correct = TRUE,
+                  paired = paired
+                  )$p.value
+                ]
+            )
+          }
+        }
+      }
+
+      # Add abundance, and save data as output list
+      dfe <- foldchange_dt[, "abun" := abun]
+      output$data <- dfe
 
       #----------------------#
       # Visualization        #
       #----------------------#
 
-      # Add abundance, and save data as output list
-      dfe <- dfe[, "abun" := abun]
-      plot_list$data <- dfe
-
       # Create & save volcano plot
-      n_diff_columns <- sum(grepl("^Log2FC_", colnames(dfe)))
+      colnames_dfe <- colnames(dfe)
+      diff_columns <- colnames_dfe[grepl("Log2FC", colnames_dfe)]
+      pvalue_columns <- colnames_dfe[grepl("pvalue", colnames_dfe)]
+      n_diff_columns <- length(diff_columns)
 
-      plot_list$volcano_plot <- lapply(1:n_diff_columns, function(i) {
-        volcano_plot(data = dfe,
-                      logfold_col = paste0("Log2FC_", i),
-                      pvalue_col = paste0("pvalue_", i),
-                      feature_rank = feature_rank,
-                      abundance_col = "abun",
-                      pvalue.threshold = pvalue.threshold,
-                      logfold.threshold = logfold.threshold,
-                      abundance.threshold = abundance.threshold,
-                      label_A = condition_A,
-                      label_B = condition_B) +
-          labs(
+      output$volcano_plot <- lapply(1:n_diff_columns, function(i) {
+        volcano_plot(
+          data = dfe,
+          logfold_col = diff_columns[i],
+          pvalue_col = pvalue_columns[i],
+          feature_rank = feature_rank,
+          abundance_col = "abun",
+          pvalue.threshold = pvalue.threshold,
+          logfold.threshold = logfold.threshold,
+          abundance.threshold = abundance.threshold,
+          label_A = condition_A,
+          label_B = condition_B
+        ) + labs(
             subtitle = paste0(
               "Attribute: ", condition.group,
               ", test: ", ifelse(paired, "Wilcox signed rank test", "Mann-Whitney U test")
@@ -1415,24 +1550,22 @@ omics <- R6::R6Class(
           )
       })
 
-      return(plot_list)
+      return(output)
     },
     #' @description
     #' Automated Omics Analysis based on the `metaData`, see [`validate()`](#method-validate).
-    #' For now only works with headers that start with prefix `CONTRAST_`. If the data is from the class `omics` or `proteomics` than FDR adjusted p-values are computed for the volcano plots.
+    #' For now only works with headers that start with prefix `CONTRAST_`. If the data is from the class `omics` or `proteomics` than FDR adjusted p-values are computed for the volcano plots. Log-transformed values will lead to the skipping of [`composition()`](#method-composition) and [`alpha_diversity()`](#method-alpha_diversity) methods.
     #' @param feature_contrast A character vector of feature columns in the `featureData` to aggregate via [`feature_merge()`](#method-feature_merge) (default: \code{"FEATURE_ID"}).
     #' @param feature_filter A character vector to filter unwanted features, (default: \code{NULL}).
     #' @param feature_ranks A character vector as input to [`rankstat()`](#method-rankstat) (default: \code{NULL}).
-    #' @param distance_metrics A character vector specifying what (dis)similarity metrics to use (default: \code{c("unifrac")}).
-    #' @param beta_div_table A path to an existing file or a dense/sparse \link[Matrix]{Matrix} format (default: \code{NULL}).
-    #' @param alpha_div_table A path to pre-computed alpha diversity table, with columns: `alpha_div` (containing diversity values) and the same CONTRAST columns from `metaData` (default: \code{NULL}).
-    #' @param normalize A boolean value, whether to [`normalize()`](#method-normalize) by total sample sums (default: \code{TRUE}).
+    #' @param distance_metrics A character vector specifying what (dis)similarity metrics to use (default: \code{c("bray")}) When you are working with log-transformed data it is advised to use the `euclidean`.
+    #' @param distmat A path to an existing file or a dense/sparse \link[Matrix]{Matrix} format (default: \code{NULL}).
     #' @param weighted A boolean value, whether to compute weighted or unweighted dissimilarities (default: \code{TRUE}).
     #' @param pvalue.threshold A numeric value, the p-value is used to include/exclude composition and foldchanges plots coming from alpha- and beta diversity analysis (default: 0.05).
-    #' @param logfold.threshold A numeric value used as a fold-change threshold to label and color significantly expressed features, see [`DFE()`](#method-DFE) (Default: 1).
-    #' @param abundance.threshold A numeric value used as an abundance threshold to size the scatter dots based on their mean abundance, see [`DFE()`](#method-DFE) (default: 0.01).
+    #' @param logfold.threshold A numeric value used as a fold-change threshold to label and color significantly expressed features, see [`foldchange()`](#method-foldchange) (Default: 1).
+    #' @param abundance.threshold A numeric value used as an abundance threshold to size the scatter dots based on their mean abundance, see [`foldchange()`](#method-foldchange) (default: 0.01).
     #' @param perm A wholenumber, number of permutations to compare against the null hypothesis of \link[vegan]{adonis2} or \link[vegan]{anosim} (default: 999).
-    #' @param threads Number of threads to use, only used in [`distance()`](#method-distance) when beta_div_table is not supplied (default: 1).
+    #' @param threads Number of threads to use, only used in [`distance()`](#method-distance) when distmat is not supplied (default: 1).
     #' @param report A boolean value to create a HTML markdown report (default: \code{FALSE}). If \code{FALSE} a nested list of the plots and data is returned.
     #' @param filename A character to name the HTML report to be saved in the current working directory (default: \code{paste0(getwd(), "/report.html")}). The \code{getwd()} is required for rmarkdown to save it in the right path.
     #' @importFrom patchwork plot_layout wrap_plots
@@ -1440,10 +1573,8 @@ omics <- R6::R6Class(
     autoFlow = function(feature_contrast = "FEATURE_ID",
                         feature_filter = NULL,
                         feature_ranks = NULL,
-                        distance_metrics = c("unifrac"),
-                        beta_div_table = NULL,
-                        alpha_div_table = NULL,
-                        normalize = TRUE,
+                        distance_metrics = c("bray"),
+                        distmat = NULL,
                         weighted = TRUE,
                         pvalue.threshold = 0.05,
                         logfold.threshold = 1,
@@ -1465,18 +1596,11 @@ omics <- R6::R6Class(
       cli::cli_abort("{.val {feature_contrast}} does not exist in {.field featureData}!")
     }
 
-    if (!is.null(beta_div_table) && !is.character(beta_div_table) && length(beta_div_table) != 1) {
-      cli::cli_abort("{.arg beta_div_table} needs to be a character with a length of 1")
+    if (!is.null(distmat) && !is.character(distmat) && length(distmat) != 1) {
+      cli::cli_abort("{.arg distmat} needs to be a character with a length of 1")
     
-      if (!file.exists(beta_div_table))
-        cli::cli_abort("{.arg beta_div_table} does not exists!")
-    }
-
-    if (!is.null(alpha_div_table) && !is.character(alpha_div_table) && length(alpha_div_table) != 1) {
-      cli::cli_abort("{.arg alpha_div_table} needs to be a character with a length of 1")
-
-      if (!file.exists(alpha_div_table))
-        cli::cli_abort("{.arg alpha_div_table} does not exists!")
+      if (!file.exists(distmat))
+        cli::cli_abort("{.arg distmat} does not exists!")
     }
 
     ## MAIN
@@ -1484,8 +1608,12 @@ omics <- R6::R6Class(
     is_empty = function(obj) {
       if (length(obj) == 0) {
         return(NULL)
-      } else {
-        return(obj)
+      } else if (length(obj) > 0) {
+        keep_cells <- sapply(obj, function(x) is.null(x))
+        obj <- obj[!keep_cells]
+        if (length(obj) == 0) {
+          return(NULL)
+        } else return(obj)
       }
     }
 
@@ -1538,14 +1666,9 @@ omics <- R6::R6Class(
     if (CONTRAST_ncol > 0) {
 
       # Load custom distance matrix if supplied
-      if (!is.null(beta_div_table)) {
-        beta_div_table <- private$check_matrix(filepath = beta_div_table)
-        beta_div_table <- beta_div_table[private$.metaData[[private$.sample_id]], private$.metaData[[private$.sample_id]]]
-      }
-
-      # Load custom rarefraction alpha diversity table if supplied
-      if (!is.null(alpha_div_table)) {
-        alpha_div_table <- private$check_table(alpha_div_table)
+      if (!is.null(distmat)) {
+        distmat <- private$check_matrix(filepath = distmat)
+        distmat <- distmat[private$.metaData[[private$.sample_id]], private$.metaData[[private$.sample_id]]]
       }
 
       # Initialize plot containers
@@ -1569,52 +1692,53 @@ omics <- R6::R6Class(
         #--------------------------------------------------------------------#
         ## Alpha diversity
         #--------------------------------------------------------------------#
-        if (inherits(alpha_div_table, "data.table")) {
-          res <- diversity_plot(
-            data = alpha_div_table,
-            values = "alpha_div",
-            col_name = col_name,
-            palette = colormap(dt_final, col_name, "Set2"),
-            method = "custom"
+        res <- tryCatch(
+          {
+            # Default attempt
+            self$alpha_diversity(
+              col_name = col_name,
+              metric = "shannon",
+              paired = ifelse(!is.null(private$.samplepair_id), TRUE, FALSE)
             )
-        } else {
-          res <- tryCatch(
-            {
-              # Default attempt
-              self$alpha_diversity(
-                col_name = col_name,
-                metric = "shannon",
-                paired = ifelse(!is.null(private$.samplepair_id), TRUE, FALSE)
-              )
-            },
-            error = function(e) {
-              cli::cli_alert_warning("alpha_diversity with paired=TRUE failed. Retrying with paired=FALSE.")
-              self$alpha_diversity(
-                col_name = col_name,
-                metric = "shannon",
-                paired = FALSE
-              )
-            }
-          )
-        }
-        
-        ## Save plots & data
-        alpha_div_plots[[i]] <- res$plot
-        alpha_div_data[[i]] <- list(data = res$data, stats = res$stats)
+          },
+          error = function(e) {
+            cli::cli_alert_warning("{.arg alpha_diversity} with {.val paired=TRUE} failed. Retrying with {.val paired=FALSE}.")
 
-        ### Identify significant groups for composition plots & volcano plots
-        signif_pairs <- res$stats[res$stats$p.adj < pvalue.threshold, ][c("group1", "group2")]
-        if (nrow(signif_pairs) > 0)
-          conditions <- signif_pairs
+          # Retry with paired = FALSE
+          res2 <- tryCatch(
+            self$alpha_diversity(
+              col_name = col_name,
+              metric = "shannon",
+              paired = FALSE
+            ),
+            error = function(e2) {
+              cli::cli_alert_info("Skipping {.arg alpha_diversity}, which failed due to an error: {.val {e2}}.")
+              NULL
+              }
+            )
+            res2
+          }
+        )
+
+        if (!is.null(res)) {
+          ## Save plots & data
+          alpha_div_plots[[i]] <- res$plot
+          alpha_div_data[[i]] <- list(data = res$data, stats = res$stats)
           
+          ### Identify significant groups for composition plots & volcano plots
+          signif_pairs <- res$stats[res$stats$p.adj < pvalue.threshold, ][c("group1", "group2")]
+          if (nrow(signif_pairs) > 0)
+            conditions <- signif_pairs
+        }
+
         #--------------------------------------------------------------------#
         ## Beta diversity
         #--------------------------------------------------------------------#
-        
+
         for (j in 1:metrics_nrow) {
-          if (inherits(beta_div_table, "Matrix")) {
+          if (inherits(distmat, "Matrix")) {
             res <- self$ordination(
-              distmat = beta_div_table,
+              distmat = distmat,
               method = "pcoa",
               perm = perm,
               group_by = col_name
@@ -1624,7 +1748,6 @@ omics <- R6::R6Class(
               metric = distance_metrics[j],
               method = "pcoa",
               group_by = col_name,
-              normalize = normalize,
               weighted = weighted,
               perm = perm,
               threads = threads
@@ -1657,9 +1780,9 @@ omics <- R6::R6Class(
           )
 
           # Creates temporary plot results for NMDS
-          if (inherits(beta_div_table, "Matrix")) {
+          if (inherits(distmat, "Matrix")) {
             res <- self$ordination(
-              distmat = beta_div_table,
+              distmat = distmat,
               method = "nmds",
               group_by = col_name,
               perm = perm
@@ -1670,7 +1793,6 @@ omics <- R6::R6Class(
               method = "nmds",
               group_by = col_name,
               weighted = weighted,
-              normalize = normalize,
               perm = perm,
               threads = threads
               )
@@ -1696,33 +1818,35 @@ omics <- R6::R6Class(
         #--------------------------------------------------------------------#
 
         for (j in 1:feature_nrow) {
-          # Creates composition long table
-          res <- self$composition(
-            feature_rank = feature_contrast[j],
-            feature_filter = feature_filter,
-            feature_top = 15,
-            normalize = normalize,
-            col_name = col_name
-            )
-          # Creates composition ggplot and stores plot with data
-          composition_plots[[i, j]] <- composition_plot(
-            data = res$data,
-            palette = res$palette,
-            feature_rank = feature_contrast[j],
-            group_by = col_name
-            )
-          composition_data[[i, j]] <- list(data = res$data)
+          if (!any(private$.countData@x < 0, na.rm = TRUE)) {
+            # Creates composition long table
+            res <- self$composition(
+              feature_rank = feature_contrast[j],
+              feature_filter = feature_filter,
+              feature_top = 15,
+              col_name = col_name
+              )
+            # Creates composition ggplot and stores plot with data
+            composition_plots[[i, j]] <- composition_plot(
+              data = res$data,
+              palette = res$palette,
+              feature_rank = feature_contrast[j],
+              group_by = col_name
+              )
+            composition_data[[i, j]] <- list(data = res$data)
+          } else {
+            cli::cli_alert_info("Skipping {.arg composition} method due to the detection of negative values.")
+          }
           
           if (!is.null(conditions) && nrow(conditions) > 0) {
 
             dfe <- tryCatch(
               {
               # Default attempt
-              self$DFE(
+              self$foldchange(
                 feature_rank = feature_contrast[j],
                 feature_filter = feature_filter,
                 paired = ifelse(!is.null(private$.samplepair_id), TRUE, FALSE),
-                normalize = normalize,
                 condition.group = col_name,
                 condition_A = c(conditions$group1),
                 condition_B = c(conditions$group2),
@@ -1733,11 +1857,10 @@ omics <- R6::R6Class(
               },
               error = function(e) {
                 cli::cli_alert_warning("DFE with paired=TRUE failed. Retrying with paired=FALSE.")
-                self$DFE(
+                self$foldchange(
                   feature_rank = feature_contrast[j],
                   feature_filter = feature_filter,
                   paired = FALSE,
-                  normalize = normalize,
                   condition.group = col_name,
                   condition_A = c(conditions$group1),
                   condition_B = c(conditions$group2),
@@ -1747,21 +1870,21 @@ omics <- R6::R6Class(
                   )
               }
             )
-            if (class(self)[1] %in% c("omics", "proteomics")) {
-              dfe$data$p.adj <- p.adjust(p = dfe$data$pvalue_1, method = "fdr")
-              dfe$volcano_plot <- volcano_plot(
-                data = dfe$data,
-                logfold_col = "Log2FC_1",
-                pvalue_col = "p.adj",
-                feature_rank = feature_contrast[j],
-                abundance_col = "abun",
-                label_A = conditions$group1,
-                label_B = conditions$group2,
-                pvalue.threshold = pvalue.threshold,
-                abundance.threshold = abundance.threshold,
-                logfold.threshold = logfold.threshold
-              )
-            }
+            # if (class(self)[1] %in% c("omics", "proteomics")) {
+            #   dfe$data$p.adj <- p.adjust(p = dfe$data$pvalue_1, method = "fdr")
+            #   dfe$volcano_plot <- volcano_plot(
+            #     data = dfe$data,
+            #     logfold_col = "Log2FC_1",
+            #     pvalue_col = "p.adj",
+            #     feature_rank = feature_contrast[j],
+            #     abundance_col = "abun",
+            #     label_A = conditions$group1,
+            #     label_B = conditions$group2,
+            #     pvalue.threshold = pvalue.threshold,
+            #     abundance.threshold = abundance.threshold,
+            #     logfold.threshold = logfold.threshold
+            #   )
+            # }
             Log2FC_plots[[i, j]] <- patchwork::wrap_plots(dfe$volcano_plot, nrow=1)
             Log2FC_data[[i, j]] <- list(data = dfe$data)
           }
@@ -1881,8 +2004,8 @@ omics <- R6::R6Class(
       }
     },
     removeZeros = function() {
-      keep_cols <- Matrix::colSums(private$.countData) > 0
-      keep_rows <- Matrix::rowSums(private$.countData) > 0
+      keep_cols <- base::diff(private$.countData@p) > 0
+      keep_rows <- base::diff(t(private$.countData)@p) > 0
 
       private$.countData <- private$.countData[keep_rows, keep_cols]
       private$.metaData <- private$.metaData[keep_cols, ]

@@ -1,6 +1,6 @@
 #' Volcano plot
 #'
-#' @description Creates a Volcano plot from the output of \link{foldchange}, it plots the foldchanges on the x-axis, 
+#' @description Creates a Volcano plot from the output of `foldchange` method from class \link{omics}, it plots the foldchanges on the x-axis, 
 #' log10 trasnformed p-values on the y-axis and adjusts the scatter size based on the percentage abundance of the features. 
 #' This function is built into the class \link{omics} with method \code{DFE()} and inherited by other omics classes, such as;
 #' \link{metagenomics} and \link{proteomics}.
@@ -168,7 +168,7 @@ volcano_plot <- function(data,
     }
     plt <- plt +
       scale_size_continuous(name = "Mean Abundance (%)") +
-      labs(x = paste0("Fold Change log2( ", label_A," / ", label_B," )"),
+      labs(x = paste0("Fold Change ( ", label_A," / ", label_B," )"),
            y = paste0("-log10( ", pvalue_col ," )"))
 
   return(plt)

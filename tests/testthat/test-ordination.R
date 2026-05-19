@@ -4,13 +4,13 @@ test_that("Testing UniFrac ordination", {
     metaData = "input/metagenomics/metadata.tsv",
     treeData = "input/metagenomics/rooted_tree.newick"
   )
+  taxa$scale(method = "tss")
   
   res <- taxa$ordination(
     metric = "unifrac",
     method = "pcoa",
     group_by = "CONTRAST_sex",
     weighted = TRUE,
-    normalize = TRUE,
     threads = 1
   )
   

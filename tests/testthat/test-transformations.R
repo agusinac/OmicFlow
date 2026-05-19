@@ -6,13 +6,21 @@ test_that("Testing transformations of data", {
   )
   
   # Perform log transformation
-  taxa$transform(log2)
-  expect_snapshot(taxa)
-  
-  # In between reset
-  taxa$reset()
+  taxa$scale(transform = log2)
+  expect_snapshot(as.vector(taxa$countData[, 1]))
   
   # Perform sqrt transformation
-  taxa$transform(sqrt)
-  expect_snapshot(taxa)
+  taxa$reset()
+  taxa$scale(transform = sqrt)
+  expect_snapshot(as.vector(taxa$countData[, 1]))
+  
+  # Perform clr standardisation
+  taxa$reset()
+  taxa$scale(method = "clr")
+  expect_snapshot(as.vector(taxa$countData[, 1]))
+  
+  # Perform tss normalisation
+  taxa$reset()
+  taxa$scale(method = "tss")
+  expect_snapshot(as.vector(taxa$countData[, 1]))
 })

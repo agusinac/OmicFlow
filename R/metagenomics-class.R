@@ -338,6 +338,263 @@ metagenomics <- R6::R6Class(
 
       # Close hdf5 file connection
       rhdf5::H5Fclose(h5)
+    },
+    #' @description
+    #' Differential feature expression (DFE) Total Sample Sum (TSS) transformed values for both paired and non-paired test.
+    #' 
+    #' The function performs feature agglomeration, subsetting to remove NAs in `condition.group`, finding samplepairs and finally feature scaling prior to fold-change computation. 
+    #' Based on the `transform` method, fold-changes will be computed either via subtraction or division.
+    #' 
+    #' @param feature_rank A character or vector of characters in the `featureData` to aggregate via [`feature_merge()`](#method-feature_merge) (default: \code{"FEATURE_ID"}).
+    #' @param feature_filter A character or vector of characters to remove features via regex pattern (default: \code{NULL}).
+    #' @param paired A boolean value, the paired is only applicable when a `SAMPLEPAIR_ID` column exists within the `metaData`. See \link[stats]{wilcox.test} and [`samplepair_subset()`](#method-samplepair_subset).
+    #' @param condition.group A character variable of an existing column name in `metaData`, wherein the conditions A and B are located.
+    #' @param group_by A character variable of an existing column in `metaData` to split the table in chunks prior to fold-change computation (default: NULL).
+    #' @param condition_A A character value or vector of characters.
+    #' @param condition_B A character value or vector of characters.
+    #' @param normalize A boolean value wether to normalize via Total Sample Sums (TSS) or not (default: \code{FALSE}).
+    #' @param pvalue.threshold A numeric value used as a p-value threshold to label and color significant features (default: 0.05).
+    #' @param logfold.threshold A numeric value used as a fold-change threshold to label and color significantly expressed features (default: 0.06).
+    #' @param abundance.threshold A numeric value used as an abundance threshold to size the scatter dots based on their mean abundance (default: 0.01).
+    #' @examples
+    #' library("ggplot2")
+    #' library("OmicFlow")
+    #'
+    #' metadata_file <- system.file("extdata", "metadata.tsv", package = "OmicFlow")
+    #' counts_file <- system.file("extdata", "counts.tsv", package = "OmicFlow")
+    #' features_file <- system.file("extdata", "features.tsv", package = "OmicFlow")
+    #'
+    #' obj <- metagenomics$new(
+    #'  metaData = metadata_file,
+    #'  countData = counts_file,
+    #'  featureData = features_file
+    #' )
+    #'
+    #' dfe <- obj$foldchange(feature_rank = "Genus",
+    #'                       paired = FALSE,
+    #'                       condition.group = "treatment",
+    #'                       condition_A = c("healthy"),
+    #'                       condition_B = c("tumor"))
+    #'
+    #' @returns
+    #'  * `data` A long \link[data.table]{data.table} table.
+    #'  * `volcano_plot` A \link[ggplot2]{ggplot} object.
+    #'  * `A` A \link[data.table]{data.table} table for (each) condition A.
+    #'  * `B` A \link[data.table]{data.table} table for (each) condition B.
+    #'
+    #' @seealso \link{volcano_plot}
+    foldchange = function(
+      condition.group,
+      condition_A,
+      condition_B,
+      group_by = NULL,
+      feature_rank = "FEATURE_ID",
+      feature_filter = NULL,
+      paired = FALSE,
+      normalize = FALSE,
+      pvalue.threshold = 0.05,
+      logfold.threshold = 0.06,
+      abundance.threshold = 0
+      ) {
+
+      ## Error handling
+      #--------------------------------------------------------------------#
+
+      if (!is.character(feature_rank) && length(feature_rank) != 1) {
+        cli::cli_abort("{.val {feature_rank}} needs to be a character with a length of 1")
+      } else if (!column_exists(feature_rank, private$.featureData)) {
+        cli::cli_abort("The {.val {feature_rank}} column does not exist in the {.field featureData}.")
+      }
+
+      if (!is.character(condition.group) && length(condition.group) != 1) {
+        cli::cli_abort("{.val {condition.group}} needs to be a character with a length of 1")
+      } else if (!column_exists(condition.group, private$.metaData)) {
+        cli::cli_abort("{.val {condition.group}} does not exist in the {.field metaData} or is empty.")
+      }
+      if (!is.character(condition_A))
+        cli::cli_abort("{.val {condition_A}} needs to be a character.")
+
+      if (!is.character(condition_B))
+        cli::cli_abort("{.val {condition_B}} needs to be a character.")
+
+      if (!is.numeric(pvalue.threshold))
+        cli::cli_abort("{.val {pvalue.threshold}} need to be numeric.")
+
+      if (!is.numeric(logfold.threshold))
+        cli::cli_abort("{.val {logfold.threshold}} need to be numeric.")
+
+      if (paired && is.null(private$.samplepair_id)) {
+        cli::cli_alert_warning("Paired is set to {.val {paired}} but {.arg SAMPLEPAIR_ID} does not exist in the {.field metaData}.\n Differential feature analysis will continue now with paired set to {.val FALSE}!")
+        paired <- FALSE
+      }
+
+      if (!is.null(group_by)) {
+        if (!is.character(group_by) && length(group_by) != 1) {
+          cli::cli_abort("{.val {group_by}} needs to contain characters with length of 1.")
+        } else if (!column_exists(group_by, private$.metaData)) {
+          cli::cli_abort("The {.val {group_by}} column does not exist in the {.field metaData}.")
+        }
+      }
+
+      ## MAIN
+      #--------------------------------------------------------------------#
+
+      # Final output
+      output <- list()
+
+      # Copies object to prevent modification of omics class components
+      .countData <- private$.countData
+      .featureData <- private$.featureData
+      .metaData <- private$.metaData
+      .treeData <- private$.treeData
+
+      # restore on error
+      on.exit({
+        private$.countData <- .countData
+        private$.featureData <- .featureData
+        private$.metaData <- .metaData
+        private$.treeData <- .treeData
+      }, add = TRUE)
+
+      # normalization if applicable
+      if (normalize)
+        self$scale(method = "tss")
+
+      # Subset by missing values
+      self$removeNAs(condition.group)
+
+      # Subset by samplepair completion
+      if (paired && !is.null(private$.samplepair_id))
+        self$samplepair_subset()
+      
+      # Agglomerate taxa by feature rank and filter unwanted taxa
+      self$feature_merge(feature_rank = feature_rank,
+                         feature_filter = feature_filter)
+      
+      # Extract mean abundance
+      abun <- as.matrix(Matrix::rowMeans(private$.countData))
+      rownames(abun) <- private$.featureData[[ feature_rank ]]
+
+      # Get data.table format abundances
+      dt <- matrix_to_dtable(private$.countData)[, (feature_rank) := private$.featureData[[feature_rank]]]
+
+      # Compute 2-fold expression based on (un)paired samples
+      # Supports multiple inputs for A and B.
+      tmp_dt <- data.table::copy(dt)
+
+      # Apply `group_by`
+      if (!is.null(group_by)) {
+        chunks <- base::split(private$.metaData, by = group_by)
+      } else {
+        chunks <- list(all = private$.metaData)
+      }
+      group_names <- names(chunks)
+
+      # subset feature labels before removing them
+      feature_labels <- tmp_dt[[ feature_rank ]]
+      tmp_dt <- tmp_dt[, .SD, .SDcols = !c(feature_rank)]
+
+      # Create data.tables for results
+      foldchange_dt <- data.table::data.table(feature_rank = feature_labels)
+      colnames(foldchange_dt) <- feature_rank
+
+      for (group_name in group_names) {
+        condition_labels <- chunks[[group_name]][[condition.group]]
+
+        for (i in seq_along(condition_A)) {
+          # Subset by condition_A value
+          dt_A <- tmp_dt[, .SD, .SDcols = colnames(tmp_dt)[condition_labels %in% condition_A[i]]]
+          dt_B <- tmp_dt[, .SD, .SDcols = colnames(tmp_dt)[condition_labels %in% condition_B[i]]]
+
+          # save intermediate condition tables
+          output[[paste0(group_name, "_", condition_A[i])]] <- dt_A
+          output[[paste0(group_name, "_", condition_B[i])]] <- dt_B
+
+          # Convert to dense matrix
+          mat_A <- as.matrix(dt_A)
+          mat_B <- as.matrix(dt_B)
+
+          # Feature means per condition
+          row_means_A <- Matrix::rowMeans(mat_A)
+          row_means_B <- Matrix::rowMeans(mat_B)
+
+          # Empty vector
+          result <- numeric(length(row_means_A))
+          max_val <- base::max(mat_A)
+
+          # Find zero's to prevent Inf
+          both_zero <- row_means_A == 0 & row_means_B == 0
+          row_means_A_zero <- row_means_A == 0 & row_means_B != 0
+          row_means_B_zero <- row_means_A != 0 & row_means_B == 0
+          both_non_zero <- row_means_A != 0 & row_means_B != 0
+
+          # Compute log2 fold change
+          result[both_zero] <- 0
+          result[row_means_A_zero] <- row_means_A[row_means_A_zero] - log2(row_means_B[row_means_A_zero])
+          result[row_means_B_zero] <- log2(row_means_A[row_means_B_zero]) - row_means_B[row_means_B_zero]
+          result[both_non_zero] <- log2(row_means_A[both_non_zero]) - log2(row_means_B[both_non_zero])
+
+          # Reverse flipped values with zero's based on max_val
+          if (max_val < 1.0) {
+            result[row_means_A_zero] <- result[row_means_A_zero] * -1
+            result[row_means_B_zero] <- result[row_means_B_zero] * -1
+          }
+
+          # Combines to final foldchange data table
+          foldchange_dt <- cbind(foldchange_dt, result)
+          result_col_title <- paste0(condition_A[i], "_vs_", condition_B[i], "_in_", group_name)
+          colnames(foldchange_dt)[grepl("result", colnames(foldchange_dt))] <- paste0("Log2FC_", result_col_title)
+
+          for (k in seq_along(feature_labels)) {
+            # save p-values in data.table
+            suppressWarnings(
+              foldchange_dt[
+                k, (paste0("pvalue_", result_col_title)) := stats::wilcox.test(
+                  mat_A[k, ], mat_B[k, ],
+                  correct = TRUE,
+                  paired = paired
+                  )$p.value
+                ]
+            )
+          }
+        }
+      }
+
+      # Add abundance, and save data as output list
+      dfe <- foldchange_dt[, "abun" := abun]
+      output$data <- dfe
+
+      #----------------------#
+      # Visualization        #
+      #----------------------#
+
+      # Create & save volcano plot
+      colnames_dfe <- colnames(dfe)
+      diff_columns <- colnames_dfe[grepl("Log2FC", colnames_dfe)]
+      pvalue_columns <- colnames_dfe[grepl("pvalue", colnames_dfe)]
+      n_diff_columns <- length(diff_columns)
+
+      output$volcano_plot <- lapply(1:n_diff_columns, function(i) {
+        volcano_plot(
+          data = dfe,
+          logfold_col = diff_columns[i],
+          pvalue_col = pvalue_columns[i],
+          feature_rank = feature_rank,
+          abundance_col = "abun",
+          pvalue.threshold = pvalue.threshold,
+          logfold.threshold = logfold.threshold,
+          abundance.threshold = abundance.threshold,
+          label_A = condition_A,
+          label_B = condition_B
+        ) + labs(
+            subtitle = paste0(
+              "Attribute: ", condition.group,
+              ", test: ", ifelse(paired, "Wilcox signed rank test", "Mann-Whitney U test")
+              )
+          )
+      })
+
+      return(output)
     }
   ),
   private = list(

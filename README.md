@@ -96,7 +96,7 @@ taxa <- metagenomics$new(
 )
 
 taxa$feature_subset(Kingdom == "Bacteria")
-taxa$normalize()
+taxa$scale(method = "tss")
 
 # Access variables directly
 taxa$metaData
@@ -193,7 +193,6 @@ res <- taxa$composition(
     feature_rank = "Genus",
     feature_filter = c("uncultured"),
     feature_top = 15,
-    normalize = FALSE,
     col_name = "CONTRAST_sex"
 )
 
@@ -214,7 +213,6 @@ res <- taxa$DFE(
     feature_rank = "Genus",
     feature_filter = c("uncultured"),
     paired = FALSE,
-    normalize = FALSE,
     condition.group = "CONTRAST_sex",
     condition_A = "male",
     condition_B = "female"

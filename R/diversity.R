@@ -9,7 +9,7 @@
 #' @param x A \link[base]{matrix}, \link[Matrix]{sparseMatrix} or \link[Matrix]{Matrix}.
 #' @param metric A character variable for metric; shannon, simpson or invsimpson.
 #' @param normalize A boolean variable for sample normalization by column sums.
-#' @param base Input for \link[base]{log} to use natural logarithmic scale, log2, log10 or other.
+#' @param base Input for \link[base]{log} to use natural logarithmic scale, log2, log10 or other (default: \code{exp(1)}).
 #' @return A numeric vector with type double.
 #' @seealso \link[vegan]{diversity}
 #' @examples 
@@ -53,10 +53,13 @@ diversity <- function(x,
   } else cli::cli_abort("Input isn't a {.cls matrix}, {.cls denseMatrix} or {.cls sparseMatrix}.")
 
   if (!is.numeric(x@x))
-    cli::cli_abort("Input data must be numeric")
+    cli::cli_abort("Input data must be {.cls numeric} type")
 
   if (any(x@x < 0, na.rm = TRUE))
     cli::cli_abort("Input data must be non-negative")
+  
+  if (!is.numeric(base))
+    cli::cli_abort("{.val {base}} needs to be a {.cls numeric} type.")
 
   OPTIONS <- c("shannon", "simpson", "invsimpson")
   if (!is.character(metric) && length(metric) != 1) {
@@ -66,7 +69,7 @@ diversity <- function(x,
   }
 
   ## MAIN
-  #--------------------------------------------------------------------#    
+  #--------------------------------------------------------------------#
   total <- rep(Matrix::colSums(x), base::diff(x@p))
   if (normalize) {
     x@x <- x@x / total

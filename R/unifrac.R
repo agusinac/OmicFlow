@@ -40,7 +40,7 @@
 #' )
 #'
 #' taxa$feature_subset(Kingdom == "Bacteria")
-#' taxa$normalize()
+#' taxa$scale(method = "tss")
 #'
 #' # Weighted UniFrac
 #' unifrac(x = taxa$countData, tree = taxa$treeData, weighted=TRUE, normalized=FALSE)
@@ -78,6 +78,8 @@ unifrac <- function(x, tree, weighted = TRUE, normalized = TRUE, threads = 1) {
     ## MAIN
     #--------------------------------------------------------------------#
     RcppParallel::setThreadOptions(numThreads = threads)
+
+    ## Check if rows are aligned by tip.labels
 
     out <- .Call(
         '_OmicFlow_unifrac', PACKAGE = 'OmicFlow', 

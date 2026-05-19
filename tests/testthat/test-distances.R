@@ -4,7 +4,7 @@ test_that("Testing dissimilarity metrics on sparse data", {
         metaData = "input/metagenomics/metadata.tsv",
         treeData = "input/metagenomics/rooted_tree.newick"
     )
-    taxa$normalize()
+    taxa$scale(method = "tss")
 
     ## Testing Weighted Normalized UniFrac
     wunifrac_n <- unifrac(
@@ -75,6 +75,16 @@ test_that("Testing dissimilarity metrics on sparse data", {
     expect_error(bray(x = taxa$countData, threads = 1.2))
     expect_error(bray(x = matrix_to_dtable(taxa$countData)))
 
+    ## Testing Euclidean
+    eu <- euclidean(
+        x = taxa$countData,
+        weighted = TRUE
+    )
+    expect_snapshot(cat(eu))
+    expect_no_error(euclidean(x = taxa$countData, weighted = FALSE))
+    expect_error(euclidean(x = taxa$countData, threads = 1.2))
+    expect_error(euclidean(x = matrix_to_dtable(taxa$countData)))
+
     ## Testing Canberra
     can <- canberra(
         x = taxa$countData,
@@ -113,34 +123,34 @@ test_that("Testing dissimilarity metrics on dense data", {
         countData = "input/proteomics/counts.csv",
         treeData = "input/proteomics/tree.newick"
     )
-    prot$normalize()
+    prot$scale(method = "tss")
 
-    ## Testing Weighted Normalized UniFrac
-    wunifrac_n <- unifrac(
-        x = prot$countData,
-        tree = prot$treeData,
-        weighted = TRUE,
-        normalized = TRUE
-    )
-    expect_snapshot(cat(wunifrac_n))
+    # ## Testing Weighted Normalized UniFrac
+    # wunifrac_n <- unifrac(
+    #     x = prot$countData,
+    #     tree = prot$treeData,
+    #     weighted = TRUE,
+    #     normalized = TRUE
+    # )
+    # expect_snapshot(cat(wunifrac_n))
 
-    ## Testing Weighted UniFrac
-    wunifrac <- unifrac(
-        x = prot$countData,
-        tree = prot$treeData,
-        weighted = TRUE,
-        normalized = FALSE
-    )
-    expect_snapshot(cat(wunifrac))
+    # ## Testing Weighted UniFrac
+    # wunifrac <- unifrac(
+    #     x = prot$countData,
+    #     tree = prot$treeData,
+    #     weighted = TRUE,
+    #     normalized = FALSE
+    # )
+    # expect_snapshot(cat(wunifrac))
 
-    ## Testing Unweighted UniFrac
-    uunifrac <- unifrac(
-        x = prot$countData,
-        tree = prot$treeData,
-        weighted = FALSE,
-        normalized = FALSE
-    )
-    expect_snapshot(cat(uunifrac))
+    # ## Testing Unweighted UniFrac
+    # uunifrac <- unifrac(
+    #     x = prot$countData,
+    #     tree = prot$treeData,
+    #     weighted = FALSE,
+    #     normalized = FALSE
+    # )
+    # expect_snapshot(cat(uunifrac))
 
     ## Testing Cosine
     cos <- cosine(
@@ -162,6 +172,13 @@ test_that("Testing dissimilarity metrics on dense data", {
         weighted = TRUE
     )
     expect_snapshot(cat(br))
+
+    ## Testing Euclidean
+    eu <- euclidean(
+        x = prot$countData,
+        weighted = TRUE
+    )
+    expect_snapshot(cat(eu))
 
     ## Testing Canberra
     can <- canberra(

@@ -5,8 +5,8 @@ bray <- function(mat) {
     .Call(`_OmicFlow_bray`, mat)
 }
 
-jsd <- function(mat) {
-    .Call(`_OmicFlow_jsd`, mat)
+euclidean <- function(mat) {
+    .Call(`_OmicFlow_euclidean`, mat)
 }
 
 cosine <- function(mat) {
@@ -23,6 +23,10 @@ manhattan <- function(mat) {
 
 canberra <- function(mat) {
     .Call(`_OmicFlow_canberra`, mat)
+}
+
+jsd <- function(mat) {
+    .Call(`_OmicFlow_jsd`, mat)
 }
 
 unifrac <- function(mat, edge, edge_lengths, weighted, normalized) {

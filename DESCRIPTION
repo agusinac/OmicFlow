@@ -1,7 +1,7 @@
 Package: OmicFlow
 Title: Fast and Efficient (Automated) Analysis of Sparse Omics Data
-Version: 1.5.1
-Date: 2026-02-27
+Version: 1.6.0
+Date: 2026-05-19
 Authors@R: c(
     person(
         "Alem", "Gusinac",
@@ -27,7 +27,7 @@ BugReports: https://github.com/agusinac/OmicFlow/issues
 Config/testthat/edition: 3
 Encoding: UTF-8
 Roxygen: list(markdown = TRUE)
-RoxygenNote: 7.3.2
+RoxygenNote: 7.3.3
 Depends: 
     R (>= 4.3.0),
     R6,

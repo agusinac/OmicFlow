@@ -32,7 +32,7 @@
 #' )
 #'
 #' taxa$feature_subset(Kingdom == "Bacteria")
-#' taxa$normalize()
+#' taxa$scale(method = "tss")
 #'
 #' jaccard(taxa$countData)
 #' @importFrom RcppParallel setThreadOptions

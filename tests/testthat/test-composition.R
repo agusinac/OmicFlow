@@ -4,6 +4,7 @@ test_that("Testing Compositional data", {
     metaData = "input/metagenomics/metadata.tsv",
     treeData = "input/metagenomics/rooted_tree.newick"
   )
+  taxa$scale(method = "tss")
   
   res <- taxa$composition(
     feature_rank = "Genus",
