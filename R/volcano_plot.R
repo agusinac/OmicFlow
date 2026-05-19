@@ -168,7 +168,7 @@ volcano_plot <- function(data,
     }
     plt <- plt +
       scale_size_continuous(name = "Mean Abundance (%)") +
-      labs(x = paste0("Fold Change log2( ", label_A," / ", label_B," )"),
+      labs(x = paste0("Fold Change ( ", label_A," / ", label_B," )"),
            y = paste0("-log10( ", pvalue_col ," )"))
 
   return(plt)

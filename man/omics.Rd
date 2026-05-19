@@ -36,7 +36,7 @@ A list of components:
 }
 \description{
 This is the abstract class 'omics', contains a variety of methods that are inherited and applied in the omics classes:
-\link{metagenomics}, proteomics and metabolomics.
+\link{metagenomics} and \link{proteomics}.
 }
 \details{
 Every class is created with the \link[R6]{R6Class} method. Methods are either public or private, and only the public components are inherited by other omic classes.
@@ -213,6 +213,10 @@ obj$scale()
 # CLR
 obj$reset()
 obj$scale(method = "clr")
+
+# transform
+obj$reset()
+obj$scale(method = "none", transform = log2)
 
 
 ## ------------------------------------------------
@@ -788,11 +792,11 @@ Feature scaling on the \code{countData}. The \code{scale} function is able to ap
 \subsection{Arguments}{
 \if{html}{\out{<div class="arguments">}}
 \describe{
-\item{\code{method}}{A character to choose a standardisation/normalisation method, options: \code{tss}, \code{clr}, \code{binary}, \code{hellinger} (default: \code{"tss"}).}
+\item{\code{method}}{A character to choose a standardisation/normalisation method, options: \code{tss}, \code{clr}, \code{binary}, \code{hellinger}, \code{none} (default: \code{"tss"}).}
 
-\item{\code{transform}}{A function to apply on the positive values of \code{countData} (default: \code{NULL}).}
+\item{\code{transform}}{A function to apply on the positive values of \code{countData}, skip standardisation/normalisation with \code{method = "none"} (default: \code{NULL}).}
 
-\item{\code{base}}{Input for \link[base]{log} to use natural logarithmic scale, log2, log10 or other (default: \code{exp(1)}).}
+\item{\code{base}}{Input for \link[base]{log} to use natural logarithmic scale, log2, log10 or other (default: \code{exp(1)}) in CLR.}
 
 \item{\code{pseudocount}}{A numeric value to replace zero's (default: \code{NULL}).}
 }
@@ -820,6 +824,10 @@ obj$scale()
 # CLR
 obj$reset()
 obj$scale(method = "clr")
+
+# transform
+obj$reset()
+obj$scale(method = "none", transform = log2)
 
 }
 \if{html}{\out{</div>}}
@@ -1125,7 +1133,7 @@ pcoa_plots
 \subsection{Method \code{foldchange()}}{
 Differential feature expression (DFE) on log-transformed values for both paired and non-paired test.
 
-The function performs feature agglomeration, subsetting to remove NAs in \code{condition.group} and finding samplepairs.
+The function performs feature agglomeration, subsetting to remove NAs in \code{condition.group} and finding samplepairs. It expects that the data is already log-transformed, this can be accomplished via \href{#method-scale}{\code{scale()}}
 \subsection{Usage}{
 \if{html}{\out{<div class="r">}}\preformatted{omics$foldchange(
   condition.group,
@@ -1199,15 +1207,14 @@ dfe <- obj$foldchange(feature_rank = "Genus",
 \if{latex}{\out{\hypertarget{method-omics-autoFlow}{}}}
 \subsection{Method \code{autoFlow()}}{
 Automated Omics Analysis based on the \code{metaData}, see \href{#method-validate}{\code{validate()}}.
-For now only works with headers that start with prefix \code{CONTRAST_}. If the data is from the class \code{omics} or \code{proteomics} than FDR adjusted p-values are computed for the volcano plots.
+For now only works with headers that start with prefix \code{CONTRAST_}. If the data is from the class \code{omics} or \code{proteomics} than FDR adjusted p-values are computed for the volcano plots. Log-transformed values will lead to the skipping of \href{#method-composition}{\code{composition()}} and \href{#method-alpha_diversity}{\code{alpha_diversity()}} methods.
 \subsection{Usage}{
 \if{html}{\out{<div class="r">}}\preformatted{omics$autoFlow(
   feature_contrast = "FEATURE_ID",
   feature_filter = NULL,
   feature_ranks = NULL,
-  distance_metrics = c("unifrac"),
-  beta_div_table = NULL,
-  alpha_div_table = NULL,
+  distance_metrics = c("bray"),
+  distmat = NULL,
   weighted = TRUE,
   pvalue.threshold = 0.05,
   logfold.threshold = 1,
@@ -1228,11 +1235,9 @@ For now only works with headers that start with prefix \code{CONTRAST_}. If the 
 
 \item{\code{feature_ranks}}{A character vector as input to \href{#method-rankstat}{\code{rankstat()}} (default: \code{NULL}).}
 
-\item{\code{distance_metrics}}{A character vector specifying what (dis)similarity metrics to use (default: \code{c("unifrac")}).}
+\item{\code{distance_metrics}}{A character vector specifying what (dis)similarity metrics to use (default: \code{c("bray")}) When you are working with log-transformed data it is advised to use the \code{euclidean}.}
 
-\item{\code{beta_div_table}}{A path to an existing file or a dense/sparse \link[Matrix]{Matrix} format (default: \code{NULL}).}
-
-\item{\code{alpha_div_table}}{A path to pre-computed alpha diversity table, with columns: \code{alpha_div} (containing diversity values) and the same CONTRAST columns from \code{metaData} (default: \code{NULL}).}
+\item{\code{distmat}}{A path to an existing file or a dense/sparse \link[Matrix]{Matrix} format (default: \code{NULL}).}
 
 \item{\code{weighted}}{A boolean value, whether to compute weighted or unweighted dissimilarities (default: \code{TRUE}).}
 
@@ -1244,7 +1249,7 @@ For now only works with headers that start with prefix \code{CONTRAST_}. If the 
 
 \item{\code{perm}}{A wholenumber, number of permutations to compare against the null hypothesis of \link[vegan]{adonis2} or \link[vegan]{anosim} (default: 999).}
 
-\item{\code{threads}}{Number of threads to use, only used in \href{#method-distance}{\code{distance()}} when beta_div_table is not supplied (default: 1).}
+\item{\code{threads}}{Number of threads to use, only used in \href{#method-distance}{\code{distance()}} when distmat is not supplied (default: 1).}
 
 \item{\code{report}}{A boolean value to create a HTML markdown report (default: \code{FALSE}). If \code{FALSE} a nested list of the plots and data is returned.}
 

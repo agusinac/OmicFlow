@@ -8,6 +8,7 @@ test_that("Testing autoFlow on metagenomics data", {
     suppressWarnings(
         taxa_autoflow <- taxa$autoFlow(
             feature_contrast = c("Phylum", "Family", "Genus"),
+            pvalue.threshold = 1,
             report = FALSE
         )
     )
@@ -20,10 +21,13 @@ test_that("Testing autoFlow on proteomics data", {
         countData = "input/proteomics/counts.csv",
         treeData = "input/proteomics/tree.newick"
     )
+    prot$scale(method = "clr")
 
     suppressWarnings(
         prot_autoflow <- prot$autoFlow(
-            report = FALSE
+            pvalue.threshold = 1,
+            distance_metrics = "euclidean",
+            report = FALSE,
         )
     )
     expect_true(length(prot_autoflow$plots) == length(prot_autoflow$data))

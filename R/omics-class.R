@@ -1,7 +1,7 @@
 #' Abstract omics class
 #'
 #' @description This is the abstract class 'omics', contains a variety of methods that are inherited and applied in the omics classes:
-#' \link{metagenomics}, proteomics and metabolomics. 
+#' \link{metagenomics} and \link{proteomics}. 
 #'
 #' @details
 #' Every class is created with the \link[R6]{R6Class} method. Methods are either public or private, and only the public components are inherited by other omic classes.
@@ -608,9 +608,9 @@ omics <- R6::R6Class(
     },
     #' @description
     #' Feature scaling on the `countData`. The `scale` function is able to apply transformations element-wise on the positive values, (optional: add pseudocounts) and perform normalisation or standardisation methods.
-    #' @param method A character to choose a standardisation/normalisation method, options: `tss`, `clr`, `binary`, `hellinger` (default: \code{"tss"}).
-    #' @param transform A function to apply on the positive values of `countData` (default: \code{NULL}).
-    #' @param base Input for \link[base]{log} to use natural logarithmic scale, log2, log10 or other (default: \code{exp(1)}).
+    #' @param method A character to choose a standardisation/normalisation method, options: `tss`, `clr`, `binary`, `hellinger`, `none` (default: \code{"tss"}).
+    #' @param transform A function to apply on the positive values of `countData`, skip standardisation/normalisation with \code{method = "none"} (default: \code{NULL}).
+    #' @param base Input for \link[base]{log} to use natural logarithmic scale, log2, log10 or other (default: \code{exp(1)}) in CLR.
     #' @param pseudocount A numeric value to replace zero's (default: \code{NULL}).
     #' @examples
     #' library("OmicFlow")
@@ -631,6 +631,10 @@ omics <- R6::R6Class(
     #' obj$reset()
     #' obj$scale(method = "clr")
     #' 
+    #' # transform
+    #' obj$reset()
+    #' obj$scale(method = "none", transform = log2)
+    #' 
     #' @return object in place
     scale = function(method = "tss", transform = NULL, base = exp(1), pseudocount = NULL) {
 
@@ -643,7 +647,7 @@ omics <- R6::R6Class(
 
       ## Error handling
       #--------------------------------------------------------------------#
-      OPTIONS <- c("tss", "clr", "binary", "hellinger")
+      OPTIONS <- c("tss", "clr", "binary", "hellinger", "none")
       if (!is.null(method) && !is.character(method) && length(method) != 1) {
         cli::cli_abort("{.val {method}} needs to contain characters with length of 1.")
       } else if (!method %in% OPTIONS) {
@@ -684,7 +688,8 @@ omics <- R6::R6Class(
           ref <- tss(private$.countData)
           ref@x <- sqrt(ref@x)
           ref
-        }
+        },
+        "none" = private$.countData
       )
 
       invisible(self)
@@ -1318,7 +1323,7 @@ omics <- R6::R6Class(
     #' @description
     #' Differential feature expression (DFE) on log-transformed values for both paired and non-paired test.
     #' 
-    #' The function performs feature agglomeration, subsetting to remove NAs in `condition.group` and finding samplepairs. 
+    #' The function performs feature agglomeration, subsetting to remove NAs in `condition.group` and finding samplepairs. It expects that the data is already log-transformed, this can be accomplished via [`scale()`](#method-scale)
     #' 
     #' @param feature_rank A character or vector of characters in the `featureData` to aggregate via [`feature_merge()`](#method-feature_merge) (default: \code{"FEATURE_ID"}).
     #' @param feature_filter A character or vector of characters to remove features via regex pattern (default: \code{NULL}).
@@ -1549,19 +1554,18 @@ omics <- R6::R6Class(
     },
     #' @description
     #' Automated Omics Analysis based on the `metaData`, see [`validate()`](#method-validate).
-    #' For now only works with headers that start with prefix `CONTRAST_`. If the data is from the class `omics` or `proteomics` than FDR adjusted p-values are computed for the volcano plots.
+    #' For now only works with headers that start with prefix `CONTRAST_`. If the data is from the class `omics` or `proteomics` than FDR adjusted p-values are computed for the volcano plots. Log-transformed values will lead to the skipping of [`composition()`](#method-composition) and [`alpha_diversity()`](#method-alpha_diversity) methods.
     #' @param feature_contrast A character vector of feature columns in the `featureData` to aggregate via [`feature_merge()`](#method-feature_merge) (default: \code{"FEATURE_ID"}).
     #' @param feature_filter A character vector to filter unwanted features, (default: \code{NULL}).
     #' @param feature_ranks A character vector as input to [`rankstat()`](#method-rankstat) (default: \code{NULL}).
-    #' @param distance_metrics A character vector specifying what (dis)similarity metrics to use (default: \code{c("unifrac")}).
-    #' @param beta_div_table A path to an existing file or a dense/sparse \link[Matrix]{Matrix} format (default: \code{NULL}).
-    #' @param alpha_div_table A path to pre-computed alpha diversity table, with columns: `alpha_div` (containing diversity values) and the same CONTRAST columns from `metaData` (default: \code{NULL}).
+    #' @param distance_metrics A character vector specifying what (dis)similarity metrics to use (default: \code{c("bray")}) When you are working with log-transformed data it is advised to use the `euclidean`.
+    #' @param distmat A path to an existing file or a dense/sparse \link[Matrix]{Matrix} format (default: \code{NULL}).
     #' @param weighted A boolean value, whether to compute weighted or unweighted dissimilarities (default: \code{TRUE}).
     #' @param pvalue.threshold A numeric value, the p-value is used to include/exclude composition and foldchanges plots coming from alpha- and beta diversity analysis (default: 0.05).
     #' @param logfold.threshold A numeric value used as a fold-change threshold to label and color significantly expressed features, see [`foldchange()`](#method-foldchange) (Default: 1).
     #' @param abundance.threshold A numeric value used as an abundance threshold to size the scatter dots based on their mean abundance, see [`foldchange()`](#method-foldchange) (default: 0.01).
     #' @param perm A wholenumber, number of permutations to compare against the null hypothesis of \link[vegan]{adonis2} or \link[vegan]{anosim} (default: 999).
-    #' @param threads Number of threads to use, only used in [`distance()`](#method-distance) when beta_div_table is not supplied (default: 1).
+    #' @param threads Number of threads to use, only used in [`distance()`](#method-distance) when distmat is not supplied (default: 1).
     #' @param report A boolean value to create a HTML markdown report (default: \code{FALSE}). If \code{FALSE} a nested list of the plots and data is returned.
     #' @param filename A character to name the HTML report to be saved in the current working directory (default: \code{paste0(getwd(), "/report.html")}). The \code{getwd()} is required for rmarkdown to save it in the right path.
     #' @importFrom patchwork plot_layout wrap_plots
@@ -1569,9 +1573,8 @@ omics <- R6::R6Class(
     autoFlow = function(feature_contrast = "FEATURE_ID",
                         feature_filter = NULL,
                         feature_ranks = NULL,
-                        distance_metrics = c("unifrac"),
-                        beta_div_table = NULL,
-                        alpha_div_table = NULL,
+                        distance_metrics = c("bray"),
+                        distmat = NULL,
                         weighted = TRUE,
                         pvalue.threshold = 0.05,
                         logfold.threshold = 1,
@@ -1593,18 +1596,11 @@ omics <- R6::R6Class(
       cli::cli_abort("{.val {feature_contrast}} does not exist in {.field featureData}!")
     }
 
-    if (!is.null(beta_div_table) && !is.character(beta_div_table) && length(beta_div_table) != 1) {
-      cli::cli_abort("{.arg beta_div_table} needs to be a character with a length of 1")
+    if (!is.null(distmat) && !is.character(distmat) && length(distmat) != 1) {
+      cli::cli_abort("{.arg distmat} needs to be a character with a length of 1")
     
-      if (!file.exists(beta_div_table))
-        cli::cli_abort("{.arg beta_div_table} does not exists!")
-    }
-
-    if (!is.null(alpha_div_table) && !is.character(alpha_div_table) && length(alpha_div_table) != 1) {
-      cli::cli_abort("{.arg alpha_div_table} needs to be a character with a length of 1")
-
-      if (!file.exists(alpha_div_table))
-        cli::cli_abort("{.arg alpha_div_table} does not exists!")
+      if (!file.exists(distmat))
+        cli::cli_abort("{.arg distmat} does not exists!")
     }
 
     ## MAIN
@@ -1612,8 +1608,12 @@ omics <- R6::R6Class(
     is_empty = function(obj) {
       if (length(obj) == 0) {
         return(NULL)
-      } else {
-        return(obj)
+      } else if (length(obj) > 0) {
+        keep_cells <- sapply(obj, function(x) is.null(x))
+        obj <- obj[!keep_cells]
+        if (length(obj) == 0) {
+          return(NULL)
+        } else return(obj)
       }
     }
 
@@ -1666,14 +1666,9 @@ omics <- R6::R6Class(
     if (CONTRAST_ncol > 0) {
 
       # Load custom distance matrix if supplied
-      if (!is.null(beta_div_table)) {
-        beta_div_table <- private$check_matrix(filepath = beta_div_table)
-        beta_div_table <- beta_div_table[private$.metaData[[private$.sample_id]], private$.metaData[[private$.sample_id]]]
-      }
-
-      # Load custom rarefraction alpha diversity table if supplied
-      if (!is.null(alpha_div_table)) {
-        alpha_div_table <- private$check_table(alpha_div_table)
+      if (!is.null(distmat)) {
+        distmat <- private$check_matrix(filepath = distmat)
+        distmat <- distmat[private$.metaData[[private$.sample_id]], private$.metaData[[private$.sample_id]]]
       }
 
       # Initialize plot containers
@@ -1697,52 +1692,53 @@ omics <- R6::R6Class(
         #--------------------------------------------------------------------#
         ## Alpha diversity
         #--------------------------------------------------------------------#
-        if (inherits(alpha_div_table, "data.table")) {
-          res <- diversity_plot(
-            data = alpha_div_table,
-            values = "alpha_div",
-            col_name = col_name,
-            palette = colormap(dt_final, col_name, "Set2"),
-            method = "custom"
+        res <- tryCatch(
+          {
+            # Default attempt
+            self$alpha_diversity(
+              col_name = col_name,
+              metric = "shannon",
+              paired = ifelse(!is.null(private$.samplepair_id), TRUE, FALSE)
             )
-        } else {
-          res <- tryCatch(
-            {
-              # Default attempt
-              self$alpha_diversity(
-                col_name = col_name,
-                metric = "shannon",
-                paired = ifelse(!is.null(private$.samplepair_id), TRUE, FALSE)
-              )
-            },
-            error = function(e) {
-              cli::cli_alert_warning("alpha_diversity with paired=TRUE failed. Retrying with paired=FALSE.")
-              self$alpha_diversity(
-                col_name = col_name,
-                metric = "shannon",
-                paired = FALSE
-              )
-            }
-          )
-        }
-        
-        ## Save plots & data
-        alpha_div_plots[[i]] <- res$plot
-        alpha_div_data[[i]] <- list(data = res$data, stats = res$stats)
+          },
+          error = function(e) {
+            cli::cli_alert_warning("{.arg alpha_diversity} with {.val paired=TRUE} failed. Retrying with {.val paired=FALSE}.")
 
-        ### Identify significant groups for composition plots & volcano plots
-        signif_pairs <- res$stats[res$stats$p.adj < pvalue.threshold, ][c("group1", "group2")]
-        if (nrow(signif_pairs) > 0)
-          conditions <- signif_pairs
+          # Retry with paired = FALSE
+          res2 <- tryCatch(
+            self$alpha_diversity(
+              col_name = col_name,
+              metric = "shannon",
+              paired = FALSE
+            ),
+            error = function(e2) {
+              cli::cli_alert_info("Skipping {.arg alpha_diversity}, which failed due to an error: {.val {e2}}.")
+              NULL
+              }
+            )
+            res2
+          }
+        )
+
+        if (!is.null(res)) {
+          ## Save plots & data
+          alpha_div_plots[[i]] <- res$plot
+          alpha_div_data[[i]] <- list(data = res$data, stats = res$stats)
           
+          ### Identify significant groups for composition plots & volcano plots
+          signif_pairs <- res$stats[res$stats$p.adj < pvalue.threshold, ][c("group1", "group2")]
+          if (nrow(signif_pairs) > 0)
+            conditions <- signif_pairs
+        }
+
         #--------------------------------------------------------------------#
         ## Beta diversity
         #--------------------------------------------------------------------#
-        
+
         for (j in 1:metrics_nrow) {
-          if (inherits(beta_div_table, "Matrix")) {
+          if (inherits(distmat, "Matrix")) {
             res <- self$ordination(
-              distmat = beta_div_table,
+              distmat = distmat,
               method = "pcoa",
               perm = perm,
               group_by = col_name
@@ -1784,9 +1780,9 @@ omics <- R6::R6Class(
           )
 
           # Creates temporary plot results for NMDS
-          if (inherits(beta_div_table, "Matrix")) {
+          if (inherits(distmat, "Matrix")) {
             res <- self$ordination(
-              distmat = beta_div_table,
+              distmat = distmat,
               method = "nmds",
               group_by = col_name,
               perm = perm
@@ -1822,21 +1818,25 @@ omics <- R6::R6Class(
         #--------------------------------------------------------------------#
 
         for (j in 1:feature_nrow) {
-          # Creates composition long table
-          res <- self$composition(
-            feature_rank = feature_contrast[j],
-            feature_filter = feature_filter,
-            feature_top = 15,
-            col_name = col_name
-            )
-          # Creates composition ggplot and stores plot with data
-          composition_plots[[i, j]] <- composition_plot(
-            data = res$data,
-            palette = res$palette,
-            feature_rank = feature_contrast[j],
-            group_by = col_name
-            )
-          composition_data[[i, j]] <- list(data = res$data)
+          if (!any(private$.countData@x < 0, na.rm = TRUE)) {
+            # Creates composition long table
+            res <- self$composition(
+              feature_rank = feature_contrast[j],
+              feature_filter = feature_filter,
+              feature_top = 15,
+              col_name = col_name
+              )
+            # Creates composition ggplot and stores plot with data
+            composition_plots[[i, j]] <- composition_plot(
+              data = res$data,
+              palette = res$palette,
+              feature_rank = feature_contrast[j],
+              group_by = col_name
+              )
+            composition_data[[i, j]] <- list(data = res$data)
+          } else {
+            cli::cli_alert_info("Skipping {.arg composition} method due to the detection of negative values.")
+          }
           
           if (!is.null(conditions) && nrow(conditions) > 0) {
 
@@ -1870,21 +1870,21 @@ omics <- R6::R6Class(
                   )
               }
             )
-            if (class(self)[1] %in% c("omics", "proteomics")) {
-              dfe$data$p.adj <- p.adjust(p = dfe$data$pvalue_1, method = "fdr")
-              dfe$volcano_plot <- volcano_plot(
-                data = dfe$data,
-                logfold_col = "Log2FC_1",
-                pvalue_col = "p.adj",
-                feature_rank = feature_contrast[j],
-                abundance_col = "abun",
-                label_A = conditions$group1,
-                label_B = conditions$group2,
-                pvalue.threshold = pvalue.threshold,
-                abundance.threshold = abundance.threshold,
-                logfold.threshold = logfold.threshold
-              )
-            }
+            # if (class(self)[1] %in% c("omics", "proteomics")) {
+            #   dfe$data$p.adj <- p.adjust(p = dfe$data$pvalue_1, method = "fdr")
+            #   dfe$volcano_plot <- volcano_plot(
+            #     data = dfe$data,
+            #     logfold_col = "Log2FC_1",
+            #     pvalue_col = "p.adj",
+            #     feature_rank = feature_contrast[j],
+            #     abundance_col = "abun",
+            #     label_A = conditions$group1,
+            #     label_B = conditions$group2,
+            #     pvalue.threshold = pvalue.threshold,
+            #     abundance.threshold = abundance.threshold,
+            #     logfold.threshold = logfold.threshold
+            #   )
+            # }
             Log2FC_plots[[i, j]] <- patchwork::wrap_plots(dfe$volcano_plot, nrow=1)
             Log2FC_data[[i, j]] <- list(data = dfe$data)
           }
