@@ -1,4 +1,9 @@
-# getting-started
+# Getting Started
+
+**Will be added soon!**
+
+[Metadata File
+Specification](https://agusinac.github.io/OmicFlow/articles/metadata.md)
 
 ``` r
 
