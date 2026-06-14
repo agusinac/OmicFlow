@@ -3,3 +3,22 @@ template:
   bootstrap: 5
   pagetitle: "OmicFlow"
   logo: "man/logo.png"
+
+navbar:
+  structure:
+    left: [getting-started, reference, changelog, articles]
+  components:
+    getting-started:
+      text: Get started
+      href: articles/getting-started.html
+    reference:
+      text: Reference
+      href: reference/index.html
+    changelog:
+      text: Changelog
+      href: news/index.html
+    articles:
+      text: Articles
+      menu:
+        - text: Metadata validation
+          href: articles/metadata.html

@@ -6,6 +6,8 @@
 \alias{OmicFlow-package}
 \title{OmicFlow: Fast and Efficient (Automated) Analysis of Sparse Omics Data}
 \description{
+\if{html}{\figure{logo.png}{options: style='float: right' alt='logo' width='120'}}
+
 A generalised data structure for fast and efficient loading and data munching of sparse omics data. The 'OmicFlow' requires an up-front validated metadata template from the user, which serves as a guide to connect all the pieces together by aligning them into a single object that is defined as an 'omics' class. Once this unified structure is established, users can perform manual subsetting, visualisation, and statistical analysis, or leverage the automated 'autoFlow' method to generate a comprehensive report.
 }
 \seealso{
