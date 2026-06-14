@@ -1,0 +1,96 @@
+# Compute Canberra Dissimilarity from a from a Dense or Sparse Matrix.
+
+Calculates the Canberra dissimilarity of a Matrix pairwise for each
+column.
+
+## Usage
+
+``` r
+canberra(x, weighted = TRUE, threads = 1)
+```
+
+## Arguments
+
+- x:
+
+  A [matrix](https://rdrr.io/r/base/matrix.html),
+  [sparseMatrix](https://rdrr.io/pkg/Matrix/man/sparseMatrix.html) or
+  [Matrix](https://rdrr.io/pkg/Matrix/man/Matrix.html).
+
+- weighted:
+
+  A boolean value, to use abundances (`weighted = TRUE`) or
+  absence/presence (`weighted=FALSE`) (default: TRUE).
+
+- threads:
+
+  A wholenumber, the number of threads to use in
+  [setThreadOptions](https://rdrr.io/pkg/RcppParallel/man/setThreadOptions.html)
+  (default: 1).
+
+## Value
+
+A column x column [dist](https://rdrr.io/r/stats/dist.html) object.
+
+## Details
+
+The Canberra dissimilarity between two samples \\A\\ and \\B\\, each of
+length \\n\\, is defined as:
+
+\\d(A,B) = \frac{1 / NZ} \sum\_{i}^n \frac{\|A_i - B_i\|}{\|A_i\| +
+\|B_i\|}\\
+
+where \\A_i\\ and \\B_i\\ are the abundances of the \\i\\-th feature in
+sample \\A\\ and \\B\\, respectively. NZ are the number of non-zero
+entries. When weighted is set to FALSE, counts are replaced by
+presence/absence data.
+
+## References
+
+Lance, G.N. & Williams, W.T. (1967) Mixed-data classificatory programs.
+I. Agglomerative systems. Australian Computer Journal, 1(1), 15-20.
+
+## Examples
+
+``` r
+library("OmicFlow")
+
+metadata_file <- system.file("extdata", "metadata.tsv", package = "OmicFlow")
+counts_file <- system.file("extdata", "counts.tsv", package = "OmicFlow")
+features_file <- system.file("extdata", "features.tsv", package = "OmicFlow")
+tree_file <- system.file("extdata", "tree.newick", package = "OmicFlow")
+
+taxa <- metagenomics$new(
+    metaData = metadata_file,
+    countData = counts_file,
+    featureData = features_file,
+    treeData = tree_file
+)
+#> ✔ metaData template passed the JSON validation.
+#> ℹ Checking for duplicated identifiers ..
+#> ✔ featureData is loaded.
+#> ✔ countData is loaded.
+#> ✔ treeData is loaded.
+#> ℹ Final steps .. cleaning & creating back-up
+#> 
+#> ── <metagenomics> object 
+#> metaData: 9 variables × 4 samples
+#> countData: 4 samples × 242 features
+#> featureData: 7 attributes × 242 features
+#> treeData: 242 tips × 241 nodes
+
+taxa$feature_subset(Kingdom == "Bacteria")
+#> 
+#> ── <metagenomics> object 
+#> metaData: 9 variables × 4 samples
+#> countData: 4 samples × 185 features
+#> featureData: 7 attributes × 185 features
+#> treeData: 185 tips × 184 nodes
+taxa$scale(method = "tss")
+
+canberra(taxa$countData)
+#>           S100      S103      S115
+#> S103 1.0000000                    
+#> S115 0.9714413 1.0000000          
+#> S120 1.0000000 0.9787256 1.0000000
+```
