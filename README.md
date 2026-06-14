@@ -11,7 +11,6 @@
 OmicFlow is a generalised data structure for fast and efficient loading of various sparse omics data. It can handle metataxonomics/metagenomics data in text or [BIOM](https://biom-format.org/documentation/format_versions/biom-2.0.html) and extends to `proteomics` and other `omics` types. It also supports non-sparse data, but it's performance peaks in sparsity.
 
 ## Installation
----
 
 The latest stable version can be installed from CRAN.
 
@@ -27,7 +26,7 @@ pak::pkg_install('agusinac/OmicFlow@dev')
 ```
 
 ## Usage
----
+
 Initialize the `metagenomics` or any `omics` object from a filepath or pre-loaded object.
 ```R
 library("OmicFlow")
@@ -61,7 +60,6 @@ str(taxa)
 ```
 
 ### Visualisations
----
 
 #### 🔹Alpha diversity
 ```R
@@ -76,6 +74,7 @@ alpha_div$plot
 ![](man/figures/alphadiv_readme.png)
 
 #### 🔹Beta diversity
+
 By default PERMANOVA is applied pairwise against each group within the specified contrast, via `group_by` that is used in `pairwise_adonis`. The permutation design in `vegan::adonis2` is by default set to `free`. But this may not always be the right test when you have paired samples and you also want to restrict permutations between correlated values. Therefore, `pairwise_adonis` supports a custom permutation design, which can be constructed via [permute](https://cran.r-project.org/web/packages/permute/vignettes/permutations.html) and fed into `vegan::adonis2` as a function via `pairwise_adonis` with the flag `perm_design`.
 ```R
 set.seed(1970)
@@ -132,6 +131,7 @@ patchwork::wrap_plots(
 ![](man/figures/betadiv_readme.png)
 
 #### 🔹Composition
+
 ```R
 res <- taxa$composition(
     feature_rank = "Genus",
@@ -167,4 +167,5 @@ docker run -it --rm -v \
 ```
 
 ## Support
+
 If you are having issues, please [create a ticket](https://github.com/agusinac/OmicFlow/issues)

@@ -3,44 +3,44 @@
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/)
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
-## v1.6.0 - [2026-05-19]
+# v1.6.0 - [2026-05-19]
 
-### `Added`
+## `Added`
 - [#34](https://github.com/agusinac/OmicFlow/issues/34) Extra argument `group_by` in `foldchange`.
 
-### `Changed`
+## `Changed`
 - [#33](https://github.com/agusinac/OmicFlow/issues/33) Combined two methods into a single `omics$scale()`, added euclidean method and aitchison. Improved all dissimilarity metrics (except for UniFrac) by 2x speed & 7x less memory, UniFrac is 4x faster.
 - [#36](https://github.com/agusinac/OmicFlow/issues/36) Created `foldchange` method in `omics` abstract class and in `metagenomics` subclass
 - Adapted & tested `autoFlow` with new changes
 
-### `Fixed`
+## `Fixed`
 - [#35](https://github.com/agusinac/OmicFlow/issues/35) changed removezeros by using `@p` of `CsparseMatrix`
 - [#37](https://github.com/agusinac/OmicFlow/issues/37) `omics$reset` works with `omics$copy`
 
-### `Deprecated`
+## `Deprecated`
 - [#36](https://github.com/agusinac/OmicFlow/issues/36) Moved `foldchange` from namespace to `omics$foldchange` and `metagenomics$foldchange`
 
-## v1.5.1 - [2026-02-27]
+# v1.5.1 - [2026-02-27]
 
-### `Added`
+## `Added`
 - Extended unit-tests to uncovered code sections.
 
-### `Changed`
+## `Changed`
 - Added error handling when none `SAMPLE_ID`s are matching during `private$sync`
 
-### `Fixed`
+## `Fixed`
 - [#31](https://github.com/agusinac/OmicFlow/issues/31#issue-3962339783) `colormap` doesn't return any NAs.
 - [#30](https://github.com/agusinac/OmicFlow/issues/30#issue-3930823920) Placed `FEATURE_ID` as first column.
 - [#29](https://github.com/agusinac/OmicFlow/issues/29#issue-3930786231) replaced `position_nudge` with `position_jitter`
 - foldchange was matching sub-strings, fixed by changing it to exact matching.
 
-## v1.5.0 - [2026-01-26]
+# v1.5.0 - [2026-01-26]
 
-### `Added`
+## `Added`
 - [#23](https://github.com/agusinac/OmicFlow/issues/23) active bindings on data types, in place modification and automatic synchronisation between other data types by default via private function `sync`.
 - [#23](https://github.com/agusinac/OmicFlow/issues/23) `featureData` is now always created as placeholder.
 
-### `Changed`
+## `Changed`
 - [#23](https://github.com/agusinac/OmicFlow/issues/23) omics classes are now cloneable.
 - [#23](https://github.com/agusinac/OmicFlow/issues/23) `removeZeros()` function is now private.
 - [#26](https://github.com/agusinac/OmicFlow/issues/26) clarified `initialize` and field tags.
@@ -52,35 +52,35 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - Replaced `read_rarefraction_qiime` by `check_table` from private function of class `omics.`
 - `autoFlow` compatible to denseMatrix formats, applies fdr correction in other omics layers, report can be set to False, removed `nmds`.
 
-### `Fixed`
+## `Fixed`
 - [#25](https://github.com/agusinac/OmicFlow/issues/25) changed default value of `initialize` function.
 
-### `Deprecated`
+## `Deprecated`
 - Removed `tmp_restore` and `tmp_link`
 - Utils function `read_rarefraction_qiime`
 
-## v1.4.2 - [2025-11-30]
+# v1.4.2 - [2025-11-30]
 
-### `Fixed`
+## `Fixed`
 - `geom_boxplot` global function note for CRAN
 
-## v1.4.1 - [2025-11-30]
+# v1.4.1 - [2025-11-30]
 
-### `Added`
+## `Added`
 - [#20](https://github.com/agusinac/OmicFlow/issues/20) `rankstat` has now an `unique` option.
 
-### `Fixed`
+## `Fixed`
 - [#22](https://github.com/agusinac/OmicFlow/issues/22) `private$check_matrix` checks if any zero's are present before creating a `sparseMatrix`.
 - [#20](https://github.com/agusinac/OmicFlow/issues/20) `omics$compositon` Doesn't show `Others` when there are none.
 - [#24](https://github.com/agusinac/OmicFlow/issues/24) `volcano_plot` only sizes the points if there are significant features found.
  
-### `Deprecated`
+## `Deprecated`
 - [#21](https://github.com/agusinac/OmicFlow/issues/21) Removed `gghalves` in `diversity_plot`
 
 
-## v1.4.0 - [2025-10-23]
+# v1.4.0 - [2025-10-23]
 
-### `Added`
+## `Added`
 - [#14](https://github.com/agusinac/OmicFlow/issues/14) `unifrac` for both weighted/unweighted and normalized options.
 - [#14](https://github.com/agusinac/OmicFlow/issues/14) `bray` for both weighted/unweighted options.
 - [#14](https://github.com/agusinac/OmicFlow/issues/14) `jaccard` for both weighted/unweighted options.
@@ -92,310 +92,310 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - [#18](https://github.com/agusinac/OmicFlow/issues/18) `pairwise_adonis2` and `pairwise_anosim` now allow custom permutation designs from `permute` R package.
 - Unit tests for dissimilarity metrics
 
-### `Changed`
+## `Changed`
 - `metagenomics` and `proteomics` classes now align the countData (rows) and featureData by the treeData tip.labels.
 - `omics$ordination` uses now `omics$distance` to compute dissimilarity metrics (previously computed via `rbiom`).
 - Example data loaded from `inst/extdata` instead of re-using `mock.rds` object.
 
-### `Fixed`
+## `Fixed`
 - [#15](https://github.com/agusinac/OmicFlow/issues/15) Fixed flipped log2 values when condition A or B is zero.
 - [#17](https://github.com/agusinac/OmicFlow/issues/17) Docker is built via `pak` from github instead of CRAN.
 
-### `Deprecated`
+## `Deprecated`
 - [#13](https://github.com/agusinac/OmicFlow/issues/13) Removed `viridis` dependency, `purrr:map` is replaced by `lapply`
 - Removed `rbiom` and it's dependency `slam`.
 
-## v1.3.2 - [2025-09-20]
+# v1.3.2 - [2025-09-20]
 
-### `Deprecated`
+## `Deprecated`
 - `testthat` removed autoflow test
 
-## v1.3.1 - [2025-09-03]
+# v1.3.1 - [2025-09-03]
 
-### `Added`
+## `Added`
 - rhub yaml to check for additional platforms
 
-### `Fixed`
+## `Fixed`
 - `testthat` now uses seed & `tempdir()` to meet CRAN policy
 - `report.md` now also displays volcano plots
 - `omics$autoFlow()` saves report html in correct current path
 
-## v1.3.0 - [2025-08-13]
+# v1.3.0 - [2025-08-13]
 
-### `Added`
+## `Added`
 - Docker support for R package `autoflow` [#10](https://github.com/agusinac/OmicFlow/issues/10)
 
-### `Changed`
+## `Changed`
 - `autoFlow` and `report.md` now contain downloadable data [#11](https://github.com/agusinac/OmicFlow/issues/11)
 - Renamed `feature_glom` to `feature_merge`
 - Added `@returns` documentation in manuals
 - Updated `citations.md`
 - Finalized `readme.md`
 
-### `Fixed`
+## `Fixed`
 - working directory is set to current working directory in `rmarkdown::render` (compatible in docker/bioconda etc.)
 
-## v1.2.1 - [2025-08-05]
+# v1.2.1 - [2025-08-05]
 
-### `Added`
+## `Added`
 - Included github actions workflow for `covr` code coverage and R CMD build check.
 - github MIT license
 - created folder `inst/extdata` with test data
 
-### `Changed`
+## `Changed`
 - testthat now only checks presence of `write_biom` and `autoFlow` files.
 - All other testthat functions are replaced by snapshot testing, issues [#2](https://github.com/agusinac/OmicFlow/issues/2) and [#3](https://github.com/agusinac/OmicFlow/issues/3)
 
-### `Fixed`
+## `Fixed`
 - `on.exit` now solves issue during error occurance that class items are changed, issue [#3](https://github.com/agusinac/OmicFlow/issues/3).
 
-## v1.2.0 - [2025-08-03]
+# v1.2.0 - [2025-08-03]
 
-### `Added`
+## `Added`
 - included `exec` folder with `autoFlow.R` function to be called from the command line [#8](https://github.com/agusinac/OmicFlow/issues/8).
 - New `private` functions `check_matrix` and `check_table` for loading of files or existing data structures, issue [#6](https://github.com/agusinac/OmicFlow/issues/6).
 
-### `Changed`
+## `Changed`
 - `autoFlow.R` now has option to select sub-class from the command line.
 
-## v1.1.0 - [2025-08-02]
+# v1.1.0 - [2025-08-02]
 
-### `Added`
+## `Added`
 - included `inst` folder with `report.Rmd` and `css.styles` 
 - `autoFlow` now automatically loads `report.Rmd` from `inst` folder [#3](https://github.com/agusinac/OmicFlow/issues/3).
 - Test displayed on plots changes based on boolean paired value.
 
-### `Changed`
+## `Changed`
 - refactoring of `autoflow`, handles now both paired and unpaired data [#3](https://github.com/agusinac/OmicFlow/issues/3).
 - `combine_conditions` automatically check if comparison is significant and updates the list with new conditions.
 - updated manuals
 - `foldchange.R` now handles zero's and doesn't return Inf values
 
-## v1.0.7 - [2025-07-29]
+# v1.0.7 - [2025-07-29]
 
-### `Added`
+## `Added`
 - `volcano_plot` now offers option to visualize only abundant bacteria
 
-### `Fixed`
+## `Fixed`
 - Wrong order of normalization and feature aggregation [#7](https://github.com/agusinac/OmicFlow/issues/7)
 
-## v1.0.6 - [2025-07-28]
+# v1.0.6 - [2025-07-28]
 
-### `Changed`
+## `Changed`
 - Updated documentation according to issues [#2](https://github.com/agusinac/OmicFlow/issues/2) and [#4](https://github.com/agusinac/OmicFlow/issues/4)
 
-### `Fixed`
+## `Fixed`
 - Improved regex pattern in json file, now checks and doesnt allow for spaces.
 
-### `Deprecated`
+## `Deprecated`
 - removed personal files, cleaned up directory.
 
-## v1.0.5 - [2025-07-27]
+# v1.0.5 - [2025-07-27]
 
-### `Added`
+## `Added`
 - Included `@examples` in documentation [#4](https://github.com/agusinac/OmicFlow/issues/4).
 
-## v1.0.4 - [2025-07-24]
+# v1.0.4 - [2025-07-24]
 
-### `Fixed`
+## `Fixed`
 - Performed unit-testing [#2](https://github.com/agusinac/OmicFlow/issues/2), [#3](https://github.com/agusinac/OmicFlow/issues/3).
 
-## v1.0.3 - [2025-07-23]
+# v1.0.3 - [2025-07-23]
 
-### `Added`
+## `Added`
 - Created a `citation.md` for all used R packages in bibtex format
 - Added more error handling and documentation to functions/methods [#2](https://github.com/agusinac/OmicFlow/issues/2).
 
-### `Changed`
+## `Changed`
 - Updated documentation, manual [#2](https://github.com/agusinac/OmicFlow/issues/2)
 
-### `Deprecated`
+## `Deprecated`
 - Removed non-used functions
 
-## v1.0.2 - [2025-07-22]
+# v1.0.2 - [2025-07-22]
 
-### `Added`
+## `Added`
 - created `column_exist` for efficient error handling of missing/empty columns in tables
 
-### `Fixed`
+## `Fixed`
 - `write_biom` is now functional and tested compared to python API `biom-format`.
 - `feature_filter` is not compatible with newer version of `feature_glom`
 - `featureData` now replaces empty strings with NA, compatible with `metaData`.
 
-## v1.0.1 - [2025-07-18]
+# v1.0.1 - [2025-07-18]
 
-### `Fixed`
+## `Fixed`
 - `write_biom` is now functional and tested compared to python API `biom-format`
 
-## v1.0.0 - [2025-07-17]
+# v1.0.0 - [2025-07-17]
 
-### `Added`
+## `Added`
 - `samplepair_subset` finds automatically pairs and subsets class.
 - created metadata validation based on json schema, function `validate`.
 - additional error handling is added with cli R package.
 
-### `Changed`
+## `Changed`
 - `metataxonomics` is now called `metagenomics` sub-class, supports both hdf5, json formats.
 - `metagenomics` class first loads `omics` class and then fills up any additional information.
 - ordination plot now only shows ecclipses on T distribution.
 
-### `Deprecated`
+## `Deprecated`
 - Removed `find_pairs`
 
-## v0.9.5 - [2025-06-11]
+# v0.9.5 - [2025-06-11]
 
-### `Changed`
+## `Changed`
 - `unpaired_fold` and `paired_fold` are now combined into a single function `foldchange`.
 
-### `Deprecated`
+## `Deprecated`
 - Removed `doParallel` and `foreach` from foldchange computation.
 
-## v0.9.4 - [2025-06-03]
+# v0.9.4 - [2025-06-03]
 
-### `Changed`
+## `Changed`
 - `feature_glom` now handles multiple columns or single ones.
 - `metataxonomics` sub-class now automatically renames the last taxonomy columns.
 
-## v0.9.3 - [2025-05-08]
+# v0.9.3 - [2025-05-08]
 
-### `Added`
+## `Added`
 - `read_sparseTable` now efficiently reads in tsv, txt, csv, url or compressed files cleans it before creating a `sparseMatrix`
 
-## v0.9.2 - [2025-03-27]
+# v0.9.2 - [2025-03-27]
 
-### `Added`
+## `Added`
 - error-handling for treeData
 
-### `Changed`
+## `Changed`
 - Extra check for metadata & countdata alignment based of sample-ids
 - Improved visualizations of triplot, using ggplot functions
 - `tools` class is now called `omics` class.
 - `diversity_plot` now only shows significant pvalues, supports p.adjust methods
 
-## v0.9.1 - [2025-03-11]
+# v0.9.1 - [2025-03-11]
 
-### `Changed`
+## `Changed`
 - `feature_glom` can now be repeated multiple times without throwing an error.
 - Replaced `ggpubr::compare_means` by `rstatix::pairwise_wilcox_test`, makes it more flexible.
 
-## v0.9.0 - [2025-02-24]
+# v0.9.0 - [2025-02-24]
 
-### `Added`
+## `Added`
 - Created new `preoteomics-class.R`
 - Added basic `cli` error-handling in abstract class
 
-## v0.8.3 - [2025-01-14]
+# v0.8.3 - [2025-01-14]
 
-### `Fixed`
+## `Fixed`
 - Labelling issue of features in `feature_glom`. More robust and equal fast method.
 
-## v0.8.2 - [2025-01-02]
+# v0.8.2 - [2025-01-02]
 
-### `Added`
+## `Added`
 - Finalized docker image for `autoFlow.R`, placed it on docker hub.
 
-## v0.8.1 - [2024-12-17]
+# v0.8.1 - [2024-12-17]
 
-### `Changed`
+## `Changed`
 - autoflow now takes optionally pre-computed alpha or beta diversity in table format.
 
-## v0.8.0 - [2024-12-16]
+# v0.8.0 - [2024-12-16]
 
-### `Added`
+## `Added`
 - Added documentation to all functions based on `roxygen2` requirements.
 - Created `write_biom` function in sub-class `metataxonomics`
 
-### `Changed`
+## `Changed`
 - Finalised autoFlow.R standalone function, with docker image
 - `differential_feature_expression` now uses `sparseMatrix`
 - Updated manuals
 
-### `Fixed`
+## `Fixed`
 - Error handling in `tools` class
 - autoFlow now handles missing data, including all other methods of `tools` class
 
-## v0.7.0 - [2024-11-28]
+# v0.7.0 - [2024-11-28]
 
-### `Added`
+## `Added`
 - Created `hill_taxa.R` that implements `sparseMatrix`.
 
-### `Changed`
+## `Changed`
 - Finalised autoFlow.R standalone function, with docker image
 - `differential_feature_expression` now uses `sparseMatrix`
 
-## v0.6.0 - [2024-11-25]
+# v0.6.0 - [2024-11-25]
 
-### `Added`
+## `Added`
 - Created new `diversity` function that uses `sparseMatrix` and uses 5x less memory.
 
-### `Deprecated`
+## `Deprecated`
 - Removed `vegan::diversity`
 
-## v0.5.0 - [2024-11-14]
+# v0.5.0 - [2024-11-14]
 
-### `Changed`
+## `Changed`
 - countData class item now uses `sparseMatrix` instead of `data.table`
 
-## v0.4.1 - [2024-11-8]
+# v0.4.1 - [2024-11-8]
 
-### `Added`
+## `Added`
 - `testthat` R scripts for metataxonomics-class.R
 
-### `Fixed`
+## `Fixed`
 - improved `removeZeros` for efficiency.
 
-## v0.4.0 - [2024-10-21]
+# v0.4.0 - [2024-10-21]
 
-### `Added`
+## `Added`
 - Test data
 - included documentation, focused on creating an R package
 
-### `Changed`
+## `Changed`
 - alpha_diversity uses `ggpubr` R package
 - Improved visualizations in `differential_feature_expression`
 
-## v0.3.1 - [2024-10-13]
+# v0.3.1 - [2024-10-13]
 
-### `Added`
+## `Added`
 - created a `fetch_colors` function to get setNames from `RColorBrewer`.
 
-### `Changed`
+## `Changed`
 - renamed shannon to `alpha_diversity`, more options for shannon metrics
 
-## v0.3.0 - [2024-10-11]
+# v0.3.0 - [2024-10-11]
 
-### `Added`
+## `Added`
 - added dockerfile to use autoFlow
 
-### `Changed`
+## `Changed`
 - Replaced single R scripts for `autoFlow-class.R`
 - Applied `foreach` parallel in foldchange computation
 
-### `Deprecated`
+## `Deprecated`
 - Removed single R scripts for automated analysis
 
-## v0.2.1 - [2024-10-07]
+# v0.2.1 - [2024-10-07]
 
-### `Fixed`
+## `Fixed`
 - Added private functions within tools class; `original_data`, `tmp_link` and `tmp_restore`. Prevents modifications of tools components.
 
-## v0.2.0 - [2024-09-25]
+# v0.2.0 - [2024-09-25]
 
-### `Added`
+## `Added`
 - Created a new foldchange plot that replaces DFE_plot
 - Created `differential_feature_expression` within `tools` class
 - Created a volcano_plot
 
-### `Changed`
+## `Changed`
 - Created `tools-class.R`
 
-### `Deprecated`
+## `Deprecated`
 - Removed deprecated phyloseq functions
 - Removed DFE_plot
 
-## v0.1.0 - [2024-09-17]
+# v0.1.0 - [2024-09-17]
 
-### `Added`
+## `Added`
 - Created a tools abstract class based on R6 OOP method, which uses `data.table` for efficiency.
 - Created function `removeZeros` within class `tools`.
 - Created function `feature_subset` within class `tools`.
