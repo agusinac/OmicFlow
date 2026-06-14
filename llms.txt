@@ -17,7 +17,7 @@ data in text or
 and extends to `proteomics` and other `omics` types. It also supports
 non-sparse data, but it’s performance peaks in sparsity.
 
-## \## Installation
+## Installation
 
 The latest stable version can be installed from CRAN.
 
@@ -34,7 +34,7 @@ install.packages('pak') # if not yet installed
 pak::pkg_install('agusinac/OmicFlow@dev')
 ```
 
-## \## Usage
+## Usage
 
 Initialize the `metagenomics` or any `omics` object from a filepath or
 pre-loaded object.
@@ -71,7 +71,7 @@ taxa$featureData <- taxa$featureData[1:100, ]
 str(taxa)
 ```
 
-## \### Visualisations
+### Visualisations
 
 #### 🔹Alpha diversity
 
