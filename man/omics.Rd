@@ -3,37 +3,6 @@
 \name{omics}
 \alias{omics}
 \title{Abstract omics class}
-\value{
-A list of components:
-\itemize{
-\item \code{div} A \link[base]{data.frame} from \link{diversity}.
-\item \code{stats} A pairwise statistics from \link[rstatix]{pairwise_wilcox_test}.
-\item \code{plot} A \link[ggplot2]{ggplot} object.
-}
-
-A list of components:
-\itemize{
-\item \code{data} A \link[data.table]{data.table} of feature compositions.
-\item \code{palette} A \link[stats]{setNames} palette from \link{colormap}.
-}
-
-A list of components:
-\itemize{
-\item \code{distmat} A distance dissimilarity in \link[base]{matrix} format.
-\item \code{stats} A statistical test as a \link[base]{data.frame}.
-\item \code{pcs} principal components as a \link[base]{data.frame}.
-\item \code{scree_plot} A \link[ggplot2]{ggplot} object.
-\item \code{anova_plot} A \link[ggplot2]{ggplot} object.
-\item \code{scores_plot} A \link[ggplot2]{ggplot} object.
-}
-
-\itemize{
-\item \code{data} A long \link[data.table]{data.table} table.
-\item \code{volcano_plot} A \link[ggplot2]{ggplot} object.
-\item \code{A} A \link[data.table]{data.table} table for (each) condition A
-\item \code{B} A \link[data.table]{data.table} table for (each) condition B
-}
-}
 \description{
 This is the abstract class 'omics', contains a variety of methods that are inherited and applied in the omics classes:
 \link{metagenomics} and \link{proteomics}.
@@ -46,7 +15,7 @@ The method by reference is very efficient when dealing with big data.
 \examples{
 
 ## ------------------------------------------------
-## Method `omics$copy`
+## Method `omics$copy()`
 ## ------------------------------------------------
 
 library("OmicFlow")
@@ -68,7 +37,7 @@ cloned$reset() # resets to data after clone creation.
 
 
 ## ------------------------------------------------
-## Method `omics$print`
+## Method `omics$print()`
 ## ------------------------------------------------
 
 library("OmicFlow")
@@ -89,7 +58,7 @@ obj$print()
 
 
 ## ------------------------------------------------
-## Method `omics$reset`
+## Method `omics$reset()`
 ## ------------------------------------------------
 
 library(ggplot2)
@@ -116,7 +85,7 @@ taxa$rankstat(feature_ranks = c("Kingdom", "Phylum", "Family", "Genus", "Species
 
 
 ## ------------------------------------------------
-## Method `omics$removeNAs`
+## Method `omics$removeNAs()`
 ## ------------------------------------------------
 
 library("OmicFlow")
@@ -135,7 +104,7 @@ obj$removeNAs(column = "treatment")
 
 
 ## ------------------------------------------------
-## Method `omics$feature_subset`
+## Method `omics$feature_subset()`
 ## ------------------------------------------------
 
 library("OmicFlow")
@@ -154,7 +123,7 @@ obj$feature_subset(Genus == "Pseudomonas")
 
 
 ## ------------------------------------------------
-## Method `omics$sample_subset`
+## Method `omics$sample_subset()`
 ## ------------------------------------------------
 
 library("OmicFlow")
@@ -173,7 +142,7 @@ obj$sample_subset(treatment == "tumor")
 
 
 ## ------------------------------------------------
-## Method `omics$feature_merge`
+## Method `omics$feature_merge()`
 ## ------------------------------------------------
 
 library("OmicFlow")
@@ -193,7 +162,7 @@ obj$feature_merge(feature_rank = "Genus", feature_filter = c("uncultured", "meta
 
 
 ## ------------------------------------------------
-## Method `omics$scale`
+## Method `omics$scale()`
 ## ------------------------------------------------
 
 library("OmicFlow")
@@ -220,7 +189,7 @@ obj$scale(method = "none", transform = log2)
 
 
 ## ------------------------------------------------
-## Method `omics$rankstat`
+## Method `omics$rankstat()`
 ## ------------------------------------------------
 
 library("ggplot2")
@@ -240,7 +209,7 @@ plt <- obj$rankstat(feature_ranks = c("Kingdom", "Phylum", "Family", "Genus", "S
 plt
 
 ## ------------------------------------------------
-## Method `omics$alpha_diversity`
+## Method `omics$alpha_diversity()`
 ## ------------------------------------------------
 
 library("ggplot2")
@@ -261,7 +230,7 @@ plt <- obj$alpha_diversity(col_name = "treatment",
 
 
 ## ------------------------------------------------
-## Method `omics$composition`
+## Method `omics$composition()`
 ## ------------------------------------------------
 
 library("ggplot2")
@@ -287,7 +256,7 @@ plt <- composition_plot(data = result$data,
 
 
 ## ------------------------------------------------
-## Method `omics$distance`
+## Method `omics$distance()`
 ## ------------------------------------------------
 
 library("OmicFlow")
@@ -306,7 +275,7 @@ obj$feature_subset(Kingdom == "Bacteria")
 dist <- obj$distance(metric = "bray")
 
 ## ------------------------------------------------
-## Method `omics$ordination`
+## Method `omics$ordination()`
 ## ------------------------------------------------
 
 library("ggplot2")
@@ -330,7 +299,7 @@ pcoa_plots
 
 
 ## ------------------------------------------------
-## Method `omics$foldchange`
+## Method `omics$foldchange()`
 ## ------------------------------------------------
 
 library("ggplot2")
@@ -369,94 +338,95 @@ Aitchison, J. (1986) The Statistical Analysis of Compositional Data. Chapman and
 \link{volcano_plot}
 }
 \section{Active bindings}{
-\if{html}{\out{<div class="r6-active-bindings">}}
-\describe{
-\item{\code{metaData}}{A \link[data.table]{data.table} with \code{SAMPLE_ID} column.}
+  \if{html}{\out{<div class="r6-active-bindings">}}
+  \describe{
+    \item{\code{metaData}}{A \link[data.table]{data.table} with \code{SAMPLE_ID} column.}
 
-\item{\code{featureData}}{A \link[data.table]{data.table} with \code{FEATURE_ID} column.}
+    \item{\code{featureData}}{A \link[data.table]{data.table} with \code{FEATURE_ID} column.}
 
-\item{\code{countData}}{A dense or sparse \link[Matrix]{Matrix}.}
-}
-\if{html}{\out{</div>}}
+    \item{\code{countData}}{A dense or sparse \link[Matrix]{Matrix}.}
+  }
+  \if{html}{\out{</div>}}
 }
 \section{Methods}{
 \subsection{Public methods}{
-\itemize{
-\item \href{#method-omics-new}{\code{omics$new()}}
-\item \href{#method-omics-copy}{\code{omics$copy()}}
-\item \href{#method-omics-validate}{\code{omics$validate()}}
-\item \href{#method-omics-print}{\code{omics$print()}}
-\item \href{#method-omics-reset}{\code{omics$reset()}}
-\item \href{#method-omics-removeNAs}{\code{omics$removeNAs()}}
-\item \href{#method-omics-feature_subset}{\code{omics$feature_subset()}}
-\item \href{#method-omics-sample_subset}{\code{omics$sample_subset()}}
-\item \href{#method-omics-samplepair_subset}{\code{omics$samplepair_subset()}}
-\item \href{#method-omics-feature_merge}{\code{omics$feature_merge()}}
-\item \href{#method-omics-scale}{\code{omics$scale()}}
-\item \href{#method-omics-rankstat}{\code{omics$rankstat()}}
-\item \href{#method-omics-alpha_diversity}{\code{omics$alpha_diversity()}}
-\item \href{#method-omics-composition}{\code{omics$composition()}}
-\item \href{#method-omics-distance}{\code{omics$distance()}}
-\item \href{#method-omics-ordination}{\code{omics$ordination()}}
-\item \href{#method-omics-foldchange}{\code{omics$foldchange()}}
-\item \href{#method-omics-autoFlow}{\code{omics$autoFlow()}}
-\item \href{#method-omics-clone}{\code{omics$clone()}}
-}
+  \itemize{
+    \item \href{#method-omics-initialize}{\code{omics$new()}}
+    \item \href{#method-omics-copy}{\code{omics$copy()}}
+    \item \href{#method-omics-validate}{\code{omics$validate()}}
+    \item \href{#method-omics-print}{\code{omics$print()}}
+    \item \href{#method-omics-reset}{\code{omics$reset()}}
+    \item \href{#method-omics-removeNAs}{\code{omics$removeNAs()}}
+    \item \href{#method-omics-feature_subset}{\code{omics$feature_subset()}}
+    \item \href{#method-omics-sample_subset}{\code{omics$sample_subset()}}
+    \item \href{#method-omics-samplepair_subset}{\code{omics$samplepair_subset()}}
+    \item \href{#method-omics-feature_merge}{\code{omics$feature_merge()}}
+    \item \href{#method-omics-scale}{\code{omics$scale()}}
+    \item \href{#method-omics-rankstat}{\code{omics$rankstat()}}
+    \item \href{#method-omics-alpha_diversity}{\code{omics$alpha_diversity()}}
+    \item \href{#method-omics-composition}{\code{omics$composition()}}
+    \item \href{#method-omics-distance}{\code{omics$distance()}}
+    \item \href{#method-omics-ordination}{\code{omics$ordination()}}
+    \item \href{#method-omics-foldchange}{\code{omics$foldchange()}}
+    \item \href{#method-omics-autoFlow}{\code{omics$autoFlow()}}
+    \item \href{#method-omics-clone}{\code{omics$clone()}}
+  }
 }
 \if{html}{\out{<hr>}}
-\if{html}{\out{<a id="method-omics-new"></a>}}
-\if{latex}{\out{\hypertarget{method-omics-new}{}}}
-\subsection{Method \code{new()}}{
-Wrapper function that is inherited and adapted for each omics class.
+\if{html}{\out{<a id="method-omics-initialize"></a>}}
+\if{latex}{\out{\hypertarget{method-omics-initialize}{}}}
+\subsection{\code{omics$new()}}{
+  Wrapper function that is inherited and adapted for each omics class.
 The omics classes requires a metadata samplesheet, that is validated by the metadata_schema.json.
 It requires a column \code{SAMPLE_ID} and optionally a \code{SAMPLEPAIR_ID} can be supplied.
 The \code{SAMPLE_ID} will be used to link the metaData to the countData, and will act as the key during subsetting of other columns.
 To create a new object use \href{#method-new}{\code{new()}} method. Do notice that the abstract class only checks if the metadata is valid!
 The \code{countData} and \code{featureData} will not be checked, these are handled by the sub-classes.
 Using the omics class to load your data is not supported and still experimental.
-\subsection{Usage}{
-\if{html}{\out{<div class="r">}}\preformatted{omics$new(countData = NULL, featureData = NULL, metaData = NULL)}\if{html}{\out{</div>}}
+  \subsection{Usage}{
+    \if{html}{\out{<div class="r">}}
+    \preformatted{omics$new(countData = NULL, featureData = NULL, metaData = NULL)}
+    \if{html}{\out{</div>}}
+  }
+  \subsection{Arguments}{
+    \if{html}{\out{<div class="arguments">}}
+    \describe{
+      \item{\code{countData}}{A path to an existing file or a dense/sparse \link[Matrix]{Matrix} format.}
+      \item{\code{featureData}}{A path to an existing file, \link[data.table]{data.table} or data.frame.}
+      \item{\code{metaData}}{A path to an existing file, \link[data.table]{data.table} or data.frame.}
+    }
+    \if{html}{\out{</div>}}
+  }
+  \subsection{Returns}{
+    A new \code{omics} object.
+  }
 }
 
-\subsection{Arguments}{
-\if{html}{\out{<div class="arguments">}}
-\describe{
-\item{\code{countData}}{A path to an existing file or a dense/sparse \link[Matrix]{Matrix} format.}
-
-\item{\code{featureData}}{A path to an existing file, \link[data.table]{data.table} or data.frame.}
-
-\item{\code{metaData}}{A path to an existing file, \link[data.table]{data.table} or data.frame.}
-}
-\if{html}{\out{</div>}}
-}
-\subsection{Returns}{
-A new \code{omics} object.
-}
-}
 \if{html}{\out{<hr>}}
 \if{html}{\out{<a id="method-omics-copy"></a>}}
 \if{latex}{\out{\hypertarget{method-omics-copy}{}}}
-\subsection{Method \code{copy()}}{
-Create a copy of the object-class
+\subsection{\code{omics$copy()}}{
+  Create a copy of the object-class
 
 This method is very similar to the existing \href{#method-clone}{\code{clone()}} function, except it also resets the back-up of the OmicFlow data types that is invoked with \href{#method-reset}{\code{reset()}}
-\subsection{Usage}{
-\if{html}{\out{<div class="r">}}\preformatted{omics$copy(deep = FALSE)}\if{html}{\out{</div>}}
-}
-
-\subsection{Arguments}{
-\if{html}{\out{<div class="arguments">}}
-\describe{
-\item{\code{deep}}{A boolean value to create a shallow or deep copy.}
-}
-\if{html}{\out{</div>}}
-}
-\subsection{Returns}{
-A copy of \code{omics} object
-}
-\subsection{Examples}{
-\if{html}{\out{<div class="r example copy">}}
-\preformatted{library("OmicFlow")
+  \subsection{Usage}{
+    \if{html}{\out{<div class="r">}}
+    \preformatted{omics$copy(deep = FALSE)}
+    \if{html}{\out{</div>}}
+  }
+  \subsection{Arguments}{
+    \if{html}{\out{<div class="arguments">}}
+    \describe{
+      \item{\code{deep}}{A boolean value to create a shallow or deep copy.}
+    }
+    \if{html}{\out{</div>}}
+  }
+  \subsection{Returns}{
+    A copy of \code{omics} object
+  }
+  \subsection{Examples}{
+    \if{html}{\out{<div class="r example copy">}}
+    \preformatted{library("OmicFlow")
 
 metadata_file <- system.file("extdata", "metadata.tsv", package = "OmicFlow")
 counts_file <- system.file("extdata", "counts.tsv", package = "OmicFlow")
@@ -472,18 +442,16 @@ obj$scale()
 cloned <- obj$copy(deep=TRUE)
 cloned$scale(method = "clr")
 cloned$reset() # resets to data after clone creation.
-
 }
-\if{html}{\out{</div>}}
-
+    \if{html}{\out{</div>}}
+  }
 }
 
-}
 \if{html}{\out{<hr>}}
 \if{html}{\out{<a id="method-omics-validate"></a>}}
 \if{latex}{\out{\hypertarget{method-omics-validate}{}}}
-\subsection{Method \code{validate()}}{
-Validates an input metadata against the JSON schema. The metadata should look as follows and should not contain any empty spaces.
+\subsection{\code{omics$validate()}}{
+  Validates an input metadata against the JSON schema. The metadata should look as follows and should not contain any empty spaces.
 For example; \code{'sample 1'} is not allowed, whereas \code{'sample1'} is allowed!
 
 Acceptable column headers:
@@ -496,29 +464,32 @@ Acceptable column headers:
 
 This function is used during the creation of a new object via \href{#method-new}{\code{new()}} to validate the supplied metadata
 via a filepath or existing \link[data.table]{data.table} or \link[base]{data.frame}.
-\subsection{Usage}{
-\if{html}{\out{<div class="r">}}\preformatted{omics$validate()}\if{html}{\out{</div>}}
+  \subsection{Usage}{
+    \if{html}{\out{<div class="r">}}
+    \preformatted{omics$validate()}
+    \if{html}{\out{</div>}}
+  }
+  \subsection{Returns}{
+    None
+  }
 }
 
-\subsection{Returns}{
-None
-}
-}
 \if{html}{\out{<hr>}}
 \if{html}{\out{<a id="method-omics-print"></a>}}
 \if{latex}{\out{\hypertarget{method-omics-print}{}}}
-\subsection{Method \code{print()}}{
-Displays parameters of the omics class via stdout.
-\subsection{Usage}{
-\if{html}{\out{<div class="r">}}\preformatted{omics$print()}\if{html}{\out{</div>}}
-}
-
-\subsection{Returns}{
-object in place
-}
-\subsection{Examples}{
-\if{html}{\out{<div class="r example copy">}}
-\preformatted{library("OmicFlow")
+\subsection{\code{omics$print()}}{
+  Displays parameters of the omics class via stdout.
+  \subsection{Usage}{
+    \if{html}{\out{<div class="r">}}
+    \preformatted{omics$print()}
+    \if{html}{\out{</div>}}
+  }
+  \subsection{Returns}{
+    object in place
+  }
+  \subsection{Examples}{
+    \if{html}{\out{<div class="r example copy">}}
+    \preformatted{library("OmicFlow")
 
 metadata_file <- system.file("extdata", "metadata.tsv", package = "OmicFlow")
 counts_file <- system.file("extdata", "counts.tsv", package = "OmicFlow")
@@ -533,30 +504,29 @@ obj
 
 # method 2 to call print function
 obj$print()
-
 }
-\if{html}{\out{</div>}}
-
+    \if{html}{\out{</div>}}
+  }
 }
 
-}
 \if{html}{\out{<hr>}}
 \if{html}{\out{<a id="method-omics-reset"></a>}}
 \if{latex}{\out{\hypertarget{method-omics-reset}{}}}
-\subsection{Method \code{reset()}}{
-Upon creation of a new \code{omics} object a small backup of the original data is created.
+\subsection{\code{omics$reset()}}{
+  Upon creation of a new \code{omics} object a small backup of the original data is created.
 Since modification of the object is done by reference and duplicates are not made, it is possible to \code{reset} changes to the class.
 The methods from the abstract class \link{omics} also contains a private method to prevent any changes to the original object when using methods such as \code{ordination} \code{alpha_diversity} or \code{foldchange}.
-\subsection{Usage}{
-\if{html}{\out{<div class="r">}}\preformatted{omics$reset()}\if{html}{\out{</div>}}
-}
-
-\subsection{Returns}{
-object in place
-}
-\subsection{Examples}{
-\if{html}{\out{<div class="r example copy">}}
-\preformatted{library(ggplot2)
+  \subsection{Usage}{
+    \if{html}{\out{<div class="r">}}
+    \preformatted{omics$reset()}
+    \if{html}{\out{</div>}}
+  }
+  \subsection{Returns}{
+    object in place
+  }
+  \subsection{Examples}{
+    \if{html}{\out{<div class="r example copy">}}
+    \preformatted{library(ggplot2)
 library("OmicFlow")
 
 metadata_file <- system.file("extdata", "metadata.tsv", package = "OmicFlow")
@@ -577,35 +547,34 @@ taxa$reset()
 
 # An inbuilt reset function prevents unwanted modification to the taxa object.
 taxa$rankstat(feature_ranks = c("Kingdom", "Phylum", "Family", "Genus", "Species"))
-
 }
-\if{html}{\out{</div>}}
-
+    \if{html}{\out{</div>}}
+  }
 }
 
-}
 \if{html}{\out{<hr>}}
 \if{html}{\out{<a id="method-omics-removeNAs"></a>}}
 \if{latex}{\out{\hypertarget{method-omics-removeNAs}{}}}
-\subsection{Method \code{removeNAs()}}{
-Remove NAs from \code{metaData} and updates the \code{countData}.
-\subsection{Usage}{
-\if{html}{\out{<div class="r">}}\preformatted{omics$removeNAs(column)}\if{html}{\out{</div>}}
-}
-
-\subsection{Arguments}{
-\if{html}{\out{<div class="arguments">}}
-\describe{
-\item{\code{column}}{The column from where NAs should be removed, this can be either a wholenumbers or characters. Vectors are also supported.}
-}
-\if{html}{\out{</div>}}
-}
-\subsection{Returns}{
-object in place
-}
-\subsection{Examples}{
-\if{html}{\out{<div class="r example copy">}}
-\preformatted{library("OmicFlow")
+\subsection{\code{omics$removeNAs()}}{
+  Remove NAs from \code{metaData} and updates the \code{countData}.
+  \subsection{Usage}{
+    \if{html}{\out{<div class="r">}}
+    \preformatted{omics$removeNAs(column)}
+    \if{html}{\out{</div>}}
+  }
+  \subsection{Arguments}{
+    \if{html}{\out{<div class="arguments">}}
+    \describe{
+      \item{\code{column}}{The column from where NAs should be removed, this can be either a wholenumbers or characters. Vectors are also supported.}
+    }
+    \if{html}{\out{</div>}}
+  }
+  \subsection{Returns}{
+    object in place
+  }
+  \subsection{Examples}{
+    \if{html}{\out{<div class="r example copy">}}
+    \preformatted{library("OmicFlow")
 
 metadata_file <- system.file("extdata", "metadata.tsv", package = "OmicFlow")
 counts_file <- system.file("extdata", "counts.tsv", package = "OmicFlow")
@@ -618,36 +587,35 @@ obj <- metagenomics$new(
 )
 
 obj$removeNAs(column = "treatment")
-
 }
-\if{html}{\out{</div>}}
-
+    \if{html}{\out{</div>}}
+  }
 }
 
-}
 \if{html}{\out{<hr>}}
 \if{html}{\out{<a id="method-omics-feature_subset"></a>}}
 \if{latex}{\out{\hypertarget{method-omics-feature_subset}{}}}
-\subsection{Method \code{feature_subset()}}{
-Feature subset (based on \code{featureData}), automatically applies data synchronization.
-\subsection{Usage}{
-\if{html}{\out{<div class="r">}}\preformatted{omics$feature_subset(...)}\if{html}{\out{</div>}}
-}
-
-\subsection{Arguments}{
-\if{html}{\out{<div class="arguments">}}
-\describe{
-\item{\code{...}}{Expressions that return a logical value, and are defined in terms of the variables in \code{featureData}.
+\subsection{\code{omics$feature_subset()}}{
+  Feature subset (based on \code{featureData}), automatically applies data synchronization.
+  \subsection{Usage}{
+    \if{html}{\out{<div class="r">}}
+    \preformatted{omics$feature_subset(...)}
+    \if{html}{\out{</div>}}
+  }
+  \subsection{Arguments}{
+    \if{html}{\out{<div class="arguments">}}
+    \describe{
+      \item{\code{...}}{Expressions that return a logical value, and are defined in terms of the variables in \code{featureData}.
 Only rows for which all conditions evaluate to TRUE are kept.}
-}
-\if{html}{\out{</div>}}
-}
-\subsection{Returns}{
-object in place
-}
-\subsection{Examples}{
-\if{html}{\out{<div class="r example copy">}}
-\preformatted{library("OmicFlow")
+    }
+    \if{html}{\out{</div>}}
+  }
+  \subsection{Returns}{
+    object in place
+  }
+  \subsection{Examples}{
+    \if{html}{\out{<div class="r example copy">}}
+    \preformatted{library("OmicFlow")
 
 metadata_file <- system.file("extdata", "metadata.tsv", package = "OmicFlow")
 counts_file <- system.file("extdata", "counts.tsv", package = "OmicFlow")
@@ -660,36 +628,35 @@ obj <- metagenomics$new(
 )
 
 obj$feature_subset(Genus == "Pseudomonas")
-
 }
-\if{html}{\out{</div>}}
-
+    \if{html}{\out{</div>}}
+  }
 }
 
-}
 \if{html}{\out{<hr>}}
 \if{html}{\out{<a id="method-omics-sample_subset"></a>}}
 \if{latex}{\out{\hypertarget{method-omics-sample_subset}{}}}
-\subsection{Method \code{sample_subset()}}{
-Sample subset (based on \code{metaData}), automatically applies synchronization.
-\subsection{Usage}{
-\if{html}{\out{<div class="r">}}\preformatted{omics$sample_subset(...)}\if{html}{\out{</div>}}
-}
-
-\subsection{Arguments}{
-\if{html}{\out{<div class="arguments">}}
-\describe{
-\item{\code{...}}{Expressions that return a logical value, and are defined in terms of the variables in \code{metaData}.
+\subsection{\code{omics$sample_subset()}}{
+  Sample subset (based on \code{metaData}), automatically applies synchronization.
+  \subsection{Usage}{
+    \if{html}{\out{<div class="r">}}
+    \preformatted{omics$sample_subset(...)}
+    \if{html}{\out{</div>}}
+  }
+  \subsection{Arguments}{
+    \if{html}{\out{<div class="arguments">}}
+    \describe{
+      \item{\code{...}}{Expressions that return a logical value, and are defined in terms of the variables in \code{metaData}.
 Only rows for which all conditions evaluate to TRUE are kept.}
-}
-\if{html}{\out{</div>}}
-}
-\subsection{Returns}{
-object in place
-}
-\subsection{Examples}{
-\if{html}{\out{<div class="r example copy">}}
-\preformatted{library("OmicFlow")
+    }
+    \if{html}{\out{</div>}}
+  }
+  \subsection{Returns}{
+    object in place
+  }
+  \subsection{Examples}{
+    \if{html}{\out{<div class="r example copy">}}
+    \preformatted{library("OmicFlow")
 
 metadata_file <- system.file("extdata", "metadata.tsv", package = "OmicFlow")
 counts_file <- system.file("extdata", "counts.tsv", package = "OmicFlow")
@@ -702,59 +669,59 @@ obj <- metagenomics$new(
 )
 
 obj$sample_subset(treatment == "tumor")
-
 }
-\if{html}{\out{</div>}}
-
+    \if{html}{\out{</div>}}
+  }
 }
 
-}
 \if{html}{\out{<hr>}}
 \if{html}{\out{<a id="method-omics-samplepair_subset"></a>}}
 \if{latex}{\out{\hypertarget{method-omics-samplepair_subset}{}}}
-\subsection{Method \code{samplepair_subset()}}{
-Samplepair subset (based on \code{metaData}), automatically applies synchronization.
-\subsection{Usage}{
-\if{html}{\out{<div class="r">}}\preformatted{omics$samplepair_subset(num_unique_pairs = NULL)}\if{html}{\out{</div>}}
-}
-
-\subsection{Arguments}{
-\if{html}{\out{<div class="arguments">}}
-\describe{
-\item{\code{num_unique_pairs}}{An integer value to define the number of pairs to subset. The default is NULL,
+\subsection{\code{omics$samplepair_subset()}}{
+  Samplepair subset (based on \code{metaData}), automatically applies synchronization.
+  \subsection{Usage}{
+    \if{html}{\out{<div class="r">}}
+    \preformatted{omics$samplepair_subset(num_unique_pairs = NULL)}
+    \if{html}{\out{</div>}}
+  }
+  \subsection{Arguments}{
+    \if{html}{\out{<div class="arguments">}}
+    \describe{
+      \item{\code{num_unique_pairs}}{An integer value to define the number of pairs to subset. The default is NULL,
 meaning the maximum number of unique pairs will be used to subset the data.
 Let's say you have three samples for each pair, then the \code{num_unique_pairs} will be set to 3.}
+    }
+    \if{html}{\out{</div>}}
+  }
+  \subsection{Returns}{
+    object in place
+  }
 }
-\if{html}{\out{</div>}}
-}
-\subsection{Returns}{
-object in place
-}
-}
+
 \if{html}{\out{<hr>}}
 \if{html}{\out{<a id="method-omics-feature_merge"></a>}}
 \if{latex}{\out{\hypertarget{method-omics-feature_merge}{}}}
-\subsection{Method \code{feature_merge()}}{
-Agglomerates features by column, automatically applies synchronization.
-\subsection{Usage}{
-\if{html}{\out{<div class="r">}}\preformatted{omics$feature_merge(feature_rank, feature_filter = NULL)}\if{html}{\out{</div>}}
-}
-
-\subsection{Arguments}{
-\if{html}{\out{<div class="arguments">}}
-\describe{
-\item{\code{feature_rank}}{A character value or vector of columns to aggregate from the \code{featureData}.}
-
-\item{\code{feature_filter}}{A character value or vector of characters to remove features via regex pattern.}
-}
-\if{html}{\out{</div>}}
-}
-\subsection{Returns}{
-object in place
-}
-\subsection{Examples}{
-\if{html}{\out{<div class="r example copy">}}
-\preformatted{library("OmicFlow")
+\subsection{\code{omics$feature_merge()}}{
+  Agglomerates features by column, automatically applies synchronization.
+  \subsection{Usage}{
+    \if{html}{\out{<div class="r">}}
+    \preformatted{omics$feature_merge(feature_rank, feature_filter = NULL)}
+    \if{html}{\out{</div>}}
+  }
+  \subsection{Arguments}{
+    \if{html}{\out{<div class="arguments">}}
+    \describe{
+      \item{\code{feature_rank}}{A character value or vector of columns to aggregate from the \code{featureData}.}
+      \item{\code{feature_filter}}{A character value or vector of characters to remove features via regex pattern.}
+    }
+    \if{html}{\out{</div>}}
+  }
+  \subsection{Returns}{
+    object in place
+  }
+  \subsection{Examples}{
+    \if{html}{\out{<div class="r example copy">}}
+    \preformatted{library("OmicFlow")
 
 metadata_file <- system.file("extdata", "metadata.tsv", package = "OmicFlow")
 counts_file <- system.file("extdata", "counts.tsv", package = "OmicFlow")
@@ -768,46 +735,42 @@ obj <- metagenomics$new(
 
 obj$feature_merge(feature_rank = c("Kingdom", "Phylum"))
 obj$feature_merge(feature_rank = "Genus", feature_filter = c("uncultured", "metagenome"))
-
 }
-\if{html}{\out{</div>}}
-
+    \if{html}{\out{</div>}}
+  }
 }
 
-}
 \if{html}{\out{<hr>}}
 \if{html}{\out{<a id="method-omics-scale"></a>}}
 \if{latex}{\out{\hypertarget{method-omics-scale}{}}}
-\subsection{Method \code{scale()}}{
-Feature scaling on the \code{countData}. The \code{scale} function is able to apply transformations element-wise on the positive values, (optional: add pseudocounts) and perform normalisation or standardisation methods.
-\subsection{Usage}{
-\if{html}{\out{<div class="r">}}\preformatted{omics$scale(
+\subsection{\code{omics$scale()}}{
+  Feature scaling on the \code{countData}. The \code{scale} function is able to apply transformations element-wise on the positive values, (optional: add pseudocounts) and perform normalisation or standardisation methods.
+  \subsection{Usage}{
+    \if{html}{\out{<div class="r">}}
+    \preformatted{omics$scale(
   method = "tss",
   transform = NULL,
   base = exp(1),
   pseudocount = NULL
-)}\if{html}{\out{</div>}}
-}
-
-\subsection{Arguments}{
-\if{html}{\out{<div class="arguments">}}
-\describe{
-\item{\code{method}}{A character to choose a standardisation/normalisation method, options: \code{tss}, \code{clr}, \code{binary}, \code{hellinger}, \code{none} (default: \code{"tss"}).}
-
-\item{\code{transform}}{A function to apply on the positive values of \code{countData}, skip standardisation/normalisation with \code{method = "none"} (default: \code{NULL}).}
-
-\item{\code{base}}{Input for \link[base]{log} to use natural logarithmic scale, log2, log10 or other (default: \code{exp(1)}) in CLR.}
-
-\item{\code{pseudocount}}{A numeric value to replace zero's (default: \code{NULL}).}
-}
-\if{html}{\out{</div>}}
-}
-\subsection{Returns}{
-object in place
-}
-\subsection{Examples}{
-\if{html}{\out{<div class="r example copy">}}
-\preformatted{library("OmicFlow")
+)}
+    \if{html}{\out{</div>}}
+  }
+  \subsection{Arguments}{
+    \if{html}{\out{<div class="arguments">}}
+    \describe{
+      \item{\code{method}}{A character to choose a standardisation/normalisation method, options: \code{tss}, \code{clr}, \code{binary}, \code{hellinger}, \code{none} (default: \code{"tss"}).}
+      \item{\code{transform}}{A function to apply on the positive values of \code{countData}, skip standardisation/normalisation with \code{method = "none"} (default: \code{NULL}).}
+      \item{\code{base}}{Input for \link[base]{log} to use natural logarithmic scale, log2, log10 or other (default: \code{exp(1)}) in CLR.}
+      \item{\code{pseudocount}}{A numeric value to replace zero's (default: \code{NULL}).}
+    }
+    \if{html}{\out{</div>}}
+  }
+  \subsection{Returns}{
+    object in place
+  }
+  \subsection{Examples}{
+    \if{html}{\out{<div class="r example copy">}}
+    \preformatted{library("OmicFlow")
 
 metadata_file <- system.file("extdata", "metadata.tsv", package = "OmicFlow")
 counts_file <- system.file("extdata", "counts.tsv", package = "OmicFlow")
@@ -828,41 +791,38 @@ obj$scale(method = "clr")
 # transform
 obj$reset()
 obj$scale(method = "none", transform = log2)
-
 }
-\if{html}{\out{</div>}}
-
+    \if{html}{\out{</div>}}
+  }
 }
 
-}
 \if{html}{\out{<hr>}}
 \if{html}{\out{<a id="method-omics-rankstat"></a>}}
 \if{latex}{\out{\hypertarget{method-omics-rankstat}{}}}
-\subsection{Method \code{rankstat()}}{
-Rank statistics based on \code{featureData}
-\subsection{Usage}{
-\if{html}{\out{<div class="r">}}\preformatted{omics$rankstat(feature_ranks, unique = FALSE)}\if{html}{\out{</div>}}
-}
-
-\subsection{Arguments}{
-\if{html}{\out{<div class="arguments">}}
-\describe{
-\item{\code{feature_ranks}}{A vector of characters or integers that match the \code{featureData}.}
-
-\item{\code{unique}}{A boolean value to display only unique entries in \code{feature_ranks}.}
-}
-\if{html}{\out{</div>}}
-}
-\subsection{Details}{
-Counts the number of features identified for each column, for example in case of 16S metagenomics it would be the number of OTUs or ASVs on different taxonomy levels.
-}
-
-\subsection{Returns}{
-A \link[ggplot2]{ggplot} object.
-}
-\subsection{Examples}{
-\if{html}{\out{<div class="r example copy">}}
-\preformatted{library("ggplot2")
+\subsection{\code{omics$rankstat()}}{
+  Rank statistics based on \code{featureData}
+  \subsection{Usage}{
+    \if{html}{\out{<div class="r">}}
+    \preformatted{omics$rankstat(feature_ranks, unique = FALSE)}
+    \if{html}{\out{</div>}}
+  }
+  \subsection{Arguments}{
+    \if{html}{\out{<div class="arguments">}}
+    \describe{
+      \item{\code{feature_ranks}}{A vector of characters or integers that match the \code{featureData}.}
+      \item{\code{unique}}{A boolean value to display only unique entries in \code{feature_ranks}.}
+    }
+    \if{html}{\out{</div>}}
+  }
+  \subsection{Details}{
+    Counts the number of features identified for each column, for example in case of 16S metagenomics it would be the number of OTUs or ASVs on different taxonomy levels.
+  }
+  \subsection{Returns}{
+    A \link[ggplot2]{ggplot} object.
+  }
+  \subsection{Examples}{
+    \if{html}{\out{<div class="r example copy">}}
+    \preformatted{library("ggplot2")
 library("OmicFlow")
 
 metadata_file <- system.file("extdata", "metadata.tsv", package = "OmicFlow")
@@ -878,18 +838,18 @@ obj <- metagenomics$new(
 plt <- obj$rankstat(feature_ranks = c("Kingdom", "Phylum", "Family", "Genus", "Species"))
 plt
 }
-\if{html}{\out{</div>}}
-
+    \if{html}{\out{</div>}}
+  }
 }
 
-}
 \if{html}{\out{<hr>}}
 \if{html}{\out{<a id="method-omics-alpha_diversity"></a>}}
 \if{latex}{\out{\hypertarget{method-omics-alpha_diversity}{}}}
-\subsection{Method \code{alpha_diversity()}}{
-Alpha diversity based on \link{diversity}
-\subsection{Usage}{
-\if{html}{\out{<div class="r">}}\preformatted{omics$alpha_diversity(
+\subsection{\code{omics$alpha_diversity()}}{
+  Alpha diversity based on \link{diversity}
+  \subsection{Usage}{
+    \if{html}{\out{<div class="r">}}
+    \preformatted{omics$alpha_diversity(
   col_name,
   metric = c("shannon", "invsimpson", "simpson"),
   Brewer.palID = "Set2",
@@ -897,31 +857,33 @@ Alpha diversity based on \link{diversity}
   evenness = FALSE,
   paired = FALSE,
   p.adjust.method = "fdr"
-)}\if{html}{\out{</div>}}
+)}
+    \if{html}{\out{</div>}}
+  }
+  \subsection{Arguments}{
+    \if{html}{\out{<div class="arguments">}}
+    \describe{
+      \item{\code{col_name}}{A character variable from the \code{metaData}.}
+      \item{\code{metric}}{An alpha diversity metric as input to \link{diversity}.}
+      \item{\code{Brewer.palID}}{A character name for the palette set to be applied, see \link[RColorBrewer]{brewer.pal} or \link{colormap}.}
+      \item{\code{group_by}}{A column name to perform grouped statistical test in \link{diversity_plot} (default: NULL).}
+      \item{\code{evenness}}{A boolean wether to divide diversity by number of species, see \link[vegan]{specnumber}.}
+      \item{\code{paired}}{A boolean value to perform paired analysis in \link[stats]{wilcox.test} and samplepair subsetting via \href{#method-samplepair_subset}{\code{samplepair_subset()}}}
+      \item{\code{p.adjust.method}}{A character variable to specify the p.adjust.method to be used, default is 'fdr'.}
+    }
+    \if{html}{\out{</div>}}
+  }
+  \subsection{Returns}{
+    A list of components:
+\itemize{
+\item \code{div} A \link[base]{data.frame} from \link{diversity}.
+\item \code{stats} A pairwise statistics from \link[rstatix]{pairwise_wilcox_test}.
+\item \code{plot} A \link[ggplot2]{ggplot} object.
 }
-
-\subsection{Arguments}{
-\if{html}{\out{<div class="arguments">}}
-\describe{
-\item{\code{col_name}}{A character variable from the \code{metaData}.}
-
-\item{\code{metric}}{An alpha diversity metric as input to \link{diversity}.}
-
-\item{\code{Brewer.palID}}{A character name for the palette set to be applied, see \link[RColorBrewer]{brewer.pal} or \link{colormap}.}
-
-\item{\code{group_by}}{A column name to perform grouped statistical test in \link{diversity_plot} (default: NULL).}
-
-\item{\code{evenness}}{A boolean wether to divide diversity by number of species, see \link[vegan]{specnumber}.}
-
-\item{\code{paired}}{A boolean value to perform paired analysis in \link[stats]{wilcox.test} and samplepair subsetting via \href{#method-samplepair_subset}{\code{samplepair_subset()}}}
-
-\item{\code{p.adjust.method}}{A character variable to specify the p.adjust.method to be used, default is 'fdr'.}
-}
-\if{html}{\out{</div>}}
-}
-\subsection{Examples}{
-\if{html}{\out{<div class="r example copy">}}
-\preformatted{library("ggplot2")
+  }
+  \subsection{Examples}{
+    \if{html}{\out{<div class="r example copy">}}
+    \preformatted{library("ggplot2")
 library("OmicFlow")
 
 metadata_file <- system.file("extdata", "metadata.tsv", package = "OmicFlow")
@@ -936,46 +898,48 @@ obj <- metagenomics$new(
 
 plt <- obj$alpha_diversity(col_name = "treatment",
                            metric = "shannon")
-
 }
-\if{html}{\out{</div>}}
-
+    \if{html}{\out{</div>}}
+  }
 }
 
-}
 \if{html}{\out{<hr>}}
 \if{html}{\out{<a id="method-omics-composition"></a>}}
 \if{latex}{\out{\hypertarget{method-omics-composition}{}}}
-\subsection{Method \code{composition()}}{
-Creates a table most abundant compositional features. Also assigns a color blind friendly palette for visualizations.
-\subsection{Usage}{
-\if{html}{\out{<div class="r">}}\preformatted{omics$composition(
+\subsection{\code{omics$composition()}}{
+  Creates a table most abundant compositional features. Also assigns a color blind friendly palette for visualizations.
+  \subsection{Usage}{
+    \if{html}{\out{<div class="r">}}
+    \preformatted{omics$composition(
   feature_rank,
   feature_filter = NULL,
   col_name = NULL,
   feature_top = c(10, 15),
   Brewer.palID = "RdYlBu"
-)}\if{html}{\out{</div>}}
+)}
+    \if{html}{\out{</div>}}
+  }
+  \subsection{Arguments}{
+    \if{html}{\out{<div class="arguments">}}
+    \describe{
+      \item{\code{feature_rank}}{A character variable in \code{featureData} to aggregate via \href{#method-feature_merge}{\code{feature_merge()}}.}
+      \item{\code{feature_filter}}{A character or vector of characters to removes features by regex pattern.}
+      \item{\code{col_name}}{Optional, a character or vector of characters to add to the final compositional data output.}
+      \item{\code{feature_top}}{A wholenumber of the top features to visualize, the max is 15, due to a limit of palettes.}
+      \item{\code{Brewer.palID}}{A character name for the palette set to be applied, see \link[RColorBrewer]{brewer.pal} or \link{colormap}.}
+    }
+    \if{html}{\out{</div>}}
+  }
+  \subsection{Returns}{
+    A list of components:
+\itemize{
+\item \code{data} A \link[data.table]{data.table} of feature compositions.
+\item \code{palette} A \link[stats]{setNames} palette from \link{colormap}.
 }
-
-\subsection{Arguments}{
-\if{html}{\out{<div class="arguments">}}
-\describe{
-\item{\code{feature_rank}}{A character variable in \code{featureData} to aggregate via \href{#method-feature_merge}{\code{feature_merge()}}.}
-
-\item{\code{feature_filter}}{A character or vector of characters to removes features by regex pattern.}
-
-\item{\code{col_name}}{Optional, a character or vector of characters to add to the final compositional data output.}
-
-\item{\code{feature_top}}{A wholenumber of the top features to visualize, the max is 15, due to a limit of palettes.}
-
-\item{\code{Brewer.palID}}{A character name for the palette set to be applied, see \link[RColorBrewer]{brewer.pal} or \link{colormap}.}
-}
-\if{html}{\out{</div>}}
-}
-\subsection{Examples}{
-\if{html}{\out{<div class="r example copy">}}
-\preformatted{library("ggplot2")
+  }
+  \subsection{Examples}{
+    \if{html}{\out{<div class="r example copy">}}
+    \preformatted{library("ggplot2")
 library("OmicFlow")
 
 metadata_file <- system.file("extdata", "metadata.tsv", package = "OmicFlow")
@@ -995,52 +959,46 @@ result <- obj$composition(feature_rank = "Genus",
 plt <- composition_plot(data = result$data,
                         palette = result$palette,
                         feature_rank = "Genus")
-
 }
-\if{html}{\out{</div>}}
-
+    \if{html}{\out{</div>}}
+  }
 }
 
-}
 \if{html}{\out{<hr>}}
 \if{html}{\out{<a id="method-omics-distance"></a>}}
 \if{latex}{\out{\hypertarget{method-omics-distance}{}}}
-\subsection{Method \code{distance()}}{
-Compute a distance metric from \code{countData}
-\subsection{Usage}{
-\if{html}{\out{<div class="r">}}\preformatted{omics$distance(
+\subsection{\code{omics$distance()}}{
+  Compute a distance metric from \code{countData}
+  \subsection{Usage}{
+    \if{html}{\out{<div class="r">}}
+    \preformatted{omics$distance(
   metric,
   weighted = TRUE,
   threads = 1,
   normalized = TRUE,
   base = exp(1)
-)}\if{html}{\out{</div>}}
-}
-
-\subsection{Arguments}{
-\if{html}{\out{<div class="arguments">}}
-\describe{
-\item{\code{metric}}{A dissimilarity metric to be applied on the \code{countData},
+)}
+    \if{html}{\out{</div>}}
+  }
+  \subsection{Arguments}{
+    \if{html}{\out{<div class="arguments">}}
+    \describe{
+      \item{\code{metric}}{A dissimilarity metric to be applied on the \code{countData},
 thus far supports 'bray', 'jaccard', 'cosine', 'manhattan', 'aitchison', 'euclidean', 'jsd' (jensen-shannon divergence), 'canberra' and 'unifrac' when a tree is provided via \code{treeData}, see \href{#method-distance}{\code{distance()}}.}
-
-\item{\code{weighted}}{A boolean value, to use abundances (\code{weighted = TRUE}) or absence/presence (\code{weighted=FALSE}) (default: TRUE).}
-
-\item{\code{threads}}{A wholenumber, indicating the number of threads to use (Default: 1).}
-
-\item{\code{normalized}}{A boolean value, whether to normalize weighted UniFrac distances to be between 0 and 1. Unweighted UniFrac is always normalized (default: TRUE).}
-
-\item{\code{base}}{Input for \link[base]{log} to use natural logarithmic scale, log2, log10 or other (default: \code{exp(1)}).}
-
-\item{\code{pseudocount}}{A numeric value to replace zero's, used in \href{#method-scale}{\code{scale()}} (default: \code{1e-15}).}
-}
-\if{html}{\out{</div>}}
-}
-\subsection{Returns}{
-A column x column \link[stats]{dist} object.
-}
-\subsection{Examples}{
-\if{html}{\out{<div class="r example copy">}}
-\preformatted{library("OmicFlow")
+      \item{\code{weighted}}{A boolean value, to use abundances (\code{weighted = TRUE}) or absence/presence (\code{weighted=FALSE}) (default: TRUE).}
+      \item{\code{threads}}{A wholenumber, indicating the number of threads to use (Default: 1).}
+      \item{\code{normalized}}{A boolean value, whether to normalize weighted UniFrac distances to be between 0 and 1. Unweighted UniFrac is always normalized (default: TRUE).}
+      \item{\code{base}}{Input for \link[base]{log} to use natural logarithmic scale, log2, log10 or other (default: \code{exp(1)}).}
+      \item{\code{pseudocount}}{A numeric value to replace zero's, used in \href{#method-scale}{\code{scale()}} (default: \code{1e-15}).}
+    }
+    \if{html}{\out{</div>}}
+  }
+  \subsection{Returns}{
+    A column x column \link[stats]{dist} object.
+  }
+  \subsection{Examples}{
+    \if{html}{\out{<div class="r example copy">}}
+    \preformatted{library("OmicFlow")
 
 metadata_file <- system.file("extdata", "metadata.tsv", package = "OmicFlow")
 counts_file <- system.file("extdata", "counts.tsv", package = "OmicFlow")
@@ -1055,18 +1013,18 @@ obj <- metagenomics$new(
 obj$feature_subset(Kingdom == "Bacteria")
 dist <- obj$distance(metric = "bray")
 }
-\if{html}{\out{</div>}}
-
+    \if{html}{\out{</div>}}
+  }
 }
 
-}
 \if{html}{\out{<hr>}}
 \if{html}{\out{<a id="method-omics-ordination"></a>}}
 \if{latex}{\out{\hypertarget{method-omics-ordination}{}}}
-\subsection{Method \code{ordination()}}{
-Ordination of \code{countData} with statistical testing.
-\subsection{Usage}{
-\if{html}{\out{<div class="r">}}\preformatted{omics$ordination(
+\subsection{\code{omics$ordination()}}{
+  Ordination of \code{countData} with statistical testing.
+  \subsection{Usage}{
+    \if{html}{\out{<div class="r">}}
+    \preformatted{omics$ordination(
   metric = "bray",
   method = c("pcoa", "nmds"),
   group_by,
@@ -1075,34 +1033,38 @@ Ordination of \code{countData} with statistical testing.
   threads = 1,
   perm_design = NULL,
   perm = 999
-)}\if{html}{\out{</div>}}
-}
-
-\subsection{Arguments}{
-\if{html}{\out{<div class="arguments">}}
-\describe{
-\item{\code{metric}}{A dissimilarity or similarity metric to be applied on the \code{countData},
+)}
+    \if{html}{\out{</div>}}
+  }
+  \subsection{Arguments}{
+    \if{html}{\out{<div class="arguments">}}
+    \describe{
+      \item{\code{metric}}{A dissimilarity or similarity metric to be applied on the \code{countData},
 thus far supports 'bray', 'jaccard', 'cosine', 'manhattan', 'jsd' (jensen-shannon divergence), 'canberra' and 'unifrac' when a tree is provided via \code{treeData}, see \href{#method-distance}{\code{distance()}}.}
-
-\item{\code{method}}{Ordination method, supports "pcoa" and "nmds", see \link[vegan]{wcmdscale}.}
-
-\item{\code{group_by}}{A character variable in \code{metaData} to be used for the \link{pairwise_adonis} or \link{pairwise_anosim} statistical test.}
-
-\item{\code{distmat}}{A custom distance matrix in either \link[stats]{dist} or \link[Matrix]{Matrix} format.}
-
-\item{\code{weighted}}{A boolean value, whether to compute weighted or unweighted dissimilarities (default: \code{TRUE}).}
-
-\item{\code{threads}}{A wholenumber, indicating the number of threads to use (Default: 1).}
-
-\item{\code{perm_design}}{A function that takes \code{metaData} and constructs a permutation design with \link[permute]{how} (default: \code{NULL}).}
-
-\item{\code{perm}}{A wholenumber, number of permutations to compare against the null hypothesis of \link[vegan]{adonis2} and \link[vegan]{anosim} (default: \code{perm=999}).}
+      \item{\code{method}}{Ordination method, supports "pcoa" and "nmds", see \link[vegan]{wcmdscale}.}
+      \item{\code{group_by}}{A character variable in \code{metaData} to be used for the \link{pairwise_adonis} or \link{pairwise_anosim} statistical test.}
+      \item{\code{distmat}}{A custom distance matrix in either \link[stats]{dist} or \link[Matrix]{Matrix} format.}
+      \item{\code{weighted}}{A boolean value, whether to compute weighted or unweighted dissimilarities (default: \code{TRUE}).}
+      \item{\code{threads}}{A wholenumber, indicating the number of threads to use (Default: 1).}
+      \item{\code{perm_design}}{A function that takes \code{metaData} and constructs a permutation design with \link[permute]{how} (default: \code{NULL}).}
+      \item{\code{perm}}{A wholenumber, number of permutations to compare against the null hypothesis of \link[vegan]{adonis2} and \link[vegan]{anosim} (default: \code{perm=999}).}
+    }
+    \if{html}{\out{</div>}}
+  }
+  \subsection{Returns}{
+    A list of components:
+\itemize{
+\item \code{distmat} A distance dissimilarity in \link[base]{matrix} format.
+\item \code{stats} A statistical test as a \link[base]{data.frame}.
+\item \code{pcs} principal components as a \link[base]{data.frame}.
+\item \code{scree_plot} A \link[ggplot2]{ggplot} object.
+\item \code{anova_plot} A \link[ggplot2]{ggplot} object.
+\item \code{scores_plot} A \link[ggplot2]{ggplot} object.
 }
-\if{html}{\out{</div>}}
-}
-\subsection{Examples}{
-\if{html}{\out{<div class="r example copy">}}
-\preformatted{library("ggplot2")
+  }
+  \subsection{Examples}{
+    \if{html}{\out{<div class="r example copy">}}
+    \preformatted{library("ggplot2")
 library("OmicFlow")
 
 metadata_file <- system.file("extdata", "metadata.tsv", package = "OmicFlow")
@@ -1120,22 +1082,21 @@ pcoa_plots <- obj$ordination(metric = "bray",
                              group_by = "treatment",
                              weighted = TRUE)
 pcoa_plots
-
 }
-\if{html}{\out{</div>}}
-
+    \if{html}{\out{</div>}}
+  }
 }
 
-}
 \if{html}{\out{<hr>}}
 \if{html}{\out{<a id="method-omics-foldchange"></a>}}
 \if{latex}{\out{\hypertarget{method-omics-foldchange}{}}}
-\subsection{Method \code{foldchange()}}{
-Differential feature expression (DFE) on log-transformed values for both paired and non-paired test.
+\subsection{\code{omics$foldchange()}}{
+  Differential feature expression (DFE) on log-transformed values for both paired and non-paired test.
 
 The function performs feature agglomeration, subsetting to remove NAs in \code{condition.group} and finding samplepairs. It expects that the data is already log-transformed, this can be accomplished via \href{#method-scale}{\code{scale()}}
-\subsection{Usage}{
-\if{html}{\out{<div class="r">}}\preformatted{omics$foldchange(
+  \subsection{Usage}{
+    \if{html}{\out{<div class="r">}}
+    \preformatted{omics$foldchange(
   condition.group,
   condition_A,
   condition_B,
@@ -1146,37 +1107,36 @@ The function performs feature agglomeration, subsetting to remove NAs in \code{c
   pvalue.threshold = 0.05,
   logfold.threshold = 0.06,
   abundance.threshold = 0
-)}\if{html}{\out{</div>}}
+)}
+    \if{html}{\out{</div>}}
+  }
+  \subsection{Arguments}{
+    \if{html}{\out{<div class="arguments">}}
+    \describe{
+      \item{\code{condition.group}}{A character variable of an existing column name in \code{metaData}, wherein the conditions A and B are located.}
+      \item{\code{condition_A}}{A character value or vector of characters.}
+      \item{\code{condition_B}}{A character value or vector of characters.}
+      \item{\code{group_by}}{A character variable of an existing column in \code{metaData} to split the table in chunks prior to fold-change computation (default: \code{NULL}). When disabled then column names will end with \verb{_in_all}.}
+      \item{\code{feature_rank}}{A character or vector of characters in the \code{featureData} to aggregate via \href{#method-feature_merge}{\code{feature_merge()}} (default: \code{"FEATURE_ID"}).}
+      \item{\code{feature_filter}}{A character or vector of characters to remove features via regex pattern (default: \code{NULL}).}
+      \item{\code{paired}}{A boolean value, the paired is only applicable when a \code{SAMPLEPAIR_ID} column exists within the \code{metaData}. See \link[stats]{wilcox.test} and \href{#method-samplepair_subset}{\code{samplepair_subset()}}.}
+      \item{\code{pvalue.threshold}}{A numeric value used as a p-value threshold to label and color significant features (default: 0.05).}
+      \item{\code{logfold.threshold}}{A numeric value used as a fold-change threshold to label and color significantly expressed features (default: 0.06).}
+      \item{\code{abundance.threshold}}{A numeric value used as an abundance threshold to size the scatter dots based on their mean abundance (default: 0.01).}
+    }
+    \if{html}{\out{</div>}}
+  }
+  \subsection{Returns}{
+    \itemize{
+\item \code{data} A long \link[data.table]{data.table} table.
+\item \code{volcano_plot} A \link[ggplot2]{ggplot} object.
+\item \code{A} A \link[data.table]{data.table} table for (each) condition A
+\item \code{B} A \link[data.table]{data.table} table for (each) condition B
 }
-
-\subsection{Arguments}{
-\if{html}{\out{<div class="arguments">}}
-\describe{
-\item{\code{condition.group}}{A character variable of an existing column name in \code{metaData}, wherein the conditions A and B are located.}
-
-\item{\code{condition_A}}{A character value or vector of characters.}
-
-\item{\code{condition_B}}{A character value or vector of characters.}
-
-\item{\code{group_by}}{A character variable of an existing column in \code{metaData} to split the table in chunks prior to fold-change computation (default: \code{NULL}). When disabled then column names will end with \verb{_in_all}.}
-
-\item{\code{feature_rank}}{A character or vector of characters in the \code{featureData} to aggregate via \href{#method-feature_merge}{\code{feature_merge()}} (default: \code{"FEATURE_ID"}).}
-
-\item{\code{feature_filter}}{A character or vector of characters to remove features via regex pattern (default: \code{NULL}).}
-
-\item{\code{paired}}{A boolean value, the paired is only applicable when a \code{SAMPLEPAIR_ID} column exists within the \code{metaData}. See \link[stats]{wilcox.test} and \href{#method-samplepair_subset}{\code{samplepair_subset()}}.}
-
-\item{\code{pvalue.threshold}}{A numeric value used as a p-value threshold to label and color significant features (default: 0.05).}
-
-\item{\code{logfold.threshold}}{A numeric value used as a fold-change threshold to label and color significantly expressed features (default: 0.06).}
-
-\item{\code{abundance.threshold}}{A numeric value used as an abundance threshold to size the scatter dots based on their mean abundance (default: 0.01).}
-}
-\if{html}{\out{</div>}}
-}
-\subsection{Examples}{
-\if{html}{\out{<div class="r example copy">}}
-\preformatted{library("ggplot2")
+  }
+  \subsection{Examples}{
+    \if{html}{\out{<div class="r example copy">}}
+    \preformatted{library("ggplot2")
 library("OmicFlow")
 
 metadata_file <- system.file("extdata", "metadata.tsv", package = "OmicFlow")
@@ -1195,21 +1155,20 @@ dfe <- obj$foldchange(feature_rank = "Genus",
                       condition.group = "treatment",
                       condition_A = c("healthy"),
                       condition_B = c("tumor"))
-
 }
-\if{html}{\out{</div>}}
-
+    \if{html}{\out{</div>}}
+  }
 }
 
-}
 \if{html}{\out{<hr>}}
 \if{html}{\out{<a id="method-omics-autoFlow"></a>}}
 \if{latex}{\out{\hypertarget{method-omics-autoFlow}{}}}
-\subsection{Method \code{autoFlow()}}{
-Automated Omics Analysis based on the \code{metaData}, see \href{#method-validate}{\code{validate()}}.
+\subsection{\code{omics$autoFlow()}}{
+  Automated Omics Analysis based on the \code{metaData}, see \href{#method-validate}{\code{validate()}}.
 For now only works with headers that start with prefix \code{CONTRAST_}. If the data is from the class \code{omics} or \code{proteomics} than FDR adjusted p-values are computed for the volcano plots. Log-transformed values will lead to the skipping of \href{#method-composition}{\code{composition()}} and \href{#method-alpha_diversity}{\code{alpha_diversity()}} methods.
-\subsection{Usage}{
-\if{html}{\out{<div class="r">}}\preformatted{omics$autoFlow(
+  \subsection{Usage}{
+    \if{html}{\out{<div class="r">}}
+    \preformatted{omics$autoFlow(
   feature_contrast = "FEATURE_ID",
   feature_filter = NULL,
   feature_ranks = NULL,
@@ -1223,59 +1182,50 @@ For now only works with headers that start with prefix \code{CONTRAST_}. If the 
   threads = 1,
   report = TRUE,
   filename = paste0(getwd(), "/report.html")
-)}\if{html}{\out{</div>}}
+)}
+    \if{html}{\out{</div>}}
+  }
+  \subsection{Arguments}{
+    \if{html}{\out{<div class="arguments">}}
+    \describe{
+      \item{\code{feature_contrast}}{A character vector of feature columns in the \code{featureData} to aggregate via \href{#method-feature_merge}{\code{feature_merge()}} (default: \code{"FEATURE_ID"}).}
+      \item{\code{feature_filter}}{A character vector to filter unwanted features, (default: \code{NULL}).}
+      \item{\code{feature_ranks}}{A character vector as input to \href{#method-rankstat}{\code{rankstat()}} (default: \code{NULL}).}
+      \item{\code{distance_metrics}}{A character vector specifying what (dis)similarity metrics to use (default: \code{c("bray")}) When you are working with log-transformed data it is advised to use the \code{euclidean}.}
+      \item{\code{distmat}}{A path to an existing file or a dense/sparse \link[Matrix]{Matrix} format (default: \code{NULL}).}
+      \item{\code{weighted}}{A boolean value, whether to compute weighted or unweighted dissimilarities (default: \code{TRUE}).}
+      \item{\code{pvalue.threshold}}{A numeric value, the p-value is used to include/exclude composition and foldchanges plots coming from alpha- and beta diversity analysis (default: 0.05).}
+      \item{\code{logfold.threshold}}{A numeric value used as a fold-change threshold to label and color significantly expressed features, see \href{#method-foldchange}{\code{foldchange()}} (Default: 1).}
+      \item{\code{abundance.threshold}}{A numeric value used as an abundance threshold to size the scatter dots based on their mean abundance, see \href{#method-foldchange}{\code{foldchange()}} (default: 0.01).}
+      \item{\code{perm}}{A wholenumber, number of permutations to compare against the null hypothesis of \link[vegan]{adonis2} or \link[vegan]{anosim} (default: 999).}
+      \item{\code{threads}}{Number of threads to use, only used in \href{#method-distance}{\code{distance()}} when distmat is not supplied (default: 1).}
+      \item{\code{report}}{A boolean value to create a HTML markdown report (default: \code{FALSE}). If \code{FALSE} a nested list of the plots and data is returned.}
+      \item{\code{filename}}{A character to name the HTML report to be saved in the current working directory (default: \code{paste0(getwd(), "/report.html")}). The \code{getwd()} is required for rmarkdown to save it in the right path.}
+    }
+    \if{html}{\out{</div>}}
+  }
+  \subsection{Returns}{
+    List of plots/data or rendered HTML report
+  }
 }
 
-\subsection{Arguments}{
-\if{html}{\out{<div class="arguments">}}
-\describe{
-\item{\code{feature_contrast}}{A character vector of feature columns in the \code{featureData} to aggregate via \href{#method-feature_merge}{\code{feature_merge()}} (default: \code{"FEATURE_ID"}).}
-
-\item{\code{feature_filter}}{A character vector to filter unwanted features, (default: \code{NULL}).}
-
-\item{\code{feature_ranks}}{A character vector as input to \href{#method-rankstat}{\code{rankstat()}} (default: \code{NULL}).}
-
-\item{\code{distance_metrics}}{A character vector specifying what (dis)similarity metrics to use (default: \code{c("bray")}) When you are working with log-transformed data it is advised to use the \code{euclidean}.}
-
-\item{\code{distmat}}{A path to an existing file or a dense/sparse \link[Matrix]{Matrix} format (default: \code{NULL}).}
-
-\item{\code{weighted}}{A boolean value, whether to compute weighted or unweighted dissimilarities (default: \code{TRUE}).}
-
-\item{\code{pvalue.threshold}}{A numeric value, the p-value is used to include/exclude composition and foldchanges plots coming from alpha- and beta diversity analysis (default: 0.05).}
-
-\item{\code{logfold.threshold}}{A numeric value used as a fold-change threshold to label and color significantly expressed features, see \href{#method-foldchange}{\code{foldchange()}} (Default: 1).}
-
-\item{\code{abundance.threshold}}{A numeric value used as an abundance threshold to size the scatter dots based on their mean abundance, see \href{#method-foldchange}{\code{foldchange()}} (default: 0.01).}
-
-\item{\code{perm}}{A wholenumber, number of permutations to compare against the null hypothesis of \link[vegan]{adonis2} or \link[vegan]{anosim} (default: 999).}
-
-\item{\code{threads}}{Number of threads to use, only used in \href{#method-distance}{\code{distance()}} when distmat is not supplied (default: 1).}
-
-\item{\code{report}}{A boolean value to create a HTML markdown report (default: \code{FALSE}). If \code{FALSE} a nested list of the plots and data is returned.}
-
-\item{\code{filename}}{A character to name the HTML report to be saved in the current working directory (default: \code{paste0(getwd(), "/report.html")}). The \code{getwd()} is required for rmarkdown to save it in the right path.}
-}
-\if{html}{\out{</div>}}
-}
-\subsection{Returns}{
-List of plots/data or rendered HTML report
-}
-}
 \if{html}{\out{<hr>}}
 \if{html}{\out{<a id="method-omics-clone"></a>}}
 \if{latex}{\out{\hypertarget{method-omics-clone}{}}}
-\subsection{Method \code{clone()}}{
-The objects of this class are cloneable with this method.
-\subsection{Usage}{
-\if{html}{\out{<div class="r">}}\preformatted{omics$clone(deep = FALSE)}\if{html}{\out{</div>}}
+\subsection{\code{omics$clone()}}{
+  The objects of this class are cloneable with this method.
+  \subsection{Usage}{
+    \if{html}{\out{<div class="r">}}
+    \preformatted{omics$clone(deep = FALSE)}
+    \if{html}{\out{</div>}}
+  }
+  \subsection{Arguments}{
+    \if{html}{\out{<div class="arguments">}}
+    \describe{
+      \item{\code{deep}}{Whether to make a deep clone.}
+    }
+    \if{html}{\out{</div>}}
+  }
 }
 
-\subsection{Arguments}{
-\if{html}{\out{<div class="arguments">}}
-\describe{
-\item{\code{deep}}{Whether to make a deep clone.}
-}
-\if{html}{\out{</div>}}
-}
-}
 }

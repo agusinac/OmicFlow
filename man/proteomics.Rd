@@ -14,91 +14,90 @@ Every omics class creates an internal memory efficient back-up of the data, the 
 \link{omics}
 }
 \section{Super class}{
-\code{\link[OmicFlow:omics]{OmicFlow::omics}} -> \code{proteomics}
+\code{\link[OmicFlow:omics]{omics}} -> \code{proteomics}
 }
 \section{Active bindings}{
-\if{html}{\out{<div class="r6-active-bindings">}}
-\describe{
-\item{\code{treeData}}{A "phylo" class, see \link[ape]{as.phylo}.}
-}
-\if{html}{\out{</div>}}
+  \if{html}{\out{<div class="r6-active-bindings">}}
+  \describe{
+    \item{\code{treeData}}{A "phylo" class, see \link[ape]{as.phylo}.}
+  }
+  \if{html}{\out{</div>}}
 }
 \section{Methods}{
 \subsection{Public methods}{
-\itemize{
-\item \href{#method-proteomics-new}{\code{proteomics$new()}}
-\item \href{#method-proteomics-clone}{\code{proteomics$clone()}}
+  \itemize{
+    \item \href{#method-proteomics-initialize}{\code{proteomics$new()}}
+    \item \href{#method-proteomics-clone}{\code{proteomics$clone()}}
+  }
 }
-}
-\if{html}{\out{
-<details><summary>Inherited methods</summary>
+\if{html}{\out{<details><summary>Inherited methods</summary>
 <ul>
-<li><span class="pkg-link" data-pkg="OmicFlow" data-topic="omics" data-id="alpha_diversity"><a href='../../OmicFlow/html/omics.html#method-omics-alpha_diversity'><code>OmicFlow::omics$alpha_diversity()</code></a></span></li>
-<li><span class="pkg-link" data-pkg="OmicFlow" data-topic="omics" data-id="autoFlow"><a href='../../OmicFlow/html/omics.html#method-omics-autoFlow'><code>OmicFlow::omics$autoFlow()</code></a></span></li>
-<li><span class="pkg-link" data-pkg="OmicFlow" data-topic="omics" data-id="composition"><a href='../../OmicFlow/html/omics.html#method-omics-composition'><code>OmicFlow::omics$composition()</code></a></span></li>
-<li><span class="pkg-link" data-pkg="OmicFlow" data-topic="omics" data-id="copy"><a href='../../OmicFlow/html/omics.html#method-omics-copy'><code>OmicFlow::omics$copy()</code></a></span></li>
-<li><span class="pkg-link" data-pkg="OmicFlow" data-topic="omics" data-id="distance"><a href='../../OmicFlow/html/omics.html#method-omics-distance'><code>OmicFlow::omics$distance()</code></a></span></li>
-<li><span class="pkg-link" data-pkg="OmicFlow" data-topic="omics" data-id="feature_merge"><a href='../../OmicFlow/html/omics.html#method-omics-feature_merge'><code>OmicFlow::omics$feature_merge()</code></a></span></li>
-<li><span class="pkg-link" data-pkg="OmicFlow" data-topic="omics" data-id="feature_subset"><a href='../../OmicFlow/html/omics.html#method-omics-feature_subset'><code>OmicFlow::omics$feature_subset()</code></a></span></li>
-<li><span class="pkg-link" data-pkg="OmicFlow" data-topic="omics" data-id="foldchange"><a href='../../OmicFlow/html/omics.html#method-omics-foldchange'><code>OmicFlow::omics$foldchange()</code></a></span></li>
-<li><span class="pkg-link" data-pkg="OmicFlow" data-topic="omics" data-id="ordination"><a href='../../OmicFlow/html/omics.html#method-omics-ordination'><code>OmicFlow::omics$ordination()</code></a></span></li>
-<li><span class="pkg-link" data-pkg="OmicFlow" data-topic="omics" data-id="print"><a href='../../OmicFlow/html/omics.html#method-omics-print'><code>OmicFlow::omics$print()</code></a></span></li>
-<li><span class="pkg-link" data-pkg="OmicFlow" data-topic="omics" data-id="rankstat"><a href='../../OmicFlow/html/omics.html#method-omics-rankstat'><code>OmicFlow::omics$rankstat()</code></a></span></li>
-<li><span class="pkg-link" data-pkg="OmicFlow" data-topic="omics" data-id="removeNAs"><a href='../../OmicFlow/html/omics.html#method-omics-removeNAs'><code>OmicFlow::omics$removeNAs()</code></a></span></li>
-<li><span class="pkg-link" data-pkg="OmicFlow" data-topic="omics" data-id="reset"><a href='../../OmicFlow/html/omics.html#method-omics-reset'><code>OmicFlow::omics$reset()</code></a></span></li>
-<li><span class="pkg-link" data-pkg="OmicFlow" data-topic="omics" data-id="sample_subset"><a href='../../OmicFlow/html/omics.html#method-omics-sample_subset'><code>OmicFlow::omics$sample_subset()</code></a></span></li>
-<li><span class="pkg-link" data-pkg="OmicFlow" data-topic="omics" data-id="samplepair_subset"><a href='../../OmicFlow/html/omics.html#method-omics-samplepair_subset'><code>OmicFlow::omics$samplepair_subset()</code></a></span></li>
-<li><span class="pkg-link" data-pkg="OmicFlow" data-topic="omics" data-id="scale"><a href='../../OmicFlow/html/omics.html#method-omics-scale'><code>OmicFlow::omics$scale()</code></a></span></li>
-<li><span class="pkg-link" data-pkg="OmicFlow" data-topic="omics" data-id="validate"><a href='../../OmicFlow/html/omics.html#method-omics-validate'><code>OmicFlow::omics$validate()</code></a></span></li>
+  <li><span class="pkg-link" data-pkg="OmicFlow" data-topic="omics" data-id="alpha_diversity"><a href='../../OmicFlow/html/omics.html#method-omics-alpha_diversity'><code>omics$alpha_diversity()</code></a></span></li>
+  <li><span class="pkg-link" data-pkg="OmicFlow" data-topic="omics" data-id="autoFlow"><a href='../../OmicFlow/html/omics.html#method-omics-autoFlow'><code>omics$autoFlow()</code></a></span></li>
+  <li><span class="pkg-link" data-pkg="OmicFlow" data-topic="omics" data-id="composition"><a href='../../OmicFlow/html/omics.html#method-omics-composition'><code>omics$composition()</code></a></span></li>
+  <li><span class="pkg-link" data-pkg="OmicFlow" data-topic="omics" data-id="copy"><a href='../../OmicFlow/html/omics.html#method-omics-copy'><code>omics$copy()</code></a></span></li>
+  <li><span class="pkg-link" data-pkg="OmicFlow" data-topic="omics" data-id="distance"><a href='../../OmicFlow/html/omics.html#method-omics-distance'><code>omics$distance()</code></a></span></li>
+  <li><span class="pkg-link" data-pkg="OmicFlow" data-topic="omics" data-id="feature_merge"><a href='../../OmicFlow/html/omics.html#method-omics-feature_merge'><code>omics$feature_merge()</code></a></span></li>
+  <li><span class="pkg-link" data-pkg="OmicFlow" data-topic="omics" data-id="feature_subset"><a href='../../OmicFlow/html/omics.html#method-omics-feature_subset'><code>omics$feature_subset()</code></a></span></li>
+  <li><span class="pkg-link" data-pkg="OmicFlow" data-topic="omics" data-id="foldchange"><a href='../../OmicFlow/html/omics.html#method-omics-foldchange'><code>omics$foldchange()</code></a></span></li>
+  <li><span class="pkg-link" data-pkg="OmicFlow" data-topic="omics" data-id="ordination"><a href='../../OmicFlow/html/omics.html#method-omics-ordination'><code>omics$ordination()</code></a></span></li>
+  <li><span class="pkg-link" data-pkg="OmicFlow" data-topic="omics" data-id="print"><a href='../../OmicFlow/html/omics.html#method-omics-print'><code>omics$print()</code></a></span></li>
+  <li><span class="pkg-link" data-pkg="OmicFlow" data-topic="omics" data-id="rankstat"><a href='../../OmicFlow/html/omics.html#method-omics-rankstat'><code>omics$rankstat()</code></a></span></li>
+  <li><span class="pkg-link" data-pkg="OmicFlow" data-topic="omics" data-id="removeNAs"><a href='../../OmicFlow/html/omics.html#method-omics-removeNAs'><code>omics$removeNAs()</code></a></span></li>
+  <li><span class="pkg-link" data-pkg="OmicFlow" data-topic="omics" data-id="reset"><a href='../../OmicFlow/html/omics.html#method-omics-reset'><code>omics$reset()</code></a></span></li>
+  <li><span class="pkg-link" data-pkg="OmicFlow" data-topic="omics" data-id="sample_subset"><a href='../../OmicFlow/html/omics.html#method-omics-sample_subset'><code>omics$sample_subset()</code></a></span></li>
+  <li><span class="pkg-link" data-pkg="OmicFlow" data-topic="omics" data-id="samplepair_subset"><a href='../../OmicFlow/html/omics.html#method-omics-samplepair_subset'><code>omics$samplepair_subset()</code></a></span></li>
+  <li><span class="pkg-link" data-pkg="OmicFlow" data-topic="omics" data-id="scale"><a href='../../OmicFlow/html/omics.html#method-omics-scale'><code>omics$scale()</code></a></span></li>
+  <li><span class="pkg-link" data-pkg="OmicFlow" data-topic="omics" data-id="validate"><a href='../../OmicFlow/html/omics.html#method-omics-validate'><code>omics$validate()</code></a></span></li>
 </ul>
-</details>
-}}
+</details>}}
 \if{html}{\out{<hr>}}
-\if{html}{\out{<a id="method-proteomics-new"></a>}}
-\if{latex}{\out{\hypertarget{method-proteomics-new}{}}}
-\subsection{Method \code{new()}}{
-Initializes the proteomics class object with \code{proteomics$new()}
-\subsection{Usage}{
-\if{html}{\out{<div class="r">}}\preformatted{proteomics$new(
+\if{html}{\out{<a id="method-proteomics-initialize"></a>}}
+\if{latex}{\out{\hypertarget{method-proteomics-initialize}{}}}
+\subsection{\code{proteomics$new()}}{
+  Initializes the proteomics class object with \code{proteomics$new()}
+  \subsection{Usage}{
+    \if{html}{\out{<div class="r">}}
+    \preformatted{proteomics$new(
   countData = NULL,
   metaData = NULL,
   featureData = NULL,
   treeData = NULL
-)}\if{html}{\out{</div>}}
+)}
+    \if{html}{\out{</div>}}
+  }
+  \subsection{Arguments}{
+    \if{html}{\out{<div class="arguments">}}
+    \describe{
+      \item{\code{countData}}{A path to an existing file or a dense/sparse \link[Matrix]{Matrix} format.}
+      \item{\code{metaData}}{A path to an existing file, \link[data.table]{data.table} or data.frame.}
+      \item{\code{featureData}}{A path to an existing file, \link[data.table]{data.table} or data.frame.}
+      \item{\code{treeData}}{A path to an existing newick file or class "phylo", see \link[ape]{read.tree}.}
+    }
+    \if{html}{\out{</div>}}
+  }
+  \subsection{Returns}{
+    A new \code{proteomics} object.
+  }
 }
 
-\subsection{Arguments}{
-\if{html}{\out{<div class="arguments">}}
-\describe{
-\item{\code{countData}}{A path to an existing file or a dense/sparse \link[Matrix]{Matrix} format.}
-
-\item{\code{metaData}}{A path to an existing file, \link[data.table]{data.table} or data.frame.}
-
-\item{\code{featureData}}{A path to an existing file, \link[data.table]{data.table} or data.frame.}
-
-\item{\code{treeData}}{A path to an existing newick file or class "phylo", see \link[ape]{read.tree}.}
-}
-\if{html}{\out{</div>}}
-}
-\subsection{Returns}{
-A new \code{proteomics} object.
-}
-}
 \if{html}{\out{<hr>}}
 \if{html}{\out{<a id="method-proteomics-clone"></a>}}
 \if{latex}{\out{\hypertarget{method-proteomics-clone}{}}}
-\subsection{Method \code{clone()}}{
-The objects of this class are cloneable with this method.
-\subsection{Usage}{
-\if{html}{\out{<div class="r">}}\preformatted{proteomics$clone(deep = FALSE)}\if{html}{\out{</div>}}
+\subsection{\code{proteomics$clone()}}{
+  The objects of this class are cloneable with this method.
+  \subsection{Usage}{
+    \if{html}{\out{<div class="r">}}
+    \preformatted{proteomics$clone(deep = FALSE)}
+    \if{html}{\out{</div>}}
+  }
+  \subsection{Arguments}{
+    \if{html}{\out{<div class="arguments">}}
+    \describe{
+      \item{\code{deep}}{Whether to make a deep clone.}
+    }
+    \if{html}{\out{</div>}}
+  }
 }
 
-\subsection{Arguments}{
-\if{html}{\out{<div class="arguments">}}
-\describe{
-\item{\code{deep}}{Whether to make a deep clone.}
-}
-\if{html}{\out{</div>}}
-}
-}
 }

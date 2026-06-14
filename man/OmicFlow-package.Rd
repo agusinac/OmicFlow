@@ -12,6 +12,7 @@ A generalised data structure for fast and efficient loading and data munching of
 Useful links:
 \itemize{
   \item \url{https://github.com/agusinac/OmicFlow}
+  \item \url{https://agusinac.github.io/OmicFlow/}
   \item Report bugs at \url{https://github.com/agusinac/OmicFlow/issues}
 }
 
@@ -21,6 +22,7 @@ Useful links:
 
 Authors:
 \itemize{
+  \item Alem Gusinac \email{alem.gusinac@gmail.com} (\href{https://orcid.org/0009-0006-1896-4176}{ORCID})
   \item Thomas Ederveen (\href{https://orcid.org/0000-0003-0068-1275}{ORCID})
   \item Annemarie Boleij (\href{https://orcid.org/0000-0003-4495-5880}{ORCID}) [funder]
 }

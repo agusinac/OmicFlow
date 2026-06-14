@@ -3,14 +3,6 @@
 \name{metagenomics}
 \alias{metagenomics}
 \title{Sub-class metagenomics}
-\value{
-\itemize{
-\item \code{data} A long \link[data.table]{data.table} table.
-\item \code{volcano_plot} A \link[ggplot2]{ggplot} object.
-\item \code{A} A \link[data.table]{data.table} table for (each) condition A.
-\item \code{B} A \link[data.table]{data.table} table for (each) condition B.
-}
-}
 \description{
 This is a sub-class that is compatible to data obtained from either 16S rRNA marker-gene sequencing or shot-gun metagenomics sequencing.
 It inherits all methods from the abstract class \link{omics} and only adapts the \code{initialize} function.
@@ -21,7 +13,7 @@ Every omics class creates an internal memory efficient back-up of the data, the 
 \examples{
 
 ## ------------------------------------------------
-## Method `metagenomics$write_biom`
+## Method `metagenomics$write_biom()`
 ## ------------------------------------------------
 
 library("OmicFlow")
@@ -43,7 +35,7 @@ file.remove("output.biom")
 
 
 ## ------------------------------------------------
-## Method `metagenomics$foldchange`
+## Method `metagenomics$foldchange()`
 ## ------------------------------------------------
 
 library("ggplot2")
@@ -72,102 +64,98 @@ dfe <- obj$foldchange(feature_rank = "Genus",
 \link{volcano_plot}
 }
 \section{Super class}{
-\code{\link[OmicFlow:omics]{OmicFlow::omics}} -> \code{metagenomics}
+\code{\link[OmicFlow:omics]{omics}} -> \code{metagenomics}
 }
 \section{Active bindings}{
-\if{html}{\out{<div class="r6-active-bindings">}}
-\describe{
-\item{\code{treeData}}{A "phylo" class, see \link[ape]{as.phylo}.}
-}
-\if{html}{\out{</div>}}
+  \if{html}{\out{<div class="r6-active-bindings">}}
+  \describe{
+    \item{\code{treeData}}{A "phylo" class, see \link[ape]{as.phylo}.}
+  }
+  \if{html}{\out{</div>}}
 }
 \section{Methods}{
 \subsection{Public methods}{
-\itemize{
-\item \href{#method-metagenomics-new}{\code{metagenomics$new()}}
-\item \href{#method-metagenomics-write_biom}{\code{metagenomics$write_biom()}}
-\item \href{#method-metagenomics-foldchange}{\code{metagenomics$foldchange()}}
-\item \href{#method-metagenomics-clone}{\code{metagenomics$clone()}}
+  \itemize{
+    \item \href{#method-metagenomics-initialize}{\code{metagenomics$new()}}
+    \item \href{#method-metagenomics-write_biom}{\code{metagenomics$write_biom()}}
+    \item \href{#method-metagenomics-foldchange}{\code{metagenomics$foldchange()}}
+    \item \href{#method-metagenomics-clone}{\code{metagenomics$clone()}}
+  }
 }
-}
-\if{html}{\out{
-<details><summary>Inherited methods</summary>
+\if{html}{\out{<details><summary>Inherited methods</summary>
 <ul>
-<li><span class="pkg-link" data-pkg="OmicFlow" data-topic="omics" data-id="alpha_diversity"><a href='../../OmicFlow/html/omics.html#method-omics-alpha_diversity'><code>OmicFlow::omics$alpha_diversity()</code></a></span></li>
-<li><span class="pkg-link" data-pkg="OmicFlow" data-topic="omics" data-id="autoFlow"><a href='../../OmicFlow/html/omics.html#method-omics-autoFlow'><code>OmicFlow::omics$autoFlow()</code></a></span></li>
-<li><span class="pkg-link" data-pkg="OmicFlow" data-topic="omics" data-id="composition"><a href='../../OmicFlow/html/omics.html#method-omics-composition'><code>OmicFlow::omics$composition()</code></a></span></li>
-<li><span class="pkg-link" data-pkg="OmicFlow" data-topic="omics" data-id="copy"><a href='../../OmicFlow/html/omics.html#method-omics-copy'><code>OmicFlow::omics$copy()</code></a></span></li>
-<li><span class="pkg-link" data-pkg="OmicFlow" data-topic="omics" data-id="distance"><a href='../../OmicFlow/html/omics.html#method-omics-distance'><code>OmicFlow::omics$distance()</code></a></span></li>
-<li><span class="pkg-link" data-pkg="OmicFlow" data-topic="omics" data-id="feature_merge"><a href='../../OmicFlow/html/omics.html#method-omics-feature_merge'><code>OmicFlow::omics$feature_merge()</code></a></span></li>
-<li><span class="pkg-link" data-pkg="OmicFlow" data-topic="omics" data-id="feature_subset"><a href='../../OmicFlow/html/omics.html#method-omics-feature_subset'><code>OmicFlow::omics$feature_subset()</code></a></span></li>
-<li><span class="pkg-link" data-pkg="OmicFlow" data-topic="omics" data-id="ordination"><a href='../../OmicFlow/html/omics.html#method-omics-ordination'><code>OmicFlow::omics$ordination()</code></a></span></li>
-<li><span class="pkg-link" data-pkg="OmicFlow" data-topic="omics" data-id="print"><a href='../../OmicFlow/html/omics.html#method-omics-print'><code>OmicFlow::omics$print()</code></a></span></li>
-<li><span class="pkg-link" data-pkg="OmicFlow" data-topic="omics" data-id="rankstat"><a href='../../OmicFlow/html/omics.html#method-omics-rankstat'><code>OmicFlow::omics$rankstat()</code></a></span></li>
-<li><span class="pkg-link" data-pkg="OmicFlow" data-topic="omics" data-id="removeNAs"><a href='../../OmicFlow/html/omics.html#method-omics-removeNAs'><code>OmicFlow::omics$removeNAs()</code></a></span></li>
-<li><span class="pkg-link" data-pkg="OmicFlow" data-topic="omics" data-id="reset"><a href='../../OmicFlow/html/omics.html#method-omics-reset'><code>OmicFlow::omics$reset()</code></a></span></li>
-<li><span class="pkg-link" data-pkg="OmicFlow" data-topic="omics" data-id="sample_subset"><a href='../../OmicFlow/html/omics.html#method-omics-sample_subset'><code>OmicFlow::omics$sample_subset()</code></a></span></li>
-<li><span class="pkg-link" data-pkg="OmicFlow" data-topic="omics" data-id="samplepair_subset"><a href='../../OmicFlow/html/omics.html#method-omics-samplepair_subset'><code>OmicFlow::omics$samplepair_subset()</code></a></span></li>
-<li><span class="pkg-link" data-pkg="OmicFlow" data-topic="omics" data-id="scale"><a href='../../OmicFlow/html/omics.html#method-omics-scale'><code>OmicFlow::omics$scale()</code></a></span></li>
-<li><span class="pkg-link" data-pkg="OmicFlow" data-topic="omics" data-id="validate"><a href='../../OmicFlow/html/omics.html#method-omics-validate'><code>OmicFlow::omics$validate()</code></a></span></li>
+  <li><span class="pkg-link" data-pkg="OmicFlow" data-topic="omics" data-id="alpha_diversity"><a href='../../OmicFlow/html/omics.html#method-omics-alpha_diversity'><code>omics$alpha_diversity()</code></a></span></li>
+  <li><span class="pkg-link" data-pkg="OmicFlow" data-topic="omics" data-id="autoFlow"><a href='../../OmicFlow/html/omics.html#method-omics-autoFlow'><code>omics$autoFlow()</code></a></span></li>
+  <li><span class="pkg-link" data-pkg="OmicFlow" data-topic="omics" data-id="composition"><a href='../../OmicFlow/html/omics.html#method-omics-composition'><code>omics$composition()</code></a></span></li>
+  <li><span class="pkg-link" data-pkg="OmicFlow" data-topic="omics" data-id="copy"><a href='../../OmicFlow/html/omics.html#method-omics-copy'><code>omics$copy()</code></a></span></li>
+  <li><span class="pkg-link" data-pkg="OmicFlow" data-topic="omics" data-id="distance"><a href='../../OmicFlow/html/omics.html#method-omics-distance'><code>omics$distance()</code></a></span></li>
+  <li><span class="pkg-link" data-pkg="OmicFlow" data-topic="omics" data-id="feature_merge"><a href='../../OmicFlow/html/omics.html#method-omics-feature_merge'><code>omics$feature_merge()</code></a></span></li>
+  <li><span class="pkg-link" data-pkg="OmicFlow" data-topic="omics" data-id="feature_subset"><a href='../../OmicFlow/html/omics.html#method-omics-feature_subset'><code>omics$feature_subset()</code></a></span></li>
+  <li><span class="pkg-link" data-pkg="OmicFlow" data-topic="omics" data-id="ordination"><a href='../../OmicFlow/html/omics.html#method-omics-ordination'><code>omics$ordination()</code></a></span></li>
+  <li><span class="pkg-link" data-pkg="OmicFlow" data-topic="omics" data-id="print"><a href='../../OmicFlow/html/omics.html#method-omics-print'><code>omics$print()</code></a></span></li>
+  <li><span class="pkg-link" data-pkg="OmicFlow" data-topic="omics" data-id="rankstat"><a href='../../OmicFlow/html/omics.html#method-omics-rankstat'><code>omics$rankstat()</code></a></span></li>
+  <li><span class="pkg-link" data-pkg="OmicFlow" data-topic="omics" data-id="removeNAs"><a href='../../OmicFlow/html/omics.html#method-omics-removeNAs'><code>omics$removeNAs()</code></a></span></li>
+  <li><span class="pkg-link" data-pkg="OmicFlow" data-topic="omics" data-id="reset"><a href='../../OmicFlow/html/omics.html#method-omics-reset'><code>omics$reset()</code></a></span></li>
+  <li><span class="pkg-link" data-pkg="OmicFlow" data-topic="omics" data-id="sample_subset"><a href='../../OmicFlow/html/omics.html#method-omics-sample_subset'><code>omics$sample_subset()</code></a></span></li>
+  <li><span class="pkg-link" data-pkg="OmicFlow" data-topic="omics" data-id="samplepair_subset"><a href='../../OmicFlow/html/omics.html#method-omics-samplepair_subset'><code>omics$samplepair_subset()</code></a></span></li>
+  <li><span class="pkg-link" data-pkg="OmicFlow" data-topic="omics" data-id="scale"><a href='../../OmicFlow/html/omics.html#method-omics-scale'><code>omics$scale()</code></a></span></li>
+  <li><span class="pkg-link" data-pkg="OmicFlow" data-topic="omics" data-id="validate"><a href='../../OmicFlow/html/omics.html#method-omics-validate'><code>omics$validate()</code></a></span></li>
 </ul>
-</details>
-}}
+</details>}}
 \if{html}{\out{<hr>}}
-\if{html}{\out{<a id="method-metagenomics-new"></a>}}
-\if{latex}{\out{\hypertarget{method-metagenomics-new}{}}}
-\subsection{Method \code{new()}}{
-Initializes the metagenomics class object with \code{metagenomics$new()}
-\subsection{Usage}{
-\if{html}{\out{<div class="r">}}\preformatted{metagenomics$new(
+\if{html}{\out{<a id="method-metagenomics-initialize"></a>}}
+\if{latex}{\out{\hypertarget{method-metagenomics-initialize}{}}}
+\subsection{\code{metagenomics$new()}}{
+  Initializes the metagenomics class object with \code{metagenomics$new()}
+  \subsection{Usage}{
+    \if{html}{\out{<div class="r">}}
+    \preformatted{metagenomics$new(
   countData = NULL,
   metaData = NULL,
   featureData = NULL,
   treeData = NULL,
   biomData = NULL,
   feature_names = c("Kingdom", "Phylum", "Class", "Order", "Family", "Genus", "Species")
-)}\if{html}{\out{</div>}}
+)}
+    \if{html}{\out{</div>}}
+  }
+  \subsection{Arguments}{
+    \if{html}{\out{<div class="arguments">}}
+    \describe{
+      \item{\code{countData}}{A path to an existing file or a dense/sparse \link[Matrix]{Matrix} format.}
+      \item{\code{metaData}}{A path to an existing file, \link[data.table]{data.table} or data.frame.}
+      \item{\code{featureData}}{A path to an existing file, \link[data.table]{data.table} or data.frame.}
+      \item{\code{treeData}}{A path to an existing newick file or class "phylo", see \link[ape]{read.tree}.}
+      \item{\code{biomData}}{A path to an existing biom file, version 2.1.0 (http://biom-format.org/), see \link[rhdf5]{h5read}.}
+      \item{\code{feature_names}}{A character vector to name the feature names that fit the supplied \code{featureData}.}
+    }
+    \if{html}{\out{</div>}}
+  }
+  \subsection{Returns}{
+    A new \code{metagenomics} object.
+  }
 }
 
-\subsection{Arguments}{
-\if{html}{\out{<div class="arguments">}}
-\describe{
-\item{\code{countData}}{A path to an existing file or a dense/sparse \link[Matrix]{Matrix} format.}
-
-\item{\code{metaData}}{A path to an existing file, \link[data.table]{data.table} or data.frame.}
-
-\item{\code{featureData}}{A path to an existing file, \link[data.table]{data.table} or data.frame.}
-
-\item{\code{treeData}}{A path to an existing newick file or class "phylo", see \link[ape]{read.tree}.}
-
-\item{\code{biomData}}{A path to an existing biom file, version 2.1.0 (http://biom-format.org/), see \link[rhdf5]{h5read}.}
-
-\item{\code{feature_names}}{A character vector to name the feature names that fit the supplied \code{featureData}.}
-}
-\if{html}{\out{</div>}}
-}
-\subsection{Returns}{
-A new \code{metagenomics} object.
-}
-}
 \if{html}{\out{<hr>}}
 \if{html}{\out{<a id="method-metagenomics-write_biom"></a>}}
 \if{latex}{\out{\hypertarget{method-metagenomics-write_biom}{}}}
-\subsection{Method \code{write_biom()}}{
-Creates a BIOM file in HDF5 format of the loaded items via \href{#method-new}{'new()'}, which is compatible to the python biom-format version 2.1, see http://biom-format.org.
-\subsection{Usage}{
-\if{html}{\out{<div class="r">}}\preformatted{metagenomics$write_biom(filename)}\if{html}{\out{</div>}}
-}
-
-\subsection{Arguments}{
-\if{html}{\out{<div class="arguments">}}
-\describe{
-\item{\code{filename}}{A character variable of either the full path of filename of the biom file (e.g. \code{output.biom})}
-}
-\if{html}{\out{</div>}}
-}
-\subsection{Examples}{
-\if{html}{\out{<div class="r example copy">}}
-\preformatted{library("OmicFlow")
+\subsection{\code{metagenomics$write_biom()}}{
+  Creates a BIOM file in HDF5 format of the loaded items via \href{#method-new}{'new()'}, which is compatible to the python biom-format version 2.1, see http://biom-format.org.
+  \subsection{Usage}{
+    \if{html}{\out{<div class="r">}}
+    \preformatted{metagenomics$write_biom(filename)}
+    \if{html}{\out{</div>}}
+  }
+  \subsection{Arguments}{
+    \if{html}{\out{<div class="arguments">}}
+    \describe{
+      \item{\code{filename}}{A character variable of either the full path of filename of the biom file (e.g. \code{output.biom})}
+    }
+    \if{html}{\out{</div>}}
+  }
+  \subsection{Examples}{
+    \if{html}{\out{<div class="r example copy">}}
+    \preformatted{library("OmicFlow")
 
 metadata_file <- system.file("extdata", "metadata.tsv", package = "OmicFlow")
 counts_file <- system.file("extdata", "counts.tsv", package = "OmicFlow")
@@ -183,23 +171,22 @@ taxa <- metagenomics$new(
 
 taxa$write_biom(filename = "output.biom")
 file.remove("output.biom")
-
 }
-\if{html}{\out{</div>}}
-
+    \if{html}{\out{</div>}}
+  }
 }
 
-}
 \if{html}{\out{<hr>}}
 \if{html}{\out{<a id="method-metagenomics-foldchange"></a>}}
 \if{latex}{\out{\hypertarget{method-metagenomics-foldchange}{}}}
-\subsection{Method \code{foldchange()}}{
-Differential feature expression (DFE) Total Sample Sum (TSS) transformed values for both paired and non-paired test.
+\subsection{\code{metagenomics$foldchange()}}{
+  Differential feature expression (DFE) Total Sample Sum (TSS) transformed values for both paired and non-paired test.
 
 The function performs feature agglomeration, subsetting to remove NAs in \code{condition.group}, finding samplepairs and finally feature scaling prior to fold-change computation.
 Based on the \code{transform} method, fold-changes will be computed either via subtraction or division.
-\subsection{Usage}{
-\if{html}{\out{<div class="r">}}\preformatted{metagenomics$foldchange(
+  \subsection{Usage}{
+    \if{html}{\out{<div class="r">}}
+    \preformatted{metagenomics$foldchange(
   condition.group,
   condition_A,
   condition_B,
@@ -211,39 +198,37 @@ Based on the \code{transform} method, fold-changes will be computed either via s
   pvalue.threshold = 0.05,
   logfold.threshold = 0.06,
   abundance.threshold = 0
-)}\if{html}{\out{</div>}}
+)}
+    \if{html}{\out{</div>}}
+  }
+  \subsection{Arguments}{
+    \if{html}{\out{<div class="arguments">}}
+    \describe{
+      \item{\code{condition.group}}{A character variable of an existing column name in \code{metaData}, wherein the conditions A and B are located.}
+      \item{\code{condition_A}}{A character value or vector of characters.}
+      \item{\code{condition_B}}{A character value or vector of characters.}
+      \item{\code{group_by}}{A character variable of an existing column in \code{metaData} to split the table in chunks prior to fold-change computation (default: NULL).}
+      \item{\code{feature_rank}}{A character or vector of characters in the \code{featureData} to aggregate via \href{#method-feature_merge}{\code{feature_merge()}} (default: \code{"FEATURE_ID"}).}
+      \item{\code{feature_filter}}{A character or vector of characters to remove features via regex pattern (default: \code{NULL}).}
+      \item{\code{paired}}{A boolean value, the paired is only applicable when a \code{SAMPLEPAIR_ID} column exists within the \code{metaData}. See \link[stats]{wilcox.test} and \href{#method-samplepair_subset}{\code{samplepair_subset()}}.}
+      \item{\code{normalize}}{A boolean value wether to normalize via Total Sample Sums (TSS) or not (default: \code{FALSE}).}
+      \item{\code{pvalue.threshold}}{A numeric value used as a p-value threshold to label and color significant features (default: 0.05).}
+      \item{\code{logfold.threshold}}{A numeric value used as a fold-change threshold to label and color significantly expressed features (default: 0.06).}
+      \item{\code{abundance.threshold}}{A numeric value used as an abundance threshold to size the scatter dots based on their mean abundance (default: 0.01).}
+    }
+    \if{html}{\out{</div>}}
+  }
+  \subsection{Returns}{
+    \itemize{
+\item \code{data} A long \link[data.table]{data.table} table.
+\item \code{volcano_plot} A \link[ggplot2]{ggplot} object.
+\item \code{A} A \link[data.table]{data.table} table for (each) condition A.
+\item \code{B} A \link[data.table]{data.table} table for (each) condition B.
 }
-
-\subsection{Arguments}{
-\if{html}{\out{<div class="arguments">}}
-\describe{
-\item{\code{condition.group}}{A character variable of an existing column name in \code{metaData}, wherein the conditions A and B are located.}
-
-\item{\code{condition_A}}{A character value or vector of characters.}
-
-\item{\code{condition_B}}{A character value or vector of characters.}
-
-\item{\code{group_by}}{A character variable of an existing column in \code{metaData} to split the table in chunks prior to fold-change computation (default: NULL).}
-
-\item{\code{feature_rank}}{A character or vector of characters in the \code{featureData} to aggregate via \href{#method-feature_merge}{\code{feature_merge()}} (default: \code{"FEATURE_ID"}).}
-
-\item{\code{feature_filter}}{A character or vector of characters to remove features via regex pattern (default: \code{NULL}).}
-
-\item{\code{paired}}{A boolean value, the paired is only applicable when a \code{SAMPLEPAIR_ID} column exists within the \code{metaData}. See \link[stats]{wilcox.test} and \href{#method-samplepair_subset}{\code{samplepair_subset()}}.}
-
-\item{\code{normalize}}{A boolean value wether to normalize via Total Sample Sums (TSS) or not (default: \code{FALSE}).}
-
-\item{\code{pvalue.threshold}}{A numeric value used as a p-value threshold to label and color significant features (default: 0.05).}
-
-\item{\code{logfold.threshold}}{A numeric value used as a fold-change threshold to label and color significantly expressed features (default: 0.06).}
-
-\item{\code{abundance.threshold}}{A numeric value used as an abundance threshold to size the scatter dots based on their mean abundance (default: 0.01).}
-}
-\if{html}{\out{</div>}}
-}
-\subsection{Examples}{
-\if{html}{\out{<div class="r example copy">}}
-\preformatted{library("ggplot2")
+  }
+  \subsection{Examples}{
+    \if{html}{\out{<div class="r example copy">}}
+    \preformatted{library("ggplot2")
 library("OmicFlow")
 
 metadata_file <- system.file("extdata", "metadata.tsv", package = "OmicFlow")
@@ -261,28 +246,28 @@ dfe <- obj$foldchange(feature_rank = "Genus",
                       condition.group = "treatment",
                       condition_A = c("healthy"),
                       condition_B = c("tumor"))
-
 }
-\if{html}{\out{</div>}}
-
+    \if{html}{\out{</div>}}
+  }
 }
 
-}
 \if{html}{\out{<hr>}}
 \if{html}{\out{<a id="method-metagenomics-clone"></a>}}
 \if{latex}{\out{\hypertarget{method-metagenomics-clone}{}}}
-\subsection{Method \code{clone()}}{
-The objects of this class are cloneable with this method.
-\subsection{Usage}{
-\if{html}{\out{<div class="r">}}\preformatted{metagenomics$clone(deep = FALSE)}\if{html}{\out{</div>}}
+\subsection{\code{metagenomics$clone()}}{
+  The objects of this class are cloneable with this method.
+  \subsection{Usage}{
+    \if{html}{\out{<div class="r">}}
+    \preformatted{metagenomics$clone(deep = FALSE)}
+    \if{html}{\out{</div>}}
+  }
+  \subsection{Arguments}{
+    \if{html}{\out{<div class="arguments">}}
+    \describe{
+      \item{\code{deep}}{Whether to make a deep clone.}
+    }
+    \if{html}{\out{</div>}}
+  }
 }
 
-\subsection{Arguments}{
-\if{html}{\out{<div class="arguments">}}
-\describe{
-\item{\code{deep}}{Whether to make a deep clone.}
-}
-\if{html}{\out{</div>}}
-}
-}
 }

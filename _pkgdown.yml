@@ -1,0 +1,5 @@
+url: https://agusinac.github.io/OmicFlow/
+template:
+  bootstrap: 5
+  pagetitle: "OmicFlow"
+  logo: "man/logo.png"

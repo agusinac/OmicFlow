@@ -8,3 +8,7 @@
 ^CITATION\.md$
 ^CHANGELOG\.md$
 ^README\.md$
+^_pkgdown\.yml$
+^docs$
+^pkgdown$
+^vignettes/articles$

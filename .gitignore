@@ -52,3 +52,4 @@ rsconnect/
 .Rproj.user
 .DS_Store
 .quarto
+docs
