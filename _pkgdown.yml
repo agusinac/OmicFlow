@@ -2,7 +2,7 @@ url: https://agusinac.github.io/OmicFlow/
 template:
   bootstrap: 5
   pagetitle: "OmicFlow"
-  logo: "man/logo.png"
+  logo: "man/figures/logo.png"
 
 navbar:
   structure:
@@ -22,3 +22,6 @@ navbar:
       menu:
         - text: Metadata validation
           href: articles/metadata.html
+          
+news:
+  cran_dates: false

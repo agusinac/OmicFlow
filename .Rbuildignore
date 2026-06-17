@@ -12,3 +12,5 @@
 ^docs$
 ^pkgdown$
 ^vignettes/articles$
+^.*\.Rproj$
+^\.Rproj\.user$
