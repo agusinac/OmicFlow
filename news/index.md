@@ -2,8 +2,6 @@
 
 ## OmicFlow 1.6.0 (2026-05-19)
 
-CRAN release: 2026-05-19
-
 ### Added
 
 - [\#34](https://github.com/agusinac/OmicFlow/issues/34) Extra argument
@@ -35,8 +33,6 @@ CRAN release: 2026-05-19
 
 ## OmicFlow 1.5.1 (2026-02-27)
 
-CRAN release: 2026-02-27
-
 ### Added
 
 - Extended unit-tests to uncovered code sections.
@@ -58,8 +54,6 @@ CRAN release: 2026-02-27
   matching.
 
 ## OmicFlow 1.5.0 (2026-01-26)
-
-CRAN release: 2026-01-26
 
 ### Added
 
@@ -109,8 +103,6 @@ CRAN release: 2026-01-26
 
 ## OmicFlow 1.4.2 (2025-11-30)
 
-CRAN release: 2025-11-30
-
 ### Fixed
 
 - `geom_boxplot` global function note for CRAN
@@ -138,8 +130,6 @@ CRAN release: 2025-11-30
   `gghalves` in `diversity_plot`
 
 ## OmicFlow 1.4.0 (2025-10-23)
-
-CRAN release: 2025-10-29
 
 ### Added
 
@@ -187,15 +177,11 @@ CRAN release: 2025-10-29
 
 ## OmicFlow 1.3.2 (2025-09-20)
 
-CRAN release: 2025-09-20
-
 ### Deprecated
 
 - `testthat` removed autoflow test
 
 ## OmicFlow 1.3.1 (2025-09-03)
-
-CRAN release: 2025-09-04
 
 ### Added
 
@@ -210,8 +196,6 @@ CRAN release: 2025-09-04
 - `omics$autoFlow()` saves report html in correct current path
 
 ## OmicFlow 1.3.0 (2025-08-13)
-
-CRAN release: 2025-09-01
 
 ### Added
 

@@ -202,3 +202,9 @@ docker run -it --rm -v \
 
 If you are having issues, please [create a
 ticket](https://github.com/agusinac/OmicFlow/issues)
+
+## Acknowledgements
+
+- Sticker logo created by [studio
+  floorescent](https://www.floorescent.nl/) \| [Floor
+  Baas](https://nl.linkedin.com/in/floorbaas)
