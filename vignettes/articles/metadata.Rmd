@@ -13,9 +13,8 @@ knitr::opts_chunk$set(
   collapse = TRUE,
   comment = "#>"
 )
+options(rmarkdown.html_vignette.check_title = FALSE)
 ```
-
-# Metadata File Specification
 
 Every class in OmicFlow starts with metadata validation, which checks that sample IDs match those in the abundance tables.  
 The validation is defined via a JSON format in the abstract class `omics`, it takes as input a **CSV/TSV** file or a `data.table`.  

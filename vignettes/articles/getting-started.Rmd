@@ -1,5 +1,5 @@
 ---
-title: "Getting Started"
+title: "Introduction to OmicFlow"
 output: rmarkdown::html_vignette
 vignette: >
   %\VignetteIndexEntry{Getting Started}
@@ -7,17 +7,156 @@ vignette: >
   %\VignetteEncoding{UTF-8}
 ---
 
-**Will be added soon!**
 
 ```{r, include = FALSE}
 knitr::opts_chunk$set(
   collapse = TRUE,
   comment = "#>"
 )
+options(rmarkdown.html_vignette.check_title = FALSE)
 ```
 
-[Metadata File Specification](metadata.html)
+
+`OmicFlow` is an R package that has been inspired by [phyloseq](https://github.com/joey711/phyloseq), which is specifically made for microbiome analysis. Unfortunately, phyloseq is not fast and allocates a lot of memory, on top of that it cannot be extended to other omics layers within the microbiome field, making it very specific to only microbial analysis.
+
+Here, you can find a brief introduction in how `OmicFlow` is constructed, how to load or import your data into the framework of `OmicFlow` and generate some standard plots.
+
+Disclaimer: `OmicFlow` is specifically designed to load, subset and crunch (sparse) omics data in the right format with a low memory footprint and increased performance. Therefore, it acts as the beginning point prior to downstream complex visualisations, statistical or machine learning modelling. Therefore, the visualisations in `OmicFlow` are limited.
+
 
 ```{r setup}
-library(OmicFlow)
+## Automatically loads `Matrix` and `data.table` R packages
+library("OmicFlow")
+
 ```
+
+## Classes
+
+`OmicFlow` consists out of three classes, namely `omics`, `metagenomics` and `proteomics`. The main abstract class `omics` contains most methods that are inherited by the other sub-classes (i.e. `metagenomics` and `proteomics`) and it can be used to load other types of omics data.
+
+The `omics` class has only one mandatory requirement for a successful initialization, which is the `metaData` field that should match the [Metadata File Specification](metadata.html). Additionally, it also takes as input the `countData` and `featureData` fields, the `featureData` is constructed automatically when only the `countData` is specified. The `featureData` first column is always the `FEATURE_ID`, which may contain the auto-generated feature ids if the `countData` has no `rownames` or the user feature ids if those are present either as rownames in the `countData` original file or as loaded `Matrix` object.
+
+class initialization is achieved via the `$new()` operator as follows:
+
+```{r}
+## Test set
+metadata_file <- system.file("extdata", "metadata.tsv", package = "OmicFlow")
+counts_file <- system.file("extdata", "counts.tsv", package = "OmicFlow")
+
+## Loading only metaData
+test <- omics$new(metaData = metadata_file)
+
+## Adding countData (should be loaded before-hand)
+counts <- data.table::fread(counts_file)
+
+# field should always be of `Matrix` class
+# Notice the automatic creation of `featureData`
+test$countData <- as(counts, "denseMatrix")
+
+## Loading with all files in one go
+test <- omics$new(
+  metaData = metadata_file,
+  countData = counts_file
+)
+
+```
+
+### `metagenomics`
+
+The sub-class `metagenomics` contains the same fields as the `omics` class, such as `metaData`, `countData` and `featureData`, but also extends it to the `biomData`, `treeData` and the ability to specify the `feature_names` which are present in the `featureData`.
+
+```{r}
+metadata_file <- system.file("extdata", "metadata.tsv", package = "OmicFlow")
+counts_file <- system.file("extdata", "counts.tsv", package = "OmicFlow")
+features_file <- system.file("extdata", "features.tsv", package = "OmicFlow")
+tree_file <- system.file("extdata", "tree.newick", package = "OmicFlow")
+
+test <- metagenomics$new(
+  metaData = metadata_file,
+  countData = counts_file,
+  featureData = features_file,
+  treeData = tree_file
+)
+
+## BIOM example, where `featureData` and `countData` are extracted from `biomData`
+# test <- metagenomics$new(
+#   metaData = "metadata.csv",
+#   biomData = "test.biom"
+# )
+
+```
+
+### `proteomics`
+
+The sub-class `proteomics` is very similar to the main `omics` class with the addition of the `treeData` field. In all sub-classes that contain the `treeData` field an alignment by the `treeData` is performed to make it compatible with the `unifrac` dissimilarity functions.
+
+## Data fields
+The abstract `omics` class and their sub-classes follow the same subsetting and active-binding fields. The active-bindings are the data fields, such as `metaData`, `countData`, `featureData` and (optionally) `treeData`, these can be used for both inspecting the data directly or performing direct modifications that indirectly affects the other data fields.
+
+Below an example given a pre-initialised `metagenomics` class called `test`.
+```{r}
+## Inspecting the data fields
+test
+
+## Viewing data fields directly via the `$` operator:
+test$metaData
+test$featureData
+
+## Modifying a single data field has an effect on other data fields
+test$metaData <- test$metaData[treatment == "tumor"]
+
+```
+
+### `copy` and `reset`
+You have probably noticed by now that classes in `OmicFlow` do not return a new object. This is done on purpose to prevent the additional clutter of objects, and the higher memory footprint that arises. Therefore, all modifications are done in place when it comes to modifying the class object. Upon the first initialization of the class, a backup of the data is created, and the user can revert back to that point via the `reset` function. 
+
+The backup is modified when a `copy` of the data is created, then the backup point is set at the time when the copy has been made. Often when you are not happy with the flow of your subsetting/scaling strategy, the `reset` can be used to revert back or create multiple copies.
+
+```{r}
+## Using the `test` from the previous example where only `tumor` is selected
+test2 <- test$copy()
+test2
+
+test$reset()
+test
+```
+
+### Subsetting
+Data modifications can be achieved by changing a single data field via the active-binding or you can use in-built subsetting functions, such as `feature_subset`, `sample_subset`, `samplepair_subset`.
+
+```{r}
+test$sample_subset(treatment == "tumor")
+
+test$feature_subset(Genus == "Acinetobacter")
+
+```
+
+### scaling
+
+The transformation or standardisation of the `countData` can be achieved via the `scale` function, which performs normalisation methods or transformations together or independently.
+
+```{r}
+## Original data
+hist(test$countData@x)
+
+# Normalisation
+test$scale(method = "tss")
+hist(test$countData@x)
+
+# Standardisation
+test$reset()
+## CLR skips zero's if pseudocount is not added
+test$scale(method = "clr")
+hist(test$countData@x)
+
+# Transformation
+test$reset()
+test$scale(method = "none", transform = log2)
+hist(test$countData@x)
+```
+
+
+## Visualisations
+Different visualisation strategies can be used depending on the data and normalisation approach. Some functions work differently in different classes. Examples of visualisations can be further explored here:
+
+* [Visualisations & Statistics](visualisation.html)

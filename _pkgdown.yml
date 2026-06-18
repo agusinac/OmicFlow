@@ -22,6 +22,8 @@ navbar:
       menu:
         - text: Metadata validation
           href: articles/metadata.html
-          
+        - text: Visualisations & Statistic
+          href: articles/visualisation.html
+
 news:
   cran_dates: false

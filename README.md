@@ -27,7 +27,7 @@ pak::pkg_install('agusinac/OmicFlow@dev')
 
 ## Usage
 
-Initialize the `metagenomics` or any `omics` object from a filepath or pre-loaded object.
+Initialize the `metagenomics` or any `omics` object from a file-path or pre-loaded object.
 ```R
 library("OmicFlow")
 
@@ -56,99 +56,10 @@ taxa$treeData
 taxa$featureData <- taxa$featureData[1:100, ]
 
 # Inspect what functions variables are available to the class
-str(taxa)
+taxa$
 ```
 
-### Visualisations
-
-#### 🔹Alpha diversity
-```R
-alpha_div <- taxa$alpha_diversity(
-    col_name = "treatment",
-    metric = "shannon",
-    paired = FALSE # If TRUE it performs wilcox signed rank test
-)
-
-alpha_div$plot
-```
-![](man/figures/alphadiv_readme.png)
-
-#### 🔹Beta diversity
-
-By default PERMANOVA is applied pairwise against each group within the specified contrast, via `group_by` that is used in `pairwise_adonis`. The permutation design in `vegan::adonis2` is by default set to `free`. But this may not always be the right test when you have paired samples and you also want to restrict permutations between correlated values. Therefore, `pairwise_adonis` supports a custom permutation design, which can be constructed via [permute](https://cran.r-project.org/web/packages/permute/vignettes/permutations.html) and fed into `vegan::adonis2` as a function via `pairwise_adonis` with the flag `perm_design`.
-```R
-set.seed(1970)
-
-# Perform ordinations with in-built distance matrix computation
-#--------------------------------------------------------------------------------
-beta_div <- taxa$ordination(
-    metric = "unifrac",
-    method = "pcoa",
-    group_by = "treatment",
-    perm = 999
-)
-
-# Add a custom pre-computed distance matrix
-#--------------------------------------------------------------------------------
-qiime_unifrac <- data.table::fread("weighted-unifrac-matrix.tsv", header=TRUE)
-distmat <- Matrix::Matrix(as.matrix(qiime_unifrac[, .SD, .SDcols = !c("V1")]))
-rownames(distmat) <- colnames(distmat)
-distmat <- distmat[taxa$metaData[["SAMPLE_ID"]], taxa$metaData[["SAMPLE_ID"]]]
-distmat <- as.dist(distmat) 
-
-beta_div <- taxa$ordination(
-    distmat = distmat,
-    method = "pcoa",
-    group_by = "treatment",
-    perm = 999
-)
-
-# Add a custom permutation design via `perm_design`
-#--------------------------------------------------------------------------------
-## taxa$ordination() automatically will input taxa$metaData inside the supplied function.
-perm_design_func <- function(meta) {
-  base::with(
-    data = meta,
-    expr = permute::how(
-      nperm = 999,
-      plots = permute::Plots(meta$SAMPLEPAIR_ID, type = "none"), # In case samplepair ids is supplied
-      within = permute::Within(type = "free")
-    )
-  )
-}
-
-beta_div <- taxa$ordination(
-    metric = "unifrac",
-    method = "pcoa",
-    group_by = "treatment",
-    perm_design = perm_design_func
-)
-
-patchwork::wrap_plots(
-    beta_div[c("scree_plot", "anova_plot", "scores_plot")],
-    nrow = 1)
-```
-![](man/figures/betadiv_readme.png)
-
-#### 🔹Composition
-
-```R
-res <- taxa$composition(
-    feature_rank = "Genus",
-    feature_filter = c("uncultured"),
-    feature_top = 15,
-    col_name = "CONTRAST_sex"
-)
-
-composition_plot(
-    data = res$data,
-    palette = res$palette,
-    feature_rank = "Genus",
-    # If group_by = NULL, then a stacked barplot for each sample sorted alphabetically will be visualized.
-    group_by = "CONTRAST_sex"
-    )
-```
-![](man/figures/composition_readme.png)
+If you are new to `OmicFlow`, the best place to start is the [Introduction to OmicFlow](https://agusinac.github.io/OmicFlow/articles/getting-started.html).
 
 ## Docker
 
