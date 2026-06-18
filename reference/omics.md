@@ -1651,9 +1651,9 @@ pcoa_plots
 #>           PC1           PC2           PC3  groups samples
 #>         <num>         <num>         <num>  <char>  <char>
 #> 1:  0.3808548  0.000000e+00  4.422594e-01   tumor       1
-#> 2: -0.3808548 -4.735029e-01 -3.124747e-16   tumor       2
-#> 3:  0.3808548  1.937010e-16 -4.422594e-01 healthy       3
-#> 4: -0.3808548  4.735029e-01 -1.430586e-16 healthy       4
+#> 2: -0.3808548 -4.735029e-01 -2.256762e-16   tumor       2
+#> 3:  0.3808548 -2.787913e-17 -4.422594e-01 healthy       3
+#> 4: -0.3808548  4.735029e-01 -2.603956e-16 healthy       4
 #> 
 #> $scree_plot
 #> Warning: Removed 7 rows containing missing values or values outside the scale range
