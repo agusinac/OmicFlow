@@ -5,7 +5,7 @@
 <meta charset="utf-8">
 <meta http-equiv="X-UA-Compatible" content="IE=edge">
 <meta name="viewport" content="width=device-width, initial-scale=1, shrink-to-fit=no">
-<title>Getting Started • OmicFlow</title>
+<title>Introduction to OmicFlow • OmicFlow</title>
 <!-- favicons --><link rel="icon" type="image/png" sizes="96x96" href="../favicon-96x96.png">
 <link rel="icon" type="”image/svg+xml”" href="../favicon.svg">
 <link rel="apple-touch-icon" sizes="180x180" href="../apple-touch-icon.png">
@@ -15,7 +15,7 @@
 <link href="../deps/bootstrap-5.3.8/bootstrap.min.css" rel="stylesheet">
 <script src="../deps/bootstrap-5.3.8/bootstrap.bundle.min.js"></script><link href="../deps/font-awesome-6.5.2/css/all.min.css" rel="stylesheet">
 <link href="../deps/font-awesome-6.5.2/css/v4-shims.min.css" rel="stylesheet">
-<script src="../deps/headroom-0.11.0/headroom.min.js"></script><script src="../deps/headroom-0.11.0/jQuery.headroom.min.js"></script><script src="../deps/bootstrap-toc-1.0.1/bootstrap-toc.min.js"></script><script src="../deps/clipboard.js-2.0.11/clipboard.min.js"></script><script src="../deps/search-1.0.0/autocomplete.jquery.min.js"></script><script src="../deps/search-1.0.0/fuse.min.js"></script><script src="../deps/search-1.0.0/mark.min.js"></script><!-- pkgdown --><script src="../pkgdown.js"></script><meta property="og:title" content="Getting Started">
+<script src="../deps/headroom-0.11.0/headroom.min.js"></script><script src="../deps/headroom-0.11.0/jQuery.headroom.min.js"></script><script src="../deps/bootstrap-toc-1.0.1/bootstrap-toc.min.js"></script><script src="../deps/clipboard.js-2.0.11/clipboard.min.js"></script><script src="../deps/search-1.0.0/autocomplete.jquery.min.js"></script><script src="../deps/search-1.0.0/fuse.min.js"></script><script src="../deps/search-1.0.0/mark.min.js"></script><!-- pkgdown --><script src="../pkgdown.js"></script><meta property="og:title" content="Introduction to OmicFlow">
 </head>
 <body>
     <a href="#main" class="visually-hidden-focusable">Skip to contents</a>
@@ -41,6 +41,7 @@
   <button class="nav-link dropdown-toggle" type="button" id="dropdown-articles" data-bs-toggle="dropdown" aria-expanded="false" aria-haspopup="true">Articles</button>
   <ul class="dropdown-menu" aria-labelledby="dropdown-articles">
 <li><a class="dropdown-item" href="../articles/metadata.html">Metadata validation</a></li>
+    <li><a class="dropdown-item" href="../articles/visualisation.html">Visualisations &amp; Statistic</a></li>
   </ul>
 </li>
       </ul>
@@ -61,7 +62,7 @@
 
 <div class="row">
   <main id="main" class="col-md-9"><div class="page-header">
-      <img src="../logo.png" class="logo" alt=""><h1>Getting Started</h1>
+      <img src="../logo.png" class="logo" alt=""><h1>Introduction to OmicFlow</h1>
             
       
       <small class="dont-index">Source: <a href="https://github.com/agusinac/OmicFlow/blob/main/vignettes/articles/getting-started.Rmd" class="external-link"><code>vignettes/articles/getting-started.Rmd</code></a></small>
@@ -70,10 +71,23 @@
 
     
     
-<p><strong>Will be added soon!</strong></p>
-<p><a href="metadata.html">Metadata File Specification</a></p>
+<p><code>OmicFlow</code> is an R package that has been inspired by <a href="https://github.com/joey711/phyloseq" class="external-link">phyloseq</a>, which is
+specifically made for microbiome analysis. Unfortunately, phyloseq is
+not fast and allocates a lot of memory, on top of that it cannot be
+extended to other omics layers within the microbiome field, making it
+very specific to only microbial analysis.</p>
+<p>Here, you can find a brief introduction in how <code>OmicFlow</code>
+is constructed, how to load or import your data into the framework of
+<code>OmicFlow</code> and generate some standard plots.</p>
+<p>Disclaimer: <code>OmicFlow</code> is specifically designed to load,
+subset and crunch (sparse) omics data in the right format with a low
+memory footprint and increased performance. Therefore, it acts as the
+beginning point prior to downstream complex visualisations, statistical
+or machine learning modelling. Therefore, the visualisations in
+<code>OmicFlow</code> are limited.</p>
 <div class="sourceCode" id="cb1"><pre class="downlit sourceCode r">
-<code class="sourceCode R"><span><span class="kw"><a href="https://rdrr.io/r/base/library.html" class="external-link">library</a></span><span class="op">(</span><span class="va"><a href="https://github.com/agusinac/OmicFlow" class="external-link">OmicFlow</a></span><span class="op">)</span></span>
+<code class="sourceCode R"><span><span class="co">## Automatically loads `Matrix` and `data.table` R packages</span></span>
+<span><span class="kw"><a href="https://rdrr.io/r/base/library.html" class="external-link">library</a></span><span class="op">(</span><span class="st"><a href="https://github.com/agusinac/OmicFlow" class="external-link">"OmicFlow"</a></span><span class="op">)</span></span>
 <span><span class="co">#&gt; Loading required package: R6</span></span>
 <span><span class="co">#&gt; Loading required package: data.table</span></span>
 <span><span class="co">#&gt; </span></span>
@@ -82,7 +96,295 @@
 <span><span class="co">#&gt; </span></span>
 <span><span class="co">#&gt;     %notin%</span></span>
 <span><span class="co">#&gt; Loading required package: Matrix</span></span></code></pre></div>
-  </main>
+<div class="section level2">
+<h2 id="classes">Classes<a class="anchor" aria-label="anchor" href="#classes"></a>
+</h2>
+<p><code>OmicFlow</code> consists out of three classes, namely
+<code>omics</code>, <code>metagenomics</code> and
+<code>proteomics</code>. The main abstract class <code>omics</code>
+contains most methods that are inherited by the other sub-classes
+(i.e. <code>metagenomics</code> and <code>proteomics</code>) and it can
+be used to load other types of omics data.</p>
+<p>The <code>omics</code> class has only one mandatory requirement for a
+successful initialization, which is the <code>metaData</code> field that
+should match the <a href="metadata.html">Metadata File
+Specification</a>. Additionally, it also takes as input the
+<code>countData</code> and <code>featureData</code> fields, the
+<code>featureData</code> is constructed automatically when only the
+<code>countData</code> is specified. The <code>featureData</code> first
+column is always the <code>FEATURE_ID</code>, which may contain the
+auto-generated feature ids if the <code>countData</code> has no
+<code>rownames</code> or the user feature ids if those are present
+either as rownames in the <code>countData</code> original file or as
+loaded <code>Matrix</code> object.</p>
+<p>class initialization is achieved via the <code>$new()</code> operator
+as follows:</p>
+<div class="sourceCode" id="cb2"><pre class="downlit sourceCode r">
+<code class="sourceCode R"><span><span class="co">## Test set</span></span>
+<span><span class="va">metadata_file</span> <span class="op">&lt;-</span> <span class="fu"><a href="https://rdrr.io/r/base/system.file.html" class="external-link">system.file</a></span><span class="op">(</span><span class="st">"extdata"</span>, <span class="st">"metadata.tsv"</span>, package <span class="op">=</span> <span class="st">"OmicFlow"</span><span class="op">)</span></span>
+<span><span class="va">counts_file</span> <span class="op">&lt;-</span> <span class="fu"><a href="https://rdrr.io/r/base/system.file.html" class="external-link">system.file</a></span><span class="op">(</span><span class="st">"extdata"</span>, <span class="st">"counts.tsv"</span>, package <span class="op">=</span> <span class="st">"OmicFlow"</span><span class="op">)</span></span>
+<span></span>
+<span><span class="co">## Loading only metaData</span></span>
+<span><span class="va">test</span> <span class="op">&lt;-</span> <span class="va"><a href="../reference/omics.html">omics</a></span><span class="op">$</span><span class="fu">new</span><span class="op">(</span>metaData <span class="op">=</span> <span class="va">metadata_file</span><span class="op">)</span></span>
+<span><span class="co">#&gt; <span style="color: #00BB00;">✔</span> <span style="color: #00BB00;">metaData</span> template passed the JSON validation.</span></span>
+<span><span class="co">#&gt; <span style="color: #00BBBB;">ℹ</span> Checking for duplicated identifiers ..</span></span>
+<span></span>
+<span><span class="co">## Adding countData (should be loaded before-hand)</span></span>
+<span><span class="va">counts</span> <span class="op">&lt;-</span> <span class="fu">data.table</span><span class="fu">::</span><span class="fu"><a href="https://rdrr.io/pkg/data.table/man/fread.html" class="external-link">fread</a></span><span class="op">(</span><span class="va">counts_file</span><span class="op">)</span></span>
+<span></span>
+<span><span class="co"># field should always be of `Matrix` class</span></span>
+<span><span class="co"># Notice the automatic creation of `featureData`</span></span>
+<span><span class="va">test</span><span class="op">$</span><span class="va">countData</span> <span class="op">&lt;-</span> <span class="fu"><a href="https://rdrr.io/r/methods/as.html" class="external-link">as</a></span><span class="op">(</span><span class="va">counts</span>, <span class="st">"denseMatrix"</span><span class="op">)</span></span>
+<span><span class="co">#&gt; <span style="color: #BBBB00;">!</span> Placeholder <span style="color: #00BB00;">featureData</span> created.</span></span>
+<span><span class="co">#&gt; </span></span>
+<span><span class="co">#&gt; ── <span style="color: #0000BB;">&lt;omics&gt;</span> object</span></span>
+<span><span class="co">#&gt; <span style="color: #00BB00;">metaData</span>: <span style="color: #0000BB;">9</span> variables × <span style="color: #0000BB;">4</span> samples</span></span>
+<span><span class="co">#&gt; <span style="color: #00BB00;">countData</span>: <span style="color: #0000BB;">4</span> samples × <span style="color: #0000BB;">242</span> features</span></span>
+<span><span class="co">#&gt; <span style="color: #00BB00;">featureData</span>: <span style="color: #0000BB;">0</span> attributes × <span style="color: #0000BB;">242</span> features</span></span>
+<span></span>
+<span><span class="co">## Loading with all files in one go</span></span>
+<span><span class="va">test</span> <span class="op">&lt;-</span> <span class="va"><a href="../reference/omics.html">omics</a></span><span class="op">$</span><span class="fu">new</span><span class="op">(</span></span>
+<span>  metaData <span class="op">=</span> <span class="va">metadata_file</span>,</span>
+<span>  countData <span class="op">=</span> <span class="va">counts_file</span></span>
+<span><span class="op">)</span></span>
+<span><span class="co">#&gt; <span style="color: #00BB00;">✔</span> <span style="color: #00BB00;">metaData</span> template passed the JSON validation.</span></span>
+<span><span class="co">#&gt; <span style="color: #00BBBB;">ℹ</span> Checking for duplicated identifiers ..</span></span>
+<span><span class="co">#&gt; <span style="color: #00BB00;">✔</span> <span style="color: #00BB00;">countData</span> is loaded.</span></span>
+<span><span class="co">#&gt; <span style="color: #BBBB00;">!</span> Created placeholder <span style="color: #00BB00;">featureData</span>.</span></span></code></pre></div>
+<div class="section level3">
+<h3 id="metagenomics">
+<code>metagenomics</code><a class="anchor" aria-label="anchor" href="#metagenomics"></a>
+</h3>
+<p>The sub-class <code>metagenomics</code> contains the same fields as
+the <code>omics</code> class, such as <code>metaData</code>,
+<code>countData</code> and <code>featureData</code>, but also extends it
+to the <code>biomData</code>, <code>treeData</code> and the ability to
+specify the <code>feature_names</code> which are present in the
+<code>featureData</code>.</p>
+<div class="sourceCode" id="cb3"><pre class="downlit sourceCode r">
+<code class="sourceCode R"><span><span class="va">metadata_file</span> <span class="op">&lt;-</span> <span class="fu"><a href="https://rdrr.io/r/base/system.file.html" class="external-link">system.file</a></span><span class="op">(</span><span class="st">"extdata"</span>, <span class="st">"metadata.tsv"</span>, package <span class="op">=</span> <span class="st">"OmicFlow"</span><span class="op">)</span></span>
+<span><span class="va">counts_file</span> <span class="op">&lt;-</span> <span class="fu"><a href="https://rdrr.io/r/base/system.file.html" class="external-link">system.file</a></span><span class="op">(</span><span class="st">"extdata"</span>, <span class="st">"counts.tsv"</span>, package <span class="op">=</span> <span class="st">"OmicFlow"</span><span class="op">)</span></span>
+<span><span class="va">features_file</span> <span class="op">&lt;-</span> <span class="fu"><a href="https://rdrr.io/r/base/system.file.html" class="external-link">system.file</a></span><span class="op">(</span><span class="st">"extdata"</span>, <span class="st">"features.tsv"</span>, package <span class="op">=</span> <span class="st">"OmicFlow"</span><span class="op">)</span></span>
+<span><span class="va">tree_file</span> <span class="op">&lt;-</span> <span class="fu"><a href="https://rdrr.io/r/base/system.file.html" class="external-link">system.file</a></span><span class="op">(</span><span class="st">"extdata"</span>, <span class="st">"tree.newick"</span>, package <span class="op">=</span> <span class="st">"OmicFlow"</span><span class="op">)</span></span>
+<span></span>
+<span><span class="va">test</span> <span class="op">&lt;-</span> <span class="va"><a href="../reference/metagenomics.html">metagenomics</a></span><span class="op">$</span><span class="fu">new</span><span class="op">(</span></span>
+<span>  metaData <span class="op">=</span> <span class="va">metadata_file</span>,</span>
+<span>  countData <span class="op">=</span> <span class="va">counts_file</span>,</span>
+<span>  featureData <span class="op">=</span> <span class="va">features_file</span>,</span>
+<span>  treeData <span class="op">=</span> <span class="va">tree_file</span></span>
+<span><span class="op">)</span></span>
+<span><span class="co">#&gt; <span style="color: #00BB00;">✔</span> <span style="color: #00BB00;">metaData</span> template passed the JSON validation.</span></span>
+<span><span class="co">#&gt; <span style="color: #00BBBB;">ℹ</span> Checking for duplicated identifiers ..</span></span>
+<span><span class="co">#&gt; <span style="color: #00BB00;">✔</span> <span style="color: #00BB00;">featureData</span> is loaded.</span></span>
+<span><span class="co">#&gt; <span style="color: #00BB00;">✔</span> <span style="color: #00BB00;">countData</span> is loaded.</span></span>
+<span><span class="co">#&gt; <span style="color: #00BB00;">✔</span> <span style="color: #00BB00;">treeData</span> is loaded.</span></span>
+<span><span class="co">#&gt; <span style="color: #00BBBB;">ℹ</span> Final steps .. cleaning &amp; creating back-up</span></span>
+<span><span class="co">#&gt; </span></span>
+<span><span class="co">#&gt; ── <span style="color: #0000BB;">&lt;metagenomics&gt;</span> object</span></span>
+<span><span class="co">#&gt; <span style="color: #00BB00;">metaData</span>: <span style="color: #0000BB;">9</span> variables × <span style="color: #0000BB;">4</span> samples</span></span>
+<span><span class="co">#&gt; <span style="color: #00BB00;">countData</span>: <span style="color: #0000BB;">4</span> samples × <span style="color: #0000BB;">242</span> features</span></span>
+<span><span class="co">#&gt; <span style="color: #00BB00;">featureData</span>: <span style="color: #0000BB;">7</span> attributes × <span style="color: #0000BB;">242</span> features</span></span>
+<span><span class="co">#&gt; <span style="color: #00BB00;">treeData</span>: <span style="color: #0000BB;">242</span> tips × <span style="color: #0000BB;">241</span> nodes</span></span>
+<span></span>
+<span><span class="co">## BIOM example, where `featureData` and `countData` are extracted from `biomData`</span></span>
+<span><span class="co"># test &lt;- metagenomics$new(</span></span>
+<span><span class="co">#   metaData = "metadata.csv",</span></span>
+<span><span class="co">#   biomData = "test.biom"</span></span>
+<span><span class="co"># )</span></span></code></pre></div>
+</div>
+<div class="section level3">
+<h3 id="proteomics">
+<code>proteomics</code><a class="anchor" aria-label="anchor" href="#proteomics"></a>
+</h3>
+<p>The sub-class <code>proteomics</code> is very similar to the main
+<code>omics</code> class with the addition of the <code>treeData</code>
+field. In all sub-classes that contain the <code>treeData</code> field
+an alignment by the <code>treeData</code> is performed to make it
+compatible with the <code>unifrac</code> dissimilarity functions.</p>
+</div>
+</div>
+<div class="section level2">
+<h2 id="data-fields">Data fields<a class="anchor" aria-label="anchor" href="#data-fields"></a>
+</h2>
+<p>The abstract <code>omics</code> class and their sub-classes follow
+the same subsetting and active-binding fields. The active-bindings are
+the data fields, such as <code>metaData</code>, <code>countData</code>,
+<code>featureData</code> and (optionally) <code>treeData</code>, these
+can be used for both inspecting the data directly or performing direct
+modifications that indirectly affects the other data fields.</p>
+<p>Below an example given a pre-initialised <code>metagenomics</code>
+class called <code>test</code>.</p>
+<div class="sourceCode" id="cb4"><pre class="downlit sourceCode r">
+<code class="sourceCode R"><span><span class="co">## Inspecting the data fields</span></span>
+<span><span class="va">test</span></span>
+<span><span class="co">#&gt; </span></span>
+<span><span class="co">#&gt; ── <span style="color: #0000BB;">&lt;metagenomics&gt;</span> object</span></span>
+<span><span class="co">#&gt; <span style="color: #00BB00;">metaData</span>: <span style="color: #0000BB;">9</span> variables × <span style="color: #0000BB;">4</span> samples</span></span>
+<span><span class="co">#&gt; <span style="color: #00BB00;">countData</span>: <span style="color: #0000BB;">4</span> samples × <span style="color: #0000BB;">242</span> features</span></span>
+<span><span class="co">#&gt; <span style="color: #00BB00;">featureData</span>: <span style="color: #0000BB;">7</span> attributes × <span style="color: #0000BB;">242</span> features</span></span>
+<span><span class="co">#&gt; <span style="color: #00BB00;">treeData</span>: <span style="color: #0000BB;">242</span> tips × <span style="color: #0000BB;">241</span> nodes</span></span>
+<span></span>
+<span><span class="co">## Viewing data fields directly via the `$` operator:</span></span>
+<span><span class="va">test</span><span class="op">$</span><span class="va">metaData</span></span>
+<span><span class="co">#&gt;    SAMPLE_ID       filename_fw      filename_rev description treatment</span></span>
+<span><span class="co">#&gt;       &lt;char&gt;            &lt;char&gt;            &lt;char&gt;      &lt;lgcl&gt;    &lt;char&gt;</span></span>
+<span><span class="co">#&gt; 1:      S100 S100_R1_.fastq.gz S100_R2_.fastq.gz          NA     tumor</span></span>
+<span><span class="co">#&gt; 2:      S103 S103_R1_.fastq.gz S103_R2_.fastq.gz          NA     tumor</span></span>
+<span><span class="co">#&gt; 3:      S115 S115_R1_.fastq.gz S115_R2_.fastq.gz          NA   healthy</span></span>
+<span><span class="co">#&gt; 4:      S120 S120_R1_.fastq.gz S120_R2_.fastq.gz          NA   healthy</span></span>
+<span><span class="co">#&gt;    CONTRAST_sex VARIABLE_BMI VARIABLE_weight VARIABLE_time</span></span>
+<span><span class="co">#&gt;          &lt;char&gt;        &lt;int&gt;           &lt;int&gt;        &lt;char&gt;</span></span>
+<span><span class="co">#&gt; 1:         male           22              77            A1</span></span>
+<span><span class="co">#&gt; 2:       female           23              71            B1</span></span>
+<span><span class="co">#&gt; 3:       female           30              69            A1</span></span>
+<span><span class="co">#&gt; 4:         male           22              80            B1</span></span>
+<span><span class="va">test</span><span class="op">$</span><span class="va">featureData</span></span>
+<span><span class="co">#&gt;                                                                                                                                                                                                                                                                                                                                FEATURE_ID</span></span>
+<span><span class="co">#&gt;                                                                                                                                                                                                                                                                                                                                    &lt;char&gt;</span></span>
+<span><span class="co">#&gt;   1:                                                                                                   GTGTCAGCAGCCGCGCAATATCGTTATCGTTATACGTCACCGTTACCATCATCTAGGAGACAACACCTACTAGACTTAAGTTTGACAGGACAGGTTCGATAATGCACGCTTAAACTAGTCAACTAGGAACTTGGAGGAGGAATGGATGTCGGATCGTACAGCAATCCTCGCTGAACGAGCGCACAGGGGCATCATCGCTCTCACGGCGGCGAAACCCGTGTAGTCC</span></span>
+<span><span class="co">#&gt;   2:                                                                                                                        GTGCCAGCAGCCGACTATGGAATTGGAGGACGTGACAAATGGATACGTGCCAAAATCAATATCCAGGAACGTCCCCTGCGCGCCTTCGAAAAGAACGGATTTCTTGTGATCCAGCGCATCATTTAAGTAAAGCGCGGCATCGCAGACGTAAGGACTAAGTTTTTTCCCGTACCCCAGATACTCCTCGTAGATACCCTAGTAGTCC</span></span>
+<span><span class="co">#&gt;   3:                                                                                                                                                                                                GTGTCAGCAGCCGCGGCAGGATTTAAAGTGGCAAGGGATCTGATAATTCGCAATTCCCCATTTCTGATTTCTAACGAATTCTCAAATCTTGGGTCTCAAATCTCAAAAGAACTCGGTTTTCCCCGTGTAGTCC</span></span>
+<span><span class="co">#&gt;   4:    GTGCCAGCAGCCGCGGTCATCAAATTGAAACGGCAGAACGATCGGAGGATCGGAAAACTTCAGAGCTTTTTTAAAAAGTTGGTCATCCGTCGGTCCATAAACCGAACCTTCGCTCAAGGCCACATCAAGTCCGATTACCTTTGCACTTTGGAGCCGACCTAGCACCTTCCCAAAAATCTCCCGCCGCCACGGCCAGCTTCCGACGGAACCAATACTGGCATCGTCAATGCCAACGATGACGAGCTCGGCGAGAGCAGGTTTTTTTACAAAAAAACGATCGAATATTTTTTCCTGCCAGGAGTCCAGAAACCCCAGTAGTCC</span></span>
+<span><span class="co">#&gt;   5:                                                                                                   GTGCCAGCAGCCGCGACCACCAATATTCCTTCTTTCCACGCATTCTGGATCGCCTCTGTCATGCTGAGAGAAGAATCATGCCCCACAAAACTAAGGTTGATAATCCGCGCCCCCATTTTTCGCGCATACTCAACTGCGTTTGCCACATCACTGGTGGCGCCCTCGCCCATGCCATTTAAAATCCGCAGGGGCATAATTTTTGCGTTCCATGAAACCCCCGTAGTCC</span></span>
+<span><span class="co">#&gt;  ---                                                                                                                                                                                                                                                                                                                                     </span></span>
+<span><span class="co">#&gt; 238:                                 GTGTCAGCAGCCGCGGTAATACGGGGGTGGCGAGCGTTACTCGGATTTATTGGGTGTAAAGGGCAGGTAGGCGTCTCTACAAGTTAAAAGTGAAATCCTGTGGCTCAACCACAGAACTGCTTCTAAAACTGTAGAGATTGAAGATAGGAGAGGAGAGCGGAATTCCCGGTGTAAGGGTGAAATCTGTAGATATCGGGAGGAACACCAGTGGCGAAAGCGGCTCTCTGGTCTATCCTTGACGCTAAGCTGCGAAAGCTAGGGGAGCAAACAGGATTAGAAACCCTGGTAGTCC</span></span>
+<span><span class="co">#&gt; 239:                                 GTGTCAGCAGCCGCGGTAATACAGAGGTGGCGAGCGTTACTCGGATTTATTGGGTGTAAAGGGCAAGTAGGCGTCTTAACAAGTTAGAAGTGAAATCCTGCAGCTCAACTGCAGAACTGCTTTTAAAACTGTTGAGATTGAGTTTGGGAGAGGAAAGCGGAATTCTCGGTGTAAGAGTGAAATCTGTAGATATCGAGAGGAACACCGGTGGCGAAGGCGGCTTTCTGGTCCAGTACTGACGCTGAATTGCGAAAGCTAGGGGAGCAAACAGGATTAGAAACCCGAGTAGTCC</span></span>
+<span><span class="co">#&gt; 240:                                 GTGTCAGCAGCCGCGGTAATACAGAGGTGGCAAGCGTTACTCGGATTTATTGGGTGTAAAGGGCAAGTAGGCGTCTTAACAAGTTAGGAGCGAAATCCTGCAGCTTAACTGCAGAACTGCTTTTAAAACTGTTGAGATTGAGTTTGGGAGAGGAAAGCGGAATTCTCGGTGTAAGAGTGAAATCTGTAGATATCGAGAGGAACACCAGTGGCGAAGGCGGCTTTCTGGTCCAATACTGACGCTGAATTGCGAAAGCTAGGGGAGCAAACAGGATTAGATACCCCCGTAGTCC</span></span>
+<span><span class="co">#&gt; 241:                                GTGTCAGCAGCCGCGGTAATACAGAGGTGGCAAGCGTTGTTCGGATTTACTGGGTGTAAAGGGCACGTAGGCGGTTCGGAAAGTCGAATGTGAAATCCTATGGCTTAACCATAGAACTGCATCCGATACTTCCGGGCTAGAGTGTGGGAGAGGAAGATGGAATTCCCGGTGTAAGGGTGAAATCTGTAGATATCGGGAGGAACACCAGTGGCGAAGGCGATCTTCTGGCCCATTACTGACGCTCAGTGTGCGAAAGCAGGGGGAGCAAACGGGATTAGATACCCCGGTAGTCC</span></span>
+<span><span class="co">#&gt; 242: GTGCCAGCAGCCGCGGTAATACGGAGGTGGCAAGCGTTGTTCGGATTTATTGGGTGTAAAGGGCATGTAGGTGGCCTTGCCCCGAAAGGGGTTCTTAGCGCAAGCTAAGAGTAAGTCAGATGTGAAATCCTCCCGCTCAACGGGAGAACGGCATTTGAAACTGCAAGGCTTGAGTACGGGAGAGGAGAGGGGAATTCCCGGTGTAAGAGTGAAATCTGTAGATATCGGGAGGAACACCAGTGGCGAAGGCGCCTCTCTGGCCCAGTTCTGACACTGAAATGCGAAAGCTAGGGGAGCAAACAGGATTAGAAACCCTGGTAGTCC</span></span>
+<span><span class="co">#&gt;         Kingdom            Phylum       Class         Order         Family</span></span>
+<span><span class="co">#&gt;          &lt;char&gt;            &lt;char&gt;      &lt;char&gt;        &lt;char&gt;         &lt;char&gt;</span></span>
+<span><span class="co">#&gt;   1: Unassigned                                                           </span></span>
+<span><span class="co">#&gt;   2: Unassigned                                                           </span></span>
+<span><span class="co">#&gt;   3: Unassigned                                                           </span></span>
+<span><span class="co">#&gt;   4: Unassigned                                                           </span></span>
+<span><span class="co">#&gt;   5: Unassigned                                                           </span></span>
+<span><span class="co">#&gt;  ---                                                                      </span></span>
+<span><span class="co">#&gt; 238:   Bacteria Verrucomicrobiota Omnitrophia Omnitrophales Omnitrophaceae</span></span>
+<span><span class="co">#&gt; 239:   Bacteria Verrucomicrobiota Omnitrophia Omnitrophales Omnitrophaceae</span></span>
+<span><span class="co">#&gt; 240:   Bacteria Verrucomicrobiota Omnitrophia Omnitrophales Omnitrophaceae</span></span>
+<span><span class="co">#&gt; 241:   Bacteria Verrucomicrobiota Omnitrophia Omnitrophales Omnitrophaceae</span></span>
+<span><span class="co">#&gt; 242:   Bacteria Verrucomicrobiota Omnitrophia Omnitrophales Omnitrophaceae</span></span>
+<span><span class="co">#&gt;                       Genus                Species</span></span>
+<span><span class="co">#&gt;                      &lt;char&gt;                 &lt;char&gt;</span></span>
+<span><span class="co">#&gt;   1:                                              </span></span>
+<span><span class="co">#&gt;   2:                                              </span></span>
+<span><span class="co">#&gt;   3:                                              </span></span>
+<span><span class="co">#&gt;   4:                                              </span></span>
+<span><span class="co">#&gt;   5:                                              </span></span>
+<span><span class="co">#&gt;  ---                                              </span></span>
+<span><span class="co">#&gt; 238: Candidatus_Omnitrophus   uncultured_bacterium</span></span>
+<span><span class="co">#&gt; 239: Candidatus_Omnitrophus                       </span></span>
+<span><span class="co">#&gt; 240: Candidatus_Omnitrophus                       </span></span>
+<span><span class="co">#&gt; 241: Candidatus_Omnitrophus Candidatus_Omnitrophus</span></span>
+<span><span class="co">#&gt; 242: Candidatus_Omnitrophus   uncultured_bacterium</span></span>
+<span></span>
+<span><span class="co">## Modifying a single data field has an effect on other data fields</span></span>
+<span><span class="va">test</span><span class="op">$</span><span class="va">metaData</span> <span class="op">&lt;-</span> <span class="va">test</span><span class="op">$</span><span class="va">metaData</span><span class="op">[</span><span class="va">treatment</span> <span class="op">==</span> <span class="st">"tumor"</span><span class="op">]</span></span>
+<span><span class="co">#&gt; </span></span>
+<span><span class="co">#&gt; ── <span style="color: #0000BB;">&lt;metagenomics&gt;</span> object </span></span>
+<span><span class="co">#&gt; <span style="color: #00BB00;">metaData</span>: <span style="color: #0000BB;">9</span> variables × <span style="color: #0000BB;">2</span> samples<span style="color: #00BB00;">countData</span>: <span style="color: #0000BB;">2</span> samples × <span style="color: #0000BB;">115</span> features<span style="color: #00BB00;">featureData</span>: <span style="color: #0000BB;">7</span> attributes × <span style="color: #0000BB;">115</span> features<span style="color: #00BB00;">treeData</span>: <span style="color: #0000BB;">115</span> tips × <span style="color: #0000BB;">114</span> nodes</span></span></code></pre></div>
+<div class="section level3">
+<h3 id="copy-and-reset">
+<code>copy</code> and <code>reset</code><a class="anchor" aria-label="anchor" href="#copy-and-reset"></a>
+</h3>
+<p>You have probably noticed by now that classes in
+<code>OmicFlow</code> do not return a new object. This is done on
+purpose to prevent the additional clutter of objects, and the higher
+memory footprint that arises. Therefore, all modifications are done in
+place when it comes to modifying the class object. Upon the first
+initialization of the class, a backup of the data is created, and the
+user can revert back to that point via the <code>reset</code>
+function.</p>
+<p>The backup is modified when a <code>copy</code> of the data is
+created, then the backup point is set at the time when the copy has been
+made. Often when you are not happy with the flow of your
+subsetting/scaling strategy, the <code>reset</code> can be used to
+revert back or create multiple copies.</p>
+<div class="sourceCode" id="cb5"><pre class="downlit sourceCode r">
+<code class="sourceCode R"><span><span class="co">## Using the `test` from the previous example where only `tumor` is selected</span></span>
+<span><span class="va">test2</span> <span class="op">&lt;-</span> <span class="va">test</span><span class="op">$</span><span class="fu">copy</span><span class="op">(</span><span class="op">)</span></span>
+<span><span class="va">test2</span></span>
+<span><span class="co">#&gt; </span></span>
+<span><span class="co">#&gt; ── <span style="color: #0000BB;">&lt;metagenomics&gt;</span> object</span></span>
+<span><span class="co">#&gt; <span style="color: #00BB00;">metaData</span>: <span style="color: #0000BB;">9</span> variables × <span style="color: #0000BB;">2</span> samples</span></span>
+<span><span class="co">#&gt; <span style="color: #00BB00;">countData</span>: <span style="color: #0000BB;">2</span> samples × <span style="color: #0000BB;">115</span> features</span></span>
+<span><span class="co">#&gt; <span style="color: #00BB00;">featureData</span>: <span style="color: #0000BB;">7</span> attributes × <span style="color: #0000BB;">115</span> features</span></span>
+<span><span class="co">#&gt; <span style="color: #00BB00;">treeData</span>: <span style="color: #0000BB;">115</span> tips × <span style="color: #0000BB;">114</span> nodes</span></span>
+<span></span>
+<span><span class="va">test</span><span class="op">$</span><span class="fu">reset</span><span class="op">(</span><span class="op">)</span></span>
+<span><span class="va">test</span></span>
+<span><span class="co">#&gt; </span></span>
+<span><span class="co">#&gt; ── <span style="color: #0000BB;">&lt;metagenomics&gt;</span> object </span></span>
+<span><span class="co">#&gt; <span style="color: #00BB00;">metaData</span>: <span style="color: #0000BB;">9</span> variables × <span style="color: #0000BB;">4</span> samples<span style="color: #00BB00;">countData</span>: <span style="color: #0000BB;">4</span> samples × <span style="color: #0000BB;">242</span> features<span style="color: #00BB00;">featureData</span>: <span style="color: #0000BB;">7</span> attributes × <span style="color: #0000BB;">242</span> features<span style="color: #00BB00;">treeData</span>: <span style="color: #0000BB;">242</span> tips × <span style="color: #0000BB;">241</span> nodes</span></span></code></pre></div>
+</div>
+<div class="section level3">
+<h3 id="subsetting">Subsetting<a class="anchor" aria-label="anchor" href="#subsetting"></a>
+</h3>
+<p>Data modifications can be achieved by changing a single data field
+via the active-binding or you can use in-built subsetting functions,
+such as <code>feature_subset</code>, <code>sample_subset</code>,
+<code>samplepair_subset</code>.</p>
+<div class="sourceCode" id="cb6"><pre class="downlit sourceCode r">
+<code class="sourceCode R"><span><span class="va">test</span><span class="op">$</span><span class="fu">sample_subset</span><span class="op">(</span><span class="va">treatment</span> <span class="op">==</span> <span class="st">"tumor"</span><span class="op">)</span></span>
+<span><span class="co">#&gt; </span></span>
+<span><span class="co">#&gt; ── <span style="color: #0000BB;">&lt;metagenomics&gt;</span> object</span></span>
+<span><span class="co">#&gt; <span style="color: #00BB00;">metaData</span>: <span style="color: #0000BB;">9</span> variables × <span style="color: #0000BB;">2</span> samples</span></span>
+<span><span class="co">#&gt; <span style="color: #00BB00;">countData</span>: <span style="color: #0000BB;">2</span> samples × <span style="color: #0000BB;">115</span> features</span></span>
+<span><span class="co">#&gt; <span style="color: #00BB00;">featureData</span>: <span style="color: #0000BB;">7</span> attributes × <span style="color: #0000BB;">115</span> features</span></span>
+<span><span class="co">#&gt; <span style="color: #00BB00;">treeData</span>: <span style="color: #0000BB;">115</span> tips × <span style="color: #0000BB;">114</span> nodes</span></span>
+<span></span>
+<span><span class="va">test</span><span class="op">$</span><span class="fu">feature_subset</span><span class="op">(</span><span class="va">Genus</span> <span class="op">==</span> <span class="st">"Acinetobacter"</span><span class="op">)</span></span>
+<span><span class="co">#&gt; </span></span>
+<span><span class="co">#&gt; ── <span style="color: #0000BB;">&lt;metagenomics&gt;</span> object </span></span>
+<span><span class="co">#&gt; <span style="color: #00BB00;">metaData</span>: <span style="color: #0000BB;">9</span> variables × <span style="color: #0000BB;">2</span> samples<span style="color: #00BB00;">countData</span>: <span style="color: #0000BB;">2</span> samples × <span style="color: #0000BB;">8</span> features<span style="color: #00BB00;">featureData</span>: <span style="color: #0000BB;">7</span> attributes × <span style="color: #0000BB;">8</span> features<span style="color: #00BB00;">treeData</span>: <span style="color: #0000BB;">8</span> tips × <span style="color: #0000BB;">7</span> nodes</span></span></code></pre></div>
+</div>
+<div class="section level3">
+<h3 id="scaling">scaling<a class="anchor" aria-label="anchor" href="#scaling"></a>
+</h3>
+<p>The transformation or standardisation of the <code>countData</code>
+can be achieved via the <code>scale</code> function, which performs
+normalisation methods or transformations together or independently.</p>
+<div class="sourceCode" id="cb7"><pre class="downlit sourceCode r">
+<code class="sourceCode R"><span><span class="co">## Original data</span></span>
+<span><span class="fu"><a href="https://rdrr.io/r/graphics/hist.html" class="external-link">hist</a></span><span class="op">(</span><span class="va">test</span><span class="op">$</span><span class="va">countData</span><span class="op">@</span><span class="va">x</span><span class="op">)</span></span></code></pre></div>
+<p><img src="getting-started_files/figure-html/unnamed-chunk-7-1.png" class="r-plt" alt="" width="700"></p>
+<div class="sourceCode" id="cb8"><pre class="downlit sourceCode r">
+<code class="sourceCode R"><span></span>
+<span><span class="co"># Normalisation</span></span>
+<span><span class="va">test</span><span class="op">$</span><span class="fu">scale</span><span class="op">(</span>method <span class="op">=</span> <span class="st">"tss"</span><span class="op">)</span></span>
+<span><span class="fu"><a href="https://rdrr.io/r/graphics/hist.html" class="external-link">hist</a></span><span class="op">(</span><span class="va">test</span><span class="op">$</span><span class="va">countData</span><span class="op">@</span><span class="va">x</span><span class="op">)</span></span></code></pre></div>
+<p><img src="getting-started_files/figure-html/unnamed-chunk-7-2.png" class="r-plt" alt="" width="700"></p>
+<div class="sourceCode" id="cb9"><pre class="downlit sourceCode r">
+<code class="sourceCode R"><span></span>
+<span><span class="co"># Standardisation</span></span>
+<span><span class="va">test</span><span class="op">$</span><span class="fu">reset</span><span class="op">(</span><span class="op">)</span></span>
+<span><span class="co">## CLR skips zero's if pseudocount is not added</span></span>
+<span><span class="va">test</span><span class="op">$</span><span class="fu">scale</span><span class="op">(</span>method <span class="op">=</span> <span class="st">"clr"</span><span class="op">)</span></span>
+<span><span class="fu"><a href="https://rdrr.io/r/graphics/hist.html" class="external-link">hist</a></span><span class="op">(</span><span class="va">test</span><span class="op">$</span><span class="va">countData</span><span class="op">@</span><span class="va">x</span><span class="op">)</span></span></code></pre></div>
+<p><img src="getting-started_files/figure-html/unnamed-chunk-7-3.png" class="r-plt" alt="" width="700"></p>
+<div class="sourceCode" id="cb10"><pre class="downlit sourceCode r">
+<code class="sourceCode R"><span></span>
+<span><span class="co"># Transformation</span></span>
+<span><span class="va">test</span><span class="op">$</span><span class="fu">reset</span><span class="op">(</span><span class="op">)</span></span>
+<span><span class="va">test</span><span class="op">$</span><span class="fu">scale</span><span class="op">(</span>method <span class="op">=</span> <span class="st">"none"</span>, transform <span class="op">=</span> <span class="va">log2</span><span class="op">)</span></span>
+<span><span class="fu"><a href="https://rdrr.io/r/graphics/hist.html" class="external-link">hist</a></span><span class="op">(</span><span class="va">test</span><span class="op">$</span><span class="va">countData</span><span class="op">@</span><span class="va">x</span><span class="op">)</span></span></code></pre></div>
+<p><img src="getting-started_files/figure-html/unnamed-chunk-7-4.png" class="r-plt" alt="" width="700"></p>
+</div>
+</div>
+<div class="section level2">
+<h2 id="visualisations">Visualisations<a class="anchor" aria-label="anchor" href="#visualisations"></a>
+</h2>
+<p>Different visualisation strategies can be used depending on the data
+and normalisation approach. Some functions work differently in different
+classes. Examples of visualisations can be further explored here:</p>
+<ul>
+<li><a href="visualisation.html">Visualisations &amp;
+Statistics</a></li>
+</ul>
+</div>
+  </main><aside class="col-md-3"><nav id="toc" aria-label="Table of contents"><h2>On this page</h2>
+    </nav></aside>
 </div>
 
 

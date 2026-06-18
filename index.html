@@ -44,6 +44,7 @@
   <button class="nav-link dropdown-toggle" type="button" id="dropdown-articles" data-bs-toggle="dropdown" aria-expanded="false" aria-haspopup="true">Articles</button>
   <ul class="dropdown-menu" aria-labelledby="dropdown-articles">
 <li><a class="dropdown-item" href="articles/metadata.html">Metadata validation</a></li>
+    <li><a class="dropdown-item" href="articles/visualisation.html">Visualisations &amp; Statistic</a></li>
   </ul>
 </li>
       </ul>
@@ -84,145 +85,51 @@
 <div class="section level2">
 <h2 id="usage">Usage<a class="anchor" aria-label="anchor" href="#usage"></a>
 </h2>
-<p>Initialize the <code>metagenomics</code> or any <code>omics</code> object from a filepath or pre-loaded object.</p>
-<div class="sourceCode" id="cb3"><pre class="downlit sourceCode r">
-<code class="sourceCode R"><span><span class="kw"><a href="https://rdrr.io/r/base/library.html" class="external-link">library</a></span><span class="op">(</span><span class="st"><a href="https://github.com/agusinac/OmicFlow" class="external-link">"OmicFlow"</a></span><span class="op">)</span></span>
-<span></span>
-<span><span class="va">metadata_file</span> <span class="op">&lt;-</span> <span class="fu"><a href="https://rdrr.io/r/base/system.file.html" class="external-link">system.file</a></span><span class="op">(</span><span class="st">"extdata"</span>, <span class="st">"metadata.tsv"</span>, package <span class="op">=</span> <span class="st">"OmicFlow"</span><span class="op">)</span></span>
-<span><span class="va">counts_file</span> <span class="op">&lt;-</span> <span class="fu"><a href="https://rdrr.io/r/base/system.file.html" class="external-link">system.file</a></span><span class="op">(</span><span class="st">"extdata"</span>, <span class="st">"counts.tsv"</span>, package <span class="op">=</span> <span class="st">"OmicFlow"</span><span class="op">)</span></span>
-<span><span class="va">features_file</span> <span class="op">&lt;-</span> <span class="fu"><a href="https://rdrr.io/r/base/system.file.html" class="external-link">system.file</a></span><span class="op">(</span><span class="st">"extdata"</span>, <span class="st">"features.tsv"</span>, package <span class="op">=</span> <span class="st">"OmicFlow"</span><span class="op">)</span></span>
-<span><span class="va">tree_file</span> <span class="op">&lt;-</span> <span class="fu"><a href="https://rdrr.io/r/base/system.file.html" class="external-link">system.file</a></span><span class="op">(</span><span class="st">"extdata"</span>, <span class="st">"tree.newick"</span>, package <span class="op">=</span> <span class="st">"OmicFlow"</span><span class="op">)</span></span>
-<span></span>
-<span><span class="va">taxa</span> <span class="op">&lt;-</span> <span class="va"><a href="reference/metagenomics.html">metagenomics</a></span><span class="op">$</span><span class="fu">new</span><span class="op">(</span></span>
-<span>    metaData <span class="op">=</span> <span class="va">metadata_file</span>,</span>
-<span>    countData <span class="op">=</span> <span class="va">counts_file</span>,</span>
-<span>    featureData <span class="op">=</span> <span class="va">features_file</span>,</span>
-<span>    treeData <span class="op">=</span> <span class="va">tree_file</span></span>
-<span><span class="op">)</span></span>
-<span></span>
-<span><span class="va">taxa</span><span class="op">$</span><span class="fu">feature_subset</span><span class="op">(</span><span class="va">Kingdom</span> <span class="op">==</span> <span class="st">"Bacteria"</span><span class="op">)</span></span>
-<span><span class="va">taxa</span><span class="op">$</span><span class="fu">scale</span><span class="op">(</span>method <span class="op">=</span> <span class="st">"tss"</span><span class="op">)</span></span>
-<span></span>
-<span><span class="co"># Access variables directly</span></span>
-<span><span class="va">taxa</span><span class="op">$</span><span class="va">metaData</span></span>
-<span><span class="va">taxa</span><span class="op">$</span><span class="va">countData</span></span>
-<span><span class="va">taxa</span><span class="op">$</span><span class="va">featureData</span></span>
-<span><span class="va">taxa</span><span class="op">$</span><span class="va">treeData</span></span>
-<span></span>
-<span><span class="co"># Change variables &amp; enjoy the automatic sync</span></span>
-<span><span class="va">taxa</span><span class="op">$</span><span class="va">featureData</span> <span class="op">&lt;-</span> <span class="va">taxa</span><span class="op">$</span><span class="va">featureData</span><span class="op">[</span><span class="fl">1</span><span class="op">:</span><span class="fl">100</span>, <span class="op">]</span></span>
-<span></span>
-<span><span class="co"># Inspect what functions variables are available to the class</span></span>
-<span><span class="fu"><a href="https://rdrr.io/r/utils/str.html" class="external-link">str</a></span><span class="op">(</span><span class="va">taxa</span><span class="op">)</span></span></code></pre></div>
-<div class="section level3">
-<h3 id="visualisations">Visualisations<a class="anchor" aria-label="anchor" href="#visualisations"></a>
-</h3>
-<div class="section level4">
-<h4 id="small_blue_diamondalpha-diversity">🔹Alpha diversity<a class="anchor" aria-label="anchor" href="#small_blue_diamondalpha-diversity"></a>
-</h4>
-<div class="sourceCode" id="cb4"><pre class="downlit sourceCode r">
-<code class="sourceCode R"><span><span class="va">alpha_div</span> <span class="op">&lt;-</span> <span class="va">taxa</span><span class="op">$</span><span class="fu">alpha_diversity</span><span class="op">(</span></span>
-<span>    col_name <span class="op">=</span> <span class="st">"treatment"</span>,</span>
-<span>    metric <span class="op">=</span> <span class="st">"shannon"</span>,</span>
-<span>    paired <span class="op">=</span> <span class="cn">FALSE</span> <span class="co"># If TRUE it performs wilcox signed rank test</span></span>
-<span><span class="op">)</span></span>
-<span></span>
-<span><span class="va">alpha_div</span><span class="op">$</span><span class="va">plot</span></span></code></pre></div>
-<p><img src="reference/figures/alphadiv_readme.png"></p>
-</div>
-<div class="section level4">
-<h4 id="small_blue_diamondbeta-diversity">🔹Beta diversity<a class="anchor" aria-label="anchor" href="#small_blue_diamondbeta-diversity"></a>
-</h4>
-<p>By default PERMANOVA is applied pairwise against each group within the specified contrast, via <code>group_by</code> that is used in <code>pairwise_adonis</code>. The permutation design in <code><a href="https://vegandevs.github.io/vegan/reference/adonis.html" class="external-link">vegan::adonis2</a></code> is by default set to <code>free</code>. But this may not always be the right test when you have paired samples and you also want to restrict permutations between correlated values. Therefore, <code>pairwise_adonis</code> supports a custom permutation design, which can be constructed via <a href="https://cran.r-project.org/web/packages/permute/vignettes/permutations.html" class="external-link">permute</a> and fed into <code><a href="https://vegandevs.github.io/vegan/reference/adonis.html" class="external-link">vegan::adonis2</a></code> as a function via <code>pairwise_adonis</code> with the flag <code>perm_design</code>.</p>
-<div class="sourceCode" id="cb5"><pre class="downlit sourceCode r">
-<code class="sourceCode R"><span><span class="fu"><a href="https://rdrr.io/r/base/Random.html" class="external-link">set.seed</a></span><span class="op">(</span><span class="fl">1970</span><span class="op">)</span></span>
-<span></span>
-<span><span class="co"># Perform ordinations with in-built distance matrix computation</span></span>
-<span><span class="co">#--------------------------------------------------------------------------------</span></span>
-<span><span class="va">beta_div</span> <span class="op">&lt;-</span> <span class="va">taxa</span><span class="op">$</span><span class="fu">ordination</span><span class="op">(</span></span>
-<span>    metric <span class="op">=</span> <span class="st">"unifrac"</span>,</span>
-<span>    method <span class="op">=</span> <span class="st">"pcoa"</span>,</span>
-<span>    group_by <span class="op">=</span> <span class="st">"treatment"</span>,</span>
-<span>    perm <span class="op">=</span> <span class="fl">999</span></span>
-<span><span class="op">)</span></span>
-<span></span>
-<span><span class="co"># Add a custom pre-computed distance matrix</span></span>
-<span><span class="co">#--------------------------------------------------------------------------------</span></span>
-<span><span class="va">qiime_unifrac</span> <span class="op">&lt;-</span> <span class="fu">data.table</span><span class="fu">::</span><span class="fu"><a href="https://rdrr.io/pkg/data.table/man/fread.html" class="external-link">fread</a></span><span class="op">(</span><span class="st">"weighted-unifrac-matrix.tsv"</span>, header<span class="op">=</span><span class="cn">TRUE</span><span class="op">)</span></span>
-<span><span class="va">distmat</span> <span class="op">&lt;-</span> <span class="fu">Matrix</span><span class="fu">::</span><span class="fu"><a href="https://rdrr.io/pkg/Matrix/man/Matrix.html" class="external-link">Matrix</a></span><span class="op">(</span><span class="fu"><a href="https://rdrr.io/r/base/matrix.html" class="external-link">as.matrix</a></span><span class="op">(</span><span class="va">qiime_unifrac</span><span class="op">[</span>, <span class="va">.SD</span>, .SDcols <span class="op">=</span> <span class="op">!</span><span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span><span class="st">"V1"</span><span class="op">)</span><span class="op">]</span><span class="op">)</span><span class="op">)</span></span>
-<span><span class="fu"><a href="https://rdrr.io/r/base/colnames.html" class="external-link">rownames</a></span><span class="op">(</span><span class="va">distmat</span><span class="op">)</span> <span class="op">&lt;-</span> <span class="fu"><a href="https://rdrr.io/r/base/colnames.html" class="external-link">colnames</a></span><span class="op">(</span><span class="va">distmat</span><span class="op">)</span></span>
-<span><span class="va">distmat</span> <span class="op">&lt;-</span> <span class="va">distmat</span><span class="op">[</span><span class="va">taxa</span><span class="op">$</span><span class="va">metaData</span><span class="op">[[</span><span class="st">"SAMPLE_ID"</span><span class="op">]</span><span class="op">]</span>, <span class="va">taxa</span><span class="op">$</span><span class="va">metaData</span><span class="op">[[</span><span class="st">"SAMPLE_ID"</span><span class="op">]</span><span class="op">]</span><span class="op">]</span></span>
-<span><span class="va">distmat</span> <span class="op">&lt;-</span> <span class="fu"><a href="https://rdrr.io/r/stats/dist.html" class="external-link">as.dist</a></span><span class="op">(</span><span class="va">distmat</span><span class="op">)</span> </span>
-<span></span>
-<span><span class="va">beta_div</span> <span class="op">&lt;-</span> <span class="va">taxa</span><span class="op">$</span><span class="fu">ordination</span><span class="op">(</span></span>
-<span>    distmat <span class="op">=</span> <span class="va">distmat</span>,</span>
-<span>    method <span class="op">=</span> <span class="st">"pcoa"</span>,</span>
-<span>    group_by <span class="op">=</span> <span class="st">"treatment"</span>,</span>
-<span>    perm <span class="op">=</span> <span class="fl">999</span></span>
-<span><span class="op">)</span></span>
-<span></span>
-<span><span class="co"># Add a custom permutation design via `perm_design`</span></span>
-<span><span class="co">#--------------------------------------------------------------------------------</span></span>
-<span><span class="co">## taxa$ordination() automatically will input taxa$metaData inside the supplied function.</span></span>
-<span><span class="va">perm_design_func</span> <span class="op">&lt;-</span> <span class="kw">function</span><span class="op">(</span><span class="va">meta</span><span class="op">)</span> <span class="op">{</span></span>
-<span>  <span class="fu">base</span><span class="fu">::</span><span class="fu"><a href="https://rdrr.io/r/base/with.html" class="external-link">with</a></span><span class="op">(</span></span>
-<span>    data <span class="op">=</span> <span class="va">meta</span>,</span>
-<span>    expr <span class="op">=</span> <span class="fu">permute</span><span class="fu">::</span><span class="fu"><a href="https://rdrr.io/pkg/permute/man/how.html" class="external-link">how</a></span><span class="op">(</span></span>
-<span>      nperm <span class="op">=</span> <span class="fl">999</span>,</span>
-<span>      plots <span class="op">=</span> <span class="fu">permute</span><span class="fu">::</span><span class="fu"><a href="https://rdrr.io/pkg/permute/man/how.html" class="external-link">Plots</a></span><span class="op">(</span><span class="va">meta</span><span class="op">$</span><span class="va">SAMPLEPAIR_ID</span>, type <span class="op">=</span> <span class="st">"none"</span><span class="op">)</span>, <span class="co"># In case samplepair ids is supplied</span></span>
-<span>      within <span class="op">=</span> <span class="fu">permute</span><span class="fu">::</span><span class="fu"><a href="https://rdrr.io/pkg/permute/man/how.html" class="external-link">Within</a></span><span class="op">(</span>type <span class="op">=</span> <span class="st">"free"</span><span class="op">)</span></span>
-<span>    <span class="op">)</span></span>
-<span>  <span class="op">)</span></span>
-<span><span class="op">}</span></span>
-<span></span>
-<span><span class="va">beta_div</span> <span class="op">&lt;-</span> <span class="va">taxa</span><span class="op">$</span><span class="fu">ordination</span><span class="op">(</span></span>
-<span>    metric <span class="op">=</span> <span class="st">"unifrac"</span>,</span>
-<span>    method <span class="op">=</span> <span class="st">"pcoa"</span>,</span>
-<span>    group_by <span class="op">=</span> <span class="st">"treatment"</span>,</span>
-<span>    perm_design <span class="op">=</span> <span class="va">perm_design_func</span></span>
-<span><span class="op">)</span></span>
-<span></span>
-<span><span class="fu">patchwork</span><span class="fu">::</span><span class="fu"><a href="https://patchwork.data-imaginist.com/reference/wrap_plots.html" class="external-link">wrap_plots</a></span><span class="op">(</span></span>
-<span>    <span class="va">beta_div</span><span class="op">[</span><span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span><span class="st">"scree_plot"</span>, <span class="st">"anova_plot"</span>, <span class="st">"scores_plot"</span><span class="op">)</span><span class="op">]</span>,</span>
-<span>    nrow <span class="op">=</span> <span class="fl">1</span><span class="op">)</span></span></code></pre></div>
-<p><img src="reference/figures/betadiv_readme.png"></p>
-</div>
-<div class="section level4">
-<h4 id="small_blue_diamondcomposition">🔹Composition<a class="anchor" aria-label="anchor" href="#small_blue_diamondcomposition"></a>
-</h4>
-<div class="sourceCode" id="cb6"><pre class="downlit sourceCode r">
-<code class="sourceCode R"><span><span class="va">res</span> <span class="op">&lt;-</span> <span class="va">taxa</span><span class="op">$</span><span class="fu">composition</span><span class="op">(</span></span>
-<span>    feature_rank <span class="op">=</span> <span class="st">"Genus"</span>,</span>
-<span>    feature_filter <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span><span class="st">"uncultured"</span><span class="op">)</span>,</span>
-<span>    feature_top <span class="op">=</span> <span class="fl">15</span>,</span>
-<span>    col_name <span class="op">=</span> <span class="st">"CONTRAST_sex"</span></span>
-<span><span class="op">)</span></span>
-<span></span>
-<span><span class="fu"><a href="reference/composition_plot.html">composition_plot</a></span><span class="op">(</span></span>
-<span>    data <span class="op">=</span> <span class="va">res</span><span class="op">$</span><span class="va">data</span>,</span>
-<span>    palette <span class="op">=</span> <span class="va">res</span><span class="op">$</span><span class="va">palette</span>,</span>
-<span>    feature_rank <span class="op">=</span> <span class="st">"Genus"</span>,</span>
-<span>    <span class="co"># If group_by = NULL, then a stacked barplot for each sample sorted alphabetically will be visualized.</span></span>
-<span>    group_by <span class="op">=</span> <span class="st">"CONTRAST_sex"</span></span>
-<span>    <span class="op">)</span></span></code></pre></div>
-<p><img src="reference/figures/composition_readme.png"></p>
-</div>
-</div>
+<p>Initialize the <code>metagenomics</code> or any <code>omics</code> object from a file-path or pre-loaded object.</p>
+<div class="sourceCode" id="cb3"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb3-1"><a href="#cb3-1" tabindex="-1"></a><span class="fu">library</span>(<span class="st">"OmicFlow"</span>)</span>
+<span id="cb3-2"><a href="#cb3-2" tabindex="-1"></a></span>
+<span id="cb3-3"><a href="#cb3-3" tabindex="-1"></a>metadata_file <span class="ot">&lt;-</span> <span class="fu">system.file</span>(<span class="st">"extdata"</span>, <span class="st">"metadata.tsv"</span>, <span class="at">package =</span> <span class="st">"OmicFlow"</span>)</span>
+<span id="cb3-4"><a href="#cb3-4" tabindex="-1"></a>counts_file <span class="ot">&lt;-</span> <span class="fu">system.file</span>(<span class="st">"extdata"</span>, <span class="st">"counts.tsv"</span>, <span class="at">package =</span> <span class="st">"OmicFlow"</span>)</span>
+<span id="cb3-5"><a href="#cb3-5" tabindex="-1"></a>features_file <span class="ot">&lt;-</span> <span class="fu">system.file</span>(<span class="st">"extdata"</span>, <span class="st">"features.tsv"</span>, <span class="at">package =</span> <span class="st">"OmicFlow"</span>)</span>
+<span id="cb3-6"><a href="#cb3-6" tabindex="-1"></a>tree_file <span class="ot">&lt;-</span> <span class="fu">system.file</span>(<span class="st">"extdata"</span>, <span class="st">"tree.newick"</span>, <span class="at">package =</span> <span class="st">"OmicFlow"</span>)</span>
+<span id="cb3-7"><a href="#cb3-7" tabindex="-1"></a></span>
+<span id="cb3-8"><a href="#cb3-8" tabindex="-1"></a>taxa <span class="ot">&lt;-</span> metagenomics<span class="sc">$</span><span class="fu">new</span>(</span>
+<span id="cb3-9"><a href="#cb3-9" tabindex="-1"></a>    <span class="at">metaData =</span> metadata_file,</span>
+<span id="cb3-10"><a href="#cb3-10" tabindex="-1"></a>    <span class="at">countData =</span> counts_file,</span>
+<span id="cb3-11"><a href="#cb3-11" tabindex="-1"></a>    <span class="at">featureData =</span> features_file,</span>
+<span id="cb3-12"><a href="#cb3-12" tabindex="-1"></a>    <span class="at">treeData =</span> tree_file</span>
+<span id="cb3-13"><a href="#cb3-13" tabindex="-1"></a>)</span>
+<span id="cb3-14"><a href="#cb3-14" tabindex="-1"></a></span>
+<span id="cb3-15"><a href="#cb3-15" tabindex="-1"></a>taxa<span class="sc">$</span><span class="fu">feature_subset</span>(Kingdom <span class="sc">==</span> <span class="st">"Bacteria"</span>)</span>
+<span id="cb3-16"><a href="#cb3-16" tabindex="-1"></a>taxa<span class="sc">$</span><span class="fu">scale</span>(<span class="at">method =</span> <span class="st">"tss"</span>)</span>
+<span id="cb3-17"><a href="#cb3-17" tabindex="-1"></a></span>
+<span id="cb3-18"><a href="#cb3-18" tabindex="-1"></a><span class="co"># Access variables directly</span></span>
+<span id="cb3-19"><a href="#cb3-19" tabindex="-1"></a>taxa<span class="sc">$</span>metaData</span>
+<span id="cb3-20"><a href="#cb3-20" tabindex="-1"></a>taxa<span class="sc">$</span>countData</span>
+<span id="cb3-21"><a href="#cb3-21" tabindex="-1"></a>taxa<span class="sc">$</span>featureData</span>
+<span id="cb3-22"><a href="#cb3-22" tabindex="-1"></a>taxa<span class="sc">$</span>treeData</span>
+<span id="cb3-23"><a href="#cb3-23" tabindex="-1"></a></span>
+<span id="cb3-24"><a href="#cb3-24" tabindex="-1"></a><span class="co"># Change variables &amp; enjoy the automatic sync</span></span>
+<span id="cb3-25"><a href="#cb3-25" tabindex="-1"></a>taxa<span class="sc">$</span>featureData <span class="ot">&lt;-</span> taxa<span class="sc">$</span>featureData[<span class="dv">1</span><span class="sc">:</span><span class="dv">100</span>, ]</span>
+<span id="cb3-26"><a href="#cb3-26" tabindex="-1"></a></span>
+<span id="cb3-27"><a href="#cb3-27" tabindex="-1"></a><span class="co"># Inspect what functions variables are available to the class</span></span>
+<span id="cb3-28"><a href="#cb3-28" tabindex="-1"></a>taxa<span class="sc">$</span></span></code></pre></div>
+<p>If you are new to <code>OmicFlow</code>, the best place to start is the <a href="https://agusinac.github.io/OmicFlow/articles/getting-started.html">Introduction to OmicFlow</a>.</p>
 </div>
 <div class="section level2">
 <h2 id="docker">Docker<a class="anchor" aria-label="anchor" href="#docker"></a>
 </h2>
 <p>Example: <strong>Outputs a <code>report.html</code> file in current work directory</strong></p>
-<div class="sourceCode" id="cb7"><pre class="sourceCode bash"><code class="sourceCode bash"><span id="cb7-1"><a href="#cb7-1" tabindex="-1"></a><span class="ex">docker</span> pull agusinac/autoflow:latest</span>
-<span id="cb7-2"><a href="#cb7-2" tabindex="-1"></a></span>
-<span id="cb7-3"><a href="#cb7-3" tabindex="-1"></a><span class="ex">docker</span> run <span class="at">-it</span> <span class="at">--rm</span> <span class="at">-v</span> <span class="dt">\</span></span>
-<span id="cb7-4"><a href="#cb7-4" tabindex="-1"></a>    <span class="st">"</span><span class="va">$(</span><span class="bu">pwd</span><span class="va">)</span><span class="st">"</span>:/data <span class="dt">\ </span>            <span class="co"># Mount the data in a temporary directory</span></span>
-<span id="cb7-5"><a href="#cb7-5" tabindex="-1"></a>    <span class="ex">-w</span> /data <span class="dt">\ </span>                  <span class="co"># set working directory</span></span>
-<span id="cb7-6"><a href="#cb7-6" tabindex="-1"></a>    <span class="ex">-u</span> <span class="va">$(</span><span class="fu">id</span> <span class="at">-u</span><span class="va">)</span>:<span class="va">$(</span><span class="fu">id</span> <span class="at">-g</span><span class="va">)</span> <span class="dt">\ </span>      <span class="co"># non-root user</span></span>
-<span id="cb7-7"><a href="#cb7-7" tabindex="-1"></a>    <span class="ex">agusinac/autoflow:latest</span> <span class="dt">\</span></span>
-<span id="cb7-8"><a href="#cb7-8" tabindex="-1"></a>    autoflow <span class="dt">\ </span>                  <span class="co"># autoflow R script</span></span>
-<span id="cb7-9"><a href="#cb7-9" tabindex="-1"></a>    <span class="ex">-b</span> /data/biom_with_taxonomy_hdf5.biom <span class="dt">\</span></span>
-<span id="cb7-10"><a href="#cb7-10" tabindex="-1"></a>    <span class="at">-m</span> /data/metadata.tsv</span></code></pre></div>
+<div class="sourceCode" id="cb4"><pre class="sourceCode bash"><code class="sourceCode bash"><span id="cb4-1"><a href="#cb4-1" tabindex="-1"></a><span class="ex">docker</span> pull agusinac/autoflow:latest</span>
+<span id="cb4-2"><a href="#cb4-2" tabindex="-1"></a></span>
+<span id="cb4-3"><a href="#cb4-3" tabindex="-1"></a><span class="ex">docker</span> run <span class="at">-it</span> <span class="at">--rm</span> <span class="at">-v</span> <span class="dt">\</span></span>
+<span id="cb4-4"><a href="#cb4-4" tabindex="-1"></a>    <span class="st">"</span><span class="va">$(</span><span class="bu">pwd</span><span class="va">)</span><span class="st">"</span>:/data <span class="dt">\ </span>            <span class="co"># Mount the data in a temporary directory</span></span>
+<span id="cb4-5"><a href="#cb4-5" tabindex="-1"></a>    <span class="ex">-w</span> /data <span class="dt">\ </span>                  <span class="co"># set working directory</span></span>
+<span id="cb4-6"><a href="#cb4-6" tabindex="-1"></a>    <span class="ex">-u</span> <span class="va">$(</span><span class="fu">id</span> <span class="at">-u</span><span class="va">)</span>:<span class="va">$(</span><span class="fu">id</span> <span class="at">-g</span><span class="va">)</span> <span class="dt">\ </span>      <span class="co"># non-root user</span></span>
+<span id="cb4-7"><a href="#cb4-7" tabindex="-1"></a>    <span class="ex">agusinac/autoflow:latest</span> <span class="dt">\</span></span>
+<span id="cb4-8"><a href="#cb4-8" tabindex="-1"></a>    autoflow <span class="dt">\ </span>                  <span class="co"># autoflow R script</span></span>
+<span id="cb4-9"><a href="#cb4-9" tabindex="-1"></a>    <span class="ex">-b</span> /data/biom_with_taxonomy_hdf5.biom <span class="dt">\</span></span>
+<span id="cb4-10"><a href="#cb4-10" tabindex="-1"></a>    <span class="at">-m</span> /data/metadata.tsv</span></code></pre></div>
 </div>
 <div class="section level2">
 <h2 id="support">Support<a class="anchor" aria-label="anchor" href="#support"></a>

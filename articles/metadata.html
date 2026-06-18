@@ -44,6 +44,7 @@
   <button class="nav-link dropdown-toggle" type="button" id="dropdown-articles" data-bs-toggle="dropdown" aria-expanded="false" aria-haspopup="true">Articles</button>
   <ul class="dropdown-menu" aria-labelledby="dropdown-articles">
 <li><a class="dropdown-item" href="../articles/metadata.html">Metadata validation</a></li>
+    <li><a class="dropdown-item" href="../articles/visualisation.html">Visualisations &amp; Statistic</a></li>
   </ul>
 </li>
       </ul>
@@ -73,9 +74,6 @@
 
     
     
-<div class="section level2">
-<h2 id="metadata-file-specification">Metadata File Specification<a class="anchor" aria-label="anchor" href="#metadata-file-specification"></a>
-</h2>
 <p>Every class in OmicFlow starts with metadata validation, which checks
 that sample IDs match those in the abundance tables.<br>
 The validation is defined via a JSON format in the abstract class
@@ -87,10 +85,10 @@ Additional column names not mentioned here are allowed and will be
 ignored during metadata validation.</p>
 <p>Below are the exact specifications required for the metadata
 structure.</p>
-<div class="section level3">
-<h3 id="minimum-requirement">
+<div class="section level2">
+<h2 id="minimum-requirement">
 <strong>Minimum requirement</strong><a class="anchor" aria-label="anchor" href="#minimum-requirement"></a>
-</h3>
+</h2>
 <ul>
 <li>
 <strong><code>SAMPLE_ID</code></strong> ➡ every row
@@ -129,13 +127,13 @@ dashes <code>-</code> instead.</li>
 </table>
 <hr>
 </div>
-<div class="section level3">
-<h3 id="column-types-and-naming-rules">
+<div class="section level2">
+<h2 id="column-types-and-naming-rules">
 <strong>Column types and naming rules</strong><a class="anchor" aria-label="anchor" href="#column-types-and-naming-rules"></a>
+</h2>
+<div class="section level3">
+<h3 id="required-column">🔹 Required column<a class="anchor" aria-label="anchor" href="#required-column"></a>
 </h3>
-<div class="section level4">
-<h4 id="required-column">🔹 Required column<a class="anchor" aria-label="anchor" href="#required-column"></a>
-</h4>
 <table class="table">
 <colgroup>
 <col width="18%">
@@ -154,9 +152,9 @@ dashes <code>-</code> instead.</li>
 </tr></tbody>
 </table>
 </div>
-<div class="section level4">
-<h4 id="optional-standard-columns">🔹 Optional standard columns<a class="anchor" aria-label="anchor" href="#optional-standard-columns"></a>
-</h4>
+<div class="section level3">
+<h3 id="optional-standard-columns">🔹 Optional standard columns<a class="anchor" aria-label="anchor" href="#optional-standard-columns"></a>
+</h3>
 <table class="table">
 <colgroup>
 <col width="17%">
@@ -176,9 +174,9 @@ individual source/subject</td>
 </tr></tbody>
 </table>
 </div>
-<div class="section level4">
-<h4 id="patternbased-columns">🔹 Pattern‑based columns<a class="anchor" aria-label="anchor" href="#patternbased-columns"></a>
-</h4>
+<div class="section level3">
+<h3 id="patternbased-columns">🔹 Pattern‑based columns<a class="anchor" aria-label="anchor" href="#patternbased-columns"></a>
+</h3>
 <p>You can define extra variables using special prefixes: -
 <strong><code>CONTRAST_...</code></strong> → grouping/category labels
 used in differential comparisons<br>
@@ -192,9 +190,9 @@ Example: <code>VARIABLE_Age</code> with values <code>42</code>,
 <code>CONTRAST_</code> are supported.</p>
 </div>
 </div>
-<div class="section level3">
-<h3 id="examples">Examples<a class="anchor" aria-label="anchor" href="#examples"></a>
-</h3>
+<div class="section level2">
+<h2 id="examples">Examples<a class="anchor" aria-label="anchor" href="#examples"></a>
+</h2>
 <p>You can always check metadata up‑front before loading any other data
 files by creating an <code>omics</code> object with only the
 <code>metaData</code> argument:</p>
@@ -220,7 +218,6 @@ files by creating an <code>omics</code> object with only the
 <span><span class="va">test</span> <span class="op">&lt;-</span> <span class="va"><a href="../reference/omics.html">omics</a></span><span class="op">$</span><span class="fu">new</span><span class="op">(</span>metaData <span class="op">=</span> <span class="va">metadata</span><span class="op">)</span></span>
 <span><span class="co">#&gt; <span style="color: #00BB00;">✔</span> <span style="color: #00BB00;">metaData</span> template passed the JSON validation.</span></span>
 <span><span class="co">#&gt; <span style="color: #00BBBB;">ℹ</span> Checking for duplicated identifiers ..</span></span></code></pre></div>
-</div>
 </div>
   </main><aside class="col-md-3"><nav id="toc" aria-label="Table of contents"><h2>On this page</h2>
     </nav></aside>

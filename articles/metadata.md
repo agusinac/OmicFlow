@@ -1,7 +1,5 @@
 # Metadata File Specification
 
-## Metadata File Specification
-
 Every class in OmicFlow starts with metadata validation, which checks
 that sample IDs match those in the abundance tables.  
 The validation is defined via a JSON format in the abstract class
@@ -13,7 +11,7 @@ ignored during metadata validation.
 
 Below are the exact specifications required for the metadata structure.
 
-### **Minimum requirement**
+## **Minimum requirement**
 
 - **`SAMPLE_ID`** ➡ every row **must** have a unique, non‑empty sample
   identifier.
@@ -30,21 +28,21 @@ Example:
 
 ------------------------------------------------------------------------
 
-### **Column types and naming rules**
+## **Column types and naming rules**
 
-#### 🔹 Required column
+### 🔹 Required column
 
 | Column      | Type   | Rules                                 |
 |-------------|--------|---------------------------------------|
 | `SAMPLE_ID` | string | Unique, no spaces, one per sample row |
 
-#### 🔹 Optional standard columns
+### 🔹 Optional standard columns
 
 | Column | Type | Rules |
 |----|----|----|
 | `SAMPLEPAIR_ID` | string | Optional — no spaces. Use when samples are paired and belong to an individual source/subject |
 
-#### 🔹 Pattern‑based columns
+### 🔹 Pattern‑based columns
 
 You can define extra variables using special prefixes: -
 **`CONTRAST_...`** → grouping/category labels used in differential
@@ -57,7 +55,7 @@ Example: `VARIABLE_Age` with values `42`, `51`, etc.
 The pattern-based columns are only used during the `autoFlow` function.
 At the moment only columns with prefix `CONTRAST_` are supported.
 
-### Examples
+## Examples
 
 You can always check metadata up‑front before loading any other data
 files by creating an `omics` object with only the `metaData` argument:
