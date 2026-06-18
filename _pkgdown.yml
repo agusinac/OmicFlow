@@ -1,12 +1,14 @@
 url: https://agusinac.github.io/OmicFlow/
 template:
   bootstrap: 5
+  light-switch: true
   pagetitle: "OmicFlow"
   logo: "man/figures/logo.png"
 
 navbar:
   structure:
     left: [getting-started, reference, changelog, articles]
+    right: [search, github, lightswitch]
   components:
     getting-started:
       text: Get started
@@ -24,6 +26,9 @@ navbar:
           href: articles/metadata.html
         - text: Visualisations & Statistic
           href: articles/visualisation.html
+
+development:
+  mode: auto
 
 news:
   cran_dates: false
