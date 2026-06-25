@@ -546,42 +546,41 @@ omics <- R6::R6Class(
 
       ## MAIN
       #--------------------------------------------------------------------#
-      # creates a subset of unique feature rank, hashes combined for each unique rank
-      counts <- data.table::data.table()
-      counts[, (private$.feature_id) := rownames(private$.countData)]
-
-      # Supports multiple features
-      features <- data.table::copy(private$.featureData[private$.featureData[[ feature_rank[1] ]] != "", ])
+      # Create temporary copies
+      counts <- private$.countData
+      features <- data.table::copy(private$.featureData[!is.na(private$.featureData[[ feature_rank[1] ]])])
 
       # set keys
-      data.table::setkey(counts, FEATURE_ID)
       data.table::setkey(features, FEATURE_ID)
 
       # Create groups by ID
       grouped_ids <- features[, .(IDs = list(FEATURE_ID)), by = feature_rank]
-      counts_glom <- Matrix::Matrix(0,
-                                    nrow = nrow(grouped_ids),
-                                    ncol = ncol(private$.countData),
-                                    dimnames = list(NULL, colnames(private$.countData)),
-                                    sparse = TRUE)
 
-      # Populate sparse matrix by colsums of identical taxa
-      for (i in 1:nrow(grouped_ids)) {
-        ids <- grouped_ids$IDs[[i]]
-        if (length(ids) == 1) {
-          counts_glom[i, ] <- private$.countData[ids, ]
-        } else {
-          counts_glom[i, ] <- Matrix::colSums(private$.countData[ids, ])
-        }
+      ## Skip over singletons
+      groups <- base::which(base::lengths(grouped_ids$IDs) > 1)
+      grouped_ids$ID_first <- sapply(grouped_ids$IDs, `[[`, 1)
+
+      ## Flatten sparseMatrix to only specific feature ids
+      counts <- counts[grouped_ids$ID_first, ]
+
+      ## Sum over multiples 
+      for (i in groups) {
+        i_id <- grouped_ids$ID_first[i]
+        i_group <- grouped_ids$IDs[[i]]
+        counts[i_id, ] <- Matrix::colSums(private$.countData[i_group, ])
       }
 
       # Prepare final self-components
       private$.featureData <- base::unique(features, by = feature_rank)
-      # Fetch first ID from each list
-      grouped_ids$ID_first <- sapply(grouped_ids$IDs, `[[`, 1)
-      # Reorder by matching IDs
-      private$.featureData <- private$.featureData[ base::order(base::match(private$.featureData[[ private$.feature_id ]], grouped_ids$ID_first)) ]
-      private$.countData <- counts_glom
+      
+      # Add new agglomerated files
+      private$.featureData <- private$.featureData[ 
+        base::order(base::match(
+          x = private$.featureData[[ private$.feature_id ]], 
+          table = grouped_ids$ID_first
+        )) 
+      ]
+      private$.countData <- counts
 
       # Replaces strings matching feature_filter with NAs
       if (!is.null(feature_filter)) {
