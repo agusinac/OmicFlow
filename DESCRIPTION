@@ -1,6 +1,6 @@
 Package: OmicFlow
 Title: Fast and Efficient (Automated) Analysis of Sparse Omics Data
-Version: 1.6.0
+Version: 1.6.0.9001
 Date: 2026-05-19
 Authors@R: c(
     person(
@@ -28,18 +28,16 @@ Config/testthat/edition: 3
 Encoding: UTF-8
 Roxygen: list(markdown = TRUE)
 Depends: 
-    R (>= 4.3.0),
+    R (>= 4.3.0)
+Imports:
     R6,
     data.table,
-    Matrix
-Imports: 
+    Matrix,
     ape,
     ggpubr,
     ggrepel,
     ggplot2,
-    jsonlite,
     jsonvalidate,
-    magrittr,
     methods,
     patchwork,
     RColorBrewer,
@@ -47,9 +45,6 @@ Imports:
     rstatix,
     Rcpp (>= 0.12.6),
     RcppParallel (>= 4.3.20),
-    stats,
-    tools,
-    utils,
     vegan,
     yyjsonr,
     cli

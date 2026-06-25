@@ -35,8 +35,6 @@ This function is built into the class \link{omics} with method \code{ordination(
 \link{metagenomics} and \link{proteomics}.
 }
 \examples{
-library("ggplot2")
-
 # Create random data
 set.seed(42)
 mock_data <- matrix(rnorm(15 * 10), nrow = 15, ncol = 10)

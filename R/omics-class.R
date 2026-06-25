@@ -7,10 +7,7 @@
 #' Every class is created with the \link[R6]{R6Class} method. Methods are either public or private, and only the public components are inherited by other omic classes.
 #' The omics class by default uses a \link[Matrix]{sparseMatrix} and \link[data.table]{data.table} data structures for quick and efficient data manipulation and returns the object by reference, same as the R6 class.
 #' The method by reference is very efficient when dealing with big data.
-#' @import R6 Matrix
-#' @importFrom jsonlite toJSON
-#' @importFrom jsonvalidate json_validate
-#' @importFrom ape keep.tip
+#' @import R6 data.table
 #' @export
 
 omics <- R6::R6Class(
@@ -128,7 +125,11 @@ omics <- R6::R6Class(
     #' @param metaData A path to an existing file, \link[data.table]{data.table} or data.frame.
     #' @return A new `omics` object.
     #'
-    initialize = function(countData = NULL, featureData = NULL, metaData = NULL) {
+    initialize = function(
+      countData = NULL, 
+      featureData = NULL, 
+      metaData = NULL
+    ) {
       #-------------------#
       ###   metaData    ###
       #-------------------#
@@ -145,10 +146,10 @@ omics <- R6::R6Class(
           #--------------------------------------------------------------------#
 
           cli::cli_alert_info("Checking for duplicated identifiers ..")
-          duplicated_sample_idx <- duplicated(private$.metaData, by = private$.sample_id)
+          duplicated_sample_idx <- base::duplicated(private$.metaData, by = private$.sample_id)
           duplicated_sample_ids <- any(duplicated_sample_idx)
           if (duplicated_sample_ids) {
-            duplicated_sample_names <- unique(private$.metaData[[private$.sample_id]][duplicated_sample_idx])
+            duplicated_sample_names <- data.table::unique(private$.metaData[[private$.sample_id]][duplicated_sample_idx])
             cli::cli_abort(
               "Found duplicated: {.val {duplicated_sample_names}}\
               \n Make sure {.arg SAMPLE_ID} column contains {.strong unique} identifiers!"
@@ -181,11 +182,11 @@ omics <- R6::R6Class(
         private$.featureData <- private$check_table(featureData)
 
         if (column_exists(private$.feature_id, private$.featureData)) {
-          duplicated_feature_idx <- duplicated(private$.featureData, by = private$.feature_id)
+          duplicated_feature_idx <- base::duplicated(private$.featureData, by = private$.feature_id)
           duplicated_feature_ids <- any(duplicated_feature_idx)
 
           if (duplicated_feature_ids) {
-            duplicated_feature_names <- unique(private$.featureData[[private$.feature_id]][duplicated_feature_idx])
+            duplicated_feature_names <- data.table::unique(private$.featureData[[private$.feature_id]][duplicated_feature_idx])
             cli::cli_abort(
               "Found duplicated: {.val {duplicated_feature_names}} \
               \n Make sure {.arg FEATURE_ID} column contains {.strong unique} identifiers!"
@@ -271,32 +272,29 @@ omics <- R6::R6Class(
       cloned
     },
     #' @description
-    #' Validates an input metadata against the JSON schema. The metadata should look as follows and should not contain any empty spaces.
-    #' For example; \code{'sample 1'} is not allowed, whereas \code{'sample1'} is allowed!
+    #' Validates an input metadata against the JSON schema. See [metadata file specification](https://agusinac.github.io/OmicFlow/articles/metadata.html) for more information.
     #' 
-    #' Acceptable column headers:
-    #' * SAMPLE_ID (required)
-    #' * SAMPLEPAIR_ID (optional)
-    #' * CONTRAST_ (optional), used for [`autoFlow()`](#method-autoFlow).
-    #' * VARIABLE_ (optional), not supported yet.
-    #' 
+    #' Acceptable column headers: \describe{
+    #'  \item{SAMPLE_ID}{(required) Sample IDs that should match those in the `countData` columns}
+    #'  \item{SAMPLEPAIR_ID}{(optional) Sample IDs that belong to a common source/subject}
+    #'  \item{CONTRAST_}{(optional) A prefix that can be added to columns to be recognised by [`autoFlow()`](#method-autoFlow).}
+    #' } 
     #' This function is used during the creation of a new object via [`new()`](#method-new) to validate the supplied metadata 
     #' via a filepath or existing \link[data.table]{data.table} or \link[base]{data.frame}.
     #' 
+    #' @importFrom jsonvalidate json_validate
+    #' @importFrom yyjsonr write_json_file
     #' @return None
     validate = function() {
-      # Creates temporary json file from metadata
+      # Creates temporary json file from `metaData`
       tmp_json <- base::tempfile(fileext = ".json")
 
-      json_data <- jsonlite::toJSON(
-        private$.metaData,
-        dataframe = "rows",
-        pretty = TRUE,
-        auto_unbox = TRUE
-        )
+      yyjsonr::write_json_file(
+        x = private$.metaData,
+        filename = tmp_json
+      )
 
-      writeLines(json_data, tmp_json)
-
+      # Check against schema
       private$.valid_schema <- jsonvalidate::json_validate(
         tmp_json,
         system.file("metadata_schema.json", package = "OmicFlow"),
@@ -379,7 +377,7 @@ omics <- R6::R6Class(
     },
     #' @description
     #' Remove NAs from `metaData` and updates the `countData`.
-    #' @param column The column from where NAs should be removed, this can be either a wholenumbers or characters. Vectors are also supported.
+    #' @param column The column from where NAs should be removed, this can be either wholenumbers or characters. Multiple inputs are supported.
     #' @examples
     #' library("OmicFlow")
     #'
@@ -412,7 +410,7 @@ omics <- R6::R6Class(
 
       ## MAIN
       #--------------------------------------------------------------------#
-      private$.metaData <- na.omit(private$.metaData, cols = column)
+      private$.metaData <- private$.metaData[stats::complete.cases(private$.metaData[, .SD, .SDcols = column])]
       private$sync()
       invisible(self)
     },
@@ -701,7 +699,6 @@ omics <- R6::R6Class(
     #' @param feature_ranks A vector of characters or integers that match the `featureData`.
     #' @param unique A boolean value to display only unique entries in `feature_ranks`.
     #' @examples
-    #' library("ggplot2")
     #' library("OmicFlow")
     #'
     #' metadata_file <- system.file("extdata", "metadata.tsv", package = "OmicFlow")
@@ -747,29 +744,41 @@ omics <- R6::R6Class(
       }
       
       # Pivot into long table
-      long_values <- data.table::melt(data = values,
-                                      measure.vars = names(values),
-                                      variable.name = "variable",
-                                      value.name = "counts")
+      long_values <- data.table::melt(
+        data = values,
+        measure.vars = names(values),
+        variable.name = "variable",
+        value.name = "counts"
+      )
 
       # Sets order level of taxonomic ranks
       long_values[, variable := factor(variable, levels = base::rev(feature_ranks))]
 
       # Returns rankstat plot
-      return(long_values %>%
-               ggplot(mapping = aes(x = variable,
-                                    y = counts)) +
-               geom_col(fill = "grey",
-                        colour = "grey15",
-                        linewidth = 0.25) +
-               coord_flip() +
-               geom_text(mapping = aes(label = counts),
-                         hjust = -0.1,
-                         fontface = "bold") +
-               ylim(0, max(long_values$counts)*1.10) +
-               theme_bw() +
-               labs(x = "Rank",
-                    y = "Number of features classified"))
+      return(ggplot2::ggplot(
+        data = long_values,
+        mapping = ggplot2::aes(
+          x = variable,
+          y = counts
+        )
+      ) +
+      ggplot2::geom_col(
+        fill = "grey",
+        colour = "grey15",
+        linewidth = 0.25
+      ) +
+      ggplot2::coord_flip() +
+      ggplot2::geom_text(
+        mapping = ggplot2::aes(label = counts),
+        hjust = -0.1,
+        fontface = "bold"
+      ) +
+      ggplot2::ylim(0, max(long_values$counts)*1.10) +
+      ggplot2::theme_bw() +
+      ggplot2::labs(
+        x = "Rank",
+        y = "Number of features classified")
+      )
     },
     #' @description
     #' Alpha diversity based on \link{diversity}
@@ -781,7 +790,6 @@ omics <- R6::R6Class(
     #' @param paired A boolean value to perform paired analysis in \link[stats]{wilcox.test} and samplepair subsetting via [`samplepair_subset()`](#method-samplepair_subset)
     #' @param p.adjust.method A character variable to specify the p.adjust.method to be used, default is 'fdr'.
     #' @examples
-    #' library("ggplot2")
     #' library("OmicFlow")
     #'
     #' metadata_file <- system.file("extdata", "metadata.tsv", package = "OmicFlow")
@@ -797,11 +805,11 @@ omics <- R6::R6Class(
     #' plt <- obj$alpha_diversity(col_name = "treatment",
     #'                            metric = "shannon")
     #'
-    #' @returns A list of components:
-    #'  * `div` A \link[base]{data.frame} from \link{diversity}.
-    #'  * `stats` A pairwise statistics from \link[rstatix]{pairwise_wilcox_test}.
-    #'  * `plot` A \link[ggplot2]{ggplot} object.
-    #' 
+    #' @returns A list of components: \describe{
+    #'  \item{data}{A \link[base]{data.frame} from \link{diversity}.}
+    #'  \item{stats}{A pairwise statistics from \link[rstatix]{pairwise_wilcox_test}.}
+    #'  \item{plot}{A \link[ggplot2]{ggplot} object.}
+    #' }
     #' @seealso \link{diversity_plot}
     alpha_diversity = function(col_name,
                                metric = c("shannon", "invsimpson", "simpson"),
@@ -820,7 +828,7 @@ omics <- R6::R6Class(
         cli::cli_abort("The specified {.val {col_name}} does not exist in the {.field metaData}.")
       }
 
-      if (!c(p.adjust.method %in% p.adjust.methods))
+      if (!c(p.adjust.method %in% stats::p.adjust.methods))
         cli::cli_abort("Specified {.val {p.adjust.method}} is not valid. \nValid options: {.val {p.adjust.methods}}")
 
       ## MAIN
@@ -869,7 +877,7 @@ omics <- R6::R6Class(
       # Create and saves plots
       plot_list$data <- div
       diversity_plt <- diversity_plot(
-        data = na.omit(div),
+        data = stats::na.omit(div),
         values = "V1",
         col_name = col_name,
         group_by = group_by,
@@ -892,7 +900,6 @@ omics <- R6::R6Class(
     #' @param feature_top A wholenumber of the top features to visualize, the max is 15, due to a limit of palettes.
     #' @param Brewer.palID A character name for the palette set to be applied, see \link[RColorBrewer]{brewer.pal} or \link{colormap}.
     #' @examples
-    #' library("ggplot2")
     #' library("OmicFlow")
     #'
     #' metadata_file <- system.file("extdata", "metadata.tsv", package = "OmicFlow")
@@ -913,16 +920,19 @@ omics <- R6::R6Class(
     #'                         palette = result$palette,
     #'                         feature_rank = "Genus")
     #'
-    #' @returns A list of components:
-    #'  * `data` A \link[data.table]{data.table} of feature compositions.
-    #'  * `palette` A \link[stats]{setNames} palette from \link{colormap}.
+    #' @returns A list of components: \describe{
+    #'  \item{data}{A \link[data.table]{data.table} of feature compositions.}
+    #'  \item{palette}{A \link[stats]{setNames} palette from \link{colormap} matching the top features.}
+    #' }
     #' 
     #' @seealso \link{composition_plot}
-    composition = function(feature_rank,
-                           feature_filter = NULL,
-                           col_name = NULL,
-                           feature_top = c(10, 15),
-                           Brewer.palID = "RdYlBu") {
+    composition = function(
+      feature_rank,
+      feature_filter = NULL,
+      col_name = NULL,
+      feature_top = c(10, 15),
+      Brewer.palID = "RdYlBu"
+    ) {
 
       ## Error handling
       #--------------------------------------------------------------------#
@@ -1014,12 +1024,13 @@ omics <- R6::R6Class(
 
       # Adds metadata columns by user input
       if (!is.null(col_name)) {
-        composition_final <- base::merge(final_long,
-                                         private$.metaData[, .SD, .SDcols = c(private$.sample_id, col_name)],
-                                         by = private$.sample_id,
-                                         all = TRUE,
-                                         allow.cartesian = TRUE) %>%
-          unique()
+        composition_merged <- base::merge(
+          x = final_long,
+          y = private$.metaData[, .SD, .SDcols = c(private$.sample_id, col_name)],
+          by = private$.sample_id,
+          all = TRUE,
+          allow.cartesian = TRUE)
+        composition_final <- base::unique(composition_merged)
       } else {
         composition_final <- final_long
       }
@@ -1268,19 +1279,27 @@ omics <- R6::R6Class(
 
       if (method == "pcoa") {
         # Scree plot of first 10 dimensions
-        plot_list$scree_plot <- data.table::data.table(
+        tmp <- data.table::data.table(
           dims = seq(length(pcs$eig_norm[1:10])),
           dims.explained = pcs$eig_norm[1:10]
-        ) %>%
-          ggplot(mapping = aes(x = dims,
-                               y = dims.explained)) +
-          geom_col() +
-          theme_bw() +
-          scale_x_continuous(breaks=seq(1, 10, 1)) +
-          scale_y_continuous(breaks=seq(0, 100, 10)) +
-          labs(title = paste0("Screeplot of ", length(pcs$eig_norm[1:10])," PCs"),
-               x = "Principal Components (PCs)",
-               y = "dissimilarity explained [%]")
+        )
+
+        plot_list$scree_plot <- ggplot2::ggplot(
+          data = tmp,
+          mapping = ggplot2::aes(
+            x = dims,
+            y = dims.explained
+            )
+          ) +
+          ggplot2::geom_col() +
+          ggplot2::theme_bw() +
+          ggplot2::scale_x_continuous(breaks=seq(1, 10, 1)) +
+          ggplot2::scale_y_continuous(breaks=seq(0, 100, 10)) +
+          ggplot2::labs(
+            title = paste0("Screeplot of ", length(pcs$eig_norm[1:10])," PCs"),
+            x = "Principal Components (PCs)",
+            y = "dissimilarity explained [%]"
+          )
 
         # PERMANOVA
         plot_list$anova_plot <- plot_pairwise_stats(
@@ -1325,11 +1344,12 @@ omics <- R6::R6Class(
     #' 
     #' The function performs feature agglomeration, subsetting to remove NAs in `condition.group` and finding samplepairs. It expects that the data is already log-transformed, this can be accomplished via [`scale()`](#method-scale)
     #' 
-    #' @param feature_rank A character or vector of characters in the `featureData` to aggregate via [`feature_merge()`](#method-feature_merge) (default: \code{"FEATURE_ID"}).
+    #' @param feature_rank A column in the `featureData` to use as the feature scope (default: \code{"FEATURE_ID"}).
     #' @param feature_filter A character or vector of characters to remove features via regex pattern (default: \code{NULL}).
     #' @param paired A boolean value, the paired is only applicable when a `SAMPLEPAIR_ID` column exists within the `metaData`. See \link[stats]{wilcox.test} and [`samplepair_subset()`](#method-samplepair_subset).
     #' @param condition.group A character variable of an existing column name in `metaData`, wherein the conditions A and B are located.
     #' @param group_by A character variable of an existing column in `metaData` to split the table in chunks prior to fold-change computation (default: \code{NULL}). When disabled then column names will end with `_in_all`.
+    #' @param merge A boolean value wether to merge features in `feature_rank` (default: \code{FALSE}).
     #' @param condition_A A character value or vector of characters.
     #' @param condition_B A character value or vector of characters.
     #' @param pvalue.threshold A numeric value used as a p-value threshold to label and color significant features (default: 0.05).
@@ -1368,6 +1388,7 @@ omics <- R6::R6Class(
       condition_A,
       condition_B,
       group_by = NULL,
+      merge = FALSE,
       feature_rank = "FEATURE_ID",
       feature_filter = NULL,
       paired = FALSE,
@@ -1436,8 +1457,12 @@ omics <- R6::R6Class(
       }, add = TRUE)
 
       # Agglomerate taxa by feature rank and filter unwanted taxa
-      self$feature_merge(feature_rank = feature_rank,
-                         feature_filter = feature_filter)
+      if (merge) {
+        self$feature_merge(
+          feature_rank = feature_rank,
+          feature_filter = feature_filter
+        )
+      }
 
       # Subset by missing values
       self$removeNAs(condition.group)
@@ -1568,6 +1593,7 @@ omics <- R6::R6Class(
     #' @param threads Number of threads to use, only used in [`distance()`](#method-distance) when distmat is not supplied (default: 1).
     #' @param report A boolean value to create a HTML markdown report (default: \code{FALSE}). If \code{FALSE} a nested list of the plots and data is returned.
     #' @param filename A character to name the HTML report to be saved in the current working directory (default: \code{paste0(getwd(), "/report.html")}). The \code{getwd()} is required for rmarkdown to save it in the right path.
+    #' 
     #' @importFrom patchwork plot_layout wrap_plots
     #' @return List of plots/data or rendered HTML report
     autoFlow = function(feature_contrast = "FEATURE_ID",
@@ -2005,7 +2031,7 @@ omics <- R6::R6Class(
     },
     removeZeros = function() {
       keep_cols <- base::diff(private$.countData@p) > 0
-      keep_rows <- base::diff(t(private$.countData)@p) > 0
+      keep_rows <- base::diff(Matrix::t(private$.countData)@p) > 0
 
       private$.countData <- private$.countData[keep_rows, keep_cols]
       private$.metaData <- private$.metaData[keep_cols, ]
@@ -2066,14 +2092,14 @@ omics <- R6::R6Class(
       )
       
       # Return CsparseMatrix
-      return(as(mat, "CsparseMatrix"))
+      return(methods::as(mat, "CsparseMatrix"))
     }
 
     if (inherits(data, "sparseMatrix"))
       return(data)
 
     if (is.matrix(data) || inherits(data, "denseMatrix"))
-      return(as(data, "CsparseMatrix"))
+      return(methods::as(data, "CsparseMatrix"))
       
     cli::cli_abort("Input must be an existing {.val filepath}, {.cls matrix} or {.cls Matrix}.")
     }

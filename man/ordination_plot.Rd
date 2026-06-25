@@ -32,8 +32,6 @@ This function is built into the class \link{omics} with method \code{ordination(
 \link{metagenomics} and \link{proteomics}.
 }
 \examples{
-library(ggplot2)
-
 # Mock principal component scores
 set.seed(123)
 mock_data <- data.frame(

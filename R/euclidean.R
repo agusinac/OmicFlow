@@ -11,9 +11,7 @@
 #' where \eqn{A_i} and \eqn{B_i} are the abundances of the \eqn{i}-th feature in sample \eqn{A} and \eqn{B}, respectively.
 #' When weighted is set to FALSE, counts are replaced by presence/absence data.
 #'
-#' @param x A \link[base]{matrix}, \link[Matrix]{sparseMatrix} or \link[Matrix]{Matrix}.
-#' @param weighted A boolean value, to use abundances (\code{weighted = TRUE}) or absence/presence (\code{weighted=FALSE}) (default: TRUE).
-#' @param threads A wholenumber, the number of threads to use in \link[RcppParallel]{setThreadOptions} (default: 1).
+#' @inheritParams bray
 #' @return A column x column \link[stats]{dist} object.
 #' @examples 
 #' library("OmicFlow")
@@ -34,9 +32,7 @@
 #' taxa$scale(method = "tss")
 #'
 #' euclidean(taxa$countData)
-#' @importFrom RcppParallel setThreadOptions
 #' @importFrom Matrix sparseMatrix
-#' @importFrom stats as.dist
 #' @export
 
 euclidean <- function(x, weighted = TRUE, threads = 1) {
@@ -47,7 +43,7 @@ euclidean <- function(x, weighted = TRUE, threads = 1) {
         cli::cli_abort("Input must a matrix of class matrix or Matrix, not a vector.")
 
     if (inherits(x, "denseMatrix") || inherits(x, "matrix") || inherits(x, "sparseMatrix")) {
-        x <- as(x, "CsparseMatrix")
+        x <- methods::as(x, "CsparseMatrix")
     } else cli::cli_abort("Input isn't a {.cls matrix}, {.cls denseMatrix} or {.cls sparseMatrix}.")
 
     if (!is.numeric(x@x))
@@ -68,5 +64,5 @@ euclidean <- function(x, weighted = TRUE, threads = 1) {
     if (!is.null(col_names))
         dimnames(out) <- list(col_names, col_names)
 
-    return(as.dist(out))
+    return(stats::as.dist(out))
 }

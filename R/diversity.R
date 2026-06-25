@@ -25,7 +25,7 @@
 #' col_idx <- ((positions - 1) %/% n_row) + 1
 #'
 #' values <- runif(num_nonzero, min = 0, max = 1)
-#' sparse_mat <- sparseMatrix(
+#' sparse_mat <- Matrix::sparseMatrix(
 #'   i = row_idx,
 #'   j = col_idx,
 #'   x = values,
@@ -33,11 +33,12 @@
 #' )
 #'
 #' # Alpha diversity is computed on column level
-#' ## Transpose the sparseMatrix if required with t() from Matrix R package.
+#' ## Transpose the sparseMatrix if required with `t()` from Matrix R package.
 #' result <- OmicFlow::diversity(
 #'   x = sparse_mat,
 #'   metric = "shannon"
 #' ) 
+#' @importFrom Matrix sparseMatrix
 #' @export
 
 diversity <- function(x,
@@ -49,7 +50,7 @@ diversity <- function(x,
   #--------------------------------------------------------------------#
 
   if (inherits(x, "denseMatrix") || inherits(x, "matrix") || inherits(x, "sparseMatrix")) {
-    x <- as(x, "CsparseMatrix")
+    x <- methods::as(x, "CsparseMatrix")
   } else cli::cli_abort("Input isn't a {.cls matrix}, {.cls denseMatrix} or {.cls sparseMatrix}.")
 
   if (!is.numeric(x@x))

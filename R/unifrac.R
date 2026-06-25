@@ -16,11 +16,9 @@
 #'      \eqn{d(A,B) = \frac{\sum_{i}^n L_i |A_i - B_i|}{\sum_{i}^n L_i \max(A_i, B_i)}}
 #'  }
 #'}
-#' @param x A \link[base]{matrix}, \link[Matrix]{sparseMatrix} or \link[Matrix]{Matrix} of strictly positive counts or presence/absence data.
+#' @inheritParams bray
 #' @param tree A `phylo` class tree.
-#' @param weighted A boolean value, to use abundances (\code{weighted = TRUE}) or absence/presence (\code{weighted=FALSE}) (default: TRUE).
-#' @param normalized A boolean value, whether to normalize weighted UniFrac distances to be between 0 and 1 (default: TRUE). Unweighted UniFrac is always normalized.
-#' @param threads A wholenumber, the number of threads to use in \link[RcppParallel]{setThreadOptions} (default: 1).
+#' @param normalized A boolean value, whether to normalize weighted UniFrac distances to be between 0 and 1 (default: \code{TRUE}). Unweighted UniFrac is always normalized.
 #' @return A column x column \link[stats]{dist} object.
 #' @references
 #' Lozupone, C., & Knight, R. (2005). UniFrac: a new phylogenetic method for comparing microbial communities. Applied and Environmental Microbiology, 71(12), 8228–8235.
@@ -50,9 +48,7 @@
 #' 
 #' # Unweighted UniFrac
 #' unifrac(x = taxa$countData, tree = taxa$treeData, weighted=FALSE)
-#' @importFrom RcppParallel setThreadOptions
 #' @importFrom Matrix sparseMatrix
-#' @importFrom stats as.dist
 #' @export
 
 unifrac <- function(x, tree, weighted = TRUE, normalized = TRUE, threads = 1) {
@@ -63,7 +59,7 @@ unifrac <- function(x, tree, weighted = TRUE, normalized = TRUE, threads = 1) {
         cli::cli_abort("Tree must be of class `phylo`.")
 
     if (inherits(x, "denseMatrix") || inherits(x, "matrix") || inherits(x, "sparseMatrix")) {
-        x <- as(x, "CsparseMatrix")
+        x <- methods::as(x, "CsparseMatrix")
     } else cli::cli_abort("Input isn't a {.cls matrix}, {.cls denseMatrix} or {.cls sparseMatrix}.")
 
     if (!is.numeric(x@x))
@@ -90,5 +86,5 @@ unifrac <- function(x, tree, weighted = TRUE, normalized = TRUE, threads = 1) {
     if (!is.null(col_names))
         dimnames(out) <- list(col_names, col_names)
 
-    return(as.dist(out))
+    return(stats::as.dist(out))
 }

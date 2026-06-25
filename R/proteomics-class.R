@@ -7,7 +7,6 @@
 #' Every omics class creates an internal memory efficient back-up of the data, the resetting of changes is an instant process.
 #' @seealso \link{omics}
 #' @import R6
-#' @importFrom ape read.tree
 #' @export
 
 proteomics <- R6::R6Class(
@@ -55,11 +54,21 @@ proteomics <- R6::R6Class(
     #' @param featureData A path to an existing file, \link[data.table]{data.table} or data.frame.
     #' @param metaData A path to an existing file, \link[data.table]{data.table} or data.frame.
     #' @param treeData A path to an existing newick file or class "phylo", see \link[ape]{read.tree}.
+    #' 
+    #' @importFrom ape read.tree
     #' @return A new `proteomics` object.
-    initialize = function(countData = NULL, metaData = NULL, featureData = NULL, treeData = NULL) {
-      super$initialize(countData = countData,
-                       metaData = metaData,
-                       featureData = featureData)
+    initialize = function(
+      countData = NULL, 
+      metaData = NULL, 
+      featureData = NULL, 
+      treeData = NULL
+    ) {
+      
+      super$initialize(
+        countData = countData,
+        metaData = metaData,
+        featureData = featureData
+      )
 
       #-------------------#
       ###   treeData    ###
@@ -77,7 +86,14 @@ proteomics <- R6::R6Class(
         }
 
         # Aligning featureData and countData rows by tree tips
-        private$.featureData <- private$.featureData[order(match(private$.featureData[[ private$.feature_id ]], private$.treeData$tip.label))]
+        private$.featureData <- private$.featureData[
+          base::order(
+            base::match(
+              x = private$.featureData[[ private$.feature_id ]], 
+              table = private$.treeData$tip.label
+            )
+          )
+        ]
         private$.countData <- private$.countData[private$.featureData[[ private$.feature_id ]], ]
       }
       private$sync()

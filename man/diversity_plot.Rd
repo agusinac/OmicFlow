@@ -40,7 +40,6 @@ Creates an Alpha diversity plot. This function is built into the class \link{omi
 It computes the pairwise wilcox test, paired or non-paired, given a data frame and adds useful labelling.
 }
 \examples{
-library("ggplot2")
  
 n_row <- 1000
 n_col <- 100

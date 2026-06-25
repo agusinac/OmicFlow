@@ -48,11 +48,8 @@ This function is built into the class \link{omics} with method \code{DFE()} and 
 \link{metagenomics} and \link{proteomics}.
 }
 \examples{
-library(data.table)
-library(ggplot2)
-
 # Create mock data frame
-mock_volcano_data <- data.table(
+mock_volcano_data <- data.table::data.table(
 
   # Feature names (feature_rank)
   Feature = paste0("Gene", 1:20),   
@@ -70,7 +67,7 @@ mock_volcano_data <- data.table(
              0.02, 0.8, 0.04, 0.12, 0.03),
   
   # Mean (relative) abundance for point sizing
-  rel_abun = runif(20, 0.01, 0.1)            
+  rel_abun = stats::runif(20, 0.01, 0.1)            
 )
 
 volcano_plot(

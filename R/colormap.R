@@ -18,7 +18,6 @@
 #'
 #' colors <- colormap(data = dt,
 #'                    col_name = "treatment")
-#' @importFrom RColorBrewer brewer.pal.info brewer.pal
 #' @export
 
 colormap <- function(data,

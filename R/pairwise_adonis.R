@@ -20,7 +20,6 @@
 #'  * R2 of H_0
 #'  * p value of F^p > F
 #'  * p adjusted
-#' @importFrom stats p.adjust.methods
 #' @examples 
 #' # Create random data
 #' set.seed(42)
@@ -39,12 +38,13 @@
 #'                           perm = 99)
 #' @export
 
-pairwise_adonis <- function(x,
-                            groups,
-                            metadata = NULL,
-                            perm_design = NULL,
-                            p.adjust.method = "bonferroni",
-                            perm = 999){
+pairwise_adonis <- function(
+  x,
+  groups,
+  metadata = NULL,
+  perm_design = NULL,
+  p.adjust.method = "bonferroni",
+  perm = 999){
 
   ## Error handling
   #--------------------------------------------------------------------#
@@ -61,7 +61,7 @@ pairwise_adonis <- function(x,
   if (!is.null(perm_design) && !is.function(perm_design))
     cli::cli_abort("{.val perm_design} must be a function.")
 
-  if (!c(p.adjust.method %in% p.adjust.methods))
+  if (!c(p.adjust.method %in% stats::p.adjust.methods))
     cli::cli_abort("{.val {p.adjust.method}} is not a valid method. \nValid options: {.val {p.adjust.methods}}.")
 
   if (!is.wholenumber(perm))
@@ -114,7 +114,7 @@ pairwise_adonis <- function(x,
     p.value[i] <- ad$`Pr(>F)`[1]
   }
   # Adjusts P-values and returns combined dataframe
-  p.adj <- p.adjust(p.value, method = p.adjust.method)
+  p.adj <- stats::p.adjust(p.value, method = p.adjust.method)
   pairw.res <- data.frame(pairs, Df, SumsOfSqs, F.Model, R2, p.value, p.adj)
   return(pairw.res)
 }

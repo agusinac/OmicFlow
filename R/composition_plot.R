@@ -9,12 +9,8 @@
 #' @param title_name A character to set the \code{ggtitle} of the \link[ggplot2]{ggplot}, (Default: NULL).
 #' @param group_by A character variable to aggregate the stacked bars by group (Default: NULL).
 #' @return A \link[ggplot2]{ggplot2} object to be further modified
-#'
-#' @importFrom ggplot2 ggplot aes .data geom_bar coord_flip theme_bw theme element_text scale_x_discrete scale_fill_manual labs ggtitle
 #' 
 #' @examples
-#' library("ggplot2")
-#' 
 #' # Create mock_data as data.frame (data.table is also supported)
 #' mock_data <- data.frame(
 #'   SAMPLE_ID = rep(paste0("Sample", 1:10), each = 5),
@@ -67,6 +63,7 @@
 #'   title_name = "Mock Genus Composition by Group",
 #'   group_by = "Group"
 #' )
+#' @import ggplot2
 #' @export
 
 composition_plot <- function(data,
@@ -108,51 +105,60 @@ composition_plot <- function(data,
 
   # Generates a stacked barplot as base with custome palette
   if (!is.null(group_by)) {
-    plt <- data %>%
-      ggplot(mapping = aes(y = .data[["value"]],
-                           x = as.factor(.data[[ group_by ]]),
-                           fill = .data[[ feature_rank ]]))
+    plt <- ggplot2::ggplot(
+      data = data,
+      mapping = ggplot2::aes(
+        y = .data[["value"]],
+        x = as.factor(.data[[ group_by ]]),
+        fill = .data[[ feature_rank ]]
+      )
+    )
   } else {
-    plt <- data %>%
-      ggplot(mapping = aes(y = .data[["value"]],
-                           x = .data[["SAMPLE_ID"]],
-                           fill = base::get(feature_rank, data)))
+    plt <- ggplot2::ggplot(
+      data = data, 
+      mapping = ggplot2::aes(
+        y = .data[["value"]],
+        x = .data[["SAMPLE_ID"]],
+        fill = base::get(feature_rank, data)
+      )
+    )
   }
   # Required for stacked barplot
   plt <- plt +
-    geom_bar(
+    ggplot2::geom_bar(
       position = "fill",
       stat = "identity"
     )
 
   if (is.null(group_by)) {
     plt <- plt +
-      coord_flip()
+      ggplot2::coord_flip()
   }
   plt <- plt +
-    theme_bw() +
-    theme(
-      plot.title = element_text(size = 14, face = "bold"),
-      plot.subtitle = element_text(size = 13),
-      axis.text.x = element_text(angle = 90, size = 12,
-                                 vjust = 0.5, hjust=1,
-                                 colour = "black"),
-      axis.title.y = element_text(size = 12),
-      axis.title.x = element_text(size = 12, vjust=0.5),
-      legend.title = element_text(size = 14, face = "bold"),
-      legend.text = element_text(size = 12, colour = "black"),
-      axis.text.y = element_text(colour = "black", size = 12)
+    ggplot2::theme_bw() +
+    ggplot2::theme(
+      plot.title = ggplot2::element_text(size = 14, face = "bold"),
+      plot.subtitle = ggplot2::element_text(size = 13),
+      axis.text.x = ggplot2::element_text(
+        angle = 90, size = 12,
+        vjust = 0.5, hjust=1,
+        colour = "black"
+      ),
+      axis.title.y = ggplot2::element_text(size = 12),
+      axis.title.x = ggplot2::element_text(size = 12, vjust=0.5),
+      legend.title = ggplot2::element_text(size = 14, face = "bold"),
+      legend.text = ggplot2::element_text(size = 12, colour = "black"),
+      axis.text.y = ggplot2::element_text(colour = "black", size = 12)
     )
 
   if (is.null(group_by)) {
     plt <- plt +
-      scale_x_discrete(limits = rev(levels(as.factor(data[["SAMPLE_ID"]]))))
+      ggplot2::scale_x_discrete(limits = rev(levels(as.factor(data[["SAMPLE_ID"]]))))
   }
   plt <- plt +
-    scale_fill_manual(values = palette, name = feature_rank) +
-    labs(y = "Rel. Abun.",
-         x = NULL) +
-    ggtitle(title_name)
+    ggplot2::scale_fill_manual(values = palette, name = feature_rank) +
+    ggplot2::labs(y = "Rel. Abun.", x = NULL) +
+    ggplot2::ggtitle(title_name)
 
   return(plt)
 }

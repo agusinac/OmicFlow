@@ -11,11 +11,7 @@
 #' @return A numeric vector with type double.
 #' @seealso \link[hillR]{hill_taxa}
 #' 
-#' @importFrom methods as
-#' 
 #' @examples 
-#' library("Matrix")
-#' 
 #' n_row <- 1000
 #' n_col <- 100
 #' density <- 0.2
@@ -28,7 +24,7 @@
 #' col_idx <- ((positions - 1) %/% n_row) + 1
 #'
 #' values <- runif(num_nonzero, min = 0, max = 1)
-#' sparse_mat <- sparseMatrix(
+#' sparse_mat <- Matrix::sparseMatrix(
 #'   i = row_idx,
 #'   j = col_idx,
 #'   x = values,
@@ -39,17 +35,20 @@
 #'  x = sparse_mat,
 #'  q = 2
 #' )
+#' @importFrom Matrix sparseMatrix
 #' @export
 
-hill_taxa <- function (x,
-                       q = 0,
-                       normalize = TRUE, 
-                       base = exp(1)) {
+hill_taxa <- function (
+  x,
+  q = 0,
+  normalize = TRUE, 
+  base = exp(1)
+  ) {
 
   ## Error handling
   #--------------------------------------------------------------------#
   if (inherits(x, "denseMatrix") || inherits(x, "matrix") || inherits(x, "sparseMatrix")) {
-    x <- as(x, "CsparseMatrix")
+    x <- methods::as(x, "CsparseMatrix")
   } else cli::cli_abort("Input isn't a {.cls matrix}, {.cls denseMatrix} or {.cls sparseMatrix}.")
 
   if (!is.numeric(x@x))

@@ -192,7 +192,6 @@ obj$scale(method = "none", transform = log2)
 ## Method `omics$rankstat()`
 ## ------------------------------------------------
 
-library("ggplot2")
 library("OmicFlow")
 
 metadata_file <- system.file("extdata", "metadata.tsv", package = "OmicFlow")
@@ -212,7 +211,6 @@ plt
 ## Method `omics$alpha_diversity()`
 ## ------------------------------------------------
 
-library("ggplot2")
 library("OmicFlow")
 
 metadata_file <- system.file("extdata", "metadata.tsv", package = "OmicFlow")
@@ -233,7 +231,6 @@ plt <- obj$alpha_diversity(col_name = "treatment",
 ## Method `omics$composition()`
 ## ------------------------------------------------
 
-library("ggplot2")
 library("OmicFlow")
 
 metadata_file <- system.file("extdata", "metadata.tsv", package = "OmicFlow")
@@ -451,17 +448,13 @@ cloned$reset() # resets to data after clone creation.
 \if{html}{\out{<a id="method-omics-validate"></a>}}
 \if{latex}{\out{\hypertarget{method-omics-validate}{}}}
 \subsection{\code{omics$validate()}}{
-  Validates an input metadata against the JSON schema. The metadata should look as follows and should not contain any empty spaces.
-For example; \code{'sample 1'} is not allowed, whereas \code{'sample1'} is allowed!
+  Validates an input metadata against the JSON schema. See \href{https://agusinac.github.io/OmicFlow/articles/metadata.html}{metadata file specification} for more information.
 
-Acceptable column headers:
-\itemize{
-\item SAMPLE_ID (required)
-\item SAMPLEPAIR_ID (optional)
-\item CONTRAST_ (optional), used for \href{#method-autoFlow}{\code{autoFlow()}}.
-\item VARIABLE_ (optional), not supported yet.
+Acceptable column headers: \describe{
+\item{SAMPLE_ID}{(required) Sample IDs that should match those in the \code{countData} columns}
+\item{SAMPLEPAIR_ID}{(optional) Sample IDs that belong to a common source/subject}
+\item{CONTRAST_}{(optional) A prefix that can be added to columns to be recognised by \href{#method-autoFlow}{\code{autoFlow()}}.}
 }
-
 This function is used during the creation of a new object via \href{#method-new}{\code{new()}} to validate the supplied metadata
 via a filepath or existing \link[data.table]{data.table} or \link[base]{data.frame}.
   \subsection{Usage}{
@@ -565,7 +558,7 @@ taxa$rankstat(feature_ranks = c("Kingdom", "Phylum", "Family", "Genus", "Species
   \subsection{Arguments}{
     \if{html}{\out{<div class="arguments">}}
     \describe{
-      \item{\code{column}}{The column from where NAs should be removed, this can be either a wholenumbers or characters. Vectors are also supported.}
+      \item{\code{column}}{The column from where NAs should be removed, this can be either wholenumbers or characters. Multiple inputs are supported.}
     }
     \if{html}{\out{</div>}}
   }
@@ -822,8 +815,7 @@ obj$scale(method = "none", transform = log2)
   }
   \subsection{Examples}{
     \if{html}{\out{<div class="r example copy">}}
-    \preformatted{library("ggplot2")
-library("OmicFlow")
+    \preformatted{library("OmicFlow")
 
 metadata_file <- system.file("extdata", "metadata.tsv", package = "OmicFlow")
 counts_file <- system.file("extdata", "counts.tsv", package = "OmicFlow")
@@ -874,17 +866,15 @@ plt
     \if{html}{\out{</div>}}
   }
   \subsection{Returns}{
-    A list of components:
-\itemize{
-\item \code{div} A \link[base]{data.frame} from \link{diversity}.
-\item \code{stats} A pairwise statistics from \link[rstatix]{pairwise_wilcox_test}.
-\item \code{plot} A \link[ggplot2]{ggplot} object.
+    A list of components: \describe{
+\item{data}{A \link[base]{data.frame} from \link{diversity}.}
+\item{stats}{A pairwise statistics from \link[rstatix]{pairwise_wilcox_test}.}
+\item{plot}{A \link[ggplot2]{ggplot} object.}
 }
   }
   \subsection{Examples}{
     \if{html}{\out{<div class="r example copy">}}
-    \preformatted{library("ggplot2")
-library("OmicFlow")
+    \preformatted{library("OmicFlow")
 
 metadata_file <- system.file("extdata", "metadata.tsv", package = "OmicFlow")
 counts_file <- system.file("extdata", "counts.tsv", package = "OmicFlow")
@@ -931,16 +921,14 @@ plt <- obj$alpha_diversity(col_name = "treatment",
     \if{html}{\out{</div>}}
   }
   \subsection{Returns}{
-    A list of components:
-\itemize{
-\item \code{data} A \link[data.table]{data.table} of feature compositions.
-\item \code{palette} A \link[stats]{setNames} palette from \link{colormap}.
+    A list of components: \describe{
+\item{data}{A \link[data.table]{data.table} of feature compositions.}
+\item{palette}{A \link[stats]{setNames} palette from \link{colormap} matching the top features.}
 }
   }
   \subsection{Examples}{
     \if{html}{\out{<div class="r example copy">}}
-    \preformatted{library("ggplot2")
-library("OmicFlow")
+    \preformatted{library("OmicFlow")
 
 metadata_file <- system.file("extdata", "metadata.tsv", package = "OmicFlow")
 counts_file <- system.file("extdata", "counts.tsv", package = "OmicFlow")
@@ -1101,6 +1089,7 @@ The function performs feature agglomeration, subsetting to remove NAs in \code{c
   condition_A,
   condition_B,
   group_by = NULL,
+  merge = FALSE,
   feature_rank = "FEATURE_ID",
   feature_filter = NULL,
   paired = FALSE,
@@ -1117,7 +1106,8 @@ The function performs feature agglomeration, subsetting to remove NAs in \code{c
       \item{\code{condition_A}}{A character value or vector of characters.}
       \item{\code{condition_B}}{A character value or vector of characters.}
       \item{\code{group_by}}{A character variable of an existing column in \code{metaData} to split the table in chunks prior to fold-change computation (default: \code{NULL}). When disabled then column names will end with \verb{_in_all}.}
-      \item{\code{feature_rank}}{A character or vector of characters in the \code{featureData} to aggregate via \href{#method-feature_merge}{\code{feature_merge()}} (default: \code{"FEATURE_ID"}).}
+      \item{\code{merge}}{A boolean value wether to merge features in \code{feature_rank} (default: \code{FALSE}).}
+      \item{\code{feature_rank}}{A column in the \code{featureData} to use as the feature scope (default: \code{"FEATURE_ID"}).}
       \item{\code{feature_filter}}{A character or vector of characters to remove features via regex pattern (default: \code{NULL}).}
       \item{\code{paired}}{A boolean value, the paired is only applicable when a \code{SAMPLEPAIR_ID} column exists within the \code{metaData}. See \link[stats]{wilcox.test} and \href{#method-samplepair_subset}{\code{samplepair_subset()}}.}
       \item{\code{pvalue.threshold}}{A numeric value used as a p-value threshold to label and color significant features (default: 0.05).}

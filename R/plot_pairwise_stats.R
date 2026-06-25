@@ -11,10 +11,7 @@
 #' @param y_axis_title A character variable to name the Y - axis title (default: NULL).
 #' @param plot_title A character variable to name the plot title (default: NULL).
 #' @return A \link[ggplot2]{ggplot2} object to be further modified
-#' @importFrom ggplot2 ggplot aes geom_bar geom_label theme_bw theme element_text labs
 #' @examples 
-#' library("ggplot2")
-#' 
 #' # Create random data
 #' set.seed(42)
 #' mock_data <- matrix(rnorm(15 * 10), nrow = 15, ncol = 10)
@@ -53,12 +50,14 @@
 #'                     plot_title = "ANOSIM")
 #' @export
 
-plot_pairwise_stats <- function(data,
-                                stats_col,
-                                group_col,
-                                label_col,
-                                y_axis_title=NULL,
-                                plot_title=NULL) {
+plot_pairwise_stats <- function(
+  data,
+  stats_col,
+  group_col,
+  label_col,
+  y_axis_title=NULL,
+  plot_title=NULL
+  ) {
 
   ## Error handling
   #--------------------------------------------------------------------#
@@ -94,20 +93,31 @@ plot_pairwise_stats <- function(data,
   #--------------------------------------------------------------------#
 
   return(
-    data %>%
-      ggplot(mapping=aes(x = base::get(group_col, data),
-                         y = base::get(stats_col, data),
-                         label = base::get(label_col, data))) +
-      geom_bar(stat = "identity",
-               fill = "blue") +
-      geom_label(nudge_y = 0) +
-      labs(title = plot_title,
-           subtitle = paste0("Above each bar: ", label_col, " values"),
-           x = "groups",
-           y = y_axis_title) +
-      theme_bw() +
-      theme(axis.text = element_text(angle = 45,
-                                     vjust = 1,
-                                     hjust = 1))
+    ggplot2::ggplot(
+      data = data,
+      mapping = ggplot2::aes(
+        x = .data[[ group_col ]],
+        y = .data[[ stats_col ]],
+        label = .data[[ label_col ]]
+        )
+      ) +
+      ggplot2::geom_bar(
+        stat = "identity",
+        fill = "blue"
+      ) +
+      ggplot2::geom_label(nudge_y = 0) +
+      ggplot2::labs(
+        title = plot_title,
+        subtitle = paste0("Above each bar: ", label_col, " values"),
+        x = "groups",
+        y = y_axis_title
+      ) +
+      ggplot2::theme_bw() +
+      ggplot2::theme(axis.text = ggplot2::element_text(
+        angle = 45,
+        vjust = 1,
+        hjust = 1
+      )
+    )
   )
 }

@@ -17,7 +17,6 @@
 #'  * R2 of H_0
 #'  * p value of F^p > F
 #'  * p adjusted
-#' @importFrom stats p.adjust.methods
 #' @examples 
 #' # Create random data
 #' set.seed(42)
@@ -36,12 +35,14 @@
 #'                           perm = 99)
 #' @export
 
-pairwise_anosim <- function(x,
-                            groups,
-                            metadata = NULL,
-                            perm_design = NULL,
-                            p.adjust.method = "bonferroni",
-                            perm = 999){
+pairwise_anosim <- function(
+  x,
+  groups,
+  metadata = NULL,
+  perm_design = NULL,
+  p.adjust.method = "bonferroni",
+  perm = 999
+  ){
 
   ## Error handling
   #--------------------------------------------------------------------#
@@ -58,7 +59,7 @@ pairwise_anosim <- function(x,
   if (!is.null(perm_design) && !is.function(perm_design))
     cli::cli_abort("{.val perm_design} must be a function.")
 
-  if (!c(p.adjust.method %in% p.adjust.methods))
+  if (!c(p.adjust.method %in% stats::p.adjust.methods))
     cli::cli_abort("{.val {p.adjust.method}} is not a valid method. \nValid options: {.val {p.adjust.methods}}.")
 
   if (!is.wholenumber(perm))
@@ -100,7 +101,7 @@ pairwise_anosim <- function(x,
     anosimR[i] <- ano$statistic
     p.value[i] <- ano$signif
   }
-  p.adj <- p.adjust(p.value, method = p.adjust.method)
+  p.adj <- stats::p.adjust(p.value, method = p.adjust.method)
   pairw.res <- data.frame(pairs, anosimR, p.value, p.adj)
   return(pairw.res)
 }

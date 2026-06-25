@@ -6,11 +6,7 @@
 #' When omics data is very large, data loading becomes very expensive. It is therefore recommended to use the [`reset()`](#method-reset) method to reset your changes.
 #' Every omics class creates an internal memory efficient back-up of the data, the resetting of changes is an instant process.
 #' @seealso \link{omics}
-#' @import R6 rhdf5 Matrix
-#' @importFrom ape read.tree
-#' @importFrom tools file_ext
-#' @importFrom yyjsonr validate_json_file
-#' @importFrom jsonlite read_json
+#' @import R6
 #' @export
 
 metagenomics <- R6::R6Class(
@@ -60,17 +56,28 @@ metagenomics <- R6::R6Class(
     #' @param treeData A path to an existing newick file or class "phylo", see \link[ape]{read.tree}.
     #' @param biomData A path to an existing biom file, version 2.1.0 (http://biom-format.org/), see \link[rhdf5]{h5read}.
     #' @param feature_names A character vector to name the feature names that fit the supplied `featureData`.
+    #' 
+    #' @import rhdf5
+    #' @importFrom ape read.tree
+    #' @importFrom yyjsonr read_json_file validate_json_file
+    #' 
     #' @return A new `metagenomics` object.
-    initialize = function(countData = NULL,
-                          metaData = NULL,
-                          featureData = NULL,
-                          treeData = NULL,
-                          biomData = NULL,
-                          feature_names = c("Kingdom", "Phylum", "Class", "Order", "Family", "Genus", "Species")) {
+    initialize = function(
+      countData = NULL,
+      metaData = NULL,
+      featureData = NULL,
+      treeData = NULL,
+      biomData = NULL,
+      feature_names = c(
+        "Kingdom", "Phylum", "Class", "Order", "Family", "Genus", "Species"
+      )
+    ) {
 
-      super$initialize(countData = countData,
-                       featureData = featureData,
-                       metaData = metaData)
+      super$initialize(
+        countData = countData,
+        featureData = featureData,
+        metaData = metaData
+      )
 
       if (!is.null(biomData)) {
 
@@ -121,7 +128,7 @@ metagenomics <- R6::R6Class(
 
           } else if (yyjsonr::validate_json_file(biomData)) {
             
-            private$.biomData <- jsonlite::read_json(biomData)
+            private$.biomData <- yyjsonr::read_json_file(biomData)
             private$construct_json_featureData(feature_names)
             private$construct_json_countData()
 
@@ -142,9 +149,6 @@ metagenomics <- R6::R6Class(
             x = private$.featureData,
             neworder = c(private$.feature_id, base::setdiff(colnames(private$.featureData), private$.feature_id))
           )
-          private$.featureData <- private$.featureData[, 
-            lapply(.SD, function(x) ifelse(x == "", NA, x)),
-            .SDcols = colnames(private$.featureData)]
         }
       }
 
@@ -164,7 +168,14 @@ metagenomics <- R6::R6Class(
         }
 
         # Aligning featureData and countData rows by tree tips
-        private$.featureData <- private$.featureData[order(match(private$.featureData[[ private$.feature_id ]], private$.treeData$tip.label))]
+        private$.featureData <- private$.featureData[
+          base::order(
+            base::match(
+              x = private$.featureData[[ private$.feature_id ]], 
+              table = private$.treeData$tip.label
+            )
+          )
+        ]
         private$.countData <- private$.countData[private$.featureData[[ private$.feature_id ]], ]
       }
 
@@ -175,8 +186,15 @@ metagenomics <- R6::R6Class(
       cli::cli_alert_info("Final steps .. cleaning & creating back-up")
 
       # Removing prefix of taxonomic features
-      private$.featureData <- private$.featureData[, lapply(.SD, function(x) gsub("^[dpcofgs]_{2}", "", x)),
-                                           .SDcols = colnames(private$.featureData)]
+      private$.featureData <- private$.featureData[, 
+        lapply(.SD, function(x) gsub("^[kdpcofgs]_{2}", "", x)),
+        .SDcols = colnames(private$.featureData)
+      ]
+
+      # Replace empty strings by <NA>
+      private$.featureData <- private$.featureData[, 
+            lapply(.SD, function(x) ifelse(x == "", NA, x)),
+            .SDcols = colnames(private$.featureData)]
       # Rename last column names by feature_names
       n_feature_names <- length(feature_names)
       n_cols_featureData <- ncol(private$.featureData)
@@ -197,6 +215,7 @@ metagenomics <- R6::R6Class(
     #' @description
     #' Creates a BIOM file in HDF5 format of the loaded items via ['new()'](#method-new), which is compatible to the python biom-format version 2.1, see http://biom-format.org.
     #' @param filename A character variable of either the full path of filename of the biom file (e.g. `output.biom`)
+    #' @import rhdf5
     #' @examples
     #' library("OmicFlow")
     #'
@@ -357,7 +376,6 @@ metagenomics <- R6::R6Class(
     #' @param logfold.threshold A numeric value used as a fold-change threshold to label and color significantly expressed features (default: 0.06).
     #' @param abundance.threshold A numeric value used as an abundance threshold to size the scatter dots based on their mean abundance (default: 0.01).
     #' @examples
-    #' library("ggplot2")
     #' library("OmicFlow")
     #'
     #' metadata_file <- system.file("extdata", "metadata.tsv", package = "OmicFlow")
@@ -630,56 +648,52 @@ metagenomics <- R6::R6Class(
       cli::cli_alert_success("{.field featureData} is loaded.")
     },
     construct_hdf5_countData = function() {
+      sample_ids <- private$.biomData$sample$ids
+      feature_ids <- private$.biomData$observation$ids
       indptr <- as.numeric(private$.biomData$observation$matrix$indptr)
 
+      ## Extract positive values from triplet format
       private$.countData <- Matrix::sparseMatrix(
-        i        = unlist(sapply(1:(length(indptr)-1), function (i) rep(i, diff(indptr[c(i,i+1)])))),
-        j        = as.numeric(private$.biomData$observation$matrix$indices) + 1,
-        x        = as.numeric(private$.biomData$observation$matrix$data),
-        dims     = c(length(private$.biomData$observation$ids), length(private$.biomData$sample$ids)),
+        i = unlist(sapply(1:(length(indptr)-1), function (i) rep(i, diff(indptr[c(i,i+1)])))),
+        j = as.numeric(private$.biomData$observation$matrix$indices) + 1,
+        x = as.numeric(private$.biomData$observation$matrix$data),
+        dims = c(length(feature_ids), length(sample_ids)),
         dimnames = list(
-          as.character(private$.biomData$observation$ids),
-          as.character(private$.biomData$sample$ids)
+          as.character(feature_ids),
+          as.character(sample_ids)
         ))
 
       cli::cli_alert_success("{.field countData} is loaded.")
     },
     construct_json_featureData = function(feature_names) {
       # Create empty featureData
-      private$.featureData <- data.table::data.table(matrix(NA_character_,
-                                                     nrow = length(private$.biomData$rows),
-                                                     ncol = length(c(private$.feature_id, feature_names))
-                                                     ))
-      setNames(private$.featureData, c(private$.feature_id, feature_names))
+      private$.featureData <- data.table::data.table(FEATURE_ID = private$.biomData$rows$id)
 
-      # Fill first column with $id values
-      private$.featureData[[ private$.feature_id ]] <- vapply(private$.biomData$rows, function(x) as.character(x$id), character(1))
+      # Extract features into matrix and transpose
+      mtx <- base::t(sapply(private$.biomData$rows$metadata, function(x) x$taxonomy))
+      features <- data.table::data.table(mtx)
 
-      for (i in seq_along(private$.biomData$rows)) {
-        taxonomy <- private$.biomData$rows[[i]]$metadata$taxonomy
-
-        # Skip if taxonomy is missing or NULL
-        if (is.null(taxonomy)) next
-
-        # Get taxonomy index and values
-        tax_indices <- seq_along(taxonomy)
-        tax_values <- as.character(taxonomy)
-
-        # Fill featureData with tax values by index
-        col_positions <- tax_indices + 1
-        private$.featureData[i, (col_positions) := as.list(tax_values)]
-      }
+      private$.featureData <- base::cbind(private$.featureData, features)
+      
+      # TODO: add a tryCatch
+      data.table::setnames(
+        x = private$.featureData,
+        old = colnames(private$.featureData),
+        new = c(private$.feature_id, feature_names)
+      )
       cli::cli_alert_success("{.field featureData} is loaded.")
     },
     construct_json_countData = function() {
-      feature_ids <- sapply(private$.biomData$rows, function(x) unlist(x$id))
-      sample_ids <- sapply(private$.biomData$columns, function(x) unlist(x$id))
+      sample_ids <- private$.biomData$columns$id
+      feature_ids <- private$.biomData$rows$id
+      dimensions <- private$.biomData$shape
 
+      ## json data is already in triplet format
       private$.countData <- Matrix::sparseMatrix(
-        i        = sapply(private$.biomData$data, function(x) x[[1]]) + 1,
-        j        = sapply(private$.biomData$data, function(x) x[[2]]) + 1,
-        x        = sapply(private$.biomData$data, function(x) x[[3]]),
-        dims     = c( length(feature_ids), length(sample_ids) ),
+        i = private$.biomData$data[, 1] + 1,
+        j = private$.biomData$data[, 2] + 1,
+        x = private$.biomData$data[, 3],
+        dims = dimensions,
         dimnames = list(
           as.character(feature_ids),
           as.character(sample_ids)

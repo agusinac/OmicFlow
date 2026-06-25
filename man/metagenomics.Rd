@@ -38,7 +38,6 @@ file.remove("output.biom")
 ## Method `metagenomics$foldchange()`
 ## ------------------------------------------------
 
-library("ggplot2")
 library("OmicFlow")
 
 metadata_file <- system.file("extdata", "metadata.tsv", package = "OmicFlow")
@@ -228,8 +227,7 @@ Based on the \code{transform} method, fold-changes will be computed either via s
   }
   \subsection{Examples}{
     \if{html}{\out{<div class="r example copy">}}
-    \preformatted{library("ggplot2")
-library("OmicFlow")
+    \preformatted{library("OmicFlow")
 
 metadata_file <- system.file("extdata", "metadata.tsv", package = "OmicFlow")
 counts_file <- system.file("extdata", "counts.tsv", package = "OmicFlow")

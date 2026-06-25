@@ -17,13 +17,9 @@
 #' @param label_B A character to describe condition B.
 #' 
 #' @return A \link[ggplot2]{ggplot2} object to be further modified.
-#' @importFrom ggplot2 ggplot aes .data theme_bw theme element_text labs geom_point geom_vline geom_hline element_rect scale_color_gradient2 scale_size_continuous
 #' @examples 
-#' library(data.table)
-#' library(ggplot2)
-#' 
 #' # Create mock data frame
-#' mock_volcano_data <- data.table(
+#' mock_volcano_data <- data.table::data.table(
 #' 
 #'   # Feature names (feature_rank)
 #'   Feature = paste0("Gene", 1:20),   
@@ -41,7 +37,7 @@
 #'              0.02, 0.8, 0.04, 0.12, 0.03),
 #'   
 #'   # Mean (relative) abundance for point sizing
-#'   rel_abun = runif(20, 0.01, 0.1)            
+#'   rel_abun = stats::runif(20, 0.01, 0.1)            
 #' )
 #' 
 #' volcano_plot(
@@ -51,18 +47,21 @@
 #'   abundance_col = "rel_abun",
 #'   feature_rank = "Feature",
 #' )
+#' @import ggplot2
 #' @export
 
-volcano_plot <- function(data,
-                         logfold_col,
-                         pvalue_col,
-                         feature_rank,
-                         abundance_col,
-                         pvalue.threshold = 0.05,
-                         logfold.threshold = 0.6,
-                         abundance.threshold = 0.01,
-                         label_A = "A",
-                         label_B = "B") {
+volcano_plot <- function(
+  data,
+  logfold_col,
+  pvalue_col,
+  feature_rank,
+  abundance_col,
+  pvalue.threshold = 0.05,
+  logfold.threshold = 0.6,
+  abundance.threshold = 0.01,
+  label_A = "A",
+  label_B = "B"
+  ) {
 
   ## Error handling
   #--------------------------------------------------------------------#
@@ -132,44 +131,68 @@ volcano_plot <- function(data,
     )]
   tmpdt[, "diffexpressed_labels" := ifelse(base::get("diffexpressed") != "non-significant", base::get(feature_rank), "")]
 
-  plt <- tmpdt %>%
-      ggplot(mapping = aes(x = .data [[ logfold_col ]],
-                           y = .data [[ pvalue_col ]],
-                           label = .data[["diffexpressed_labels"]],
-                           color = .data [[ logfold_col ]])) +
-      theme_bw() +
-      theme(axis.text.x = element_text(angle = 45, hjust = 1, size=12),
-            axis.text.y = element_text(size=12),
-            axis.text = element_text(size=12),
-            text = element_text(size=12),
-            legend.text = element_text(size=12),
-            legend.title = element_text(size=14),
-            strip.background = element_rect(fill = "#EEEEEE", color = "#FFFFFF")) +
-      geom_vline(xintercept = c(-logfold.threshold, logfold.threshold),
-                 col = "black", linetype = 'dashed') +
-      geom_hline(yintercept = -log10(pvalue.threshold),
-                 col = "black", linetype = 'dashed') +
-      scale_color_gradient2(name = "foldchange",
-                            low = "blue",
-                            mid = "black",
-                            high = "red",
-                            na.value = "grey80") +
-      ggrepel::geom_label_repel(show.legend = FALSE,
-                                max.overlaps = getOption("ggrepel.max.overlaps", default = Inf),
-                                color = "black")
-    if (any(tmpdt$diffexpressed != "non-significant")) {
-      plt <- plt +
-        geom_point(
-          aes(size = as.numeric(ifelse(.data[["diffexpressed"]] != "non-significant", .data[[ abundance_col ]]*100, 0))),
-              shape = 16, alpha = 0.5
-        )
-    } else {
-      plt <- plt + geom_point(shape = 16, alpha = 0.5)
-    }
+  plt <- ggplot2::ggplot(
+    data = tmpdt,
+    mapping = ggplot2::aes(
+      x = .data[[ logfold_col ]],
+      y = .data[[ pvalue_col ]],
+      label = .data[["diffexpressed_labels"]],
+      color = .data[[ logfold_col ]]
+      )
+    ) +
+    ggplot2::theme_bw() +
+    ggplot2::theme(
+      axis.text.x = ggplot2::element_text(angle = 45, hjust = 1, size=12),
+      axis.text.y = ggplot2::element_text(size=12),
+      axis.text = ggplot2::element_text(size=12),
+      text = ggplot2::element_text(size=12),
+      legend.text = ggplot2::element_text(size=12),
+      legend.title = ggplot2::element_text(size=14),
+      strip.background = ggplot2::element_rect(fill = "#EEEEEE", color = "#FFFFFF")
+    ) +
+    ggplot2::geom_vline(
+      xintercept = c(-logfold.threshold, logfold.threshold),
+      col = "black", 
+      linetype = "dashed"
+    ) +
+    ggplot2::geom_hline(
+      yintercept = -log10(pvalue.threshold),
+      col = "black", 
+      linetype = "dashed"
+    ) +
+    ggplot2::scale_color_gradient2(
+      name = "foldchange",
+      low = "blue",
+      mid = "black",
+      high = "red",
+      na.value = "grey80"
+    ) +
+    ggrepel::geom_label_repel(
+      show.legend = FALSE,
+      max.overlaps = getOption("ggrepel.max.overlaps", default = Inf),
+      color = "black"
+    )
+
+  if (any(tmpdt$diffexpressed != "non-significant")) {
     plt <- plt +
-      scale_size_continuous(name = "Mean Abundance (%)") +
-      labs(x = paste0("Fold Change ( ", label_A," / ", label_B," )"),
-           y = paste0("-log10( ", pvalue_col ," )"))
+      ggplot2::geom_point(
+        mapping = ggplot2::aes(size = as.numeric(ifelse(.data[["diffexpressed"]] != "non-significant", .data[[ abundance_col ]]*100, 0))),
+        shape = 16, 
+        alpha = 0.5
+      )
+  } else {
+    plt <- plt + 
+    ggplot2::geom_point(
+      shape = 16, 
+      alpha = 0.5
+    )
+  }
+  plt <- plt +
+    ggplot2::scale_size_continuous(name = "Mean Abundance (%)") +
+    ggplot2::labs(
+      x = paste0("Fold Change ( ", label_A," / ", label_B," )"),
+      y = paste0("-log10( ", pvalue_col ," )")
+    )
 
   return(plt)
 }

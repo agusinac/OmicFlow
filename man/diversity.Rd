@@ -43,7 +43,7 @@ row_idx <- ((positions - 1) \%\% n_row) + 1
 col_idx <- ((positions - 1) \%/\% n_row) + 1
 
 values <- runif(num_nonzero, min = 0, max = 1)
-sparse_mat <- sparseMatrix(
+sparse_mat <- Matrix::sparseMatrix(
   i = row_idx,
   j = col_idx,
   x = values,
@@ -51,7 +51,7 @@ sparse_mat <- sparseMatrix(
 )
 
 # Alpha diversity is computed on column level
-## Transpose the sparseMatrix if required with t() from Matrix R package.
+## Transpose the sparseMatrix if required with `t()` from Matrix R package.
 result <- OmicFlow::diversity(
   x = sparse_mat,
   metric = "shannon"

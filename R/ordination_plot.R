@@ -11,11 +11,7 @@
 #' @param dist_metric A character variable indicating what metric is used (e.g. unifrac, bray-curtis), default is NULL.
 #' @return A \link[ggplot2]{ggplot2} object to be further modified
 #' 
-#' @importFrom ggplot2 ggplot aes .data theme_bw theme element_text stat_ellipse labs geom_point
-#' 
 #' @examples 
-#' library(ggplot2)
-#' 
 #' # Mock principal component scores
 #' set.seed(123)
 #' mock_data <- data.frame(
@@ -40,13 +36,17 @@
 #'   dist_explained = c(45, 22),
 #'   dist_metric = "bray-curtis"
 #' )
+#' @import ggplot2
 #' @export
 
-ordination_plot <- function(data, 
-                            col_name,
-                            pair, 
-                            dist_explained = NULL, 
-                            dist_metric = NULL) {
+ordination_plot <- function(
+  data, 
+  col_name,
+  pair, 
+  dist_explained = NULL, 
+  dist_metric = NULL
+  ) {
+  
   ## Error handling
   #--------------------------------------------------------------------#
 
@@ -91,25 +91,31 @@ ordination_plot <- function(data,
   data[[ col_name ]] <- as.factor(data[[ col_name ]])
 
   return(
-    data %>%
-      ggplot(mapping = aes(x = .data[[ pair[1] ]],
-                           y = .data[[ pair[2] ]],
-                           color = .data[[ col_name ]],
-                           linetype = .data[[ col_name ]])) +
-      geom_point(alpha = 5) +
-      stat_ellipse(type = "t") +
-      theme_bw() +
-      theme(text=element_text(size=14),
-            legend.text = element_text(size=12),
-            legend.title = element_text(size=14),
-            axis.text = element_text(size=12),
-            axis.text.y = element_text(size=12),
-            axis.text.x = element_text(size=12)
+      ggplot2::ggplot(
+        data = data,
+        mapping = ggplot2::aes(
+          x = .data[[ pair[1] ]],
+          y = .data[[ pair[2] ]],
+          color = .data[[ col_name ]],
+          linetype = .data[[ col_name ]]
+        )
       ) +
-      labs(title = dist_metric,
-           subtitle = NULL,
-           x = x_label,
-           y = y_label
+      ggplot2::geom_point(alpha = 5) +
+      ggplot2::stat_ellipse(type = "t") +
+      ggplot2::theme_bw() +
+      ggplot2::theme(
+        text = ggplot2::element_text(size=14),
+        legend.text = ggplot2::element_text(size=12),
+        legend.title = ggplot2::element_text(size=14),
+        axis.text = ggplot2::element_text(size=12),
+        axis.text.y = ggplot2::element_text(size=12),
+        axis.text.x = ggplot2::element_text(size=12)
+      ) +
+      ggplot2::labs(
+        title = dist_metric,
+        subtitle = NULL,
+        x = x_label,
+        y = y_label
       )
   )
 }

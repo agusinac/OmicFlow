@@ -31,8 +31,6 @@ Creates a stacked barchart of features. It is possible to both show barcharts fo
 The function is compatible with the class \link{omics} method \code{composition()}.
 }
 \examples{
-library("ggplot2")
-
 # Create mock_data as data.frame (data.table is also supported)
 mock_data <- data.frame(
   SAMPLE_ID = rep(paste0("Sample", 1:10), each = 5),

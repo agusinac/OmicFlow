@@ -24,8 +24,6 @@ Code is adapted from \link[hillR]{hill_taxa} and uses \link[Matrix]{sparseMatrix
 The code is much faster and memory efficient, while still being mathematical correct.
 }
 \examples{
-library("Matrix")
-
 n_row <- 1000
 n_col <- 100
 density <- 0.2
@@ -38,7 +36,7 @@ row_idx <- ((positions - 1) \%\% n_row) + 1
 col_idx <- ((positions - 1) \%/\% n_row) + 1
 
 values <- runif(num_nonzero, min = 0, max = 1)
-sparse_mat <- sparseMatrix(
+sparse_mat <- Matrix::sparseMatrix(
   i = row_idx,
   j = col_idx,
   x = values,
