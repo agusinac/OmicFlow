@@ -1,7 +1,11 @@
 # OmicFlow 1.6.0.9003
 
 ## Changed
-- Re-factoring `roxygen2` code & documentation style [IN PROGRESS].
+- Re-factoring `roxygen2` code & documentation style & error handling.
+    - Follow order of `tests/testthat.R` file
+    - Finished:
+        - test-omics.R
+        - test-metagenomics.R
 - TODO: Add `tryCatch` where neccessary
 - Replaced `jsonlite` by `yyjsonr` functionality, much faster and cleaner code.
 - Replaced `tests/testthat/input/metagenomics/biom_with_taxonomy_json.biom` with one from BIOM v2 example.
