@@ -73,16 +73,20 @@ metagenomics <- R6::R6Class(
       )
     ) {
 
+      # tries to load data via super class
       super$initialize(
         countData = countData,
         featureData = featureData,
         metaData = metaData
       )
 
+      # Maybe `biomData` is supplied.. collect potential errors
+      messages <- c()
+
       if (!is.null(biomData)) {
 
-        if (tools::file_ext(biomData) == "biom") {
-          
+        if (file.exists(biomData)) {
+      
           #---------------------#
           ###  biomData HDF5  ###
           #---------------------#
@@ -149,7 +153,7 @@ metagenomics <- R6::R6Class(
             x = private$.featureData,
             neworder = c(private$.feature_id, base::setdiff(colnames(private$.featureData), private$.feature_id))
           )
-        }
+        } else cli::cli_abort("{.field biomData} doesn't exist, please provide an existing {.val filepath}")
       }
 
       #-------------------#
@@ -182,6 +186,10 @@ metagenomics <- R6::R6Class(
       #-------------------#
       ###     CLEANUP   ###
       #-------------------#
+
+      # check if `countData` is not empty
+      if (is.null(private$.countData))
+        cli::cli_abort("{.field countData} cannot be empty.. did you forgot to specify a {.val countData} or {.val biomData} ?")
 
       cli::cli_alert_info("Final steps .. cleaning & creating back-up")
 

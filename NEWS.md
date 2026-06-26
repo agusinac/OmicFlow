@@ -1,10 +1,11 @@
-# OmicFlow 1.6.0.9001
+# OmicFlow 1.6.0.9003
 
 ## Changed
 - Re-factoring `roxygen2` code & documentation style [IN PROGRESS].
 - TODO: Add `tryCatch` where neccessary
 - Replaced `jsonlite` by `yyjsonr` functionality, much faster and cleaner code.
 - Replaced `tests/testthat/input/metagenomics/biom_with_taxonomy_json.biom` with one from BIOM v2 example.
+- Re-combined `foldchange` into `omics` and option to use different fold-change computations via argument `method`.
 
 ## Fixed
 - `omics$feature_merge` is optional in `omics$foldchange`

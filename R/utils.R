@@ -4,7 +4,7 @@
 #'
 #' @param x A \link[base]{matrix}, \link[Matrix]{sparseMatrix} or \link[Matrix]{Matrix}.
 #' @return A \link[data.table]{data.table} class.
-#' @export
+#' @noRd
 matrix_to_dtable <- function(x) {
   if (inherits(x, "denseMatrix") || inherits(x, "matrix") || inherits(x, "sparseMatrix")) {
       return(data.table::data.table(as.matrix(x)))
@@ -17,7 +17,7 @@ matrix_to_dtable <- function(x) {
 #' @param column A character of length 1.
 #' @param table A \link[data.table]{data.table} or \link[base]{data.frame}.
 #' @return A boolean value.
-#' @export
+#' @noRd
 column_exists <- function(column, table) {
 
   ## Error handling
@@ -54,6 +54,9 @@ is.wholenumber <- function(x, tol = .Machine$double.eps^0.5) {
   }
 }
 
+#' Helper function in `omics$autoFlow` to combine conditions 
+#' 
+#' @noRd
 combine_conditions <- function(condition1, condition2) {
   if (!is.null(condition1) && !is.null(condition2)) {
     if (!inherits(condition1, "data.frame") && !inherits(condition1, "data.table"))

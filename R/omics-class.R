@@ -135,7 +135,15 @@ omics <- R6::R6Class(
       #-------------------#
       if (!is.null(metaData)) {
         duplicated_sample_ids <- FALSE
+
+        ## check if message is returned
         private$.metaData <- private$check_table(metaData)
+        if (!data.table::is.data.table(private$.metaData)) {
+          cli::cli_abort(c(
+            "Error in {.field metaData}:",
+            "x" = cli::format_inline("{private$.metaData}")
+          ))
+        }
         self$validate()
 
         if (private$.valid_schema) {
@@ -179,8 +187,15 @@ omics <- R6::R6Class(
       #-------------------#
       if (!is.null(featureData)) {
         duplicated_feature_ids <- FALSE
-        private$.featureData <- private$check_table(featureData)
 
+        private$.featureData <- private$check_table(featureData)
+        if (!data.table::is.data.table(private$.featureData)) {
+          cli::cli_abort(c(
+            "Error in {.field featureData}:",
+            "x" = cli::format_inline("{private$.featureData}")
+          ))
+        }
+        
         if (column_exists(private$.feature_id, private$.featureData)) {
           duplicated_feature_idx <- base::duplicated(private$.featureData, by = private$.feature_id)
           duplicated_feature_ids <- any(duplicated_feature_idx)
@@ -209,6 +224,12 @@ omics <- R6::R6Class(
       #-------------------#
       if (!is.null(countData)) {
         private$.countData <- private$check_matrix(countData)
+        if (!inherits(private$.countData, "sparseMatrix")) {
+          cli::cli_abort(c(
+            "Error in {.field countData}:",
+            "x" = cli::format_inline("{private$.countData}")
+          ))
+        }
         cli::cli_alert_success("{.field countData} is loaded.")
 
         if (is.null(private$.featureData)) {
@@ -1693,6 +1714,12 @@ omics <- R6::R6Class(
       # Load custom distance matrix if supplied
       if (!is.null(distmat)) {
         distmat <- private$check_matrix(filepath = distmat)
+        if (!inherits(distmat, "sparseMatrix")) {
+          cli::cli_abort(c(
+            "Error in {.field countData}:",
+            "x" = cli::format_inline("{private$.countData}")
+          ))
+        }
         distmat <- distmat[private$.metaData[[private$.sample_id]], private$.metaData[[private$.sample_id]]]
       }
 
@@ -1984,6 +2011,12 @@ omics <- R6::R6Class(
         # Keep only common samples based on metaData
         if (!is.null(private$.countData)) {
           private$.countData <- private$check_matrix(private$.countData)
+          if (!inherits(private$.countData, "sparseMatrix")) {
+            cli::cli_abort(c(
+              "Error in {.field countData}:",
+              "x" = cli::format_inline("{private$.countData}")
+            ))
+          }
           common_samples <- base::intersect(private$.metaData[[ private$.sample_id ]], colnames(private$.countData))
 
           if (length(common_samples) == 0)
@@ -1999,6 +2032,13 @@ omics <- R6::R6Class(
           cli::cli_abort("{private$.feature_id} doesn't exist in {.field featureData}.")
 
         private$.featureData <- private$check_table(private$.featureData)
+        if (!data.table::is.data.table(private$.featureData)) {
+          cli::cli_abort(c(
+            "Error in {.field featureData}:",
+            "x" = cli::format_inline("{private$.featureData}")
+          ))
+        }
+
         colnames(private$.featureData) <- gsub("\\s+", "_", colnames(private$.featureData))
 
         # Keep only common tips based on treeData
@@ -2057,13 +2097,13 @@ omics <- R6::R6Class(
     if (is.character(data) && length(data) == 1 && file.exists(data))
       return(data.table::fread(data, header = TRUE))
 
-    if (inherits(data, "data.table"))
+    if (inherits(data, "data.table") && !all(dim(data) == 0))
       return(data)
 
-    if (is.data.frame(data))
+    if (is.data.frame(data) && !all(dim(data) == 0))
       return(data.table::as.data.table(data))
 
-    cli::cli_abort("Input must be an existing {.val filepath}, {.cls data.frame} or {.cls data.table}.")
+    return("Input must be an existing {.val filepath}, non-empty {.cls data.frame} or {.cls data.table}.")
   },
 
   # Checks & loads input matrix/filepath
@@ -2094,13 +2134,13 @@ omics <- R6::R6Class(
       return(methods::as(mat, "CsparseMatrix"))
     }
 
-    if (inherits(data, "sparseMatrix"))
+    if (inherits(data, "sparseMatrix") && !all(dim(data) == 0))
       return(data)
 
-    if (is.matrix(data) || inherits(data, "denseMatrix"))
+    if ((is.matrix(data) || inherits(data, "denseMatrix")) && !all(dim(data) == 0))
       return(methods::as(data, "CsparseMatrix"))
-      
-    cli::cli_abort("Input must be an existing {.val filepath}, {.cls matrix} or {.cls Matrix}.")
+
+    return("Input must be an existing {.val filepath}, non-empty {.cls matrix} or {.cls Matrix}.")
     }
   )
 )
