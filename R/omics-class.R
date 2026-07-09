@@ -994,7 +994,7 @@ omics <- R6::R6Class(
       self$feature_merge(feature_rank = feature_rank, feature_filter = feature_filter)
 
       # Remove NAs when col_name is specified
-      if (!is.null(col_name))
+      if (!is.null(col_name) & length(col_name) == 1)
         self$removeNAs(col_name)
 
       # Converts matrix to data.table
