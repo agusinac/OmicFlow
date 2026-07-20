@@ -11,6 +11,7 @@
 #' @param perm_design A function that takes a data.frame and constructs a permutation design with \link[permute]{how} (default: NULL).
 #' @param p.adjust.method P adjust method see \link[stats]{p.adjust}
 #' @param perm Number of permutations to compare against the null hypothesis of anosim (default: \code{perm=999}).
+#' @param ... Additional arguments passed to \link[vegan]{anosim}.
 #' @seealso \link[vegan]{anosim}
 #' @return A \link[base]{data.frame} of
 #'  * pairs that are used
@@ -42,7 +43,7 @@ pairwise_anosim <- function(
   perm_design = NULL,
   p.adjust.method = "bonferroni",
   perm = 999
-  ){
+  ...){
 
   ## Error handling
   #--------------------------------------------------------------------#
@@ -87,13 +88,15 @@ pairwise_anosim <- function(
       ano <- vegan::anosim(
         x = m,
         grouping = groups,
-        permutations = h1
+        permutations = h1,
+        ...
       )
     } else {
       ano <- vegan::anosim(
         x = m, 
         grouping = groups[rows_to_keep],
-        permutations = perm
+        permutations = perm,
+        ...
       )
     }
     

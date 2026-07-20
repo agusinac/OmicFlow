@@ -11,6 +11,7 @@
 #' @param perm_design A function that takes a data.frame and constructs a permutation design with \link[permute]{how} (default: NULL).
 #' @param p.adjust.method P adjust method see \link[stats]{p.adjust}.
 #' @param perm Number of permutations to compare against the null hypothesis of adonis2 (default: \code{perm=999}).
+#' @param ... Additional arguments passed to \link[vegan]{adonis2}.
 #' @seealso \link[vegan]{adonis2}
 #' @return A \link[base]{data.frame} of
 #'  * pairs that are used
@@ -44,7 +45,8 @@ pairwise_adonis <- function(
   metadata = NULL,
   perm_design = NULL,
   p.adjust.method = "bonferroni",
-  perm = 999){
+  perm = 999,
+  ...){
 
   ## Error handling
   #--------------------------------------------------------------------#
@@ -95,13 +97,15 @@ pairwise_adonis <- function(
       ad <- vegan::adonis2(
         m ~ Fac,
         data = tmp_m,
-        permutations = h1
+        permutations = h1,
+        ...
       )
     } else {
       ad <- vegan::adonis2(
         m ~ Fac,
         data = tmp_m,
-        permutations = perm
+        permutations = perm,
+        ...
       )
     }
 
