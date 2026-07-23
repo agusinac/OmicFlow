@@ -1493,14 +1493,11 @@ omics <- R6::R6Class(
       
       # Extract mean abundance
       abun <- as.matrix(Matrix::rowMeans(private$.countData))
-      rownames(abun) <- private$.featureData[[ feature_rank ]]
+      feature_labels <- private$.featureData[[ feature_rank ]]
+      rownames(abun) <- feature_labels
 
       # Get data.table format abundances
-      dt <- matrix_to_dtable(private$.countData)[, (feature_rank) := private$.featureData[[feature_rank]]]
-
-      # Compute 2-fold expression based on (un)paired samples
-      # Supports multiple inputs for A and B.
-      tmp_dt <- data.table::copy(dt)
+      dt <- matrix_to_dtable(private$.countData)
 
       # Apply `group_by`
       if (!is.null(group_by)) {
@@ -1510,21 +1507,20 @@ omics <- R6::R6Class(
       }
       group_names <- names(chunks)
 
-      # subset feature labels before removing them
-      feature_labels <- tmp_dt[[ feature_rank ]]
-      tmp_dt <- tmp_dt[, .SD, .SDcols = !c(feature_rank)]
-
       # Create data.tables for results
       foldchange_dt <- data.table::data.table(feature_rank = feature_labels)
       colnames(foldchange_dt) <- feature_rank
 
       for (group_name in group_names) {
-        condition_labels <- chunks[[group_name]][[condition.group]]
+        chunk <- chunks[[ group_name ]]
+
+        chunk_dt <- data.table::copy(dt[, .SD, .SDcols = chunk[[ private$.sample_id ]]])
+        condition_labels <- chunk[[ condition.group ]]
 
         for (i in seq_along(condition_A)) {
           # Subset by condition_A value
-          dt_A <- tmp_dt[, .SD, .SDcols = colnames(tmp_dt)[condition_labels %in% condition_A[i]]]
-          dt_B <- tmp_dt[, .SD, .SDcols = colnames(tmp_dt)[condition_labels %in% condition_B[i]]]
+          dt_A <- chunk_dt[, .SD, .SDcols = colnames(chunk_dt)[condition_labels %in% condition_A[i]]]
+          dt_B <- chunk_dt[, .SD, .SDcols = colnames(chunk_dt)[condition_labels %in% condition_B[i]]]
 
           # save intermediate condition tables
           output[[paste0(group_name, "_", condition_A[i])]] <- dt_A
