@@ -1,3 +1,18 @@
+## Load example data
+taxa <- metagenomics$new(
+  biomData = "input/metagenomics/biom_with_taxonomy_hdf5.biom",
+  metaData = "input/metagenomics/metadata.tsv",
+  treeData = "input/metagenomics/rooted_tree.newick"
+)
+
+test_that("`volcano_plot()` -- Argument checks", {
+
+})
+
+test_that("`volcano_plot()` -- Behavioral checks", { 
+ 
+})
+
 test_that("Testing `volcano_plot`", {
 # Create mock data frame
 mock_volcano_data <- data.table(

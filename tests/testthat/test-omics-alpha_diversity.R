@@ -1,3 +1,18 @@
+## Load example data
+taxa <- metagenomics$new(
+  biomData = "input/metagenomics/biom_with_taxonomy_hdf5.biom",
+  metaData = "input/metagenomics/metadata.tsv",
+  treeData = "input/metagenomics/rooted_tree.newick"
+)
+
+test_that("`omics$alpha_diversity()` -- Argument checks", {
+
+})
+
+test_that("`omics$alpha_diversity()` -- Behavioral checks", { 
+ 
+})
+
 test_that("Testing Alpha diversity", {
   taxa <- metagenomics$new(
     biomData = "input/metagenomics/biom_with_taxonomy_hdf5.biom",

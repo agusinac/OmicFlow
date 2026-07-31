@@ -70,6 +70,10 @@ proteomics <- R6::R6Class(
         featureData = featureData
       )
 
+      # check if `countData` is not empty
+      if (is.null(private$.countData))
+        cli::cli_abort("{.field countData} cannot be empty.. did you forgot to specify the {.field countData} in {.fun proteomics$new} ?")
+
       #-------------------#
       ###   treeData    ###
       #-------------------#

@@ -1,3 +1,18 @@
+## Load example data
+taxa <- metagenomics$new(
+  biomData = "input/metagenomics/biom_with_taxonomy_hdf5.biom",
+  metaData = "input/metagenomics/metadata.tsv",
+  treeData = "input/metagenomics/rooted_tree.newick"
+)
+
+test_that("`unifrac()` -- Argument checks", {
+
+})
+
+test_that("`unifrac()` -- Behavioral checks", { 
+ 
+})
+
 test_that("Testing dissimilarity metrics on sparse data", {
         taxa <- metagenomics$new(
         biomData = "input/metagenomics/biom_with_taxonomy_hdf5.biom",

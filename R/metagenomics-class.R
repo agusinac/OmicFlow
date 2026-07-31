@@ -156,6 +156,10 @@ metagenomics <- R6::R6Class(
         } else cli::cli_abort("{.field biomData} doesn't exist, please provide an existing {.val filepath}")
       }
 
+      # check if `countData` is not empty
+      if (is.null(private$.countData))
+        cli::cli_abort("{.field countData} cannot be empty.. did you forgot to specify the {.field countData} or {.field biomData} in {.fun metagenomics$new} ?")
+
       #-------------------#
       ###   treeData    ###
       #-------------------#
@@ -186,10 +190,6 @@ metagenomics <- R6::R6Class(
       #-------------------#
       ###     CLEANUP   ###
       #-------------------#
-
-      # check if `countData` is not empty
-      if (is.null(private$.countData))
-        cli::cli_abort("{.field countData} cannot be empty.. did you forgot to specify a {.val countData} or {.val biomData} ?")
 
       cli::cli_alert_info("Final steps .. cleaning & creating back-up")
 
@@ -243,6 +243,12 @@ metagenomics <- R6::R6Class(
     #' file.remove("output.biom")
     #'
     write_biom = function (filename) {
+
+      if (!is.character(filename) || length(filename) != 1) {
+        cli::cli_abort("{.filename {filename}} Needs to contain characters and be length of 1.")
+      } else if (file.exists(filename)) {
+        cli::cli_abort("{.filename {filename}} Already exists!")
+      }        
 
       res <- try(
         rhdf5::h5createFile(filename),
@@ -426,13 +432,13 @@ metagenomics <- R6::R6Class(
       ## Error handling
       #--------------------------------------------------------------------#
 
-      if (!is.character(feature_rank) && length(feature_rank) != 1) {
+      if (!is.character(feature_rank) || length(feature_rank) != 1) {
         cli::cli_abort("{.val {feature_rank}} needs to be a character with a length of 1")
       } else if (!column_exists(feature_rank, private$.featureData)) {
         cli::cli_abort("The {.val {feature_rank}} column does not exist in the {.field featureData}.")
       }
 
-      if (!is.character(condition.group) && length(condition.group) != 1) {
+      if (!is.character(condition.group) || length(condition.group) != 1) {
         cli::cli_abort("{.val {condition.group}} needs to be a character with a length of 1")
       } else if (!column_exists(condition.group, private$.metaData)) {
         cli::cli_abort("{.val {condition.group}} does not exist in the {.field metaData} or is empty.")
@@ -449,13 +455,13 @@ metagenomics <- R6::R6Class(
       if (!is.numeric(logfold.threshold))
         cli::cli_abort("{.val {logfold.threshold}} need to be numeric.")
 
-      if (paired && is.null(private$.samplepair_id)) {
+      if (paired && !column_exists(private$.samplepair_id, private$.metaData)) {
         cli::cli_alert_warning("Paired is set to {.val {paired}} but {.arg SAMPLEPAIR_ID} does not exist in the {.field metaData}.\n Differential feature analysis will continue now with paired set to {.val FALSE}!")
         paired <- FALSE
       }
 
       if (!is.null(group_by)) {
-        if (!is.character(group_by) && length(group_by) != 1) {
+        if (!is.character(group_by) || length(group_by) != 1) {
           cli::cli_abort("{.val {group_by}} needs to contain characters with length of 1.")
         } else if (!column_exists(group_by, private$.metaData)) {
           cli::cli_abort("The {.val {group_by}} column does not exist in the {.field metaData}.")
@@ -490,7 +496,7 @@ metagenomics <- R6::R6Class(
       self$removeNAs(condition.group)
 
       # Subset by samplepair completion
-      if (paired && !is.null(private$.samplepair_id))
+      if (paired && column_exists(private$.samplepair_id, private$.metaData))
         self$samplepair_subset()
       
       # Agglomerate taxa by feature rank and filter unwanted taxa

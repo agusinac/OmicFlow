@@ -1,3 +1,19 @@
+## Load example data
+taxa <- metagenomics$new(
+  biomData = "input/metagenomics/biom_with_taxonomy_hdf5.biom",
+  metaData = "input/metagenomics/metadata.tsv",
+  treeData = "input/metagenomics/rooted_tree.newick"
+)
+
+test_that("`omics$composition()` -- Argument checks", {
+
+})
+
+test_that("`omics$composition()` -- Behavioral checks", { 
+ 
+})
+
+
 test_that("Testing Compositional data", {
   taxa <- metagenomics$new(
     biomData = "input/metagenomics/biom_with_taxonomy_hdf5.biom",

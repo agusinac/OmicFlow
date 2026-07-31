@@ -1,3 +1,30 @@
+## Load example data
+taxa <- metagenomics$new(
+  biomData = "input/metagenomics/biom_with_taxonomy_hdf5.biom",
+  metaData = "input/metagenomics/metadata.tsv",
+  treeData = "input/metagenomics/rooted_tree.newick"
+)
+
+test_that("`pairwise_adonis()` -- Argument checks", {
+
+})
+
+test_that("`pairwise_adonis()` -- Behavioral checks", { 
+ 
+})
+
+test_that("`pairwise_anosim()` -- Argument checks", {
+
+})
+
+test_that("`pairwise_anosim()` -- Behavioral checks", { 
+ 
+})
+
+
+
+
+
 test_that("Testing pairwise_adonis & pairwise_anosim", {
   taxa <- metagenomics$new(
     biomData = "input/metagenomics/biom_with_taxonomy_hdf5.biom",

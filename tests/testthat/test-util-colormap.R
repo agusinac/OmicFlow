@@ -1,3 +1,18 @@
+## Load example data
+taxa <- metagenomics$new(
+  biomData = "input/metagenomics/biom_with_taxonomy_hdf5.biom",
+  metaData = "input/metagenomics/metadata.tsv",
+  treeData = "input/metagenomics/rooted_tree.newick"
+)
+
+test_that("`colormap()` -- Argument checks", {
+
+})
+
+test_that("`colormap()` -- Behavioral checks", { 
+ 
+})
+
 test_that("Testing colormap", {
   taxa <- metagenomics$new(
     biomData = "input/metagenomics/biom_with_taxonomy_hdf5.biom",

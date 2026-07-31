@@ -163,11 +163,6 @@ omics <- R6::R6Class(
               \n Make sure {.arg SAMPLE_ID} column contains {.strong unique} identifiers!"
             )
           }
-          #--------------------------------------------------------------------#
-          ## Disable samplepair_id if not supplied
-          #--------------------------------------------------------------------#
-          if (!column_exists(private$.samplepair_id, private$.metaData))
-            private$.samplepair_id <- NULL
 
         } else {
           errors <- attr(private$.valid_schema, "errors")
@@ -347,7 +342,7 @@ omics <- R6::R6Class(
     #' # method 2 to call print function
     #' obj$print()
     #'
-    #' @return object in place
+    #' @return A cli formatted message
     print = function() {
       cli::cli_h3("{.cls {class(self)[1]}} object")
       if (length(private$.metaData) > 0) 
@@ -386,7 +381,7 @@ omics <- R6::R6Class(
     #' # An inbuilt reset function prevents unwanted modification to the taxa object.
     #' taxa$rankstat(feature_ranks = c("Kingdom", "Phylum", "Family", "Genus", "Species"))
     #'
-    #' @return object in place
+    #' @return The object is modified in place and returned (invisibly). If a copy is required, please use [`copy()`](#method-copy) beforehand with \code{obj2 <- obj$copy()}.
     reset = function() {
       if (!is.null(private$original_data)) {
         private$.countData = private$original_data$counts
@@ -414,7 +409,7 @@ omics <- R6::R6Class(
     #' 
     #' obj$removeNAs(column = "treatment")
     #' 
-    #' @return object in place
+    #' @return The object is modified in place and returned (invisibly). If a copy is required, please use [`copy()`](#method-copy) beforehand with \code{obj2 <- obj$copy()}.
     removeNAs = function(column) {
 
       ## Error handling
@@ -436,9 +431,8 @@ omics <- R6::R6Class(
       invisible(self)
     },
     #' @description
-    #' Feature subset (based on `featureData`), automatically applies data synchronization.
-    #' @param ... Expressions that return a logical value, and are defined in terms of the variables in `featureData`.
-    #' Only rows for which all conditions evaluate to TRUE are kept.
+    #' Subset features using a logical expression evaluated in `featureData`, then synchronize the object.
+    #' @param expr A logical expression evaluated in the context of `featureData`. Rows for which the expression evaluates to \code{TRUE} are retained.
     #' @examples
     #' library("OmicFlow")
     #'
@@ -454,25 +448,42 @@ omics <- R6::R6Class(
     #' 
     #' obj$feature_subset(Genus == "Pseudomonas")
     #' 
-    #' @return object in place
-    feature_subset = function(...) {
+    #' @return The object is modified in place and returned (invisibly). If a copy is required, please use [`copy()`](#method-copy) beforehand with \code{obj2 <- obj$copy()}.
+    feature_subset = function(expr) {
+      expr <- base::substitute(expr)
+
       # Replace all NAs by empty string
       features <- data.table::copy(private$.featureData)
       features[, names(features) := lapply(.SD, function(x) {
         if (is.character(x)) ifelse(is.na(x), "", x) else x
       })]
 
-      rows_to_keep <- features[, ...]
-      private$.featureData <- private$.featureData[rows_to_keep, ]
-      private$.countData <- private$.countData[rows_to_keep, ]
+      ## Evaluate expression in local environment
+      rows_to_keep <- tryCatch(
+        eval(expr, features, parent.frame()),
+        error = function(e) {
+          stop(
+            sprintf("Failed to evaluate subset expression `%s`: %s",
+                    deparse(expr), e$message),
+            call. = FALSE
+          )
+        }
+      )
+      # Abort if all rows are `FALSE`
+      if (base::all(rows_to_keep == FALSE)) {
+        cli::cli_abort("The expression resulted in all rows in {.field featureData} to be `FALSE`.")
+      }
+      ## subset by `rows_to_keep`
+      private$.featureData <- private$.featureData[rows_to_keep, , drop = FALSE]
+      private$.countData <- private$.countData[rows_to_keep, , drop = FALSE]
+
       private$sync()
       self$print()
       invisible(self)
     },
     #' @description
-    #' Sample subset (based on `metaData`), automatically applies synchronization.
-    #' @param ... Expressions that return a logical value, and are defined in terms of the variables in `metaData`.
-    #' Only rows for which all conditions evaluate to TRUE are kept.
+    #' Subset samples using a logical expression evaluated in `metaData`, then synchronize the object.
+    #' @param expr A logical expression evaluated in the context of `metaData`. Rows for which the expression evaluates to \code{TRUE} are retained.
     #' @examples
     #' library("OmicFlow")
     #'
@@ -488,30 +499,48 @@ omics <- R6::R6Class(
     #' 
     #' obj$sample_subset(treatment == "tumor")
     #'
-    #' @return object in place
-    sample_subset = function(...) {
-      # set order of columns
+    #' @return The object is modified in place and returned (invisibly). If a copy is required, please use [`copy()`](#method-copy) beforehand with \code{obj2 <- obj$copy()}.
+    sample_subset = function(expr) {
+      expr <- base::substitute(expr)
+      metadata <- data.table::copy(private$.metaData)
+
+      ## Evaluate expression in local environment
+      rows_to_keep <- tryCatch(
+        eval(expr, metadata, parent.frame()),
+        error = function(e) {
+          stop(
+            sprintf("Failed to evaluate subset expression `%s`: %s",
+                    deparse(expr), e$message),
+            call. = FALSE
+          )
+        }
+      )
+      # Abort if all rows are `FALSE`
+      if (base::all(rows_to_keep == FALSE)) {
+        cli::cli_abort("The expression resulted in all rows in {.field metaData} to be `FALSE`.")
+      }
+
+      ## subset by `rows_to_keep`
+      private$.metaData <- private$.metaData[rows_to_keep, , drop = FALSE]
       private$.countData <- private$.countData[, private$.metaData[[ private$.sample_id ]], drop = FALSE]
-      # subset columns and rows
-      rows_to_keep <- private$.metaData[, ...]
-      private$.metaData <- private$.metaData[rows_to_keep, ]
-      # NAs can occur in rows_to_keep, which then doesnt work on sparse Matrix.
-      private$.countData <- private$.countData[, private$.metaData[[ private$.sample_id ]] ]
+
       private$sync()
       self$print()
       invisible(self)
     },
     #' @description
-    #' Samplepair subset (based on `metaData`), automatically applies synchronization.
+    #' Subset samplepairs by choosing the number of unique pairs in `metaData`, then synchronize the object.
     #' @param num_unique_pairs An integer value to define the number of pairs to subset. The default is NULL, 
     #' meaning the maximum number of unique pairs will be used to subset the data. 
     #' Let's say you have three samples for each pair, then the `num_unique_pairs` will be set to 3.
     #' 
-    #' @return object in place
+    #' @return The object is modified in place and returned (invisibly). If a copy is required, please use [`copy()`](#method-copy) beforehand with \code{obj2 <- obj$copy()}.
     samplepair_subset = function(num_unique_pairs = NULL) {
 
       ## Error handling
       #--------------------------------------------------------------------#
+      if (!column_exists(private$.samplepair_id, private$.metaData))
+        cli::cli_abort("{.val {private$.samplepair_id}} doesn't exist in the {.field metaData}.")
 
       if (!is.null(num_unique_pairs) && !is.wholenumber(num_unique_pairs))
         cli::cli_abort("{.val {num_unique_pairs}} must contain integers!")
@@ -523,6 +552,7 @@ omics <- R6::R6Class(
 
       if (is.null(num_unique_pairs)) {
         num_unique_pairs <- counts[, max(unique_count)]
+        cli::cli_alert_info("{.val {num_unique_pairs}} is `NULL`, therefore {.val {num_unique_pairs}} will be set to {.val {max(counts$unique_count)}}.")
       }
 
       private$.metaData <- private$.metaData[SAMPLEPAIR_ID %in% counts[unique_count == num_unique_pairs, SAMPLEPAIR_ID]]
@@ -550,7 +580,7 @@ omics <- R6::R6Class(
     #' obj$feature_merge(feature_rank = c("Kingdom", "Phylum"))
     #' obj$feature_merge(feature_rank = "Genus", feature_filter = c("uncultured", "metagenome"))
     #'
-    #' @return object in place
+    #' @return The object is modified in place and returned (invisibly). If a copy is required, please use [`copy()`](#method-copy) beforehand with \code{obj2 <- obj$copy()}.
     feature_merge = function(feature_rank, feature_filter = NULL) {
 
       ## Error handling
@@ -653,7 +683,7 @@ omics <- R6::R6Class(
     #' obj$reset()
     #' obj$scale(method = "none", transform = log2)
     #' 
-    #' @return object in place
+    #' @return The object is modified in place and returned (invisibly). If a copy is required, please use [`copy()`](#method-copy) beforehand with \code{obj2 <- obj$copy()}.
     scale = function(method = "tss", transform = NULL, base = exp(1), pseudocount = NULL) {
 
       ## Nested Functions
@@ -666,20 +696,23 @@ omics <- R6::R6Class(
       ## Error handling
       #--------------------------------------------------------------------#
       OPTIONS <- c("tss", "clr", "binary", "hellinger", "none")
-      if (!is.null(method) && !is.character(method) && length(method) != 1) {
-        cli::cli_abort("{.val {method}} needs to contain characters with length of 1.")
+      if (!is.character(method) || length(method) != 1) {
+        cli::cli_abort("{.val method} needs to contain characters with length of 1.")
       } else if (!method %in% OPTIONS) {
         cli::cli_abort("{.val {method}} is not a valid method. Valid options: <{.val {OPTIONS}}>")
       }
 
-      if (!is.null(pseudocount) && !is.numeric(pseudocount))
-        cli::cli_abort("{.val {pseudocount}} needs to be a {.cls numeric} type.")
-
-      if (!is.numeric(base))
-        cli::cli_abort("{.val {base}} needs to be a {.cls numeric} type.")
+      if (!is.null(pseudocount)) {
+        if (!is.numeric(pseudocount) || length(pseudocount) != 1) {
+          cli::cli_abort("{.val pseudocount} needs to be a {.cls numeric} type with length of 1.")
+        }
+      }
+        
+      if (!is.numeric(base) || length(base) != 1)
+        cli::cli_abort("{.val base} needs to be a {.cls numeric} type with length of 1.")
 
       if (!is.null(transform) && !is.function(transform))
-        cli::cli_abort("{.val {transform}} must be a function!")
+        cli::cli_abort("{.val transform} must be a function!")
 
       ## MAIN
       #--------------------------------------------------------------------#
@@ -715,8 +748,8 @@ omics <- R6::R6Class(
     #' @description
     #' Rank statistics based on `featureData`
     #' @details
-    #' Counts the number of features identified for each column, for example in case of 16S metagenomics it would be the number of OTUs or ASVs on different taxonomy levels.
-    #' @param feature_ranks A vector of characters or integers that match the `featureData`.
+    #' Counts the number of (unique) features identified for each column of interest from the `featureData`.
+    #' @param feature_ranks A vector of characters that match the `featureData`.
     #' @param unique A boolean value to display only unique entries in `feature_ranks`.
     #' @examples
     #' library("OmicFlow")
@@ -741,13 +774,16 @@ omics <- R6::R6Class(
       #--------------------------------------------------------------------#
 
       if (!is.character(feature_ranks))
-        cli::cli_abort("{.val {feature_ranks}} needs to be of character or integer type.")
-
-      if (all(is.wholenumber(feature_ranks)) && length(feature_ranks) > length(colnames(private$.featureData)))
-        feature_ranks <- colnames(private$.featureData[feature_ranks])
+        cli::cli_abort("{.val {feature_ranks}} needs to be of character")
 
       if (!column_exists(feature_ranks, private$.featureData))
         cli::cli_abort("Specified {.val {feature_ranks}} do not exist in the {.field featureData}.")
+
+      if (length(feature_ranks) > length(colnames(private$.featureData)))
+        feature_ranks <- colnames(private$.featureData[feature_ranks])
+
+      if (!is.logical(unique))
+        cli::cli_abort("{.val unique} needs to be either `TRUE` or `FALSE`.")
 
       ## MAIN
       #--------------------------------------------------------------------#
@@ -842,7 +878,7 @@ omics <- R6::R6Class(
       ## Error handling
       #--------------------------------------------------------------------#
 
-      if (!is.character(col_name) && length(col_name) != 1) {
+      if (!is.character(col_name) || length(col_name) != 1) {
         cli::cli_abort("{.val {col_name}} must be a character and of length 1")
       } else if (!column_exists(col_name, private$.metaData)) {
         cli::cli_abort("The specified {.val {col_name}} does not exist in the {.field metaData}.")
@@ -882,7 +918,7 @@ omics <- R6::R6Class(
       }
 
       # Subset by samplepair completion
-      if ( paired && !is.null(private$.samplepair_id) )
+      if ( paired && column_exists(private$.samplepair_id, private$.metaData) )
         self$samplepair_subset()
 
       # Alpha diversity based on 'metric'
@@ -958,7 +994,7 @@ omics <- R6::R6Class(
       #--------------------------------------------------------------------#
 
       if (!is.null(col_name)) {
-        if (!is.character(col_name) && length(col_name) != 1) {
+        if (!is.character(col_name) || length(col_name) != 1) {
           cli::cli_abort("{.val {col_name}} must be a character and of length 1")
         } else if (!column_exists(col_name, private$.metaData)) {
           cli::cli_abort("The specified {.val {col_name}} does not exist in the {.field metaData}.")
@@ -971,7 +1007,7 @@ omics <- R6::R6Class(
         cli::cli_alert_warning("The {.val {feature_top}} is set to an integer higher than 15.\n This may lead that colors are difficult to be distinguished.\n For color-blind people it is recommended to use a feature_top of maximum 15.")
       }
 
-      if (!is.character(Brewer.palID) && length(Brewer.palID) != 1)
+      if (!is.character(Brewer.palID) || length(Brewer.palID) != 1)
         cli::cli_abort("{.val {Brewer.palID}} must be a character and of length 1")
 
       ## MAIN
@@ -994,7 +1030,7 @@ omics <- R6::R6Class(
       self$feature_merge(feature_rank = feature_rank, feature_filter = feature_filter)
 
       # Remove NAs when col_name is specified
-      if (!is.null(col_name) & length(col_name) == 1)
+      if (!is.null(col_name) && length(col_name) == 1)
         self$removeNAs(col_name)
 
       # Converts matrix to data.table
@@ -1105,17 +1141,19 @@ omics <- R6::R6Class(
         "aitchison"
         )
 
-      if (!is.character(metric) && length(metric) != 1) {
+      if (missing(metric))
+        cli::cli_abort("{.val metric} must be specified!")
+
+      if (!is.character(metric) || length(metric) != 1) {
         cli::cli_abort("{.val {metric}} needs to be a character with a length of 1")
       } else if (!metric %in% OPTIONS) {
         cli::cli_abort("{.val {metric}} is not a valid metric. \nValid options: {.val {OPTIONS}}")
+      } else if (is.null(private$.treeData) && metric == "unifrac") {
+        cli::cli_abort("The specified {.val {metric}} is invalid since no {.field treeData} is supplied.")
       }
 
       if (!is.wholenumber(threads))
-        cli::cli_abort("{.val {threads}} need to be an integer!")
-
-      if (is.null(private$.treeData) && metric == "unifrac")
-        cli::cli_abort("The specified {.val {metric}} is invalid since no {.field treeData} is supplied.")
+        cli::cli_abort("{.val {threads}} need to be a whole number!")        
 
       ## MAIN
       #--------------------------------------------------------------------#
@@ -1192,7 +1230,7 @@ omics <- R6::R6Class(
     #' 
     #' @seealso \link{ordination_plot}, \link{plot_pairwise_stats}, \link{pairwise_anosim}, \link{pairwise_adonis}
     ordination = function(metric = "bray",
-                          method = c("pcoa", "nmds"),
+                          method = "pcoa",
                           group_by,
                           distmat = NULL,
                           weighted = TRUE,
@@ -1202,10 +1240,18 @@ omics <- R6::R6Class(
 
       ## Error handling
       #--------------------------------------------------------------------#
-      if (!is.character(method) && length(method) != 1)
-        cli::cli_abort("{.val {method}} needs to be a character with a length of 1")
+      OPTIONS <- c("pcoa", "nmds")
 
-      if (!is.character(group_by) && length(group_by) != 1) {
+      if (!is.character(method) || length(method) != 1) {
+        cli::cli_abort("{.val {method}} needs to be a character with a length of 1")
+      } else if (!method %in% OPTIONS) {
+        cli::cli_abort("{.val {method}} is not a valid method. \nValid options: {.val {OPTIONS}}")
+      }
+            
+      if (missing(group_by))
+        cli::cli_abort("{.val group_by} must be specified!")
+
+      if (!is.character(group_by) || length(group_by) != 1) {
         cli::cli_abort("{.val {group_by}} needs to be a character with a length of 1")
       } else if (!column_exists(group_by, private$.metaData)) {
         cli::cli_abort("{.val {group_by}} does not exist in the metaData or is empty.")
@@ -1215,14 +1261,31 @@ omics <- R6::R6Class(
         cli::cli_abort("perm_design must be a function.")
 
       if (!is.wholenumber(perm))
-        cli::cli_abort("Permutations {.val {perm}} need to be an integer")
+        cli::cli_abort("Permutations {.val {perm}} need to be a whole number.")
 
-      if (!is.null(distmat) && (!inherits(distmat, "Matrix") && !inherits(distmat, "dist")))
-        cli::cli_abort("{.arg distmat} need to be {.cls Matrix} or {.cls dist}")
+      if (!is.null(distmat)) {
+        tmp <- distmat
+        sample_cols <- private$.metaData[[ private$.sample_id ]]
 
-      if (is.null(private$.treeData) && metric == "unifrac") {
-        cli::cli_alert_warning("The specified {.val {metric}} is invalid since no tree is supplied.\n Switching to bray-curtis metric.")
-        metric <- "bray"
+        if (inherits(tmp, "Matrix") || inherits(tmp, "dist")) {
+          if (inherits(tmp, "dist")) {
+            tmp <- as.matrix(tmp)
+          }
+
+          if (is.null(colnames(tmp))) {
+            cli::cli_abort("{.val distmat} doesn't contain any colnames!")
+          } else {
+            expr <- any(sample_cols %in% colnames(tmp))
+            if (!expr) {
+              cli::cli_abort("None {.val SAMPLE_ID} from {.field metaData} match the {.val distmat} colnames!")
+            }
+          }
+
+          rm(tmp)
+
+        } else {
+          cli::cli_abort("{.arg distmat} need to be {.cls Matrix} or {.cls dist}")
+        }
       }
 
       ## MAIN
@@ -1420,13 +1483,13 @@ omics <- R6::R6Class(
       ## Error handling
       #--------------------------------------------------------------------#
 
-      if (!is.character(feature_rank) && length(feature_rank) != 1) {
+      if (!is.character(feature_rank) || length(feature_rank) != 1) {
         cli::cli_abort("{.val {feature_rank}} needs to be a character with a length of 1")
       } else if (!column_exists(feature_rank, private$.featureData)) {
         cli::cli_abort("The {.val {feature_rank}} column does not exist in the {.field featureData}.")
       }
 
-      if (!is.character(condition.group) && length(condition.group) != 1) {
+      if (!is.character(condition.group) || length(condition.group) != 1) {
         cli::cli_abort("{.val {condition.group}} needs to be a character with a length of 1")
       } else if (!column_exists(condition.group, private$.metaData)) {
         cli::cli_abort("{.val {condition.group}} does not exist in the {.field metaData} or is empty.")
@@ -1443,13 +1506,13 @@ omics <- R6::R6Class(
       if (!is.numeric(logfold.threshold))
         cli::cli_abort("{.val {logfold.threshold}} need to be numeric.")
 
-      if (paired && is.null(private$.samplepair_id)) {
+      if (paired && !column_exists(private$.samplepair_id, private$.metaData)) {
         cli::cli_alert_warning("Paired is set to {.val {paired}} but {.arg SAMPLEPAIR_ID} does not exist in the {.field metaData}.\n Differential feature analysis will continue now with paired set to {.val FALSE}!")
         paired <- FALSE
       }
 
       if (!is.null(group_by)) {
-        if (!is.character(group_by) && length(group_by) != 1) {
+        if (!is.character(group_by) || length(group_by) != 1) {
           cli::cli_abort("{.val {group_by}} needs to contain characters with length of 1.")
         } else if (!column_exists(group_by, private$.metaData)) {
           cli::cli_abort("The {.val {group_by}} column does not exist in the {.field metaData}.")
@@ -1488,7 +1551,7 @@ omics <- R6::R6Class(
       self$removeNAs(condition.group)
 
       # Subset by samplepair completion
-      if (paired && !is.null(private$.samplepair_id))
+      if (paired && column_exists(private$.samplepair_id, private$.metaData))
         self$samplepair_subset()
       
       # Extract mean abundance
@@ -1629,16 +1692,16 @@ omics <- R6::R6Class(
     ## Error handling
     #--------------------------------------------------------------------#
 
-    if (!is.character(filename) && length(filename) != 1)
+    if (!is.character(filename) || length(filename) != 1)
       cli::cli_abort("{.val {filename}} needs to be a character with a length of 1")
       
-    if (!is.character(feature_contrast) && length(feature_contrast) != 1) {
+    if (!is.character(feature_contrast) || length(feature_contrast) != 1) {
       cli::cli_abort("{.val {feature_contrast}} needs to be a character with a length of 1")
     } else if (!column_exists(feature_contrast, private$.featureData)) {
       cli::cli_abort("{.val {feature_contrast}} does not exist in {.field featureData}!")
     }
 
-    if (!is.null(distmat) && !is.character(distmat) && length(distmat) != 1) {
+    if (!is.null(distmat) && !is.character(distmat) || length(distmat) != 1) {
       cli::cli_abort("{.arg distmat} needs to be a character with a length of 1")
     
       if (!file.exists(distmat))
@@ -1746,7 +1809,7 @@ omics <- R6::R6Class(
             self$alpha_diversity(
               col_name = col_name,
               metric = "shannon",
-              paired = ifelse(!is.null(private$.samplepair_id), TRUE, FALSE)
+              paired = ifelse(column_exists(private$.samplepair_id, private$.metaData), TRUE, FALSE)
             )
           },
           error = function(e) {
@@ -1894,7 +1957,7 @@ omics <- R6::R6Class(
               self$foldchange(
                 feature_rank = feature_contrast[j],
                 feature_filter = feature_filter,
-                paired = ifelse(!is.null(private$.samplepair_id), TRUE, FALSE),
+                paired = ifelse(column_exists(private$.samplepair_id, private$.metaData), TRUE, FALSE),
                 condition.group = col_name,
                 condition_A = c(conditions$group1),
                 condition_B = c(conditions$group2),

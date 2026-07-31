@@ -240,7 +240,7 @@ diversity_plot <- function(
         x = .data$group_numeric - 0.1, 
         y = .data$ymax,
         xend = .data$group_numeric, 
-        yend = .data$yma
+        yend = .data$ymax
       ),
       color = "black", 
       linewidth = 0.3

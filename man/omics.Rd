@@ -478,7 +478,7 @@ via a filepath or existing \link[data.table]{data.table} or \link[base]{data.fra
     \if{html}{\out{</div>}}
   }
   \subsection{Returns}{
-    object in place
+    A cli formatted message
   }
   \subsection{Examples}{
     \if{html}{\out{<div class="r example copy">}}
@@ -515,7 +515,7 @@ The methods from the abstract class \link{omics} also contains a private method 
     \if{html}{\out{</div>}}
   }
   \subsection{Returns}{
-    object in place
+    The object is modified in place and returned (invisibly). If a copy is required, please use \href{#method-copy}{\code{copy()}} beforehand with \code{obj2 <- obj$copy()}.
   }
   \subsection{Examples}{
     \if{html}{\out{<div class="r example copy">}}
@@ -563,7 +563,7 @@ taxa$rankstat(feature_ranks = c("Kingdom", "Phylum", "Family", "Genus", "Species
     \if{html}{\out{</div>}}
   }
   \subsection{Returns}{
-    object in place
+    The object is modified in place and returned (invisibly). If a copy is required, please use \href{#method-copy}{\code{copy()}} beforehand with \code{obj2 <- obj$copy()}.
   }
   \subsection{Examples}{
     \if{html}{\out{<div class="r example copy">}}
@@ -589,22 +589,21 @@ obj$removeNAs(column = "treatment")
 \if{html}{\out{<a id="method-omics-feature_subset"></a>}}
 \if{latex}{\out{\hypertarget{method-omics-feature_subset}{}}}
 \subsection{\code{omics$feature_subset()}}{
-  Feature subset (based on \code{featureData}), automatically applies data synchronization.
+  Subset features using a logical expression evaluated in \code{featureData}, then synchronize the object.
   \subsection{Usage}{
     \if{html}{\out{<div class="r">}}
-    \preformatted{omics$feature_subset(...)}
+    \preformatted{omics$feature_subset(expr)}
     \if{html}{\out{</div>}}
   }
   \subsection{Arguments}{
     \if{html}{\out{<div class="arguments">}}
     \describe{
-      \item{\code{...}}{Expressions that return a logical value, and are defined in terms of the variables in \code{featureData}.
-Only rows for which all conditions evaluate to TRUE are kept.}
+      \item{\code{expr}}{A logical expression evaluated in the context of \code{featureData}. Rows for which the expression evaluates to \code{TRUE} are retained.}
     }
     \if{html}{\out{</div>}}
   }
   \subsection{Returns}{
-    object in place
+    The object is modified in place and returned (invisibly). If a copy is required, please use \href{#method-copy}{\code{copy()}} beforehand with \code{obj2 <- obj$copy()}.
   }
   \subsection{Examples}{
     \if{html}{\out{<div class="r example copy">}}
@@ -630,22 +629,21 @@ obj$feature_subset(Genus == "Pseudomonas")
 \if{html}{\out{<a id="method-omics-sample_subset"></a>}}
 \if{latex}{\out{\hypertarget{method-omics-sample_subset}{}}}
 \subsection{\code{omics$sample_subset()}}{
-  Sample subset (based on \code{metaData}), automatically applies synchronization.
+  Subset samples using a logical expression evaluated in \code{metaData}, then synchronize the object.
   \subsection{Usage}{
     \if{html}{\out{<div class="r">}}
-    \preformatted{omics$sample_subset(...)}
+    \preformatted{omics$sample_subset(expr)}
     \if{html}{\out{</div>}}
   }
   \subsection{Arguments}{
     \if{html}{\out{<div class="arguments">}}
     \describe{
-      \item{\code{...}}{Expressions that return a logical value, and are defined in terms of the variables in \code{metaData}.
-Only rows for which all conditions evaluate to TRUE are kept.}
+      \item{\code{expr}}{A logical expression evaluated in the context of \code{metaData}. Rows for which the expression evaluates to \code{TRUE} are retained.}
     }
     \if{html}{\out{</div>}}
   }
   \subsection{Returns}{
-    object in place
+    The object is modified in place and returned (invisibly). If a copy is required, please use \href{#method-copy}{\code{copy()}} beforehand with \code{obj2 <- obj$copy()}.
   }
   \subsection{Examples}{
     \if{html}{\out{<div class="r example copy">}}
@@ -671,7 +669,7 @@ obj$sample_subset(treatment == "tumor")
 \if{html}{\out{<a id="method-omics-samplepair_subset"></a>}}
 \if{latex}{\out{\hypertarget{method-omics-samplepair_subset}{}}}
 \subsection{\code{omics$samplepair_subset()}}{
-  Samplepair subset (based on \code{metaData}), automatically applies synchronization.
+  Subset samplepairs by choosing the number of unique pairs in \code{metaData}, then synchronize the object.
   \subsection{Usage}{
     \if{html}{\out{<div class="r">}}
     \preformatted{omics$samplepair_subset(num_unique_pairs = NULL)}
@@ -687,7 +685,7 @@ Let's say you have three samples for each pair, then the \code{num_unique_pairs}
     \if{html}{\out{</div>}}
   }
   \subsection{Returns}{
-    object in place
+    The object is modified in place and returned (invisibly). If a copy is required, please use \href{#method-copy}{\code{copy()}} beforehand with \code{obj2 <- obj$copy()}.
   }
 }
 
@@ -710,7 +708,7 @@ Let's say you have three samples for each pair, then the \code{num_unique_pairs}
     \if{html}{\out{</div>}}
   }
   \subsection{Returns}{
-    object in place
+    The object is modified in place and returned (invisibly). If a copy is required, please use \href{#method-copy}{\code{copy()}} beforehand with \code{obj2 <- obj$copy()}.
   }
   \subsection{Examples}{
     \if{html}{\out{<div class="r example copy">}}
@@ -759,7 +757,7 @@ obj$feature_merge(feature_rank = "Genus", feature_filter = c("uncultured", "meta
     \if{html}{\out{</div>}}
   }
   \subsection{Returns}{
-    object in place
+    The object is modified in place and returned (invisibly). If a copy is required, please use \href{#method-copy}{\code{copy()}} beforehand with \code{obj2 <- obj$copy()}.
   }
   \subsection{Examples}{
     \if{html}{\out{<div class="r example copy">}}
@@ -802,13 +800,13 @@ obj$scale(method = "none", transform = log2)
   \subsection{Arguments}{
     \if{html}{\out{<div class="arguments">}}
     \describe{
-      \item{\code{feature_ranks}}{A vector of characters or integers that match the \code{featureData}.}
+      \item{\code{feature_ranks}}{A vector of characters that match the \code{featureData}.}
       \item{\code{unique}}{A boolean value to display only unique entries in \code{feature_ranks}.}
     }
     \if{html}{\out{</div>}}
   }
   \subsection{Details}{
-    Counts the number of features identified for each column, for example in case of 16S metagenomics it would be the number of OTUs or ASVs on different taxonomy levels.
+    Counts the number of (unique) features identified for each column of interest from the \code{featureData}.
   }
   \subsection{Returns}{
     A \link[ggplot2]{ggplot} object.
@@ -1014,7 +1012,7 @@ dist <- obj$distance(metric = "bray")
     \if{html}{\out{<div class="r">}}
     \preformatted{omics$ordination(
   metric = "bray",
-  method = c("pcoa", "nmds"),
+  method = "pcoa",
   group_by,
   distmat = NULL,
   weighted = TRUE,

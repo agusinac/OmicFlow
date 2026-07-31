@@ -46,6 +46,12 @@ column_exists <- function(column, table) {
   return (length(valid_columns) == length(column) && columns_empty)
 }
 
+#' Check if number is integer
+#'
+#' @description Checks if a given value `x` is a wholenumber, so it should be 1, 4 and not a float.
+#' \link{is.integer} also accepts floats.
+#' 
+#' @noRd
 is.wholenumber <- function(x, tol = .Machine$double.eps^0.5) {
   if (is.character(x)) {
     return(FALSE)

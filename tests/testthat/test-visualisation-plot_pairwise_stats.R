@@ -1,3 +1,18 @@
+## Load example data
+taxa <- metagenomics$new(
+  biomData = "input/metagenomics/biom_with_taxonomy_hdf5.biom",
+  metaData = "input/metagenomics/metadata.tsv",
+  treeData = "input/metagenomics/rooted_tree.newick"
+)
+
+test_that("`plot_pairwise_stats()` -- Argument checks", {
+
+})
+
+test_that("`plot_pairwise_stats()` -- Behavioral checks", { 
+ 
+})
+
 test_that("Testing `plot_pairwise_stats` error-handling", {
   set.seed(42)
   mock_data <- matrix(rnorm(15 * 10), nrow = 15, ncol = 10)

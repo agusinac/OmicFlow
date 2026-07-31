@@ -5,8 +5,15 @@
     - Follow order of `tests/testthat.R` file
     - Finished:
         - test-omics.R
+        - test-omics-transformation.R
+        - test-omics-subsetting.R
+        - test-omics-rankstat.R
+        - test-omics-ordination.R
         - test-metagenomics.R
+        - test-metagenomics-write_biom.R
+        - test-proteomics.R
 - TODO: Add `tryCatch` where neccessary
+- Added `tryCatch` and better error handling in `omics$sample_subset`, `omics$feature_subset` and `omics$samplepair_subset`.
 - Replaced `jsonlite` by `yyjsonr` functionality, much faster and cleaner code.
 - Replaced `tests/testthat/input/metagenomics/biom_with_taxonomy_json.biom` with one from BIOM v2 example.
 - Re-combined `foldchange` into `omics` and option to use different fold-change computations via argument `method`.

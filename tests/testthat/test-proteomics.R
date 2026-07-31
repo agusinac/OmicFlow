@@ -1,39 +1,35 @@
 ## Load example data
-metadata <- "input/proteomics/metadata.csv"
-counts <- "input/proteomics/counts.csv"
-tree <- "input/proteomics/tree.newick"
+metadata_file <- "input/proteomics/metadata.csv"
+counts_with_rownames_file <- "input/proteomics/counts.csv"
+counts_without_rownames_file <- "input/proteomics/counts_without_rownames.csv"
+tree_file <- "input/proteomics/tree.newick"
 
 test_that("`proteomics` -- Argument checks", {
 
   ## Ensuring `metaData` is supplied
-  expect_snapshot(metagenomics$new(), error = TRUE)
-  expect_snapshot(metagenomics$new(biomData = "nonexisting.biom"), error = TRUE)
-  expect_snapshot(metagenomics$new(featureData = features_file), error = TRUE)
-  expect_snapshot(metagenomics$new(countData = counts_sparse_file), error = TRUE)
-  expect_snapshot(metagenomics$new(metaData = data.frame()), error = TRUE)
-  expect_snapshot(metagenomics$new(metaData = data.table::data.table()), error = TRUE)
+  expect_snapshot(proteomics$new(), error = TRUE)
+  expect_snapshot(proteomics$new(countData = counts_with_rownames_file), error = TRUE)
+  expect_snapshot(proteomics$new(metaData = data.frame()), error = TRUE)
+  expect_snapshot(proteomics$new(metaData = data.table::data.table()), error = TRUE)
 
   ## Checking errors
-  expect_snapshot(metagenomics$new(metaData = metadata_file, featureData = data.frame()), error = TRUE)
-  expect_snapshot(metagenomics$new(metaData = metadata_file, featureData = data.table::data.table()), error = TRUE)
-  expect_snapshot(metagenomics$new(metaData = metadata_file, biomData = "nonexisting.biom"), error = TRUE)
-  expect_snapshot(metagenomics$new(metaData = metadata_file, biomData = metadata_file), error = TRUE)
+  expect_snapshot(proteomics$new(metaData = metadata_file, featureData = data.frame()), error = TRUE)
+  expect_snapshot(proteomics$new(metaData = metadata_file, featureData = data.table::data.table()), error = TRUE)
 
-  expect_snapshot(metagenomics$new(metaData = metadata_file, countData = data.frame()), error = TRUE)
-  expect_snapshot(metagenomics$new(metaData = metadata_file, countData = data.table::data.table()), error = TRUE)
-  expect_snapshot(metagenomics$new(metaData = metadata_file, countData = matrix(0)), error = TRUE)
+  expect_snapshot(proteomics$new(metaData = metadata_file, countData = data.frame()), error = TRUE)
+  expect_snapshot(proteomics$new(metaData = metadata_file, countData = data.table::data.table()), error = TRUE)
+  expect_snapshot(proteomics$new(metaData = metadata_file, countData = matrix(0)), error = TRUE)
 
-  expect_snapshot(metagenomics$new(metaData = metadata_file, treeData = data.frame()), error = TRUE)
-  expect_snapshot(metagenomics$new(metaData = metadata_file, treeData = ape::rtree(50)), error = TRUE)
-  expect_snapshot(metagenomics$new(metaData = metadata_file, biomData = biom_hdf5, treeData = ape::rtree(50)), error = TRUE)
+  expect_snapshot(proteomics$new(metaData = metadata_file, treeData = data.frame()), error = TRUE)
+  expect_snapshot(proteomics$new(metaData = metadata_file, treeData = ape::rtree(50)), error = TRUE)
 })
 
 test_that("`proteomics` -- Behavioral checks", { 
-  # Loading biom hdf5
+  # Loading counts file with rownames
   expect_snapshot(
-    test <- metagenomics$new(
+    test <- proteomics$new(
       metaData = metadata_file,
-      biomData = biom_hdf5
+      countData = counts_with_rownames_file
     )
   )
   expect_equal(all(rownames(test$countData) == test$featureData$FEATURE_ID), TRUE)
@@ -42,13 +38,11 @@ test_that("`proteomics` -- Behavioral checks", {
   expect_equal(class(test$metaData)[1], "data.table")
   expect_equal(class(test$featureData)[1], "data.table")
 
-  # Loading biom json
+  # Loading counts file without rownames
   expect_snapshot(
-    test <- metagenomics$new(
-      biomData = biom_json,
-      metaData = data.table::data.table(SAMPLE_ID = c(
-        "Sample1", "Sample2", "Sample3",
-        "Sample4", "Sample5", "Sample6"))
+    test <- proteomics$new(
+      metaData = metadata_file,
+      countData = counts_without_rownames_file
       )
   )
   expect_equal(all(rownames(test$countData) == test$featureData$FEATURE_ID), TRUE)
@@ -57,12 +51,12 @@ test_that("`proteomics` -- Behavioral checks", {
   expect_equal(class(test$metaData)[1], "data.table")
   expect_equal(class(test$featureData)[1], "data.table")
 
-   # Loading biom hdf5 with tree
+   # Loading with tree
   expect_snapshot(
-    test <- metagenomics$new(
+    test <- proteomics$new(
       metaData = metadata_file,
-      biomData = biom_hdf5,
-      treeData = tree
+      countData = counts_with_rownames_file,
+      treeData = tree_file
     )
   )
   expect_equal(all(rownames(test$countData) == test$featureData$FEATURE_ID), TRUE)
@@ -73,21 +67,21 @@ test_that("`proteomics` -- Behavioral checks", {
   expect_equal(class(test$metaData)[1], "data.table")
   expect_equal(class(test$featureData)[1], "data.table")
 
-  # Checking loading metagenomics from pre-loaded test
+  # Checking loading proteomics from pre-loaded test
   expect_snapshot(
-    taxa_ref <- metagenomics$new(
+    prot_ref <- proteomics$new(
       countData = test$countData,
       metaData = test$metaData,
       treeData = test$treeData,
       featureData = test$featureData
     )
   )
-  expect_equal(all(rownames(test$countData) == rownames(taxa_ref$countData)), TRUE)
-  expect_equal(all(colnames(test$countData) == colnames(taxa_ref$countData)), TRUE)
-  expect_equal(all(test$featureData$FEATURE_ID == taxa_ref$featureData$FEATURE_ID), TRUE)
-  expect_equal(all(test$treeData$tip.label == taxa_ref$treeData$tip.label), TRUE)
-  expect_equal(all(test$metaData$SAMPLE_ID == taxa_ref$metaData$SAMPLE_ID), TRUE)
-  expect_equal(inherits(test$countData, "sparseMatrix"), inherits(taxa_ref$countData, "sparseMatrix"))
-  expect_equal(class(test$metaData)[1], class(taxa_ref$metaData)[1])
-  expect_equal(class(test$featureData)[1], class(taxa_ref$featureData)[1])
+  expect_equal(all(rownames(test$countData) == rownames(prot_ref$countData)), TRUE)
+  expect_equal(all(colnames(test$countData) == colnames(prot_ref$countData)), TRUE)
+  expect_equal(all(test$featureData$FEATURE_ID == prot_ref$featureData$FEATURE_ID), TRUE)
+  expect_equal(all(test$treeData$tip.label == prot_ref$treeData$tip.label), TRUE)
+  expect_equal(all(test$metaData$SAMPLE_ID == prot_ref$metaData$SAMPLE_ID), TRUE)
+  expect_equal(inherits(test$countData, "sparseMatrix"), inherits(prot_ref$countData, "sparseMatrix"))
+  expect_equal(class(test$metaData)[1], class(prot_ref$metaData)[1])
+  expect_equal(class(test$featureData)[1], class(prot_ref$featureData)[1])
 })

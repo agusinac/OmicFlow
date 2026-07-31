@@ -1,4 +1,15 @@
-test_that("Testing autoFlow on metagenomics data", {
+## Load example data
+taxa <- metagenomics$new(
+  biomData = "input/metagenomics/biom_with_taxonomy_hdf5.biom",
+  metaData = "input/metagenomics/metadata.tsv",
+  treeData = "input/metagenomics/rooted_tree.newick"
+)
+
+test_that("`omics$autoFlow()` -- Argument checks", {
+
+})
+
+test_that("`omics$autoFlow()` -- Behavioral checks", { 
     taxa <- metagenomics$new(
         biomData = "input/metagenomics/biom_with_taxonomy_hdf5.biom",
         metaData = "input/metagenomics/metadata.tsv",
@@ -13,9 +24,7 @@ test_that("Testing autoFlow on metagenomics data", {
         )
     )
     expect_true(length(taxa_autoflow$plots) == length(taxa_autoflow$data))
-})
 
-test_that("Testing autoFlow on proteomics data", {
     prot <- proteomics$new(
         metaData = "input/proteomics/metadata.csv",
         countData = "input/proteomics/counts.csv",

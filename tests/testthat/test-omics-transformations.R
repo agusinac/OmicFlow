@@ -1,26 +1,65 @@
-test_that("Testing transformations of data", {
-  taxa <- metagenomics$new(
-    biomData = "input/metagenomics/biom_with_taxonomy_hdf5.biom",
-    metaData = "input/metagenomics/metadata.tsv",
-    treeData = "input/metagenomics/rooted_tree.newick"
-  )
-  
+## Load example data
+test <- omics$new(
+  metaData = "input/proteomics/metadata.csv",
+  countData = "input/proteomics/counts.csv"
+)
+
+test_that("`omics$scale()` -- Argument checks", {
+  expect_snapshot(test$scale(method = "nonexistent"), error = TRUE)
+  expect_snapshot(test$scale(method = 5), error = TRUE)
+  expect_snapshot(test$scale(method = list()), error = TRUE)
+
+  expect_snapshot(test$scale(transform = list()), error = TRUE)
+  expect_snapshot(test$scale(transform = c(log2)), error = TRUE)
+
+  expect_snapshot(test$scale(base = "1"), error = TRUE)
+  expect_snapshot(test$scale(base = list()), error = TRUE)
+  expect_snapshot(test$scale(base = c(1,2)), error = TRUE)
+
+  expect_snapshot(test$scale(pseudocount = "1"), error = TRUE)
+  expect_snapshot(test$scale(pseudocount = list()), error = TRUE)
+
+  # This should not be allowed, but let's hope nobody will do such a thing
+  # expect_snapshot(test$scale(pseudocount = c(1)), error = TRUE)
+})
+
+test_that("`omics$scale()` -- Behavioral checks", { 
   # Perform log transformation
-  taxa$scale(transform = log2)
-  expect_snapshot(as.vector(taxa$countData[, 1]))
+  test$scale(method = "none", transform = log2)
+  expect_snapshot(as.vector(test$countData[, 1]))
   
   # Perform sqrt transformation
-  taxa$reset()
-  taxa$scale(transform = sqrt)
-  expect_snapshot(as.vector(taxa$countData[, 1]))
+  test$reset()
+  test$scale(method = "none", transform = sqrt)
+  expect_snapshot(as.vector(test$countData[, 1]))
   
   # Perform clr standardisation
-  taxa$reset()
-  taxa$scale(method = "clr")
-  expect_snapshot(as.vector(taxa$countData[, 1]))
+  test$reset()
+  test$scale(method = "clr")
+  expect_snapshot(as.vector(test$countData[, 1]))
   
   # Perform tss normalisation
-  taxa$reset()
-  taxa$scale(method = "tss")
-  expect_snapshot(as.vector(taxa$countData[, 1]))
+  test$reset()
+  test$scale(method = "tss")
+  expect_snapshot(as.vector(test$countData[, 1]))
+
+  # Perform hellinger transformation
+  test$reset()
+  test$scale(method = "hellinger")
+  expect_snapshot(as.vector(test$countData[, 1]))
+
+  # Perform binary transformation
+  test$reset()
+  test$scale(method = "binary")
+  expect_snapshot(as.vector(test$countData[, 1]))
+
+  # Perform clr normalisation with pseudocounts
+  test$reset()
+  test$scale(method = "clr", pseudocount = 1)
+  expect_snapshot(as.vector(test$countData[, 1]))
+
+  # Perform clr normalisation with different log base
+  test$reset()
+  test$scale(method = "clr", base = 2)
+  expect_snapshot(as.vector(test$countData[, 1]))
 })

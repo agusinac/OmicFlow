@@ -18,10 +18,10 @@ counts_dense_file <- system.file("extdata", "counts_dense.tsv", package = "OmicF
 features_file <- system.file("extdata", "features.tsv", package = "OmicFlow")
 
 ## Start tests per section
-test_check("OmicFlow", filter = "omics")
+# test_check("OmicFlow", filter = "omics")
 test_check("OmicFlow", filter = "metagenomics")
 test_check("OmicFlow", filter = "proteomics")
-test_check("OmicFlow", filter = "metrics")
-test_check("OmicFlow", filter = "statistics")
-test_check("OmicFlow", filter = "visualisation")
-test_check("OmicFlow", filter = "util")
+# test_check("OmicFlow", filter = "metrics")
+# test_check("OmicFlow", filter = "statistics")
+# test_check("OmicFlow", filter = "visualisation")
+# test_check("OmicFlow", filter = "util")

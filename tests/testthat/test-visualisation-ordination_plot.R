@@ -1,3 +1,18 @@
+## Load example data
+taxa <- metagenomics$new(
+  biomData = "input/metagenomics/biom_with_taxonomy_hdf5.biom",
+  metaData = "input/metagenomics/metadata.tsv",
+  treeData = "input/metagenomics/rooted_tree.newick"
+)
+
+test_that("`ordination_plot()` -- Argument checks", {
+
+})
+
+test_that("`ordination_plot()` -- Behavioral checks", { 
+ 
+})
+
 test_that("Testing `ordination_plot` error-handling", {
   set.seed(123)
   mock_data <- data.frame(
