@@ -5,6 +5,8 @@
 #' @importFrom data.table := .SD
 #' @useDynLib OmicFlow, .registration = TRUE
 #' @importFrom Rcpp sourceCpp
+#' @importFrom RcppParallel RcppParallelLibs
+#' @importFrom RcppParallel setThreadOptions
 #' @importFrom utils globalVariables
 ## usethis namespace: end
 
