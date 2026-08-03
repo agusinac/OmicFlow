@@ -9,9 +9,16 @@
         - test-omics-subsetting.R
         - test-omics-rankstat.R
         - test-omics-ordination.R
+        - test-omics-feature_merge.R
+        - test-omics-composition.R
         - test-metagenomics.R
         - test-metagenomics-write_biom.R
         - test-proteomics.R
+        - test-util-colormap.R
+        - test-util-column_exists.R
+        - test-util-combine_conditions.R
+        - test-util-matrix_to_dtable.R
+        - test-util-wholenumber.R
 - TODO: Add `tryCatch` where neccessary
 - Added `tryCatch` and better error handling in `omics$sample_subset`, `omics$feature_subset` and `omics$samplepair_subset`.
 - Replaced `jsonlite` by `yyjsonr` functionality, much faster and cleaner code.

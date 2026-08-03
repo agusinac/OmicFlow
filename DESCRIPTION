@@ -1,7 +1,7 @@
 Package: OmicFlow
 Title: Fast and Efficient (Automated) Analysis of Sparse Omics Data
-Version: 1.6.0.9002
-Date: 2026-05-19
+Version: 1.6.0.9003
+Date: 2026-08-03
 Authors@R: c(
     person(
         "Alem", "Gusinac",
@@ -22,7 +22,7 @@ Description:
     which serves as a guide to connect all the pieces together by aligning them into a single object that is defined as an 'omics' class. 
     Once this unified structure is established, users can perform manual subsetting, visualisation, and statistical analysis, or leverage the automated 'autoFlow' method to generate a comprehensive report.
 License: MIT + file LICENSE
-URL: https://github.com/agusinac/OmicFlow, https://agusinac.github.io/OmicFlow/
+URL: https://agusinac.github.io/OmicFlow/
 BugReports: https://github.com/agusinac/OmicFlow/issues
 Config/testthat/edition: 3
 Encoding: UTF-8
@@ -47,6 +47,7 @@ Imports:
     Rcpp (>= 0.12.6),
     RcppParallel (>= 4.3.20),
     stats,
+    utils,
     vegan,
     yyjsonr
 Suggests: 

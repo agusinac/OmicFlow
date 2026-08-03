@@ -589,11 +589,11 @@ omics <- R6::R6Class(
       if (!is.character(feature_rank))
         cli::cli_abort("{.val {feature_rank}} needs to be a character or vector containing characters")
 
-      if (!is.null(feature_filter) && !is.character(feature_filter))
-        cli::cli_abort("{.val {feature_filter}} needs to be a character or vector containing characters")
-
       if (!column_exists(feature_rank, private$.featureData))
         cli::cli_abort("{.val {feature_rank}} does not exist in {.field featureData}!")
+
+      if (!is.null(feature_filter) && !is.character(feature_filter))
+        cli::cli_abort("{.val {feature_filter}} needs to be a character or vector containing characters")
 
       ## MAIN
       #--------------------------------------------------------------------#
@@ -953,7 +953,7 @@ omics <- R6::R6Class(
     #' @param feature_rank A character variable in `featureData` to aggregate via [`feature_merge()`](#method-feature_merge).
     #' @param feature_filter A character or vector of characters to removes features by regex pattern.
     #' @param col_name Optional, a character or vector of characters to add to the final compositional data output.
-    #' @param feature_top A wholenumber of the top features to visualize, the max is 15, due to a limit of palettes.
+    #' @param feature_top A wholenumber of the top features to visualize, the max is 15, due to a limit of palettes (default: \code{10}).
     #' @param Brewer.palID A character name for the palette set to be applied, see \link[RColorBrewer]{brewer.pal} or \link{colormap}.
     #' @examples
     #' library("OmicFlow")
@@ -986,7 +986,7 @@ omics <- R6::R6Class(
       feature_rank,
       feature_filter = NULL,
       col_name = NULL,
-      feature_top = c(10, 15),
+      feature_top = 10,
       Brewer.palID = "RdYlBu"
     ) {
 
@@ -995,20 +995,21 @@ omics <- R6::R6Class(
 
       if (!is.null(col_name)) {
         if (!is.character(col_name) || length(col_name) != 1) {
-          cli::cli_abort("{.val {col_name}} must be a character and of length 1")
+          cli::cli_abort("{.val {col_name}} must be a character and of length 1.")
         } else if (!column_exists(col_name, private$.metaData)) {
           cli::cli_abort("The specified {.val {col_name}} does not exist in the {.field metaData}.")
         }
       }
 
-      if (!is.wholenumber(feature_top)) {
-        cli::cli_abort("{.val {feature_top}} must be an integer!")
-      } else if (feature_top > 15) {
-        cli::cli_alert_warning("The {.val {feature_top}} is set to an integer higher than 15.\n This may lead that colors are difficult to be distinguished.\n For color-blind people it is recommended to use a feature_top of maximum 15.")
+      if (length(feature_top) != 1) {
+        cli::cli_abort("{.val {feature_top} must be a single element.}")
+      } else if (!is.wholenumber(feature_top)) {
+        cli::cli_abort("{.val {feature_top}} must be a whole number.")
       }
-
-      if (!is.character(Brewer.palID) || length(Brewer.palID) != 1)
-        cli::cli_abort("{.val {Brewer.palID}} must be a character and of length 1")
+      
+      if (feature_top > 15) {
+        cli::cli_abort("The {.val feature_top} cannot be higher than 15.\n This may lead that colors are difficult to be distinguished for color-blind people, therefore the limit is set to 15.")
+      }
 
       ## MAIN
       #--------------------------------------------------------------------#

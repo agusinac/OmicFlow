@@ -902,7 +902,7 @@ plt <- obj$alpha_diversity(col_name = "treatment",
   feature_rank,
   feature_filter = NULL,
   col_name = NULL,
-  feature_top = c(10, 15),
+  feature_top = 10,
   Brewer.palID = "RdYlBu"
 )}
     \if{html}{\out{</div>}}
@@ -913,7 +913,7 @@ plt <- obj$alpha_diversity(col_name = "treatment",
       \item{\code{feature_rank}}{A character variable in \code{featureData} to aggregate via \href{#method-feature_merge}{\code{feature_merge()}}.}
       \item{\code{feature_filter}}{A character or vector of characters to removes features by regex pattern.}
       \item{\code{col_name}}{Optional, a character or vector of characters to add to the final compositional data output.}
-      \item{\code{feature_top}}{A wholenumber of the top features to visualize, the max is 15, due to a limit of palettes.}
+      \item{\code{feature_top}}{A wholenumber of the top features to visualize, the max is 15, due to a limit of palettes (default: \code{10}).}
       \item{\code{Brewer.palID}}{A character name for the palette set to be applied, see \link[RColorBrewer]{brewer.pal} or \link{colormap}.}
     }
     \if{html}{\out{</div>}}

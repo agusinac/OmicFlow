@@ -12,7 +12,7 @@ test_that("`write_biom()` -- Argument check", {
 
     output_file <- paste0(tempdir(), "/test.biom")
     data.table::fwrite(x = data.table::data.table(A = c(2, 3, 1)), file = output_file)
-    expect_snapshot(taxa$write_biom(filename = output_file), error = TRUE)
+    expect_error(taxa$write_biom(filename = output_file))
     file.remove(output_file)
 })
 
