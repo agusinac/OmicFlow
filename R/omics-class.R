@@ -1354,26 +1354,27 @@ omics <- R6::R6Class(
 
       # Data table of loading scores
       df_pcs_points <- data.table::data.table(pcs$points)
+      n_samples <- ncol(df_pcs_points)
 
       if (method == "pcoa") {
         # Normalisation of eigenvalues
         pcs$eig_norm <- unlist(lapply(pcs$eig, function(x) x / sum(pcs$eig) * 100))
-        colnames(df_pcs_points) <- paste0("PC", 1:ncol(df_pcs_points))
+        colnames(df_pcs_points) <- paste0("PC", 1:n_samples)
 
       } else if (method == "nmds") {
-        df_pcs_points[['stress']] <- pcs$stress
+        df_pcs_points[, stress := pcs$stress]
       }
-      plot_list$pcs <- df_pcs_points
 
       # Adds relevant data
       df_pcs_points[, groups := private$.metaData[[ group_by ]] ]
       df_pcs_points[, samples := row.names(df_pcs_points) ]
+      plot_list$pcs <- df_pcs_points
 
       if (method == "pcoa") {
         # Scree plot of first 10 dimensions
         tmp <- data.table::data.table(
-          dims = seq(length(pcs$eig_norm[1:10])),
-          dims.explained = pcs$eig_norm[1:10]
+          dims = seq(length(pcs$eig_norm[1:n_samples])),
+          dims.explained = pcs$eig_norm[1:n_samples]
         )
 
         plot_list$scree_plot <- ggplot2::ggplot(
@@ -1385,10 +1386,10 @@ omics <- R6::R6Class(
           ) +
           ggplot2::geom_col() +
           ggplot2::theme_bw() +
-          ggplot2::scale_x_continuous(breaks=seq(1, 10, 1)) +
-          ggplot2::scale_y_continuous(breaks=seq(0, 100, 10)) +
+          ggplot2::scale_x_continuous(breaks=seq(1, n_samples, 1)) +
+          ggplot2::scale_y_continuous(breaks=seq(0, 100, n_samples)) +
           ggplot2::labs(
-            title = paste0("Screeplot of ", length(pcs$eig_norm[1:10])," PCs"),
+            title = paste0("Screeplot of ", length(pcs$eig_norm)," PCs"),
             x = "Principal Components (PCs)",
             y = "dissimilarity explained [%]"
           )

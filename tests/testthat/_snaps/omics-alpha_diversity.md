@@ -85,16 +85,6 @@
 ---
 
     Code
-      adiv$stats
-    Output
-        .y. group1 group2 n1 n2 statistic         p     p.adj p.adj.signif y.position
-      1  V1 female   male  2  2         3 0.6666667 0.6666667           ns    3.78792
-              groups xmin xmax
-      1 female, male    1    2
-
----
-
-    Code
       taxa
     Message
       
@@ -115,16 +105,4 @@
       2: 3.776849       female     tumor
       3: 3.682609       female   healthy
       4: 3.686005         male   healthy
-
----
-
-    Code
-      adiv$stats
-    Output
-        treatment .y. group1 group2 n1 n2 statistic p p.adj p.adj.signif y.position
-      1     tumor  V1 female   male  1  1         1 1     1           ns    3.82176
-      2   healthy  V1 female   male  1  1         0 1     1           ns    3.68636
-              groups xmin xmax
-      1 female, male   NA   NA
-      2 female, male   NA   NA
 

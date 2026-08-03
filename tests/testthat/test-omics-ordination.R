@@ -37,15 +37,33 @@ test_that("`omics$ordination()` -- Argument checks", {
   expect_snapshot(test$ordination(group_by = "CONTRAST_treatment", distmat = dist(c(2,1,2))), error = TRUE)
 })
 
-test_that("`omics$ordination()` -- Behavioral checks", { 
+test_that("`omics$ordination()` -- Behavioral checks", {
+  ## Testing default setting with method 'pcoa'
   expect_no_error(res <- test$ordination(group_by = "CONTRAST_treatment"))
 
-  expect_snapshot(res$anova_data)
-  expect_snapshot(res$dist)
-  expect_snapshot(res$pcs)
+  expect_equal(res$anova_data$pairs, "tumor vs control")
+  expect_equal(round(res$anova_data$F.Model, 2), 1.75)
+  expect_equal(dim(as.matrix(res$dist)), c(nrow(test$metaData), nrow(test$metaData)))
+  expect_equal(any(grepl("PC", colnames(res$pcs))), TRUE)
+  expect_equal(column_exists("groups", res$pcs), TRUE)
+  expect_equal(column_exists("samples", res$pcs), TRUE)
 
   expect_s3_class(res$scores_plot, "ggplot")
   expect_s3_class(res$scree_plot, "ggplot")
+  expect_s3_class(res$anova_plot, "ggplot")
+
+  ## Testing setting with method 'nmds'
+  expect_no_error(res <- suppressWarnings(test$ordination(group_by = "CONTRAST_treatment", method = "nmds")))
+
+  expect_equal(res$anova_data$pairs, "tumor vs control")
+  expect_equal(round(res$anova_data$anosimR, 2), 0.32)
+  expect_equal(dim(as.matrix(res$dist)), c(nrow(test$metaData), nrow(test$metaData)))
+  expect_equal(any(grepl("MDS", colnames(res$pcs))), TRUE)
+  expect_equal(column_exists("stress", res$pcs), TRUE)
+  expect_equal(column_exists("groups", res$pcs), TRUE)
+  expect_equal(column_exists("samples", res$pcs), TRUE)
+
+  expect_s3_class(res$scores_plot, "ggplot")
   expect_s3_class(res$anova_plot, "ggplot")
   
   ## Check if distmat can be supplied as `Matrix` or `dist` class
@@ -53,9 +71,12 @@ test_that("`omics$ordination()` -- Behavioral checks", {
 
   expect_no_error(res <- test$ordination(group_by = "CONTRAST_treatment", distmat = distmat))
 
-  expect_snapshot(res$anova_data)
-  expect_snapshot(res$dist)
-  expect_snapshot(res$pcs)
+  expect_equal(res$anova_data$pairs, "tumor vs control")
+  expect_equal(round(res$anova_data$F.Model, 2), 1.74)
+  expect_equal(dim(as.matrix(res$dist)), c(nrow(test$metaData), nrow(test$metaData)))
+  expect_equal(any(grepl("PC", colnames(res$pcs))), TRUE)
+  expect_equal(column_exists("groups", res$pcs), TRUE)
+  expect_equal(column_exists("samples", res$pcs), TRUE)
 
   expect_s3_class(res$scores_plot, "ggplot")
   expect_s3_class(res$scree_plot, "ggplot")

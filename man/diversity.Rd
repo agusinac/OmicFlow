@@ -4,12 +4,7 @@
 \alias{diversity}
 \title{Sparse implementation of Alpha Diversity Metrics}
 \usage{
-diversity(
-  x,
-  metric = c("shannon", "simpson", "invsimpson"),
-  normalize = TRUE,
-  base = exp(1)
-)
+diversity(x, metric = "shannon", normalize = TRUE, base = exp(1))
 }
 \arguments{
 \item{x}{A \link[base]{matrix}, \link[Matrix]{sparseMatrix} or \link[Matrix]{Matrix}.}
