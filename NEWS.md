@@ -11,6 +11,9 @@
         - test-omics-ordination.R
         - test-omics-feature_merge.R
         - test-omics-composition.R
+        - test-omics-alpha_diversity.R
+        - test-omics-autoFlow.R [SKIP, finish later with issue #43]
+        - test-omics-foldchange.R [SKIP, finish later with issue #43]
         - test-metagenomics.R
         - test-metagenomics-write_biom.R
         - test-proteomics.R

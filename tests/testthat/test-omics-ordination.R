@@ -44,9 +44,9 @@ test_that("`omics$ordination()` -- Behavioral checks", {
   expect_snapshot(res$dist)
   expect_snapshot(res$pcs)
 
-  expect_equal(class(res$scores_plot)[2], "ggplot")
-  expect_equal(class(res$scree_plot)[2], "ggplot")
-  expect_equal(class(res$anova_plot)[2], "ggplot")
+  expect_s3_class(res$scores_plot, "ggplot")
+  expect_s3_class(res$scree_plot, "ggplot")
+  expect_s3_class(res$anova_plot, "ggplot")
   
   ## Check if distmat can be supplied as `Matrix` or `dist` class
   distmat <- test$distance(metric = "canberra")
@@ -57,7 +57,7 @@ test_that("`omics$ordination()` -- Behavioral checks", {
   expect_snapshot(res$dist)
   expect_snapshot(res$pcs)
 
-  expect_equal(class(res$scores_plot)[2], "ggplot")
-  expect_equal(class(res$scree_plot)[2], "ggplot")
-  expect_equal(class(res$anova_plot)[2], "ggplot")
+  expect_s3_class(res$scores_plot, "ggplot")
+  expect_s3_class(res$scree_plot, "ggplot")
+  expect_s3_class(res$anova_plot, "ggplot")
 })

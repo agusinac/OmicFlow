@@ -841,7 +841,7 @@ plt
     \if{html}{\out{<div class="r">}}
     \preformatted{omics$alpha_diversity(
   col_name,
-  metric = c("shannon", "invsimpson", "simpson"),
+  metric = "shannon",
   Brewer.palID = "Set2",
   group_by = NULL,
   evenness = FALSE,
@@ -854,12 +854,12 @@ plt
     \if{html}{\out{<div class="arguments">}}
     \describe{
       \item{\code{col_name}}{A character variable from the \code{metaData}.}
-      \item{\code{metric}}{An alpha diversity metric as input to \link{diversity}.}
+      \item{\code{metric}}{An alpha diversity metric as input to \link{diversity} (default: \code{"shannon"}).}
       \item{\code{Brewer.palID}}{A character name for the palette set to be applied, see \link[RColorBrewer]{brewer.pal} or \link{colormap}.}
-      \item{\code{group_by}}{A column name to perform grouped statistical test in \link{diversity_plot} (default: NULL).}
+      \item{\code{group_by}}{A column name to perform grouped statistical test in \link{diversity_plot} (default: \code{NULL}).}
       \item{\code{evenness}}{A boolean wether to divide diversity by number of species, see \link[vegan]{specnumber}.}
       \item{\code{paired}}{A boolean value to perform paired analysis in \link[stats]{wilcox.test} and samplepair subsetting via \href{#method-samplepair_subset}{\code{samplepair_subset()}}}
-      \item{\code{p.adjust.method}}{A character variable to specify the p.adjust.method to be used, default is 'fdr'.}
+      \item{\code{p.adjust.method}}{A character variable to specify the p.adjust.method to be used (default: \code{'fdr'}).}
     }
     \if{html}{\out{</div>}}
   }

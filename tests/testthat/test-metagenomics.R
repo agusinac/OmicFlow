@@ -38,9 +38,9 @@ test_that("`metagenomics` -- Behavioral checks", {
   )
   expect_equal(all(rownames(test$countData) == test$featureData$FEATURE_ID), TRUE)
   expect_equal(all(colnames(test$countData) == test$metaData$SAMPLE_ID), TRUE)
-  expect_equal(inherits(test$countData, "sparseMatrix"), TRUE)
-  expect_equal(class(test$metaData)[1], "data.table")
-  expect_equal(class(test$featureData)[1], "data.table")
+  expect_s4_class(test$countData, "sparseMatrix")
+  expect_s3_class(test$metaData, "data.table")
+  expect_s3_class(test$featureData, "data.table")
 
   # Loading biom json
   expect_snapshot(
@@ -53,9 +53,9 @@ test_that("`metagenomics` -- Behavioral checks", {
   )
   expect_equal(all(rownames(test$countData) == test$featureData$FEATURE_ID), TRUE)
   expect_equal(all(colnames(test$countData) == test$metaData$SAMPLE_ID), TRUE)
-  expect_equal(inherits(test$countData, "sparseMatrix"), TRUE)
-  expect_equal(class(test$metaData)[1], "data.table")
-  expect_equal(class(test$featureData)[1], "data.table")
+  expect_s4_class(test$countData, "sparseMatrix")
+  expect_s3_class(test$metaData, "data.table")
+  expect_s3_class(test$featureData, "data.table")
 
    # Loading biom hdf5 with tree
   expect_snapshot(
@@ -69,9 +69,9 @@ test_that("`metagenomics` -- Behavioral checks", {
   expect_equal(all(rownames(test$countData) == test$treeData$tip.label), TRUE)
   expect_equal(all(test$treeData$tip.label == test$featureData$FEATURE_ID), TRUE)
   expect_equal(all(colnames(test$countData) == test$metaData$SAMPLE_ID), TRUE)
-  expect_equal(inherits(test$countData, "sparseMatrix"), TRUE)
-  expect_equal(class(test$metaData)[1], "data.table")
-  expect_equal(class(test$featureData)[1], "data.table")
+  expect_s4_class(test$countData, "sparseMatrix")
+  expect_s3_class(test$metaData, "data.table")
+  expect_s3_class(test$featureData, "data.table")
 
   # Checking loading metagenomics from pre-loaded test
   expect_snapshot(

@@ -839,12 +839,12 @@ omics <- R6::R6Class(
     #' @description
     #' Alpha diversity based on \link{diversity}
     #' @param col_name A character variable from the `metaData`.
-    #' @param metric An alpha diversity metric as input to \link{diversity}.
-    #' @param group_by A column name to perform grouped statistical test in \link{diversity_plot} (default: NULL).
+    #' @param metric An alpha diversity metric as input to \link{diversity} (default: \code{"shannon"}).
+    #' @param group_by A column name to perform grouped statistical test in \link{diversity_plot} (default: \code{NULL}).
     #' @param Brewer.palID A character name for the palette set to be applied, see \link[RColorBrewer]{brewer.pal} or \link{colormap}.
     #' @param evenness A boolean wether to divide diversity by number of species, see \link[vegan]{specnumber}.
     #' @param paired A boolean value to perform paired analysis in \link[stats]{wilcox.test} and samplepair subsetting via [`samplepair_subset()`](#method-samplepair_subset)
-    #' @param p.adjust.method A character variable to specify the p.adjust.method to be used, default is 'fdr'.
+    #' @param p.adjust.method A character variable to specify the p.adjust.method to be used (default: \code{'fdr'}).
     #' @examples
     #' library("OmicFlow")
     #'
@@ -868,7 +868,7 @@ omics <- R6::R6Class(
     #' }
     #' @seealso \link{diversity_plot}
     alpha_diversity = function(col_name,
-                               metric = c("shannon", "invsimpson", "simpson"),
+                               metric = "shannon",
                                Brewer.palID = "Set2",
                                group_by = NULL,
                                evenness = FALSE,
@@ -883,6 +883,21 @@ omics <- R6::R6Class(
       } else if (!column_exists(col_name, private$.metaData)) {
         cli::cli_abort("The specified {.val {col_name}} does not exist in the {.field metaData}.")
       }
+
+      if (!is.null(group_by)) {
+        if (!is.character(group_by) || length(group_by) != 1) {
+          cli::cli_abort("{.val {group_by}} must be a character and of length 1")
+        } else if (!column_exists(group_by, private$.metaData)) {
+          cli::cli_abort("The specified {.val {group_by}} does not exist in the {.field metaData}.")
+        }
+        combined_cols <- c(col_name, group_by)
+      } else combined_cols <- col_name
+
+      if (!is.logical(evenness))
+        cli::cli_abort("{.val evenness} can only be a `TRUE` or `FALSE`.")
+      
+      if (!is.logical(paired))
+        cli::cli_abort("{.val paired} can only be a `TRUE` or `FALSE`.")
 
       if (!c(p.adjust.method %in% stats::p.adjust.methods))
         cli::cli_abort("Specified {.val {p.adjust.method}} is not valid. \nValid options: {.val {p.adjust.methods}}")
@@ -907,15 +922,8 @@ omics <- R6::R6Class(
         private$.treeData <- .treeData
       }, add = TRUE)
 
-      # Remove NAs when col_name is specified
-      if (!is.null(col_name))
-        self$removeNAs(col_name)
-
-      if (!is.null(group_by)) {
-        combined_cols <- c(col_name, group_by)
-      } else {
-        combined_cols <- col_name
-      }
+      # Remove NAs from `col_name`
+      self$removeNAs(col_name)
 
       # Subset by samplepair completion
       if ( paired && column_exists(private$.samplepair_id, private$.metaData) )
@@ -1700,13 +1708,6 @@ omics <- R6::R6Class(
       cli::cli_abort("{.val {feature_contrast}} needs to be a character with a length of 1")
     } else if (!column_exists(feature_contrast, private$.featureData)) {
       cli::cli_abort("{.val {feature_contrast}} does not exist in {.field featureData}!")
-    }
-
-    if (!is.null(distmat) && !is.character(distmat) || length(distmat) != 1) {
-      cli::cli_abort("{.arg distmat} needs to be a character with a length of 1")
-    
-      if (!file.exists(distmat))
-        cli::cli_abort("{.arg distmat} does not exists!")
     }
 
     ## MAIN

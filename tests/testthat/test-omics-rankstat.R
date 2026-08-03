@@ -19,12 +19,12 @@ test_that("`omics$rankstat()` -- Behavioral checks", {
 
   expect_no_error(p <- taxa$rankstat(feature_ranks = taxa_rank_5))
   data <- ggplot_build(p)
-  expect_equal(class(p)[2], "ggplot")
+  expect_s3_class(p, "ggplot")
   expect_equal(length(data@data[[1]]$x), length(taxa_rank_5))
   expect_no_error(taxa$rankstat(feature_ranks = taxa_rank_5, unique = TRUE))
 
   expect_no_error(p <- taxa$rankstat(feature_ranks = taxa_rank_3))
-  expect_equal(class(p)[2], "ggplot")
+  expect_s3_class(p, "ggplot")
   data <- ggplot_build(p)
   expect_equal(length(data@data[[1]]$x), length(taxa_rank_3))
   expect_no_error(taxa$rankstat(feature_ranks = taxa_rank_3, unique = TRUE))

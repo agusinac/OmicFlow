@@ -14,11 +14,3 @@
       Error in `taxa$write_biom()`:
       ! file1.biom and file2.biom Needs to contain characters and be length of 1.
 
----
-
-    Code
-      taxa$write_biom(filename = output_file)
-    Condition
-      Error in `taxa$write_biom()`:
-      ! C:\Users\Z289224\AppData\Local\Temp\Rtmp0MhSOc/test.biom Already exists!
-

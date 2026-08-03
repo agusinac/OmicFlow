@@ -63,9 +63,9 @@ test_that("`omics` -- Behavioral checks", {
     )
   )
   expect_equal(rownames(sparse$countData), sparse$featureData$FEATURE_ID)
-  expect_equal(inherits(sparse$countData, "sparseMatrix"), TRUE)
-  expect_equal(class(sparse$metaData)[1], "data.table")
-  expect_equal(class(sparse$featureData)[1], "data.table")
+  expect_s4_class(sparse$countData, "sparseMatrix")
+  expect_s3_class(sparse$metaData, "data.table")
+  expect_s3_class(sparse$featureData, "data.table")
 
   # Loading all three components with dense counts
   expect_snapshot(
@@ -76,9 +76,9 @@ test_that("`omics` -- Behavioral checks", {
     )
   )
   expect_equal(rownames(dense$countData), dense$featureData$FEATURE_ID)
-  expect_equal(inherits(dense$countData, "sparseMatrix"), TRUE)
-  expect_equal(class(dense$metaData)[1], "data.table")
-  expect_equal(class(dense$featureData)[1], "data.table")
+  expect_s4_class(dense$countData, "sparseMatrix")
+  expect_s3_class(dense$metaData, "data.table")
+  expect_s3_class(dense$featureData, "data.table")
 
   ## Checking active bindings and sync behavior
   #-------------------------------------------------------------
@@ -98,9 +98,9 @@ test_that("`omics` -- Behavioral checks", {
   ends_with_featureData$countData <- counts
   expect_equal(rownames(ends_with_featureData$countData), ends_with_featureData$featureData$FEATURE_ID)
   expect_equal(colnames(ends_with_featureData$countData), ends_with_featureData$metaData$SAMPLE_ID)
-  expect_equal(inherits(ends_with_featureData$countData, "sparseMatrix"), TRUE)
-  expect_equal(class(ends_with_featureData$metaData)[1], "data.table")
-  expect_equal(class(ends_with_featureData$featureData)[1], "data.table")
+  expect_s4_class(ends_with_featureData$countData, "sparseMatrix")
+  expect_s3_class(ends_with_featureData$metaData, "data.table")
+  expect_s3_class(ends_with_featureData$featureData, "data.table")
   expect_snapshot(ends_with_featureData)
 
   # building up omics with metaData -> featureData -> countData
@@ -109,8 +109,8 @@ test_that("`omics` -- Behavioral checks", {
   ends_with_countData$countData <- counts
   expect_equal(rownames(ends_with_countData$countData), ends_with_countData$featureData$FEATURE_ID)
   expect_equal(colnames(ends_with_countData$countData), ends_with_countData$metaData$SAMPLE_ID)
-  expect_equal(inherits(ends_with_countData$countData, "sparseMatrix"), TRUE)
-  expect_equal(class(ends_with_countData$metaData)[1], "data.table")
-  expect_equal(class(ends_with_countData$featureData)[1], "data.table")
+  expect_s4_class(ends_with_countData$countData, "sparseMatrix")
+  expect_s3_class(ends_with_countData$metaData, "data.table")
+  expect_s3_class(ends_with_countData$featureData, "data.table")
   expect_snapshot(ends_with_countData)
 })
