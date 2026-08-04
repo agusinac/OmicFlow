@@ -1117,7 +1117,7 @@ omics <- R6::R6Class(
     #' @param metric A dissimilarity metric to be applied on the `countData`, 
     #' thus far supports 'bray', 'jaccard', 'cosine', 'manhattan', 'aitchison', 'euclidean', 'jsd' (jensen-shannon divergence), 'canberra' and 'unifrac' when a tree is provided via `treeData`, see [`distance()`](#method-distance).
     #' @param weighted A boolean value, to use abundances (\code{weighted = TRUE}) or absence/presence (\code{weighted=FALSE}) (default: TRUE).
-    #' @param normalized A boolean value, whether to normalize weighted UniFrac distances to be between 0 and 1. Unweighted UniFrac is always normalized (default: TRUE).
+    #' @param normalize A boolean value, whether to normalize weighted UniFrac distances to be between 0 and 1. Unweighted UniFrac is always normalized (default: TRUE).
     #' @param pseudocount A numeric value to replace zero's, used in [`scale()`](#method-scale) (default: \code{1e-15}).
     #' @param base Input for \link[base]{log} to use natural logarithmic scale, log2, log10 or other (default: \code{exp(1)}).
     #' @param threads A wholenumber, indicating the number of threads to use (Default: 1).
@@ -1140,7 +1140,7 @@ omics <- R6::R6Class(
     #' obj$feature_subset(Kingdom == "Bacteria")
     #' dist <- obj$distance(metric = "bray")
     #' @seealso \link{bray}, \link{canberra}, \link{cosine}, \link{jaccard}, \link{jsd}, \link{manhattan}, \link{unifrac}
-    distance = function(metric, weighted = TRUE, threads = 1, normalized = TRUE, base = exp(1)) {
+    distance = function(metric, weighted = TRUE, threads = 1, normalize = TRUE, base = exp(1)) {
 
       ## Error handling
       #--------------------------------------------------------------------#
@@ -1183,7 +1183,7 @@ omics <- R6::R6Class(
 
       distmat <- switch(
         metric,
-        "unifrac" = OmicFlow::unifrac(x = private$.countData, tree = private$.treeData, weighted=weighted, normalized=normalized, threads=threads),
+        "unifrac" = OmicFlow::unifrac(x = private$.countData, tree = private$.treeData, weighted=weighted, normalize=normalize, threads=threads),
         "manhattan" = OmicFlow::manhattan(x = private$.countData, weighted=weighted, threads=threads),
         "canberra" = OmicFlow::canberra(x = private$.countData, weighted=weighted, threads=threads),
         "jaccard" = OmicFlow::jaccard(x = private$.countData, weighted=weighted, threads=threads),
@@ -1206,6 +1206,7 @@ omics <- R6::R6Class(
     #' @param distmat A custom distance matrix in either \link[stats]{dist} or \link[Matrix]{Matrix} format.
     #' @param group_by A character variable in `metaData` to be used for the \link{pairwise_adonis} or \link{pairwise_anosim} statistical test.
     #' @param weighted A boolean value, whether to compute weighted or unweighted dissimilarities (default: \code{TRUE}).
+    #' @param normalize A boolean value, wether to normalize weighted UniFrac distances to be between 0 and 1 (default: \code{TRUE}).
     #' @param threads A wholenumber, indicating the number of threads to use (Default: 1).
     #' @param perm_design A function that takes `metaData` and constructs a permutation design with \link[permute]{how} (default: \code{NULL}).
     #' @param perm A wholenumber, number of permutations to compare against the null hypothesis of \link[vegan]{adonis2} and \link[vegan]{anosim} (default: \code{perm=999}).
@@ -1243,6 +1244,7 @@ omics <- R6::R6Class(
                           group_by,
                           distmat = NULL,
                           weighted = TRUE,
+                          normalize = TRUE,
                           threads = 1,
                           perm_design = NULL,
                           perm = 999) {
@@ -1327,6 +1329,7 @@ omics <- R6::R6Class(
         distmat <- self$distance(
           metric = metric,
           weighted = weighted,
+          normalize = normalize,
           threads = threads
           )
       }

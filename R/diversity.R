@@ -48,13 +48,15 @@ diversity <- function(x,
 
   ## Error handling
   #--------------------------------------------------------------------#
-
+  if (is.vector(x))
+      cli::cli_abort("{.val x} must be a {.cls matrix}, {.cls denseMatrix} or {.cls sparseMatrix}, not a {.cls vector}.")
+  
   if (inherits(x, "denseMatrix") || inherits(x, "matrix") || inherits(x, "sparseMatrix")) {
     x <- methods::as(x, "CsparseMatrix")
-  } else cli::cli_abort("Input isn't a {.cls matrix}, {.cls denseMatrix} or {.cls sparseMatrix}.")
+  } else cli::cli_abort("{.val x} isn't a {.cls matrix}, {.cls denseMatrix} or {.cls sparseMatrix}.")
 
   if (any(x@x < 0, na.rm = TRUE))
-    cli::cli_abort("Input data must be non-negative")
+    cli::cli_abort("{.val x} must be non-negative.")
   
   if (!is.logical(normalize))
     cli::cli_abort("{.val normalize} needs to be either `TRUE` or `FALSE`.")

@@ -14,26 +14,26 @@ pairwise_anosim(
 )
 }
 \arguments{
-\item{x}{A distance matrix in the form of \link[stats]{dist}.
-Obtained from a dissimilarity metric, in the case of similarity metric please use \code{1-dist}}
+\item{x}{A \link[stats]{dist}.
+Obtained from a dissimilarity metric, in the case of similarity metric please use \code{1-dist}.}
 
-\item{groups}{A vector (column from a table) of labels.}
+\item{groups}{A character vector (e.g. a column from a the \code{metadata}) to match the sample group labels.}
 
-\item{metadata}{A data.table or data.frame of extra metadata for \code{perm_design} (default: NULL).}
+\item{metadata}{A \link[data.table]{data.table} or \link[base]{data.frame} as input to the function \code{perm_design} (default: \code{NULL}).}
 
-\item{perm_design}{A function that takes a data.frame and constructs a permutation design with \link[permute]{how} (default: NULL).}
+\item{perm_design}{A function that takes the \code{metadata} and returns a permutation design with \link[permute]{how} (default: \code{NULL}).}
 
-\item{p.adjust.method}{P adjust method see \link[stats]{p.adjust}}
+\item{p.adjust.method}{A character as input to adjust the p-values, see \link[stats]{p.adjust} (default: \code{"bonferroni"}).}
 
-\item{perm}{Number of permutations to compare against the null hypothesis of anosim (default: \code{perm=999}).}
+\item{perm}{A whole number to define the number of permutations in \link[vegan]{adonis2} (default: \code{999}).}
 }
 \value{
-A \link[base]{data.frame} of
-\itemize{
-\item pairs that are used
-\item R2 of H_0
-\item p value of F^p > F
-\item p adjusted
+A \link[base]{data.frame} containing: \describe{
+\item{pairs}{combinations of group comparisons}
+\item{Df}{Degrees of Freedom}
+\item{R2}{The R squared of the null hypothesis \eqn{H_0}}
+\item{p.value}{The number of \eqn{F^p} higher than the null hypothesis divided by the total number of permutations.}
+\item{p.adj}{The adjusted P-value based on the used \code{p.adjust.method}}
 }
 }
 \description{

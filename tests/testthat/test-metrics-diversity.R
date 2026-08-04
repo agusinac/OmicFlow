@@ -6,6 +6,7 @@ test <- proteomics$new(
 
 test_that("`diversity()` -- Argument checks", {
   expect_snapshot(diversity(x = data.frame()), error = TRUE)
+  expect_snapshot(diversity(x = c(2, 1, 1)), error = TRUE)
   expect_snapshot(diversity(x = test$countData, normalize = "FALSE"), error = TRUE)
   expect_snapshot(diversity(x = test$countData, base = "1"), error = TRUE)
   expect_snapshot(diversity(x = test$countData, base = c(1, 2)), error = TRUE)

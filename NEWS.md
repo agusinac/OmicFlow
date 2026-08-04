@@ -22,6 +22,14 @@
         - test-util-combine_conditions.R
         - test-util-matrix_to_dtable.R
         - test-util-wholenumber.R
+        - test-metrics-diversity.R
+        - test-metrics-hill_taxa.R
+        - test-metrics-distances.R
+        - test-statistics-pairwise_stats.R
+        - test-visualisation-diversity_plot.R [TODO]
+        - test-visualisation-ordination_plot.R [TODO]
+        - test-visualisation-plot_pairwise_stats.R [TODO]
+        - test-visualisation-volcano_plot.R [TODO]
 - TODO: Add `tryCatch` where neccessary
 - Added `tryCatch` and better error handling in `omics$sample_subset`, `omics$feature_subset` and `omics$samplepair_subset`.
 - Replaced `jsonlite` by `yyjsonr` functionality, much faster and cleaner code.

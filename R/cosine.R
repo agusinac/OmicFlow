@@ -41,15 +41,24 @@ cosine <- function(x, weighted = TRUE, threads = 1) {
 
     ## Error handling
     #--------------------------------------------------------------------#
+    if (is.vector(x))
+        cli::cli_abort("{.val x} must be a {.cls matrix}, {.cls denseMatrix} or {.cls sparseMatrix}, not a {.cls vector}.")
+    
     if (inherits(x, "denseMatrix") || inherits(x, "matrix") || inherits(x, "sparseMatrix")) {
         x <- methods::as(x, "CsparseMatrix")
-    } else cli::cli_abort("Input isn't a {.cls matrix}, {.cls denseMatrix} or {.cls sparseMatrix}.")
-
+    } else cli::cli_abort("{.val x} isn't a {.cls matrix}, {.cls denseMatrix} or {.cls sparseMatrix}.")
+    
     if (!is.numeric(x@x))
-        cli::cli_abort("Input data must be numeric.")
+        cli::cli_abort("{.val x} must be numeric.")
+    
+    if (!is.logical(weighted))
+        cli::cli_abort("{.val weighted} needs to be either `TRUE` or `FALSE`.")
 
-    if (!is.wholenumber(threads))
+    if (length(threads) != 1) {
+        cli::cli_abort("{.val threads} must be a single whole number.")
+    } else if (!is.wholenumber(threads)) {
         cli::cli_abort("{.val {threads}} must be a whole number.")
+    }
 
     ## MAIN
     #--------------------------------------------------------------------#

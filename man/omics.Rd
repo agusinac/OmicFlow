@@ -961,7 +961,7 @@ plt <- composition_plot(data = result$data,
   metric,
   weighted = TRUE,
   threads = 1,
-  normalized = TRUE,
+  normalize = TRUE,
   base = exp(1)
 )}
     \if{html}{\out{</div>}}
@@ -973,7 +973,7 @@ plt <- composition_plot(data = result$data,
 thus far supports 'bray', 'jaccard', 'cosine', 'manhattan', 'aitchison', 'euclidean', 'jsd' (jensen-shannon divergence), 'canberra' and 'unifrac' when a tree is provided via \code{treeData}, see \href{#method-distance}{\code{distance()}}.}
       \item{\code{weighted}}{A boolean value, to use abundances (\code{weighted = TRUE}) or absence/presence (\code{weighted=FALSE}) (default: TRUE).}
       \item{\code{threads}}{A wholenumber, indicating the number of threads to use (Default: 1).}
-      \item{\code{normalized}}{A boolean value, whether to normalize weighted UniFrac distances to be between 0 and 1. Unweighted UniFrac is always normalized (default: TRUE).}
+      \item{\code{normalize}}{A boolean value, whether to normalize weighted UniFrac distances to be between 0 and 1. Unweighted UniFrac is always normalized (default: TRUE).}
       \item{\code{base}}{Input for \link[base]{log} to use natural logarithmic scale, log2, log10 or other (default: \code{exp(1)}).}
       \item{\code{pseudocount}}{A numeric value to replace zero's, used in \href{#method-scale}{\code{scale()}} (default: \code{1e-15}).}
     }
@@ -1016,6 +1016,7 @@ dist <- obj$distance(metric = "bray")
   group_by,
   distmat = NULL,
   weighted = TRUE,
+  normalize = TRUE,
   threads = 1,
   perm_design = NULL,
   perm = 999
@@ -1031,6 +1032,7 @@ thus far supports 'bray', 'jaccard', 'cosine', 'manhattan', 'jsd' (jensen-shanno
       \item{\code{group_by}}{A character variable in \code{metaData} to be used for the \link{pairwise_adonis} or \link{pairwise_anosim} statistical test.}
       \item{\code{distmat}}{A custom distance matrix in either \link[stats]{dist} or \link[Matrix]{Matrix} format.}
       \item{\code{weighted}}{A boolean value, whether to compute weighted or unweighted dissimilarities (default: \code{TRUE}).}
+      \item{\code{normalize}}{A boolean value, wether to normalize weighted UniFrac distances to be between 0 and 1 (default: \code{TRUE}).}
       \item{\code{threads}}{A wholenumber, indicating the number of threads to use (Default: 1).}
       \item{\code{perm_design}}{A function that takes \code{metaData} and constructs a permutation design with \link[permute]{how} (default: \code{NULL}).}
       \item{\code{perm}}{A wholenumber, number of permutations to compare against the null hypothesis of \link[vegan]{adonis2} and \link[vegan]{anosim} (default: \code{perm=999}).}

@@ -18,7 +18,7 @@
 #'}
 #' @inheritParams bray
 #' @param tree A `phylo` class tree.
-#' @param normalized A boolean value, whether to normalize weighted UniFrac distances to be between 0 and 1 (default: \code{TRUE}). Unweighted UniFrac is always normalized.
+#' @param normalize A boolean value, whether to normalize weighted UniFrac distances to be between 0 and 1 (default: \code{TRUE}). Unweighted UniFrac is always normalized.
 #' @return A column x column \link[stats]{dist} object.
 #' @references
 #' Lozupone, C., & Knight, R. (2005). UniFrac: a new phylogenetic method for comparing microbial communities. Applied and Environmental Microbiology, 71(12), 8228–8235.
@@ -41,35 +41,47 @@
 #' taxa$scale(method = "tss")
 #'
 #' # Weighted UniFrac
-#' unifrac(x = taxa$countData, tree = taxa$treeData, weighted=TRUE, normalized=FALSE)
+#' unifrac(x = taxa$countData, tree = taxa$treeData, weighted=TRUE, normalize=FALSE)
 #' 
 #' # Weighted Normalized UniFrac
-#' unifrac(x = taxa$countData, tree = taxa$treeData, weighted=TRUE, normalized=TRUE)
+#' unifrac(x = taxa$countData, tree = taxa$treeData, weighted=TRUE, normalize=TRUE)
 #' 
 #' # Unweighted UniFrac
 #' unifrac(x = taxa$countData, tree = taxa$treeData, weighted=FALSE)
 #' @importFrom Matrix sparseMatrix
 #' @export
 
-unifrac <- function(x, tree, weighted = TRUE, normalized = TRUE, threads = 1) {
+unifrac <- function(x, tree, weighted = TRUE, normalize = TRUE, threads = 1) {
 
     ## Error handling
     #--------------------------------------------------------------------#
     if (!inherits(tree, "phylo"))
-        cli::cli_abort("Tree must be of class `phylo`.")
+        cli::cli_abort("{.val tree} must be a {.cls phylo}.")
 
+    if (is.vector(x))
+        cli::cli_abort("{.val x} must be a {.cls matrix}, {.cls denseMatrix} or {.cls sparseMatrix}, not a {.cls vector}.")
+    
     if (inherits(x, "denseMatrix") || inherits(x, "matrix") || inherits(x, "sparseMatrix")) {
         x <- methods::as(x, "CsparseMatrix")
-    } else cli::cli_abort("Input isn't a {.cls matrix}, {.cls denseMatrix} or {.cls sparseMatrix}.")
-
+    } else cli::cli_abort("{.val x} isn't a {.cls matrix}, {.cls denseMatrix} or {.cls sparseMatrix}.")
+    
     if (!is.numeric(x@x))
-        cli::cli_abort("Input data must be numeric.")
+        cli::cli_abort("{.val x} must be numeric.")
 
     if (any(x@x < 0, na.rm = TRUE))
-        cli::cli_abort("Input data must be non-negative.")
+        cli::cli_abort("{.val x} must be non-negative.")
+    
+    if (!is.logical(weighted))
+        cli::cli_abort("{.val weighted} needs to be either `TRUE` or `FALSE`.")
 
-    if (!is.wholenumber(threads))
+    if (!is.logical(normalize))
+        cli::cli_abort("{.val normalize} needs to be either `TRUE` or `FALSE`.")
+
+    if (length(threads) != 1) {
+        cli::cli_abort("{.val threads} must be a single whole number.")
+    } else if (!is.wholenumber(threads)) {
         cli::cli_abort("{.val {threads}} must be a whole number.")
+    }
 
     ## MAIN
     #--------------------------------------------------------------------#
@@ -79,7 +91,7 @@ unifrac <- function(x, tree, weighted = TRUE, normalized = TRUE, threads = 1) {
 
     out <- .Call(
         '_OmicFlow_unifrac', PACKAGE = 'OmicFlow', 
-        x, tree$edge-1, tree$edge.length, weighted, normalized
+        x, tree$edge-1, tree$edge.length, weighted, normalize
         )
 
     col_names <- colnames(x)
