@@ -10,12 +10,13 @@ pairwise_adonis(
   metadata = NULL,
   perm_design = NULL,
   p.adjust.method = "bonferroni",
-  perm = 999
+  perm = 999,
+  ...
 )
 }
 \arguments{
-\item{x}{A \link[stats]{dist}.
-Obtained from a dissimilarity metric, in the case of similarity metric please use \code{1-dist}.}
+\item{x}{A distance matrix in the form of \link[stats]{dist}.
+Obtained from a dissimilarity metric, in the case of similarity metric please use \code{1-dist}}
 
 \item{groups}{A character vector (e.g. a column from a the \code{metadata}) to match the sample group labels.}
 
@@ -26,6 +27,8 @@ Obtained from a dissimilarity metric, in the case of similarity metric please us
 \item{p.adjust.method}{A character as input to adjust the p-values, see \link[stats]{p.adjust} (default: \code{"bonferroni"}).}
 
 \item{perm}{A whole number to define the number of permutations in \link[vegan]{adonis2} (default: \code{999}).}
+
+\item{...}{Additional arguments passed to \link[vegan]{adonis2}.}
 }
 \value{
 A \link[base]{data.frame} containing: \describe{
