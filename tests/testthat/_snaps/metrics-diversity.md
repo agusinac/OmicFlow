@@ -44,7 +44,7 @@
       diversity(x = test$countData, metric = 1)
     Condition
       Error in `diversity()`:
-      ! 1 needs to contain characters with length of 1.
+      ! "metric" needs to contain characters with length of 1.
 
 ---
 
@@ -52,7 +52,7 @@
       diversity(x = test$countData, metric = c("shannon", "simpson"))
     Condition
       Error in `diversity()`:
-      ! "shannon" and "simpson" needs to contain characters with length of 1.
+      ! "metric" needs to contain characters with length of 1.
 
 ---
 

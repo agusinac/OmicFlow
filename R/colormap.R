@@ -29,18 +29,18 @@ colormap <- function(data,
   OPTIONS <- rownames(RColorBrewer::brewer.pal.info)
 
   if (!inherits(data, "data.frame") && !inherits(data, "data.table"))
-    cli::cli_abort("Data must be a {.cls data.frame} or {.cls data.table}.")
+    cli::cli_abort("{.val data} must be a {.cls data.frame} or {.cls data.table}.")
 
   if (!is.character(col_name) || length(col_name) != 1) {
-    cli::cli_abort("{.val {col_name}} needs to contain characters with length of 1.")
+    cli::cli_abort("{.val col_name} needs to contain characters with length of 1.")
   } else if (!column_exists(col_name, data)) {
-    cli::cli_abort("The {.val {col_name}} column does not exist in the provided data.")
+    cli::cli_abort("The {.val col_name} column does not exist in the provided data.")
   }
 
   if (!is.character(Brewer.palID) || length(Brewer.palID) != 1) {
-    cli::cli_abort("The {.val {Brewer.palID}} needs to contain characters with length of 1.")
+    cli::cli_abort("The {.val Brewer.palID} needs to contain characters with length of 1.")
   } else if (!c(Brewer.palID %in% OPTIONS)) {
-    cli::cli_abort("{.val {Brewer.palID}} is not a valid Brewer pal ID. \nValid options: {.val {OPTIONS}}.")
+    cli::cli_abort("{.val Brewer.palID} is not a valid Brewer pal ID. \nValid options: {.val {OPTIONS}}.")
   }
 
   ## MAIN

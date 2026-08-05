@@ -57,7 +57,7 @@ canberra <- function(x, weighted = TRUE, threads = 1) {
     if (length(threads) != 1) {
         cli::cli_abort("{.val threads} must be a single whole number.")
     } else if (!is.wholenumber(threads)) {
-        cli::cli_abort("{.val {threads}} must be a whole number.")
+        cli::cli_abort("{.val threads} must be a whole number.")
     }
 
     ## MAIN

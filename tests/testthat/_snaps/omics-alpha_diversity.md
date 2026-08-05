@@ -4,7 +4,7 @@
       taxa$alpha_diversity(col_name = 1)
     Condition
       Error in `taxa$alpha_diversity()`:
-      ! 1 must be a character and of length 1
+      ! "col_name" must be a character and of length 1
 
 ---
 
@@ -20,7 +20,7 @@
       taxa$alpha_diversity(col_name = c("1", "2"))
     Condition
       Error in `taxa$alpha_diversity()`:
-      ! "1" and "2" must be a character and of length 1
+      ! "col_name" must be a character and of length 1
 
 ---
 
@@ -28,7 +28,7 @@
       taxa$alpha_diversity(col_name = "CONTRAST_sex", group_by = 1)
     Condition
       Error in `taxa$alpha_diversity()`:
-      ! 1 must be a character and of length 1
+      ! "group_by" must be a character and of length 1
 
 ---
 
@@ -44,7 +44,7 @@
       taxa$alpha_diversity(col_name = "CONTRAST_sex", group_by = c("1", "2"))
     Condition
       Error in `taxa$alpha_diversity()`:
-      ! "1" and "2" must be a character and of length 1
+      ! "group_by" must be a character and of length 1
 
 ---
 
@@ -99,7 +99,7 @@
     Code
       adiv$data
     Output
-               V1 CONTRAST_sex group_col
+               V1 CONTRAST_sex treatment
             <num>       <char>    <char>
       1: 3.403898         male     tumor
       2: 3.776849       female     tumor

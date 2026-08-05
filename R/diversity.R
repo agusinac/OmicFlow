@@ -66,9 +66,9 @@ diversity <- function(x,
 
   OPTIONS <- c("shannon", "simpson", "invsimpson")
   if (!is.character(metric) || length(metric) != 1) {
-    cli::cli_abort("{.val {metric}} needs to contain characters with length of 1.")
+    cli::cli_abort("{.val metric} needs to contain characters with length of 1.")
   } else if (!metric %in% OPTIONS) {
-    cli::cli_abort("{.val {metric}} is not a valid metric. Valid options: <{.val {OPTIONS}}>")
+    cli::cli_abort("{.val {metric}} is not a valid {.arg metric}.\nValid options: <{.val {OPTIONS}}>")
   }
 
   ## MAIN

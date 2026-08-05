@@ -4,7 +4,7 @@
       taxa$feature_merge(feature_rank = 1)
     Condition
       Error in `taxa$feature_merge()`:
-      ! 1 needs to be a character or vector containing characters
+      ! "feature_rank" needs to be a character or vector containing characters
 
 ---
 
@@ -12,7 +12,7 @@
       taxa$feature_merge(feature_rank = list())
     Condition
       Error in `taxa$feature_merge()`:
-      ! needs to be a character or vector containing characters
+      ! "feature_rank" needs to be a character or vector containing characters
 
 ---
 
@@ -36,7 +36,7 @@
       taxa$feature_merge(feature_rank = "Kingdom", feature_filter = list())
     Condition
       Error in `taxa$feature_merge()`:
-      ! needs to be a character or vector containing characters
+      ! "feature_filter" needs to be a character or vector containing characters
 
 ---
 
@@ -44,7 +44,7 @@
       taxa$feature_merge(feature_rank = "Kingdom", feature_filter = 1)
     Condition
       Error in `taxa$feature_merge()`:
-      ! 1 needs to be a character or vector containing characters
+      ! "feature_filter" needs to be a character or vector containing characters
 
 # `omics$feature_merge()` -- Behavioral checks
 

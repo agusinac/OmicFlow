@@ -15,13 +15,13 @@ composition_plot(
 \arguments{
 \item{data}{A \link[base]{data.frame} or \link[data.table]{data.table}.}
 
-\item{palette}{An object with names and hexcode or color names, see \link{colormap}.}
+\item{palette}{A \link[stats]{setNames}, see \link{colormap}.}
 
-\item{feature_rank}{A character variable of the feature column.}
+\item{feature_rank}{A column name containing the feature names.}
 
-\item{title_name}{A character to set the \code{ggtitle} of the \link[ggplot2]{ggplot}, (Default: NULL).}
+\item{title_name}{A character to set the \code{ggtitle} of the \link[ggplot2]{ggplot}, (default: \code{NULL}).}
 
-\item{group_by}{A character variable to aggregate the stacked bars by group (Default: NULL).}
+\item{group_by}{A character variable to aggregate the stacked bars by group (default: \code{NULL}).}
 }
 \value{
 A \link[ggplot2]{ggplot2} object to be further modified

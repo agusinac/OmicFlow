@@ -22,9 +22,9 @@ plot_pairwise_stats(
 
 \item{label_col}{A column name of a categorical variable to label the bars.}
 
-\item{y_axis_title}{A character variable to name the Y - axis title (default: NULL).}
+\item{y_axis_title}{A character variable to name the Y - axis title (default: \code{NULL}).}
 
-\item{plot_title}{A character variable to name the plot title (default: NULL).}
+\item{plot_title}{A character variable to name the plot title (default: \code{NULL}).}
 }
 \value{
 A \link[ggplot2]{ggplot2} object to be further modified

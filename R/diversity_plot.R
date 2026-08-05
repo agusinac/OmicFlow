@@ -5,10 +5,10 @@
 #' @param data A \link[base]{data.frame} or \link[data.table]{data.table} computed from \link{diversity}.
 #' @param values A column name of a continuous variable.
 #' @param col_name A column name of a categorical variable.
-#' @param group_by A column name to perform grouped statistical test (default: NULL).
+#' @param group_by A column name to perform grouped statistical test (default: \code{NULL}).
 #' @param palette An object with names and hexcode or color names, see \link{colormap}.
-#' @param method A character variable indicating what method is used to compute the diversity.
-#' @param paired A boolean value to perform paired analysis in \link[stats]{wilcox.test}.
+#' @param method A character variable indicating what method is used to compute the diversity (default: \code{"custom"}).
+#' @param paired A boolean value to perform paired analysis in \link[stats]{wilcox.test} (default: \code{FALSE}).
 #' @param p.adjust.method A character variable to specify the p.adjust.method to be used (Default: fdr).
 #' @return A \link[ggplot2]{ggplot2} object to be further modified
 #' 
@@ -76,7 +76,7 @@ diversity_plot <- function(
   col_name,
   group_by = NULL,
   palette,
-  method,
+  method = "custom",
   paired = FALSE,
   p.adjust.method = "fdr"
   ) {
@@ -85,45 +85,49 @@ diversity_plot <- function(
   #--------------------------------------------------------------------#
   
   if (!inherits(data, "data.frame") && !inherits(data, "data.table"))
-    cli::cli_abort("Data must be a {.cls data.frame} or {.cls data.table}.")
-  
-  if (!is.character(palette))
-    cli::cli_abort("{.val {palette}} needs to contain characters.")
-  
-  if (!is.character(method)) {
-    cli::cli_abort("{.val {method}} needs to be a character {.cls vector}.")
-  }
-  
-  if (!is.character(values) && length(values) != 1) {
-    cli::cli_abort("{.val {values}} needs to contain characters with length of 1.")
+    cli::cli_abort("{.val data} must be a {.cls data.frame} or {.cls data.table}.")
+
+  if (!is.character(values) || length(values) != 1) {
+    cli::cli_abort("{.val values} needs to contain characters with length of 1.")
   } else if (!column_exists(values, data)) {
-    cli::cli_abort("The {.val values}} column does not exist in the provided {.arg data}.")
+    cli::cli_abort("The {.val values} column does not exist in the provided {.arg data}.")
   }
   
-  if (!is.character(col_name) && length(col_name) != 1) {
-    cli::cli_abort("{.val {col_name}} needs to contain characters with length of 1.")
+  if (!is.character(col_name) || length(col_name) != 1) {
+    cli::cli_abort("{.val col_name} needs to contain characters with length of 1.")
   } else if (!column_exists(col_name, data)) {
-    cli::cli_abort("The {.val {col_name}} column does not exist in the provided {.arg data}.")
+    cli::cli_abort("The {.val col_name} column does not exist in the provided {.arg data}.")
   }
   
   if (!is.null(group_by)) {
-    if (!is.character(group_by) && length(group_by) != 1) {
-      cli::cli_abort("{.val {group_by}} needs to contain characters with length of 1.")
+    if (!is.character(group_by) || length(group_by) != 1) {
+      cli::cli_abort("{.val group_by} needs to contain characters with length of 1.")
     } else if (!column_exists(group_by, data)) {
-      cli::cli_abort("The {.val {group_by}} column does not exist in the provided {.arg data}.")
+      cli::cli_abort("The {.val group_by} column does not exist in the provided {.arg data}.")
     }
   }
+
+  if (!is.character(palette))
+    cli::cli_abort("{.val palette} needs to contain characters.")
   
+  if (!is.character(method)) {
+    cli::cli_abort("{.val method} needs to be a character {.cls vector}.")
+  }
+
+  if (!is.logical(paired))
+    cli::cli_abort("{.val paired} needs to be either `TRUE` or `FALSE`.")
+
   if (!c(p.adjust.method %in% stats::p.adjust.methods))
     cli::cli_abort("{.val {p.adjust.method}} is not a valid option. \nValid options: {.val {p.adjust.methods}}")
   
   ## MAIN
   #--------------------------------------------------------------------#
 
+  data_tmp <- data.table::copy(data)
   result <- list()
   
   if (!is.null(group_by)) {
-    pvalues_adjusted <- data[, {
+    pvalues_adjusted <- data_tmp[, {
       tmp <- rstatix::pairwise_wilcox_test(
         data = .SD,
         formula = stats::reformulate(col_name, response = values),
@@ -136,9 +140,9 @@ diversity_plot <- function(
     }, by = group_by]
     
     # Creates box_stats for half geom_box
-    data.table::setnames(data, old = group_by, new = "group_col")
+    data.table::setnames(data_tmp, old = group_by, new = "group_col")
     group_by <- "group_col"
-    box_stats <- data[, .(
+    box_stats <- data_tmp[, .(
       ymin = base::min(base::get(values)),
       ymax = base::max(base::get(values)),
       lower = stats::quantile(base::get(values), 0.25),
@@ -146,7 +150,7 @@ diversity_plot <- function(
       upper = stats::quantile(base::get(values), 0.75)
     ), by = .(group_numeric = as.numeric(as.factor(base::get(col_name))), group_col)]
   } else {
-    pvalues_adjusted <- data[, {
+    pvalues_adjusted <- data_tmp[, {
       tmp <- rstatix::pairwise_wilcox_test(
         data = .SD,
         formula = stats::reformulate(col_name, response = values),
@@ -158,7 +162,7 @@ diversity_plot <- function(
     }]
     
     # Creates box_stats for half geom_box
-    box_stats <- data[, .(
+    box_stats <- data_tmp[, .(
       ymin = base::min(base::get(values)),
       ymax = base::max(base::get(values)),
       lower = stats::quantile(base::get(values), 0.25),
@@ -169,7 +173,7 @@ diversity_plot <- function(
   pvalues_adjusted.filtered <- pvalues_adjusted[grepl("\\*", pvalues_adjusted$p.adj.signif) ,]
   
   plt <- ggplot2::ggplot(
-    data = data,
+    data = data_tmp,
     mapping = ggplot2::aes(
       x = as.numeric(as.factor(.data[[col_name]])),
       y = .data[[values]]
@@ -276,8 +280,8 @@ diversity_plot <- function(
     ) +
     # Restore proper x-axis labels
     ggplot2::scale_x_continuous(
-      breaks = seq_along(unique(data[[col_name]])),
-      labels = levels(as.factor(data[[col_name]]))
+      breaks = seq_along(unique(data_tmp[[col_name]])),
+      labels = levels(as.factor(data_tmp[[col_name]]))
     ) +
     ggplot2::scale_colour_manual(
       name = "groups",

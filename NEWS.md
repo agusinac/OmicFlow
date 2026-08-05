@@ -1,35 +1,7 @@
-# OmicFlow 1.6.0.9003
+# OmicFlow 1.6.0.9005
 
 ## Changed
-- Re-factoring `roxygen2` code & documentation style & error handling.
-    - Follow order of `tests/testthat.R` file
-    - Finished:
-        - test-omics.R
-        - test-omics-transformation.R
-        - test-omics-subsetting.R
-        - test-omics-rankstat.R
-        - test-omics-ordination.R
-        - test-omics-feature_merge.R
-        - test-omics-composition.R
-        - test-omics-alpha_diversity.R
-        - test-omics-autoFlow.R [SKIP, finish later with issue #43]
-        - test-omics-foldchange.R [SKIP, finish later with issue #43]
-        - test-metagenomics.R
-        - test-metagenomics-write_biom.R
-        - test-proteomics.R
-        - test-util-colormap.R
-        - test-util-column_exists.R
-        - test-util-combine_conditions.R
-        - test-util-matrix_to_dtable.R
-        - test-util-wholenumber.R
-        - test-metrics-diversity.R
-        - test-metrics-hill_taxa.R
-        - test-metrics-distances.R
-        - test-statistics-pairwise_stats.R
-        - test-visualisation-diversity_plot.R [TODO]
-        - test-visualisation-ordination_plot.R [TODO]
-        - test-visualisation-plot_pairwise_stats.R [TODO]
-        - test-visualisation-volcano_plot.R [TODO]
+- Re-factoring and improving `roxygen2` code, documentation style and error handling.
 - TODO: Add `tryCatch` where neccessary
 - Added `tryCatch` and better error handling in `omics$sample_subset`, `omics$feature_subset` and `omics$samplepair_subset`.
 - Replaced `jsonlite` by `yyjsonr` functionality, much faster and cleaner code.

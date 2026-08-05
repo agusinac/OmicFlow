@@ -28,7 +28,7 @@
       bray(x = test$countData, threads = "1")
     Condition
       Error in `bray()`:
-      ! "1" must be a whole number.
+      ! "threads" must be a whole number.
 
 ---
 
@@ -36,7 +36,7 @@
       bray(x = test$countData, threads = 1.9)
     Condition
       Error in `bray()`:
-      ! 1.9 must be a whole number.
+      ! "threads" must be a whole number.
 
 ---
 
@@ -106,7 +106,7 @@
       jaccard(x = test$countData, threads = "1")
     Condition
       Error in `jaccard()`:
-      ! "1" must be a whole number.
+      ! "threads" must be a whole number.
 
 ---
 
@@ -114,7 +114,7 @@
       jaccard(x = test$countData, threads = 1.9)
     Condition
       Error in `jaccard()`:
-      ! 1.9 must be a whole number.
+      ! "threads" must be a whole number.
 
 ---
 
@@ -184,7 +184,7 @@
       cosine(x = test$countData, threads = "1")
     Condition
       Error in `cosine()`:
-      ! "1" must be a whole number.
+      ! "threads" must be a whole number.
 
 ---
 
@@ -192,7 +192,7 @@
       cosine(x = test$countData, threads = 1.9)
     Condition
       Error in `cosine()`:
-      ! 1.9 must be a whole number.
+      ! "threads" must be a whole number.
 
 ---
 
@@ -262,7 +262,7 @@
       manhattan(x = test$countData, threads = "1")
     Condition
       Error in `manhattan()`:
-      ! "1" must be a whole number.
+      ! "threads" must be a whole number.
 
 ---
 
@@ -270,7 +270,7 @@
       manhattan(x = test$countData, threads = 1.9)
     Condition
       Error in `manhattan()`:
-      ! 1.9 must be a whole number.
+      ! "threads" must be a whole number.
 
 ---
 
@@ -340,7 +340,7 @@
       jsd(x = test$countData, threads = "1")
     Condition
       Error in `jsd()`:
-      ! "1" must be a whole number.
+      ! "threads" must be a whole number.
 
 ---
 
@@ -348,7 +348,7 @@
       jsd(x = test$countData, threads = 1.9)
     Condition
       Error in `jsd()`:
-      ! 1.9 must be a whole number.
+      ! "threads" must be a whole number.
 
 ---
 
@@ -426,7 +426,7 @@
       canberra(x = test$countData, threads = "1")
     Condition
       Error in `canberra()`:
-      ! "1" must be a whole number.
+      ! "threads" must be a whole number.
 
 ---
 
@@ -434,7 +434,7 @@
       canberra(x = test$countData, threads = 1.9)
     Condition
       Error in `canberra()`:
-      ! 1.9 must be a whole number.
+      ! "threads" must be a whole number.
 
 ---
 
@@ -520,7 +520,7 @@
       unifrac(tree = test$treeData, x = test$countData, threads = "1")
     Condition
       Error in `unifrac()`:
-      ! "1" must be a whole number.
+      ! "threads" must be a whole number.
 
 ---
 
@@ -528,7 +528,7 @@
       unifrac(tree = test$treeData, x = test$countData, threads = 1.9)
     Condition
       Error in `unifrac()`:
-      ! 1.9 must be a whole number.
+      ! "threads" must be a whole number.
 
 ---
 
@@ -639,7 +639,7 @@
       euclidean(x = test$countData, threads = "1")
     Condition
       Error in `euclidean()`:
-      ! "1" must be a whole number.
+      ! "threads" must be a whole number.
 
 ---
 
@@ -647,7 +647,7 @@
       euclidean(x = test$countData, threads = 1.9)
     Condition
       Error in `euclidean()`:
-      ! 1.9 must be a whole number.
+      ! "threads" must be a whole number.
 
 ---
 

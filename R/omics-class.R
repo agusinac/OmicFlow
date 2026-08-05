@@ -43,7 +43,7 @@ omics <- R6::R6Class(
         self$print()
         invisible(self)
       } else {
-        cli::cli_abort("Data input must be {.cls data.table} like {.field metaData}.")
+        cli::cli_abort("{.val value} input must be {.cls data.table} like {.field metaData}.")
       }
     },
     #' @field featureData A \link[data.table]{data.table} with `FEATURE_ID` column.
@@ -75,7 +75,7 @@ omics <- R6::R6Class(
         self$print()
         invisible(self)
       } else {
-        cli::cli_abort("Data input must be {.cls data.table} like {.field featureData}.")
+        cli::cli_abort("{.val value} must be {.cls data.table} like {.field featureData}.")
       }
     },
     #' @field countData A dense or sparse \link[Matrix]{Matrix}.
@@ -107,7 +107,7 @@ omics <- R6::R6Class(
         self$print()
         invisible(self)
       } else {
-        cli::cli_abort("Data input must be {.cls Matrix} like {.field countData}.")
+        cli::cli_abort("{.val value} must be {.cls Matrix} like {.field countData}.")
       }
     }
   ),
@@ -253,7 +253,7 @@ omics <- R6::R6Class(
     #' 
     #' This method is very similar to the existing [`clone()`](#method-clone) function, except it also resets the back-up of the OmicFlow data types that is invoked with [`reset()`](#method-reset)
     #' 
-    #' @param deep A boolean value to create a shallow or deep copy.
+    #' @param deep A boolean value to create a shallow or deep copy (default: \code{FALSE}).
     #' @examples
     #' library("OmicFlow")
     #'
@@ -419,7 +419,7 @@ omics <- R6::R6Class(
         column <- colnames(private$.metaData[column])
 
       if (!is.character(column))
-        cli::cli_abort("{.val {column}} needs to be a character or an integer.")
+        cli::cli_abort("{.val column} needs to be a character or an integer.")
 
       if (!column_exists(column, private$.metaData))
         cli::cli_abort("{.val {column}} does not exist in the {.field metaData} or one of the specified columns is completely empty!")
@@ -543,7 +543,7 @@ omics <- R6::R6Class(
         cli::cli_abort("{.val {private$.samplepair_id}} doesn't exist in the {.field metaData}.")
 
       if (!is.null(num_unique_pairs) && !is.wholenumber(num_unique_pairs))
-        cli::cli_abort("{.val {num_unique_pairs}} must contain integers!")
+        cli::cli_abort("{.val num_unique_pairs} must contain integers!")
 
       ## MAIN
       #--------------------------------------------------------------------#
@@ -552,7 +552,7 @@ omics <- R6::R6Class(
 
       if (is.null(num_unique_pairs)) {
         num_unique_pairs <- counts[, max(unique_count)]
-        cli::cli_alert_info("{.val {num_unique_pairs}} is `NULL`, therefore {.val {num_unique_pairs}} will be set to {.val {max(counts$unique_count)}}.")
+        cli::cli_alert_info("{.val num_unique_pairs} is `NULL`, therefore {.val num_unique_pairs} will be set to {.val {max(counts$unique_count)}}.")
       }
 
       private$.metaData <- private$.metaData[SAMPLEPAIR_ID %in% counts[unique_count == num_unique_pairs, SAMPLEPAIR_ID]]
@@ -587,13 +587,13 @@ omics <- R6::R6Class(
       #--------------------------------------------------------------------#
 
       if (!is.character(feature_rank))
-        cli::cli_abort("{.val {feature_rank}} needs to be a character or vector containing characters")
+        cli::cli_abort("{.val feature_rank} needs to be a character or vector containing characters")
 
       if (!column_exists(feature_rank, private$.featureData))
         cli::cli_abort("{.val {feature_rank}} does not exist in {.field featureData}!")
 
       if (!is.null(feature_filter) && !is.character(feature_filter))
-        cli::cli_abort("{.val {feature_filter}} needs to be a character or vector containing characters")
+        cli::cli_abort("{.val feature_filter} needs to be a character or vector containing characters")
 
       ## MAIN
       #--------------------------------------------------------------------#
@@ -774,7 +774,7 @@ omics <- R6::R6Class(
       #--------------------------------------------------------------------#
 
       if (!is.character(feature_ranks))
-        cli::cli_abort("{.val {feature_ranks}} needs to be of character")
+        cli::cli_abort("{.val feature_ranks} needs to contains characters.")
 
       if (!column_exists(feature_ranks, private$.featureData))
         cli::cli_abort("Specified {.val {feature_ranks}} do not exist in the {.field featureData}.")
@@ -879,14 +879,14 @@ omics <- R6::R6Class(
       #--------------------------------------------------------------------#
 
       if (!is.character(col_name) || length(col_name) != 1) {
-        cli::cli_abort("{.val {col_name}} must be a character and of length 1")
+        cli::cli_abort("{.val col_name} must be a character and of length 1")
       } else if (!column_exists(col_name, private$.metaData)) {
         cli::cli_abort("The specified {.val {col_name}} does not exist in the {.field metaData}.")
       }
 
       if (!is.null(group_by)) {
         if (!is.character(group_by) || length(group_by) != 1) {
-          cli::cli_abort("{.val {group_by}} must be a character and of length 1")
+          cli::cli_abort("{.val group_by} must be a character and of length 1")
         } else if (!column_exists(group_by, private$.metaData)) {
           cli::cli_abort("The specified {.val {group_by}} does not exist in the {.field metaData}.")
         }
@@ -1003,16 +1003,16 @@ omics <- R6::R6Class(
 
       if (!is.null(col_name)) {
         if (!is.character(col_name) || length(col_name) != 1) {
-          cli::cli_abort("{.val {col_name}} must be a character and of length 1.")
+          cli::cli_abort("{.val col_name} must be a character and of length 1.")
         } else if (!column_exists(col_name, private$.metaData)) {
           cli::cli_abort("The specified {.val {col_name}} does not exist in the {.field metaData}.")
         }
       }
 
       if (length(feature_top) != 1) {
-        cli::cli_abort("{.val {feature_top} must be a single element.}")
+        cli::cli_abort("{.val feature_top} must be a single element.}")
       } else if (!is.wholenumber(feature_top)) {
-        cli::cli_abort("{.val {feature_top}} must be a whole number.")
+        cli::cli_abort("{.val feature_top} must be a whole number.")
       }
       
       if (feature_top > 15) {
@@ -1154,15 +1154,15 @@ omics <- R6::R6Class(
         cli::cli_abort("{.val metric} must be specified!")
 
       if (!is.character(metric) || length(metric) != 1) {
-        cli::cli_abort("{.val {metric}} needs to be a character with a length of 1")
+        cli::cli_abort("{.val metric} needs to be a character with a length of 1")
       } else if (!metric %in% OPTIONS) {
-        cli::cli_abort("{.val {metric}} is not a valid metric. \nValid options: {.val {OPTIONS}}")
+        cli::cli_abort("{.val {metric}} is not a valid {.val metric}. \nValid options: {.val {OPTIONS}}")
       } else if (is.null(private$.treeData) && metric == "unifrac") {
-        cli::cli_abort("The specified {.val {metric}} is invalid since no {.field treeData} is supplied.")
+        cli::cli_abort("The specified {.val metric} is invalid since no {.field treeData} is supplied.")
       }
 
       if (!is.wholenumber(threads))
-        cli::cli_abort("{.val {threads}} need to be a whole number!")        
+        cli::cli_abort("{.val threads} need to be a whole number!")        
 
       ## MAIN
       #--------------------------------------------------------------------#
@@ -1254,25 +1254,25 @@ omics <- R6::R6Class(
       OPTIONS <- c("pcoa", "nmds")
 
       if (!is.character(method) || length(method) != 1) {
-        cli::cli_abort("{.val {method}} needs to be a character with a length of 1")
+        cli::cli_abort("{.val method} needs to be a character with a length of 1")
       } else if (!method %in% OPTIONS) {
-        cli::cli_abort("{.val {method}} is not a valid method. \nValid options: {.val {OPTIONS}}")
+        cli::cli_abort("{.val {method}} is not a valid {.val method}. \nValid options: {.val {OPTIONS}}")
       }
             
       if (missing(group_by))
         cli::cli_abort("{.val group_by} must be specified!")
 
       if (!is.character(group_by) || length(group_by) != 1) {
-        cli::cli_abort("{.val {group_by}} needs to be a character with a length of 1")
+        cli::cli_abort("{.val group_by} needs to be a character with a length of 1")
       } else if (!column_exists(group_by, private$.metaData)) {
-        cli::cli_abort("{.val {group_by}} does not exist in the metaData or is empty.")
+        cli::cli_abort("{.val group_by} does not exist in the {.field metaData} or is empty.")
       }
 
       if (!is.null(perm_design) && !is.function(perm_design))
-        cli::cli_abort("perm_design must be a function.")
+        cli::cli_abort("{.val perm_design} must be a function.")
 
       if (!is.wholenumber(perm))
-        cli::cli_abort("Permutations {.val {perm}} need to be a whole number.")
+        cli::cli_abort("{.val perm} need to be a whole number.")
 
       if (!is.null(distmat)) {
         tmp <- distmat
@@ -1295,7 +1295,7 @@ omics <- R6::R6Class(
           rm(tmp)
 
         } else {
-          cli::cli_abort("{.arg distmat} need to be {.cls Matrix} or {.cls dist}")
+          cli::cli_abort("{.val distmat} need to be {.cls Matrix} or {.cls dist}")
         }
       }
 
@@ -1411,7 +1411,7 @@ omics <- R6::R6Class(
           data = df_pcs_points,
           col_name = "groups",
           pair=c("PC1", "PC2"),
-          dist_explained = pcs$eig_norm,
+          dist_explained = pcs$eig_norm[1:2],
           dist_metric = metric
         )
 

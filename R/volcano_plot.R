@@ -10,9 +10,9 @@
 #' @param pvalue_col A column name of a continuous variable.
 #' @param abundance_col A column name of a continuous variable.
 #' @param feature_rank A character variable of the feature column.
-#' @param logfold.threshold A Log2(A/B) Fold Change threshold (default: 0.6).
-#' @param pvalue.threshold A P-value threshold (default: 0.05).
-#' @param abundance.threshold An abundance threshold (default: 0.01).
+#' @param logfold.threshold A numeric value to set the fold-change threshold (default: \code{0.6}).
+#' @param pvalue.threshold A P-value threshold (default: \code{0.05}).
+#' @param abundance.threshold An abundance threshold (default: \code{0.01}).
 #' @param label_A A character to describe condition A.
 #' @param label_B A character to describe condition B.
 #' 
@@ -54,8 +54,8 @@ volcano_plot <- function(
   data,
   logfold_col,
   pvalue_col,
-  feature_rank,
   abundance_col,
+  feature_rank,
   pvalue.threshold = 0.05,
   logfold.threshold = 0.6,
   abundance.threshold = 0.01,
@@ -67,46 +67,46 @@ volcano_plot <- function(
   #--------------------------------------------------------------------#
 
   if (!inherits(data, "data.table"))
-    cli::cli_abort("Data must be a {.cls data.table}.")
+    cli::cli_abort("{.arg data} must be a {.cls data.table}.")
 
-  if (!is.character(logfold_col) && length(logfold_col) != 1) {
-    cli::cli_abort("{.val {logfold_col}} needs to contain characters with length of 1.")
+  if (!is.character(logfold_col) || length(logfold_col) != 1) {
+    cli::cli_abort("{.val logfold_col} needs to contain characters with length of 1.")
   } else if (!column_exists(logfold_col, data)) {
-    cli::cli_abort("The {.val {logfold_col}} column does not exist in the provided {.arg data}.")
+    cli::cli_abort("The {.val logfold_col} column does not exist in the provided {.arg data}.")
   }
 
-  if (!is.character(pvalue_col) && length(pvalue_col) != 1) {
-    cli::cli_abort("{.val {pvalue_col}} needs to contain characters with length of 1.")
+  if (!is.character(pvalue_col) || length(pvalue_col) != 1) {
+    cli::cli_abort("{.val pvalue_col} needs to contain characters with length of 1.")
   } else if (!column_exists(pvalue_col, data)) {
-    cli::cli_abort("The {.val {pvalue_col}} column does not exist in the provided {.arg data}.")
+    cli::cli_abort("The {.val pvalue_col} column does not exist in the provided {.arg data}.")
   }
 
-  if (!is.character(abundance_col) && length(abundance_col) != 1) {
-    cli::cli_abort("{.val {abundance_col}} needs to contain characters with length of 1.")
+  if (!is.character(abundance_col) || length(abundance_col) != 1) {
+    cli::cli_abort("{.val abundance_col} needs to contain characters with length of 1.")
   } else if (!column_exists(abundance_col, data)) {
-    cli::cli_abort("The {.val {abundance_col}} column does not exist in the provided {.arg data}.")
+    cli::cli_abort("The {.val abundance_col} column does not exist in the provided {.arg data}.")
   }
 
-  if (!is.character(feature_rank) && length(feature_rank) != 1) {
-    cli::cli_abort("{.val {feature_rank}} needs to contain characters with length of 1.")
+  if (!is.character(feature_rank) || length(feature_rank) != 1) {
+    cli::cli_abort("{.val feature_rank} needs to contain characters with length of 1.")
   } else if (!column_exists(feature_rank, data)) {
-    cli::cli_abort("The {.val {feature_rank}} column does not exist in the provided {.arg data}.")
+    cli::cli_abort("The {.val feature_rank} column does not exist in the provided {.arg data}.")
   }
 
-  if (!is.numeric(pvalue.threshold))
-    cli::cli_abort("{.val {pvalue.threshold}} need to be numeric.")
+  if (!is.numeric(pvalue.threshold) || length(pvalue.threshold) != 1)
+    cli::cli_abort("{.val pvalue.threshold} need to be a single numeric value.")
 
-  if (!is.numeric(logfold.threshold))
-    cli::cli_abort("{.val {logfold.threshold}} need to be numeric.")
+  if (!is.numeric(logfold.threshold) || length(logfold.threshold) != 1)
+    cli::cli_abort("{.val logfold.threshold} need to be a single numeric value.")
 
-  if (!is.numeric(abundance.threshold))
-    cli::cli_abort("{.val {abundance.threshold}} need to be numeric.")
+  if (!is.numeric(abundance.threshold) || length(abundance.threshold) != 1)
+    cli::cli_abort("{.val abundance.threshold} need to be a single numeric value.")
 
-  if (!is.character(label_A))
-    cli::cli_abort("{.val {label_A}} needs to contain characters.")
+  if (!is.character(label_A) || length(label_A) != 1)
+    cli::cli_abort("{.val label_A} needs to contain characters of length 1.")
 
-  if (!is.character(label_B))
-    cli::cli_abort("{.val {label_B}} needs to contain characters.")
+  if (!is.character(label_B) || length(label_B) != 1)
+    cli::cli_abort("{.val label_B} needs to contain characters of length 1.")
 
   ## MAIN
   #--------------------------------------------------------------------#

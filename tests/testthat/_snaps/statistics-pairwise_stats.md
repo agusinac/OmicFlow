@@ -47,7 +47,7 @@
       p.adjust.method = 1)
     Condition
       Error in `pairwise_adonis()`:
-      ! 1 must be a character.
+      ! "p.adjust.method" must be a character.
 
 ---
 
@@ -64,7 +64,7 @@
       pairwise_adonis(x = distmat, groups = test$metaData$CONTRAST_treatment, perm = "1")
     Condition
       Error in `pairwise_adonis()`:
-      ! "1" needs to be a whole number.
+      ! "perm" needs to be a whole number.
 
 ---
 
@@ -72,7 +72,7 @@
       pairwise_adonis(x = distmat, groups = test$metaData$CONTRAST_treatment, perm = 5.2)
     Condition
       Error in `pairwise_adonis()`:
-      ! 5.2 needs to be a whole number.
+      ! "perm" needs to be a whole number.
 
 # `pairwise_anosim()` -- Argument checks
 
@@ -123,7 +123,7 @@
       p.adjust.method = 1)
     Condition
       Error in `pairwise_anosim()`:
-      ! 1 must be a character.
+      ! "p.adjust.method" must be a character.
 
 ---
 
@@ -140,7 +140,7 @@
       pairwise_anosim(x = distmat, groups = test$metaData$CONTRAST_treatment, perm = "1")
     Condition
       Error in `pairwise_anosim()`:
-      ! "1" needs to be a whole number.
+      ! "perm" needs to be a whole number.
 
 ---
 
@@ -148,5 +148,5 @@
       pairwise_anosim(x = distmat, groups = test$metaData$CONTRAST_treatment, perm = 5.2)
     Condition
       Error in `pairwise_anosim()`:
-      ! 5.2 needs to be a whole number.
+      ! "perm" needs to be a whole number.
 

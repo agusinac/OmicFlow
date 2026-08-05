@@ -58,11 +58,11 @@ hill_taxa <- function (
     cli::cli_abort("{.val x} must be non-negative.")
 
   if (length(q) != 1) {
-    cli::cli_abort("{.val {q}} needs to be a single whole number.")
+    cli::cli_abort("{.val q} needs to be a single whole number.")
   } else if (!is.wholenumber(q)) {
-    cli::cli_abort("{.val {q}} is not a whole number.")
+    cli::cli_abort("{.val q} is not a whole number.")
   } else if (!c(q %in% c(0, 1, 2))) {
-    cli::cli_abort("{.val {q}} needs to be a whole number of either {.val 0}, {.val 1} or {.val 2}.")
+    cli::cli_abort("{.val q} needs to be a whole number of either {.val 0}, {.val 1} or {.val 2}.")
   }
 
   if (!is.logical(normalize))

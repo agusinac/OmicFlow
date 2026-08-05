@@ -12,7 +12,7 @@
       test$distance(metric = "nothing")
     Condition
       Error in `test$distance()`:
-      ! "nothing" is not a valid metric.  Valid options: "bray", "jaccard", "cosine", "manhattan", "jsd", "canberra", "unifrac", "euclidean", and "aitchison"
+      ! "nothing" is not a valid "metric".  Valid options: "bray", "jaccard", "cosine", "manhattan", "jsd", "canberra", "unifrac", "euclidean", and "aitchison"
 
 ---
 
@@ -20,7 +20,7 @@
       test$distance(metric = c("n1", "n2"))
     Condition
       Error in `test$distance()`:
-      ! "n1" and "n2" needs to be a character with a length of 1
+      ! "metric" needs to be a character with a length of 1
 
 ---
 
@@ -28,7 +28,7 @@
       test$distance(metric = 1)
     Condition
       Error in `test$distance()`:
-      ! 1 needs to be a character with a length of 1
+      ! "metric" needs to be a character with a length of 1
 
 ---
 
@@ -36,7 +36,7 @@
       test$distance(metric = "unifrac")
     Condition
       Error in `test$distance()`:
-      ! The specified "unifrac" is invalid since no treeData is supplied.
+      ! The specified "metric" is invalid since no treeData is supplied.
 
 ---
 
@@ -44,7 +44,7 @@
       test$distance(metric = "bray", threads = "1")
     Condition
       Error in `test$distance()`:
-      ! "1" need to be a whole number!
+      ! "threads" need to be a whole number!
 
 ---
 
@@ -52,7 +52,7 @@
       test$distance(metric = "bray", threads = 50.2)
     Condition
       Error in `test$distance()`:
-      ! 50.2 need to be a whole number!
+      ! "threads" need to be a whole number!
 
 # `omics$ordination()` -- Argument checks
 
@@ -68,7 +68,7 @@
       test$ordination(group_by = "CONTRAST_treatment", metric = "nothing")
     Condition
       Error in `self$distance()`:
-      ! "nothing" is not a valid metric.  Valid options: "bray", "jaccard", "cosine", "manhattan", "jsd", "canberra", "unifrac", "euclidean", and "aitchison"
+      ! "nothing" is not a valid "metric".  Valid options: "bray", "jaccard", "cosine", "manhattan", "jsd", "canberra", "unifrac", "euclidean", and "aitchison"
 
 ---
 
@@ -76,7 +76,7 @@
       test$ordination(group_by = "CONTRAST_treatment", metric = c("n1", "n2"))
     Condition
       Error in `self$distance()`:
-      ! "n1" and "n2" needs to be a character with a length of 1
+      ! "metric" needs to be a character with a length of 1
 
 ---
 
@@ -84,7 +84,7 @@
       test$ordination(group_by = "CONTRAST_treatment", metric = 1)
     Condition
       Error in `self$distance()`:
-      ! 1 needs to be a character with a length of 1
+      ! "metric" needs to be a character with a length of 1
 
 ---
 
@@ -92,7 +92,7 @@
       test$ordination(group_by = "CONTRAST_treatment", method = "nothing")
     Condition
       Error in `test$ordination()`:
-      ! "nothing" is not a valid method.  Valid options: "pcoa" and "nmds"
+      ! "nothing" is not a valid "method".  Valid options: "pcoa" and "nmds"
 
 ---
 
@@ -100,7 +100,7 @@
       test$ordination(group_by = "CONTRAST_treatment", method = c("n1", "n2"))
     Condition
       Error in `test$ordination()`:
-      ! "n1" and "n2" needs to be a character with a length of 1
+      ! "method" needs to be a character with a length of 1
 
 ---
 
@@ -108,7 +108,7 @@
       test$ordination(group_by = "CONTRAST_treatment", method = 1)
     Condition
       Error in `test$ordination()`:
-      ! 1 needs to be a character with a length of 1
+      ! "method" needs to be a character with a length of 1
 
 ---
 
@@ -116,7 +116,7 @@
       test$ordination(group_by = "CONTRAST_treatment", perm = "999")
     Condition
       Error in `test$ordination()`:
-      ! Permutations "999" need to be a whole number.
+      ! "perm" need to be a whole number.
 
 ---
 
@@ -124,7 +124,7 @@
       test$ordination(group_by = "CONTRAST_treatment", perm = 50.2)
     Condition
       Error in `test$ordination()`:
-      ! Permutations 50.2 need to be a whole number.
+      ! "perm" need to be a whole number.
 
 ---
 
@@ -132,7 +132,7 @@
       test$ordination(group_by = "CONTRAST_treatment", threads = "999")
     Condition
       Error in `self$distance()`:
-      ! "999" need to be a whole number!
+      ! "threads" need to be a whole number!
 
 ---
 
@@ -140,7 +140,7 @@
       test$ordination(group_by = "CONTRAST_treatment", threads = 50.2)
     Condition
       Error in `self$distance()`:
-      ! 50.2 need to be a whole number!
+      ! "threads" need to be a whole number!
 
 ---
 
@@ -148,7 +148,7 @@
       test$ordination(group_by = "CONTRAST_treatment", perm_design = list())
     Condition
       Error in `test$ordination()`:
-      ! perm_design must be a function.
+      ! "perm_design" must be a function.
 
 ---
 
@@ -178,7 +178,7 @@
       test$ordination(group_by = "CONTRAST_treatment", distmat = list())
     Condition
       Error in `test$ordination()`:
-      ! `distmat` need to be <Matrix> or <dist>
+      ! "distmat" need to be <Matrix> or <dist>
 
 ---
 

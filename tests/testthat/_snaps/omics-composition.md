@@ -12,7 +12,7 @@
       taxa$composition(feature_rank = "Genus", col_name = c("treatment", "sex"))
     Condition
       Error in `taxa$composition()`:
-      ! "treatment" and "sex" must be a character and of length 1.
+      ! "col_name" must be a character and of length 1.
 
 ---
 
@@ -28,7 +28,7 @@
       taxa$composition(feature_rank = "Genus", feature_top = "10")
     Condition
       Error in `taxa$composition()`:
-      ! "10" must be a whole number.
+      ! "feature_top" must be a whole number.
 
 ---
 
@@ -36,7 +36,7 @@
       taxa$composition(feature_rank = "Genus", feature_top = c(10, 15))
     Condition
       Error in `taxa$composition()`:
-      ! "10 and 15 must be a single element."
+      ! "feature_top" must be a single element.}
 
 ---
 

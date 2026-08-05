@@ -8,7 +8,7 @@
 matrix_to_dtable <- function(x) {
   if (inherits(x, "denseMatrix") || inherits(x, "matrix") || inherits(x, "sparseMatrix")) {
       return(data.table::data.table(as.matrix(x)))
-  } else cli::cli_abort("Input isn't a {.cls matrix}, {.cls denseMatrix} or {.cls sparseMatrix}.")
+  } else cli::cli_abort("{.val x} isn't a {.cls matrix}, {.cls denseMatrix} or {.cls sparseMatrix}.")
 }
 #' Checks if column exists in table
 #'
@@ -24,10 +24,10 @@ column_exists <- function(column, table) {
   #--------------------------------------------------------------------#
 
   if (!is.character(column))
-    cli::cli_abort("{.val {column}} needs to contain characters.")
+    cli::cli_abort("{.val column} needs to contain characters.")
 
   if (!inherits(table, "data.frame") && !inherits(table, "data.table"))
-    cli::cli_abort("{.arg table} must be a {.cls data.frame} or {.cls data.table}.")
+    cli::cli_abort("{.val table} must be a {.cls data.frame} or {.cls data.table}.")
 
   ## MAIN
   #--------------------------------------------------------------------#
@@ -65,10 +65,10 @@ is.wholenumber <- function(x, tol = .Machine$double.eps^0.5) {
 #' @noRd
 combine_conditions <- function(condition1, condition2) {
   if (!inherits(condition1, "data.frame") && !inherits(condition1, "data.table"))
-    cli::cli_abort("{.arg condition1} must be a {.cls data.frame} or {.cls data.table}.")
+    cli::cli_abort("{.val condition1} must be a {.cls data.frame} or {.cls data.table}.")
 
   if (!inherits(condition2, "data.frame") && !inherits(condition2, "data.table"))
-    cli::cli_abort("{.arg condition2} must be a {.cls data.frame} or {.cls data.table}.")
+    cli::cli_abort("{.val condition2} must be a {.cls data.frame} or {.cls data.table}.")
 
   # Combine to strings for easy comparison
   cond1_str <- paste(

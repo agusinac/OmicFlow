@@ -4,7 +4,7 @@
       matrix_to_dtable(x = list())
     Condition
       Error in `matrix_to_dtable()`:
-      ! Input isn't a <matrix>, <denseMatrix> or <sparseMatrix>.
+      ! "x" isn't a <matrix>, <denseMatrix> or <sparseMatrix>.
 
 ---
 
@@ -12,7 +12,7 @@
       matrix_to_dtable(x = data.frame())
     Condition
       Error in `matrix_to_dtable()`:
-      ! Input isn't a <matrix>, <denseMatrix> or <sparseMatrix>.
+      ! "x" isn't a <matrix>, <denseMatrix> or <sparseMatrix>.
 
 # `matrix_to_dtable()` -- Behavioral checks
 

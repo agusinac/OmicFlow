@@ -63,7 +63,7 @@ pairwise_adonis <- function(
     cli::cli_abort("{.val perm_design} must be a function.")
 
   if (!is.character(p.adjust.method)) {
-    cli::cli_abort("{.val {p.adjust.method}} must be a character.")
+    cli::cli_abort("{.val p.adjust.method} must be a character.")
   } else if (!c(p.adjust.method %in% stats::p.adjust.methods)) {
     cli::cli_abort("{.val {p.adjust.method}} is not a valid method. \nValid options: {.val {p.adjust.methods}}.")
   }
@@ -71,7 +71,7 @@ pairwise_adonis <- function(
   if (length(perm) != 1) {
     cli::cli_abort("{.val perm} must be a single whole number.")
   } else if (!is.wholenumber(perm)) {
-    cli::cli_abort("{.val {perm}} needs to be a whole number.")
+    cli::cli_abort("{.val perm} needs to be a whole number.")
   }
     
 

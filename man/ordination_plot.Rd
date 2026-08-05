@@ -19,9 +19,9 @@ ordination_plot(
 
 \item{pair}{A vector of character variables indicating what dimension names (e.g. PC1, NMDS2).}
 
-\item{dist_explained}{A vector of numeric values of the percentage dissimilarity explained for the dimension pairs, default is NULL.}
+\item{dist_explained}{A vector of numeric values of the percentage dissimilarity explained for the dimension pairs (default: \code{NULL}).}
 
-\item{dist_metric}{A character variable indicating what metric is used (e.g. unifrac, bray-curtis), default is NULL.}
+\item{dist_metric}{A character variable indicating what metric is used (e.g. unifrac, bray-curtis) (default: \code{NULL}).}
 }
 \value{
 A \link[ggplot2]{ggplot2} object to be further modified

@@ -245,9 +245,9 @@ metagenomics <- R6::R6Class(
     write_biom = function (filename) {
 
       if (!is.character(filename) || length(filename) != 1) {
-        cli::cli_abort("{.filename {filename}} Needs to contain characters and be length of 1.")
+        cli::cli_abort("{.filename filename} Needs to contain characters and be length of 1.")
       } else if (file.exists(filename)) {
-        cli::cli_abort("{.filename {filename}} Already exists!")
+        cli::cli_abort("{.filename filename} Already exists!")
       }        
 
       res <- try(
@@ -255,7 +255,7 @@ metagenomics <- R6::R6Class(
         silent = TRUE
       )
       if (!res) {
-        cli::cli_abort("Can't create file {.filename {filename}}: {res}")
+        cli::cli_abort("Can't create file {.filename filename}: {res}")
       }
 
       groups <- c(

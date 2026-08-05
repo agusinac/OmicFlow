@@ -414,7 +414,7 @@ This method is very similar to the existing \href{#method-clone}{\code{clone()}}
   \subsection{Arguments}{
     \if{html}{\out{<div class="arguments">}}
     \describe{
-      \item{\code{deep}}{A boolean value to create a shallow or deep copy.}
+      \item{\code{deep}}{A boolean value to create a shallow or deep copy (default: \code{FALSE}).}
     }
     \if{html}{\out{</div>}}
   }

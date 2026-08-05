@@ -4,7 +4,7 @@
       taxa$rankstat(feature_ranks = list())
     Condition
       Error in `taxa$rankstat()`:
-      ! needs to be of character
+      ! "feature_ranks" needs to contains characters.
 
 ---
 
@@ -12,7 +12,7 @@
       taxa$rankstat(feature_ranks = data.frame())
     Condition
       Error in `taxa$rankstat()`:
-      ! needs to be of character
+      ! "feature_ranks" needs to contains characters.
 
 ---
 
@@ -20,7 +20,7 @@
       taxa$rankstat(feature_ranks = c(1, 2, 4))
     Condition
       Error in `taxa$rankstat()`:
-      ! 1, 2, and 4 needs to be of character
+      ! "feature_ranks" needs to contains characters.
 
 ---
 

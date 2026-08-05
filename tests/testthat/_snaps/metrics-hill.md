@@ -44,7 +44,7 @@
       hill_taxa(x = test$countData, q = "1")
     Condition
       Error in `hill_taxa()`:
-      ! "1" is not a whole number.
+      ! "q" is not a whole number.
 
 ---
 
@@ -52,7 +52,7 @@
       hill_taxa(x = test$countData, q = c(0, 1))
     Condition
       Error in `hill_taxa()`:
-      ! 0 and 1 needs to be a single whole number.
+      ! "q" needs to be a single whole number.
 
 ---
 
