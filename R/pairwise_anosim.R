@@ -37,8 +37,8 @@ pairwise_anosim <- function(
   metadata = NULL,
   perm_design = NULL,
   p.adjust.method = "bonferroni",
-  perm = 999
-  ){
+  perm = 999,
+  ...){
 
   ## Error handling
   #--------------------------------------------------------------------#
@@ -89,13 +89,15 @@ pairwise_anosim <- function(
       ano <- vegan::anosim(
         x = m,
         grouping = groups,
-        permutations = h1
+        permutations = h1,
+        ...
       )
     } else {
       ano <- vegan::anosim(
         x = m, 
         grouping = groups[rows_to_keep],
-        permutations = perm
+        permutations = perm,
+        ...
       )
     }
     
