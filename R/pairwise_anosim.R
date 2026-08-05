@@ -37,7 +37,7 @@ pairwise_anosim <- function(
   metadata = NULL,
   perm_design = NULL,
   p.adjust.method = "bonferroni",
-  perm = 999
+  perm = 999,
   ...){
 
   ## Error handling
