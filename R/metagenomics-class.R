@@ -156,6 +156,10 @@ metagenomics <- R6::R6Class(
         } else cli::cli_abort("{.field biomData} doesn't exist, please provide an existing {.val filepath}")
       }
 
+      # check if `countData` is not empty
+      if (is.null(private$.countData))
+        cli::cli_abort("{.field countData} cannot be empty.. did you forgot to specify the {.field countData} or {.field biomData} in {.fun metagenomics$new} ?")
+
       #-------------------#
       ###   treeData    ###
       #-------------------#
@@ -186,10 +190,6 @@ metagenomics <- R6::R6Class(
       #-------------------#
       ###     CLEANUP   ###
       #-------------------#
-
-      # check if `countData` is not empty
-      if (is.null(private$.countData))
-        cli::cli_abort("{.field countData} cannot be empty.. did you forgot to specify a {.val countData} or {.val biomData} ?")
 
       cli::cli_alert_info("Final steps .. cleaning & creating back-up")
 
@@ -244,12 +244,18 @@ metagenomics <- R6::R6Class(
     #'
     write_biom = function (filename) {
 
+      if (!is.character(filename) || length(filename) != 1) {
+        cli::cli_abort("{.filename filename} Needs to contain characters and be length of 1.")
+      } else if (file.exists(filename)) {
+        cli::cli_abort("{.filename filename} Already exists!")
+      }        
+
       res <- try(
         rhdf5::h5createFile(filename),
         silent = TRUE
       )
       if (!res) {
-        cli::cli_abort("Can't create file {.filename {filename}}: {res}")
+        cli::cli_abort("Can't create file {.filename filename}: {res}")
       }
 
       groups <- c(
@@ -426,13 +432,13 @@ metagenomics <- R6::R6Class(
       ## Error handling
       #--------------------------------------------------------------------#
 
-      if (!is.character(feature_rank) && length(feature_rank) != 1) {
+      if (!is.character(feature_rank) || length(feature_rank) != 1) {
         cli::cli_abort("{.val {feature_rank}} needs to be a character with a length of 1")
       } else if (!column_exists(feature_rank, private$.featureData)) {
         cli::cli_abort("The {.val {feature_rank}} column does not exist in the {.field featureData}.")
       }
 
-      if (!is.character(condition.group) && length(condition.group) != 1) {
+      if (!is.character(condition.group) || length(condition.group) != 1) {
         cli::cli_abort("{.val {condition.group}} needs to be a character with a length of 1")
       } else if (!column_exists(condition.group, private$.metaData)) {
         cli::cli_abort("{.val {condition.group}} does not exist in the {.field metaData} or is empty.")
@@ -449,13 +455,13 @@ metagenomics <- R6::R6Class(
       if (!is.numeric(logfold.threshold))
         cli::cli_abort("{.val {logfold.threshold}} need to be numeric.")
 
-      if (paired && is.null(private$.samplepair_id)) {
+      if (paired && !column_exists(private$.samplepair_id, private$.metaData)) {
         cli::cli_alert_warning("Paired is set to {.val {paired}} but {.arg SAMPLEPAIR_ID} does not exist in the {.field metaData}.\n Differential feature analysis will continue now with paired set to {.val FALSE}!")
         paired <- FALSE
       }
 
       if (!is.null(group_by)) {
-        if (!is.character(group_by) && length(group_by) != 1) {
+        if (!is.character(group_by) || length(group_by) != 1) {
           cli::cli_abort("{.val {group_by}} needs to contain characters with length of 1.")
         } else if (!column_exists(group_by, private$.metaData)) {
           cli::cli_abort("The {.val {group_by}} column does not exist in the {.field metaData}.")
@@ -490,7 +496,7 @@ metagenomics <- R6::R6Class(
       self$removeNAs(condition.group)
 
       # Subset by samplepair completion
-      if (paired && !is.null(private$.samplepair_id))
+      if (paired && column_exists(private$.samplepair_id, private$.metaData))
         self$samplepair_subset()
       
       # Agglomerate taxa by feature rank and filter unwanted taxa
@@ -499,14 +505,11 @@ metagenomics <- R6::R6Class(
       
       # Extract mean abundance
       abun <- as.matrix(Matrix::rowMeans(private$.countData))
-      rownames(abun) <- private$.featureData[[ feature_rank ]]
+      feature_labels <- private$.featureData[[ feature_rank ]]
+      rownames(abun) <- feature_labels
 
       # Get data.table format abundances
-      dt <- matrix_to_dtable(private$.countData)[, (feature_rank) := private$.featureData[[feature_rank]]]
-
-      # Compute 2-fold expression based on (un)paired samples
-      # Supports multiple inputs for A and B.
-      tmp_dt <- data.table::copy(dt)
+      dt <- matrix_to_dtable(private$.countData)
 
       # Apply `group_by`
       if (!is.null(group_by)) {
@@ -516,21 +519,20 @@ metagenomics <- R6::R6Class(
       }
       group_names <- names(chunks)
 
-      # subset feature labels before removing them
-      feature_labels <- tmp_dt[[ feature_rank ]]
-      tmp_dt <- tmp_dt[, .SD, .SDcols = !c(feature_rank)]
-
       # Create data.tables for results
       foldchange_dt <- data.table::data.table(feature_rank = feature_labels)
       colnames(foldchange_dt) <- feature_rank
 
       for (group_name in group_names) {
-        condition_labels <- chunks[[group_name]][[condition.group]]
+        chunk <- chunks[[ group_name ]]
+
+        chunk_dt <- data.table::copy(dt[, .SD, .SDcols = chunk[[ private$.sample_id ]]])
+        condition_labels <- chunk[[ condition.group ]]
 
         for (i in seq_along(condition_A)) {
           # Subset by condition_A value
-          dt_A <- tmp_dt[, .SD, .SDcols = colnames(tmp_dt)[condition_labels %in% condition_A[i]]]
-          dt_B <- tmp_dt[, .SD, .SDcols = colnames(tmp_dt)[condition_labels %in% condition_B[i]]]
+          dt_A <- chunk_dt[, .SD, .SDcols = colnames(chunk_dt)[condition_labels %in% condition_A[i]]]
+          dt_B <- chunk_dt[, .SD, .SDcols = colnames(chunk_dt)[condition_labels %in% condition_B[i]]]
 
           # save intermediate condition tables
           output[[paste0(group_name, "_", condition_A[i])]] <- dt_A

@@ -414,7 +414,7 @@ This method is very similar to the existing \href{#method-clone}{\code{clone()}}
   \subsection{Arguments}{
     \if{html}{\out{<div class="arguments">}}
     \describe{
-      \item{\code{deep}}{A boolean value to create a shallow or deep copy.}
+      \item{\code{deep}}{A boolean value to create a shallow or deep copy (default: \code{FALSE}).}
     }
     \if{html}{\out{</div>}}
   }
@@ -478,7 +478,7 @@ via a filepath or existing \link[data.table]{data.table} or \link[base]{data.fra
     \if{html}{\out{</div>}}
   }
   \subsection{Returns}{
-    object in place
+    A cli formatted message
   }
   \subsection{Examples}{
     \if{html}{\out{<div class="r example copy">}}
@@ -515,7 +515,7 @@ The methods from the abstract class \link{omics} also contains a private method 
     \if{html}{\out{</div>}}
   }
   \subsection{Returns}{
-    object in place
+    The object is modified in place and returned (invisibly). If a copy is required, please use \href{#method-copy}{\code{copy()}} beforehand with \code{obj2 <- obj$copy()}.
   }
   \subsection{Examples}{
     \if{html}{\out{<div class="r example copy">}}
@@ -563,7 +563,7 @@ taxa$rankstat(feature_ranks = c("Kingdom", "Phylum", "Family", "Genus", "Species
     \if{html}{\out{</div>}}
   }
   \subsection{Returns}{
-    object in place
+    The object is modified in place and returned (invisibly). If a copy is required, please use \href{#method-copy}{\code{copy()}} beforehand with \code{obj2 <- obj$copy()}.
   }
   \subsection{Examples}{
     \if{html}{\out{<div class="r example copy">}}
@@ -589,22 +589,21 @@ obj$removeNAs(column = "treatment")
 \if{html}{\out{<a id="method-omics-feature_subset"></a>}}
 \if{latex}{\out{\hypertarget{method-omics-feature_subset}{}}}
 \subsection{\code{omics$feature_subset()}}{
-  Feature subset (based on \code{featureData}), automatically applies data synchronization.
+  Subset features using a logical expression evaluated in \code{featureData}, then synchronize the object.
   \subsection{Usage}{
     \if{html}{\out{<div class="r">}}
-    \preformatted{omics$feature_subset(...)}
+    \preformatted{omics$feature_subset(expr)}
     \if{html}{\out{</div>}}
   }
   \subsection{Arguments}{
     \if{html}{\out{<div class="arguments">}}
     \describe{
-      \item{\code{...}}{Expressions that return a logical value, and are defined in terms of the variables in \code{featureData}.
-Only rows for which all conditions evaluate to TRUE are kept.}
+      \item{\code{expr}}{A logical expression evaluated in the context of \code{featureData}. Rows for which the expression evaluates to \code{TRUE} are retained.}
     }
     \if{html}{\out{</div>}}
   }
   \subsection{Returns}{
-    object in place
+    The object is modified in place and returned (invisibly). If a copy is required, please use \href{#method-copy}{\code{copy()}} beforehand with \code{obj2 <- obj$copy()}.
   }
   \subsection{Examples}{
     \if{html}{\out{<div class="r example copy">}}
@@ -630,22 +629,21 @@ obj$feature_subset(Genus == "Pseudomonas")
 \if{html}{\out{<a id="method-omics-sample_subset"></a>}}
 \if{latex}{\out{\hypertarget{method-omics-sample_subset}{}}}
 \subsection{\code{omics$sample_subset()}}{
-  Sample subset (based on \code{metaData}), automatically applies synchronization.
+  Subset samples using a logical expression evaluated in \code{metaData}, then synchronize the object.
   \subsection{Usage}{
     \if{html}{\out{<div class="r">}}
-    \preformatted{omics$sample_subset(...)}
+    \preformatted{omics$sample_subset(expr)}
     \if{html}{\out{</div>}}
   }
   \subsection{Arguments}{
     \if{html}{\out{<div class="arguments">}}
     \describe{
-      \item{\code{...}}{Expressions that return a logical value, and are defined in terms of the variables in \code{metaData}.
-Only rows for which all conditions evaluate to TRUE are kept.}
+      \item{\code{expr}}{A logical expression evaluated in the context of \code{metaData}. Rows for which the expression evaluates to \code{TRUE} are retained.}
     }
     \if{html}{\out{</div>}}
   }
   \subsection{Returns}{
-    object in place
+    The object is modified in place and returned (invisibly). If a copy is required, please use \href{#method-copy}{\code{copy()}} beforehand with \code{obj2 <- obj$copy()}.
   }
   \subsection{Examples}{
     \if{html}{\out{<div class="r example copy">}}
@@ -671,7 +669,7 @@ obj$sample_subset(treatment == "tumor")
 \if{html}{\out{<a id="method-omics-samplepair_subset"></a>}}
 \if{latex}{\out{\hypertarget{method-omics-samplepair_subset}{}}}
 \subsection{\code{omics$samplepair_subset()}}{
-  Samplepair subset (based on \code{metaData}), automatically applies synchronization.
+  Subset samplepairs by choosing the number of unique pairs in \code{metaData}, then synchronize the object.
   \subsection{Usage}{
     \if{html}{\out{<div class="r">}}
     \preformatted{omics$samplepair_subset(num_unique_pairs = NULL)}
@@ -687,7 +685,7 @@ Let's say you have three samples for each pair, then the \code{num_unique_pairs}
     \if{html}{\out{</div>}}
   }
   \subsection{Returns}{
-    object in place
+    The object is modified in place and returned (invisibly). If a copy is required, please use \href{#method-copy}{\code{copy()}} beforehand with \code{obj2 <- obj$copy()}.
   }
 }
 
@@ -710,7 +708,7 @@ Let's say you have three samples for each pair, then the \code{num_unique_pairs}
     \if{html}{\out{</div>}}
   }
   \subsection{Returns}{
-    object in place
+    The object is modified in place and returned (invisibly). If a copy is required, please use \href{#method-copy}{\code{copy()}} beforehand with \code{obj2 <- obj$copy()}.
   }
   \subsection{Examples}{
     \if{html}{\out{<div class="r example copy">}}
@@ -759,7 +757,7 @@ obj$feature_merge(feature_rank = "Genus", feature_filter = c("uncultured", "meta
     \if{html}{\out{</div>}}
   }
   \subsection{Returns}{
-    object in place
+    The object is modified in place and returned (invisibly). If a copy is required, please use \href{#method-copy}{\code{copy()}} beforehand with \code{obj2 <- obj$copy()}.
   }
   \subsection{Examples}{
     \if{html}{\out{<div class="r example copy">}}
@@ -802,13 +800,13 @@ obj$scale(method = "none", transform = log2)
   \subsection{Arguments}{
     \if{html}{\out{<div class="arguments">}}
     \describe{
-      \item{\code{feature_ranks}}{A vector of characters or integers that match the \code{featureData}.}
+      \item{\code{feature_ranks}}{A vector of characters that match the \code{featureData}.}
       \item{\code{unique}}{A boolean value to display only unique entries in \code{feature_ranks}.}
     }
     \if{html}{\out{</div>}}
   }
   \subsection{Details}{
-    Counts the number of features identified for each column, for example in case of 16S metagenomics it would be the number of OTUs or ASVs on different taxonomy levels.
+    Counts the number of (unique) features identified for each column of interest from the \code{featureData}.
   }
   \subsection{Returns}{
     A \link[ggplot2]{ggplot} object.
@@ -843,7 +841,7 @@ plt
     \if{html}{\out{<div class="r">}}
     \preformatted{omics$alpha_diversity(
   col_name,
-  metric = c("shannon", "invsimpson", "simpson"),
+  metric = "shannon",
   Brewer.palID = "Set2",
   group_by = NULL,
   evenness = FALSE,
@@ -856,12 +854,12 @@ plt
     \if{html}{\out{<div class="arguments">}}
     \describe{
       \item{\code{col_name}}{A character variable from the \code{metaData}.}
-      \item{\code{metric}}{An alpha diversity metric as input to \link{diversity}.}
+      \item{\code{metric}}{An alpha diversity metric as input to \link{diversity} (default: \code{"shannon"}).}
       \item{\code{Brewer.palID}}{A character name for the palette set to be applied, see \link[RColorBrewer]{brewer.pal} or \link{colormap}.}
-      \item{\code{group_by}}{A column name to perform grouped statistical test in \link{diversity_plot} (default: NULL).}
+      \item{\code{group_by}}{A column name to perform grouped statistical test in \link{diversity_plot} (default: \code{NULL}).}
       \item{\code{evenness}}{A boolean wether to divide diversity by number of species, see \link[vegan]{specnumber}.}
       \item{\code{paired}}{A boolean value to perform paired analysis in \link[stats]{wilcox.test} and samplepair subsetting via \href{#method-samplepair_subset}{\code{samplepair_subset()}}}
-      \item{\code{p.adjust.method}}{A character variable to specify the p.adjust.method to be used, default is 'fdr'.}
+      \item{\code{p.adjust.method}}{A character variable to specify the p.adjust.method to be used (default: \code{'fdr'}).}
     }
     \if{html}{\out{</div>}}
   }
@@ -904,7 +902,7 @@ plt <- obj$alpha_diversity(col_name = "treatment",
   feature_rank,
   feature_filter = NULL,
   col_name = NULL,
-  feature_top = c(10, 15),
+  feature_top = 10,
   Brewer.palID = "RdYlBu"
 )}
     \if{html}{\out{</div>}}
@@ -915,7 +913,7 @@ plt <- obj$alpha_diversity(col_name = "treatment",
       \item{\code{feature_rank}}{A character variable in \code{featureData} to aggregate via \href{#method-feature_merge}{\code{feature_merge()}}.}
       \item{\code{feature_filter}}{A character or vector of characters to removes features by regex pattern.}
       \item{\code{col_name}}{Optional, a character or vector of characters to add to the final compositional data output.}
-      \item{\code{feature_top}}{A wholenumber of the top features to visualize, the max is 15, due to a limit of palettes.}
+      \item{\code{feature_top}}{A wholenumber of the top features to visualize, the max is 15, due to a limit of palettes (default: \code{10}).}
       \item{\code{Brewer.palID}}{A character name for the palette set to be applied, see \link[RColorBrewer]{brewer.pal} or \link{colormap}.}
     }
     \if{html}{\out{</div>}}
@@ -963,7 +961,7 @@ plt <- composition_plot(data = result$data,
   metric,
   weighted = TRUE,
   threads = 1,
-  normalized = TRUE,
+  normalize = TRUE,
   base = exp(1)
 )}
     \if{html}{\out{</div>}}
@@ -975,7 +973,7 @@ plt <- composition_plot(data = result$data,
 thus far supports 'bray', 'jaccard', 'cosine', 'manhattan', 'aitchison', 'euclidean', 'jsd' (jensen-shannon divergence), 'canberra' and 'unifrac' when a tree is provided via \code{treeData}, see \href{#method-distance}{\code{distance()}}.}
       \item{\code{weighted}}{A boolean value, to use abundances (\code{weighted = TRUE}) or absence/presence (\code{weighted=FALSE}) (default: TRUE).}
       \item{\code{threads}}{A wholenumber, indicating the number of threads to use (Default: 1).}
-      \item{\code{normalized}}{A boolean value, whether to normalize weighted UniFrac distances to be between 0 and 1. Unweighted UniFrac is always normalized (default: TRUE).}
+      \item{\code{normalize}}{A boolean value, whether to normalize weighted UniFrac distances to be between 0 and 1. Unweighted UniFrac is always normalized (default: TRUE).}
       \item{\code{base}}{Input for \link[base]{log} to use natural logarithmic scale, log2, log10 or other (default: \code{exp(1)}).}
       \item{\code{pseudocount}}{A numeric value to replace zero's, used in \href{#method-scale}{\code{scale()}} (default: \code{1e-15}).}
     }
@@ -1014,10 +1012,11 @@ dist <- obj$distance(metric = "bray")
     \if{html}{\out{<div class="r">}}
     \preformatted{omics$ordination(
   metric = "bray",
-  method = c("pcoa", "nmds"),
+  method = "pcoa",
   group_by,
   distmat = NULL,
   weighted = TRUE,
+  normalize = TRUE,
   threads = 1,
   perm_design = NULL,
   perm = 999
@@ -1033,6 +1032,7 @@ thus far supports 'bray', 'jaccard', 'cosine', 'manhattan', 'jsd' (jensen-shanno
       \item{\code{group_by}}{A character variable in \code{metaData} to be used for the \link{pairwise_adonis} or \link{pairwise_anosim} statistical test.}
       \item{\code{distmat}}{A custom distance matrix in either \link[stats]{dist} or \link[Matrix]{Matrix} format.}
       \item{\code{weighted}}{A boolean value, whether to compute weighted or unweighted dissimilarities (default: \code{TRUE}).}
+      \item{\code{normalize}}{A boolean value, wether to normalize weighted UniFrac distances to be between 0 and 1 (default: \code{TRUE}).}
       \item{\code{threads}}{A wholenumber, indicating the number of threads to use (Default: 1).}
       \item{\code{perm_design}}{A function that takes \code{metaData} and constructs a permutation design with \link[permute]{how} (default: \code{NULL}).}
       \item{\code{perm}}{A wholenumber, number of permutations to compare against the null hypothesis of \link[vegan]{adonis2} and \link[vegan]{anosim} (default: \code{perm=999}).}

@@ -10,7 +10,7 @@ diversity_plot(
   col_name,
   group_by = NULL,
   palette,
-  method,
+  method = "custom",
   paired = FALSE,
   p.adjust.method = "fdr"
 )
@@ -22,13 +22,13 @@ diversity_plot(
 
 \item{col_name}{A column name of a categorical variable.}
 
-\item{group_by}{A column name to perform grouped statistical test (default: NULL).}
+\item{group_by}{A column name to perform grouped statistical test (default: \code{NULL}).}
 
 \item{palette}{An object with names and hexcode or color names, see \link{colormap}.}
 
-\item{method}{A character variable indicating what method is used to compute the diversity.}
+\item{method}{A character variable indicating what method is used to compute the diversity (default: \code{"custom"}).}
 
-\item{paired}{A boolean value to perform paired analysis in \link[stats]{wilcox.test}.}
+\item{paired}{A boolean value to perform paired analysis in \link[stats]{wilcox.test} (default: \code{FALSE}).}
 
 \item{p.adjust.method}{A character variable to specify the p.adjust.method to be used (Default: fdr).}
 }

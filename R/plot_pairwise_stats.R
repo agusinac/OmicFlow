@@ -8,8 +8,8 @@
 #' @param stats_col A column name of a continuous variable.
 #' @param group_col A column name of a categorical variable.
 #' @param label_col A column name of a categorical variable to label the bars.
-#' @param y_axis_title A character variable to name the Y - axis title (default: NULL).
-#' @param plot_title A character variable to name the plot title (default: NULL).
+#' @param y_axis_title A character variable to name the Y - axis title (default: \code{NULL}).
+#' @param plot_title A character variable to name the plot title (default: \code{NULL}).
 #' @return A \link[ggplot2]{ggplot2} object to be further modified
 #' @examples 
 #' # Create random data
@@ -63,31 +63,31 @@ plot_pairwise_stats <- function(
   #--------------------------------------------------------------------#
 
   if (!inherits(data, "data.frame") && !inherits(data, "data.table"))
-    cli::cli_abort("Data must be a {.cls data.frame} or {.cls data.table}.")
+    cli::cli_abort("{.val data} must be a {.cls data.frame} or {.cls data.table}.")
 
-  if (!is.character(stats_col) && length(stats_col) != 1) {
-    cli::cli_abort("{.val {stats_col}} needs to contain characters with length of 1.")
+  if (!is.character(stats_col) || length(stats_col) != 1) {
+    cli::cli_abort("{.val stats_col} needs to contain characters with length of 1.")
   } else if (!column_exists(stats_col, data)) {
-    cli::cli_abort("The {.val {stats_col}} column does not exist in the provided {.arg data}.")
+    cli::cli_abort("The {.val stats_col} column does not exist in the provided {.arg data}.")
   }
 
-  if (!is.character(group_col) && length(group_col) != 1) {
-    cli::cli_abort("{.val {group_col}} needs to contain characters with length of 1.")
+  if (!is.character(group_col) || length(group_col) != 1) {
+    cli::cli_abort("{.val group_col} needs to contain characters with length of 1.")
   } else if (!column_exists(group_col, data)) {
-    cli::cli_abort("The {.val {group_col}} column does not exist in the provided {.arg data}.")
+    cli::cli_abort("The {.val group_col} column does not exist in the provided {.arg data}.")
   }
 
-  if (!is.character(label_col) && length(group_col) != 1) {
-    cli::cli_abort("{.val {label_col}} needs to contain characters with length of 1.")
+  if (!is.character(label_col) || length(group_col) != 1) {
+    cli::cli_abort("{.val label_col} needs to contain characters with length of 1.")
   } else if (!column_exists(label_col, data)) {
-    cli::cli_abort("The {.val {label_col}} column does not exist in the provided {.arg data}.")
+    cli::cli_abort("The {.val label_col} column does not exist in the provided {.arg data}.")
   }
 
   if (!is.null(y_axis_title) && !is.character(y_axis_title))
-    cli::cli_abort("{.val {y_axis_title}} needs to contain characters.")
+    cli::cli_abort("{.val y_axis_title} needs to contain characters.")
 
   if (!is.null(plot_title) && !is.character(plot_title))
-    cli::cli_abort("{.val {plot_title}} needs to contain characters.")
+    cli::cli_abort("{.val plot_title} needs to contain characters.")
 
   ## MAIN
   #--------------------------------------------------------------------#

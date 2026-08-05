@@ -1,204 +1,145 @@
-test_that("Testing dissimilarity metrics on sparse data", {
-        taxa <- metagenomics$new(
-        biomData = "input/metagenomics/biom_with_taxonomy_hdf5.biom",
-        metaData = "input/metagenomics/metadata.tsv",
-        treeData = "input/metagenomics/rooted_tree.newick"
-    )
-    taxa$scale(method = "tss")
-
-    ## Testing Weighted Normalized UniFrac
-    wunifrac_n <- unifrac(
-        x = taxa$countData,
-        tree = taxa$treeData,
-        weighted = TRUE,
-        normalized = TRUE
-    )
-    expect_snapshot(cat(wunifrac_n))
-    expect_error(unifrac(
-        x = matrix_to_dtable(taxa$countData),
-        tree = taxa$treeData
-    ))
-    expect_error(unifrac(
-        x = taxa$countData,
-        tree = taxa$treeData,
-        threads = 1.2
-    ))
-    expect_error(unifrac(
-        x = taxa$countData
-    ))
-
-    ## Testing Weighted UniFrac
-    wunifrac <- unifrac(
-        x = taxa$countData,
-        tree = taxa$treeData,
-        weighted = TRUE,
-        normalized = FALSE
-    )
-    expect_snapshot(cat(wunifrac))
-
-    ## Testing Unweighted UniFrac
-    uunifrac <- unifrac(
-        x = taxa$countData,
-        tree = taxa$treeData,
-        weighted = FALSE,
-        normalized = FALSE
-    )
-    expect_snapshot(cat(uunifrac))
-
-    ## Testing Cosine
-    cos <- cosine(
-        x = taxa$countData,
-        weighted = TRUE
-    )
-    expect_snapshot(cat(cos))
-    expect_no_error(cosine(x = taxa$countData, weighted = FALSE))
-    expect_error(cosine(x = taxa$countData, threads = 1.2))
-    expect_error(cosine(x = matrix_to_dtable(taxa$countData)))
-
-    ## Testing Jaccard
-    jac <- jaccard(
-        x = taxa$countData,
-        weighted = TRUE
-    )
-    expect_snapshot(cat(jac))
-    expect_no_error(jaccard(x = taxa$countData, weighted = FALSE))
-    expect_error(jaccard(x = taxa$countData, threads = 1.2))
-    expect_error(jaccard(x = matrix_to_dtable(taxa$countData)))
-
-    ## Testing Bray
-    br <- bray(
-        x = taxa$countData,
-        weighted = TRUE
-    )
-    expect_snapshot(cat(br))
-    expect_no_error(bray(x = taxa$countData, weighted = FALSE))
-    expect_error(bray(x = taxa$countData, threads = 1.2))
-    expect_error(bray(x = matrix_to_dtable(taxa$countData)))
-
-    ## Testing Euclidean
-    eu <- euclidean(
-        x = taxa$countData,
-        weighted = TRUE
-    )
-    expect_snapshot(cat(eu))
-    expect_no_error(euclidean(x = taxa$countData, weighted = FALSE))
-    expect_error(euclidean(x = taxa$countData, threads = 1.2))
-    expect_error(euclidean(x = matrix_to_dtable(taxa$countData)))
-
-    ## Testing Canberra
-    can <- canberra(
-        x = taxa$countData,
-        weighted = TRUE
-    )
-    expect_snapshot(cat(can))
-    expect_no_error(canberra(x = taxa$countData, weighted = FALSE))
-    expect_error(canberra(x = taxa$countData, threads = 1.2))
-    expect_error(canberra(x = matrix_to_dtable(taxa$countData)))
-
-    ## Testing Jensen-Shannon Divergence
-    jsd_res <- jsd(
-        x = taxa$countData,
-        weighted = TRUE
-    )
-    expect_snapshot(cat(jsd_res))
-    expect_no_error(jsd(x = taxa$countData, weighted = FALSE))
-    expect_error(jsd(x = taxa$countData, threads = 1.2))
-    expect_error(jsd(x = matrix_to_dtable(taxa$countData)))
-
-    ## Testing Manhattan
-    man <- manhattan(
-        x = taxa$countData,
-        weighted = TRUE
-    )
-    expect_snapshot(cat(man))
-    expect_no_error(manhattan(x = taxa$countData, weighted = FALSE))
-    expect_error(manhattan(x = taxa$countData, threads = 1.2))
-    expect_error(manhattan(x = matrix_to_dtable(taxa$countData)))
-    }
+## Load example data
+test <- metagenomics$new(
+  biomData = "input/metagenomics/biom_with_taxonomy_hdf5.biom",
+  metaData = "input/metagenomics/metadata.tsv",
+  treeData = "input/metagenomics/rooted_tree.newick"
 )
 
-test_that("Testing dissimilarity metrics on dense data", {
-    prot <- proteomics$new(
-        metaData = "input/proteomics/metadata.csv",
-        countData = "input/proteomics/counts.csv",
-        treeData = "input/proteomics/tree.newick"
-    )
-    prot$scale(method = "tss")
+test_that("`bray()` -- Argument checks", {
+    expect_snapshot(bray(x = c(1, 2, 3)), error = TRUE)
+    expect_snapshot(bray(x = data.frame()), error = TRUE)
+    expect_snapshot(bray(x = test$countData, weighted = "FALSE"), error = TRUE)
+    expect_snapshot(bray(x = test$countData, threads = "1"), error = TRUE)
+    expect_snapshot(bray(x = test$countData, threads = 1.9), error = TRUE)
+    expect_snapshot(bray(x = test$countData, threads = c(1, 2)), error = TRUE)
+})
 
-    # ## Testing Weighted Normalized UniFrac
-    # wunifrac_n <- unifrac(
-    #     x = prot$countData,
-    #     tree = prot$treeData,
-    #     weighted = TRUE,
-    #     normalized = TRUE
-    # )
-    # expect_snapshot(cat(wunifrac_n))
+test_that("`bray()` -- Behavioral checks", { 
+    expect_snapshot(bray(test$countData))
+    expect_snapshot(bray(test$countData, weighted = FALSE))
+    expect_snapshot(bray(as.matrix(test$countData)))
+})
 
-    # ## Testing Weighted UniFrac
-    # wunifrac <- unifrac(
-    #     x = prot$countData,
-    #     tree = prot$treeData,
-    #     weighted = TRUE,
-    #     normalized = FALSE
-    # )
-    # expect_snapshot(cat(wunifrac))
 
-    # ## Testing Unweighted UniFrac
-    # uunifrac <- unifrac(
-    #     x = prot$countData,
-    #     tree = prot$treeData,
-    #     weighted = FALSE,
-    #     normalized = FALSE
-    # )
-    # expect_snapshot(cat(uunifrac))
+test_that("`jaccard()` -- Argument checks", {
+    expect_snapshot(jaccard(x = c(1, 2, 3)), error = TRUE)
+    expect_snapshot(jaccard(x = data.frame()), error = TRUE)
+    expect_snapshot(jaccard(x = test$countData, weighted = "FALSE"), error = TRUE)
+    expect_snapshot(jaccard(x = test$countData, threads = "1"), error = TRUE)
+    expect_snapshot(jaccard(x = test$countData, threads = 1.9), error = TRUE)
+    expect_snapshot(jaccard(x = test$countData, threads = c(1, 2)), error = TRUE)
+})
 
-    ## Testing Cosine
-    cos <- cosine(
-        x = prot$countData,
-        weighted = TRUE
-    )
-    expect_snapshot(cat(cos))
+test_that("`jaccard()` -- Behavioral checks", {
+    expect_snapshot(jaccard(test$countData))
+    expect_snapshot(jaccard(test$countData, weighted = FALSE))
+    expect_snapshot(jaccard(as.matrix(test$countData)))
+})
 
-    ## Testing Jaccard
-    jac <- jaccard(
-        x = prot$countData,
-        weighted = TRUE
-    )
-    expect_snapshot(cat(jac))
+test_that("`cosine()` -- Argument checks", {
+    expect_snapshot(cosine(x = c(1, 2, 3)), error = TRUE)
+    expect_snapshot(cosine(x = data.frame()), error = TRUE)
+    expect_snapshot(cosine(x = test$countData, weighted = "FALSE"), error = TRUE)
+    expect_snapshot(cosine(x = test$countData, threads = "1"), error = TRUE)
+    expect_snapshot(cosine(x = test$countData, threads = 1.9), error = TRUE)
+    expect_snapshot(cosine(x = test$countData, threads = c(1, 2)), error = TRUE)
+})
 
-    ## Testing Bray
-    br <- bray(
-        x = prot$countData,
-        weighted = TRUE
-    )
-    expect_snapshot(cat(br))
+test_that("`cosine()` -- Behavioral checks", { 
+    expect_snapshot(cosine(test$countData))
+    expect_snapshot(cosine(test$countData, weighted = FALSE))
+    expect_snapshot(cosine(as.matrix(test$countData)))
+})
 
-    ## Testing Euclidean
-    eu <- euclidean(
-        x = prot$countData,
-        weighted = TRUE
-    )
-    expect_snapshot(cat(eu))
+test_that("`manhattan()` -- Argument checks", {
+    expect_snapshot(manhattan(x = c(1, 2, 3)), error = TRUE)
+    expect_snapshot(manhattan(x = data.frame()), error = TRUE)
+    expect_snapshot(manhattan(x = test$countData, weighted = "FALSE"), error = TRUE)
+    expect_snapshot(manhattan(x = test$countData, threads = "1"), error = TRUE)
+    expect_snapshot(manhattan(x = test$countData, threads = 1.9), error = TRUE)
+    expect_snapshot(manhattan(x = test$countData, threads = c(1, 2)), error = TRUE)
+})
 
-    ## Testing Canberra
-    can <- canberra(
-        x = prot$countData,
-        weighted = TRUE
-    )
-    expect_snapshot(cat(can))
+test_that("`manhattan()` -- Behavioral checks", { 
+    expect_snapshot(manhattan(test$countData))
+    expect_snapshot(manhattan(test$countData, weighted = FALSE))
+    expect_snapshot(manhattan(as.matrix(test$countData)))
+})
 
-    ## Testing Jensen-Shannon Divergence
-    jsd_res <- jsd(
-        x = prot$countData,
-        weighted = TRUE
-    )
-    expect_snapshot(cat(jsd_res))
+test_that("`jsd()` -- Argument checks", {
+    expect_snapshot(jsd(x = c(1, 2, 3)), error = TRUE)
+    expect_snapshot(jsd(x = data.frame()), error = TRUE)
+    expect_snapshot(jsd(x = test$countData, weighted = "FALSE"), error = TRUE)
+    expect_snapshot(jsd(x = test$countData, threads = "1"), error = TRUE)
+    expect_snapshot(jsd(x = test$countData, threads = 1.9), error = TRUE)
+    expect_snapshot(jsd(x = test$countData, threads = c(1, 2)), error = TRUE)
 
-    ## Testing Manhattan
-    man <- manhattan(
-        x = prot$countData,
-        weighted = TRUE
-    )
-    expect_snapshot(cat(man))
-    }
-)
+    test$countData[1,1] <- -1
+    expect_snapshot(jsd(x = test$countData), error = TRUE)
+    test$reset()
+})
+
+test_that("`jsd()` -- Behavioral checks", { 
+    expect_snapshot(jsd(test$countData))
+    expect_snapshot(jsd(test$countData, weighted = FALSE))
+    expect_snapshot(jsd(as.matrix(test$countData)))
+})
+
+test_that("`canberra()` -- Argument checks", {
+    expect_snapshot(canberra(x = c(1, 2, 3)), error = TRUE)
+    expect_snapshot(canberra(x = data.frame()), error = TRUE)
+    expect_snapshot(canberra(x = test$countData, weighted = "FALSE"), error = TRUE)
+    expect_snapshot(canberra(x = test$countData, threads = "1"), error = TRUE)
+    expect_snapshot(canberra(x = test$countData, threads = 1.9), error = TRUE)
+    expect_snapshot(canberra(x = test$countData, threads = c(1, 2)), error = TRUE)
+})
+
+test_that("`canberra()` -- Behavioral checks", { 
+    expect_snapshot(canberra(test$countData))
+    expect_snapshot(canberra(test$countData, weighted = FALSE))
+    expect_snapshot(canberra(as.matrix(test$countData)))
+})
+
+test_that("`unifrac()` -- Argument checks", {
+    expect_snapshot(unifrac(tree = data.frame()), error = TRUE)
+    expect_snapshot(unifrac(tree = test$treeData, x = c(1, 2, 3)), error = TRUE)
+    expect_snapshot(unifrac(tree = test$treeData, x = data.frame()), error = TRUE)
+    expect_snapshot(unifrac(tree = test$treeData, x = test$countData, weighted = "FALSE"), error = TRUE)
+    expect_snapshot(unifrac(tree = test$treeData, x = test$countData, normalize = "FALSE"), error = TRUE)
+    expect_snapshot(unifrac(tree = test$treeData, x = test$countData, threads = "1"), error = TRUE)
+    expect_snapshot(unifrac(tree = test$treeData, x = test$countData, threads = 1.9), error = TRUE)
+    expect_snapshot(unifrac(tree = test$treeData, x = test$countData, threads = c(1, 2)), error = TRUE)
+
+    test$countData[1,1] <- -1
+    expect_snapshot(unifrac(tree = test$treeData, x = test$countData), error = TRUE)
+    test$reset()
+})
+
+test_that("`unifrac()` -- Behavioral checks", {
+    ## Weighted Normalised UniFrac
+    expect_snapshot(unifrac(x = test$countData, tree = test$treeData, weighted = TRUE, normalize = TRUE))
+    expect_snapshot(unifrac(x = as.matrix(test$countData), tree = test$treeData, weighted = TRUE, normalize = TRUE))
+
+    ## Weighted UniFrac
+    expect_snapshot(unifrac(x = test$countData, tree = test$treeData, weighted = TRUE, normalize = FALSE))
+    expect_snapshot(unifrac(x = as.matrix(test$countData), tree = test$treeData, weighted = TRUE, normalize = FALSE))
+
+    ## Unweighted UniFrac
+    expect_snapshot(unifrac(x = test$countData, tree = test$treeData, weighted = FALSE, normalize = FALSE))
+    expect_snapshot(unifrac(x = as.matrix(test$countData), tree = test$treeData, weighted = FALSE, normalize = FALSE))
+})
+
+test_that("`euclidean()` -- Argument checks", {
+    expect_snapshot(euclidean(x = c(1, 2, 3)), error = TRUE)
+    expect_snapshot(euclidean(x = data.frame()), error = TRUE)
+    expect_snapshot(euclidean(x = test$countData, weighted = "FALSE"), error = TRUE)
+    expect_snapshot(euclidean(x = test$countData, threads = "1"), error = TRUE)
+    expect_snapshot(euclidean(x = test$countData, threads = 1.9), error = TRUE)
+    expect_snapshot(euclidean(x = test$countData, threads = c(1, 2)), error = TRUE)
+})
+
+test_that("`euclidean()` -- Behavioral checks", { 
+    expect_snapshot(euclidean(test$countData))
+    expect_snapshot(euclidean(test$countData, weighted = FALSE))
+    expect_snapshot(euclidean(as.matrix(test$countData)))
+})

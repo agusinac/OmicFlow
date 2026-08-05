@@ -4,20 +4,15 @@
 #' This function is built into the class \link{omics} with method \code{ordination()} and inherited by other omics classes, such as;
 #' \link{metagenomics} and \link{proteomics}.
 #'
-#' @param x  A distance matrix in the form of \link[stats]{dist}.
-#' Obtained from a dissimilarity metric, in the case of similarity metric please use \code{1-dist}
-#' @param groups  A vector (column from a table) of labels.
-#' @param metadata A data.table or data.frame of extra metadata for \code{perm_design} (default: NULL).
-#' @param perm_design A function that takes a data.frame and constructs a permutation design with \link[permute]{how} (default: NULL).
-#' @param p.adjust.method P adjust method see \link[stats]{p.adjust}
-#' @param perm Number of permutations to compare against the null hypothesis of anosim (default: \code{perm=999}).
-#' @param ... Additional arguments passed to \link[vegan]{anosim}.
+#' @inheritParams pairwise_adonis
 #' @seealso \link[vegan]{anosim}
-#' @return A \link[base]{data.frame} of
-#'  * pairs that are used
-#'  * R2 of H_0
-#'  * p value of F^p > F
-#'  * p adjusted
+#' @return A \link[base]{data.frame} containing: \describe{
+#' \item{pairs}{combinations of group comparisons}
+#' \item{Df}{Degrees of Freedom}
+#' \item{R2}{The R squared of the null hypothesis \eqn{H_0}}
+#' \item{p.value}{The number of \eqn{F^p} higher than the null hypothesis divided by the total number of permutations.}
+#' \item{p.adj}{The adjusted P-value based on the used `p.adjust.method`}
+#' }
 #' @examples 
 #' # Create random data
 #' set.seed(42)
@@ -60,11 +55,17 @@ pairwise_anosim <- function(
   if (!is.null(perm_design) && !is.function(perm_design))
     cli::cli_abort("{.val perm_design} must be a function.")
 
-  if (!c(p.adjust.method %in% stats::p.adjust.methods))
+  if (!is.character(p.adjust.method)) {
+    cli::cli_abort("{.val p.adjust.method} must be a character.")
+  } else if (!c(p.adjust.method %in% stats::p.adjust.methods)) {
     cli::cli_abort("{.val {p.adjust.method}} is not a valid method. \nValid options: {.val {p.adjust.methods}}.")
+  }
 
-  if (!is.wholenumber(perm))
-    cli::cli_abort("{perm} needs to be an integer.")
+  if (length(perm) != 1) {
+    cli::cli_abort("{.val perm} must be a single whole number.")
+  } else if (!is.wholenumber(perm)) {
+    cli::cli_abort("{.val perm} needs to be a whole number.")
+  }
 
   ## MAIN
   #--------------------------------------------------------------------#

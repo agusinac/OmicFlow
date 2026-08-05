@@ -47,21 +47,29 @@ hill_taxa <- function (
 
   ## Error handling
   #--------------------------------------------------------------------#
+  if (is.vector(x))
+    cli::cli_abort("{.val x} must be a {.cls matrix}, {.cls denseMatrix} or {.cls sparseMatrix}, not a {.cls vector}.")
+
   if (inherits(x, "denseMatrix") || inherits(x, "matrix") || inherits(x, "sparseMatrix")) {
     x <- methods::as(x, "CsparseMatrix")
-  } else cli::cli_abort("Input isn't a {.cls matrix}, {.cls denseMatrix} or {.cls sparseMatrix}.")
-
-  if (!is.numeric(x@x))
-    cli::cli_abort("input data must be numeric")
-
-  if (!is.wholenumber(q)) {
-    cli::cli_abort("{.val {q}} needs to be an integer.")
-  } else if (!c(q %in% c(0, 1, 2))) {
-    cli::cli_abort("{.val {q}} needs to be a whole number of either {.val 0}, {.val 1} or {.val 2}.")
-  }
+  } else cli::cli_abort("{.val x} isn't a {.cls matrix}, {.cls denseMatrix} or {.cls sparseMatrix}.")
 
   if (any(x@x < 0, na.rm = TRUE))
-    cli::cli_abort("input data must be non-negative")
+    cli::cli_abort("{.val x} must be non-negative.")
+
+  if (length(q) != 1) {
+    cli::cli_abort("{.val q} needs to be a single whole number.")
+  } else if (!is.wholenumber(q)) {
+    cli::cli_abort("{.val q} is not a whole number.")
+  } else if (!c(q %in% c(0, 1, 2))) {
+    cli::cli_abort("{.val q} needs to be a whole number of either {.val 0}, {.val 1} or {.val 2}.")
+  }
+
+  if (!is.logical(normalize))
+    cli::cli_abort("{.val normalize} needs to be either `TRUE` or `FALSE`.")
+
+  if (!is.numeric(base) || length(base) != 1)
+    cli::cli_abort("{.val base} needs to be a {.cls numeric} type with length of 1.")
 
   ## MAIN
   #--------------------------------------------------------------------#

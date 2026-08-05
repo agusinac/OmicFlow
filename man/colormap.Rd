@@ -18,7 +18,7 @@ A \link[stats]{setNames}.
 }
 \description{
 Creates an object of hexcode colors with names given a vector of characters.
-This function is built into the \code{ordination} method from the abstract class \link{omics} and inherited by other omics classes, such as;
+This function is built into the \code{composition} method from the abstract class \link{omics} and inherited by other omics classes, such as;
 \link{metagenomics} and \link{proteomics}.
 }
 \examples{

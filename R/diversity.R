@@ -42,31 +42,33 @@
 #' @export
 
 diversity <- function(x,
-                      metric = c("shannon", "simpson", "invsimpson"),
+                      metric = "shannon",
                       normalize = TRUE,
                       base = exp(1)) {
 
   ## Error handling
   #--------------------------------------------------------------------#
-
+  if (is.vector(x))
+      cli::cli_abort("{.val x} must be a {.cls matrix}, {.cls denseMatrix} or {.cls sparseMatrix}, not a {.cls vector}.")
+  
   if (inherits(x, "denseMatrix") || inherits(x, "matrix") || inherits(x, "sparseMatrix")) {
     x <- methods::as(x, "CsparseMatrix")
-  } else cli::cli_abort("Input isn't a {.cls matrix}, {.cls denseMatrix} or {.cls sparseMatrix}.")
-
-  if (!is.numeric(x@x))
-    cli::cli_abort("Input data must be {.cls numeric} type")
+  } else cli::cli_abort("{.val x} isn't a {.cls matrix}, {.cls denseMatrix} or {.cls sparseMatrix}.")
 
   if (any(x@x < 0, na.rm = TRUE))
-    cli::cli_abort("Input data must be non-negative")
+    cli::cli_abort("{.val x} must be non-negative.")
   
-  if (!is.numeric(base))
-    cli::cli_abort("{.val {base}} needs to be a {.cls numeric} type.")
+  if (!is.logical(normalize))
+    cli::cli_abort("{.val normalize} needs to be either `TRUE` or `FALSE`.")
+
+  if (!is.numeric(base) || length(base) != 1)
+    cli::cli_abort("{.val base} needs to be a {.cls numeric} type with length of 1.")
 
   OPTIONS <- c("shannon", "simpson", "invsimpson")
-  if (!is.character(metric) && length(metric) != 1) {
-    cli::cli_abort("{.val {metric}} needs to contain characters with length of 1.")
+  if (!is.character(metric) || length(metric) != 1) {
+    cli::cli_abort("{.val metric} needs to contain characters with length of 1.")
   } else if (!metric %in% OPTIONS) {
-    cli::cli_abort("{.val {metric}} is not a valid metric. Valid options: <{.val {OPTIONS}}>")
+    cli::cli_abort("{.val {metric}} is not a valid {.arg metric}.\nValid options: <{.val {OPTIONS}}>")
   }
 
   ## MAIN

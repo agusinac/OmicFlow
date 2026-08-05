@@ -8,13 +8,13 @@
 matrix_to_dtable <- function(x) {
   if (inherits(x, "denseMatrix") || inherits(x, "matrix") || inherits(x, "sparseMatrix")) {
       return(data.table::data.table(as.matrix(x)))
-  } else cli::cli_abort("Input isn't a {.cls matrix}, {.cls denseMatrix} or {.cls sparseMatrix}.")
+  } else cli::cli_abort("{.val x} isn't a {.cls matrix}, {.cls denseMatrix} or {.cls sparseMatrix}.")
 }
 #' Checks if column exists in table
 #'
-#' @description Mainly used within \link{omics} and other functions to check if given column name does exist in the table and is not completely empty (containing NAs).
+#' @description Mainly used within \link{omics} and other functions to check if given column name(s) exist in the table and is not completely empty (containing NAs).
 #'
-#' @param column A character of length 1.
+#' @param column A character vector.
 #' @param table A \link[data.table]{data.table} or \link[base]{data.frame}.
 #' @return A boolean value.
 #' @noRd
@@ -23,11 +23,11 @@ column_exists <- function(column, table) {
   ## Error handling
   #--------------------------------------------------------------------#
 
-  if (!is.character(column) && length(column) != 1)
-    cli::cli_abort("{.val {column}} needs to contain characters with length of 1.")
+  if (!is.character(column))
+    cli::cli_abort("{.val column} needs to contain characters.")
 
   if (!inherits(table, "data.frame") && !inherits(table, "data.table"))
-    cli::cli_abort("{.arg table} must be a {.cls data.frame} or {.cls data.table}.")
+    cli::cli_abort("{.val table} must be a {.cls data.frame} or {.cls data.table}.")
 
   ## MAIN
   #--------------------------------------------------------------------#
@@ -46,6 +46,12 @@ column_exists <- function(column, table) {
   return (length(valid_columns) == length(column) && columns_empty)
 }
 
+#' Check if number is integer
+#'
+#' @description Checks if a given value `x` is a wholenumber, so it should be 1, 4 and not a float.
+#' \link{is.integer} also accepts floats.
+#' 
+#' @noRd
 is.wholenumber <- function(x, tol = .Machine$double.eps^0.5) {
   if (is.character(x)) {
     return(FALSE)
@@ -58,13 +64,11 @@ is.wholenumber <- function(x, tol = .Machine$double.eps^0.5) {
 #' 
 #' @noRd
 combine_conditions <- function(condition1, condition2) {
-  if (!is.null(condition1) && !is.null(condition2)) {
-    if (!inherits(condition1, "data.frame") && !inherits(condition1, "data.table"))
-      cli::cli_abort("{.arg condition1} must be a {.cls data.frame} or {.cls data.table}.")
+  if (!inherits(condition1, "data.frame") && !inherits(condition1, "data.table"))
+    cli::cli_abort("{.val condition1} must be a {.cls data.frame} or {.cls data.table}.")
 
-    if (!inherits(condition2, "data.frame") && !inherits(condition2, "data.table"))
-      cli::cli_abort("{.arg condition2} must be a {.cls data.frame} or {.cls data.table}.")
-  }
+  if (!inherits(condition2, "data.frame") && !inherits(condition2, "data.table"))
+    cli::cli_abort("{.val condition2} must be a {.cls data.frame} or {.cls data.table}.")
 
   # Combine to strings for easy comparison
   cond1_str <- paste(

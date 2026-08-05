@@ -1,21 +1,48 @@
-test_that("Testing `diversity` on sparse data", {
-  taxa <- metagenomics$new(
-    biomData = "input/metagenomics/biom_with_taxonomy_hdf5.biom",
-    metaData = "input/metagenomics/metadata.tsv",
-    treeData = "input/metagenomics/rooted_tree.newick"
-  )
-  
-  expect_no_error(diversity(taxa$countData, metric = "shannon"))
-  expect_error(diversity(x = matrix_to_dtable(taxa$countData), metric = "shannon"))
-  expect_error(diversity(taxa$countData, metric = 5))
-  expect_error(diversity(taxa$countData, metric = "shan"))
+## Load example data
+test <- proteomics$new(
+  metaData = "input/proteomics/metadata.csv",
+  countData = "input/proteomics/counts.csv"
+)
+
+test_that("`diversity()` -- Argument checks", {
+  expect_snapshot(diversity(x = data.frame()), error = TRUE)
+  expect_snapshot(diversity(x = c(2, 1, 1)), error = TRUE)
+  expect_snapshot(diversity(x = test$countData, normalize = "FALSE"), error = TRUE)
+  expect_snapshot(diversity(x = test$countData, base = "1"), error = TRUE)
+  expect_snapshot(diversity(x = test$countData, base = c(1, 2)), error = TRUE)
+  expect_snapshot(diversity(x = test$countData, metric = 1), error = TRUE)
+  expect_snapshot(diversity(x = test$countData, metric = c("shannon", "simpson")), error = TRUE)
+
+  ## Assuring values are positive
+  test$countData[1,1] <- -1
+  expect_snapshot(diversity(x = test$countData), error = TRUE)
+  test$reset()
 })
 
-test_that("Testing `diversity` on dense data", {
-  prot <- proteomics$new(
-      metaData = "input/proteomics/metadata.csv",
-      countData = "input/proteomics/counts.csv"
-  )
-  
-  expect_no_error(diversity(prot$countData, metric = "shannon"))
+test_that("`diversity()` -- Behavioral checks", { 
+  ## Testing different metrics
+  # Shannon
+  expect_no_error(res <- diversity(x = test$countData, metric = "shannon"))
+  expect_snapshot(res)
+
+  # Simpson
+  expect_no_error(res <- diversity(x = test$countData, metric = "simpson"))
+  expect_snapshot(res)
+
+  # Inverse Simpson
+  expect_no_error(res <- diversity(x = test$countData, metric = "invsimpson"))
+  expect_snapshot(res)
+
+  ## Applying different base
+  # base = 2
+  expect_no_error(res <- diversity(x = test$countData, metric = "shannon", base = 2))
+  expect_snapshot(res)
+
+  # base = 10
+  expect_no_error(res <- diversity(x = test$countData, metric = "shannon", base = 10))
+  expect_snapshot(res)
+
+  ## Applying with or no normalisation
+  expect_no_error(res <- diversity(x = test$countData, metric = "shannon", normalize = FALSE))
+  expect_snapshot(res)
 })

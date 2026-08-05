@@ -3,8 +3,10 @@
 
 ## usethis namespace: start
 #' @importFrom data.table := .SD
-#' @importFrom Rcpp sourceCpp
 #' @useDynLib OmicFlow, .registration = TRUE
+#' @importFrom Rcpp sourceCpp
+#' @importFrom RcppParallel RcppParallelLibs
+#' @importFrom RcppParallel setThreadOptions
 #' @importFrom utils globalVariables
 ## usethis namespace: end
 

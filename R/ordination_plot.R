@@ -7,8 +7,8 @@
 #' @param data A \link[base]{data.frame} or \link[data.table]{data.table} of Principal Components as columns and rows as loading scores.
 #' @param col_name A categorical variable to color the contrasts (e.g. "groups").
 #' @param pair A vector of character variables indicating what dimension names (e.g. PC1, NMDS2).
-#' @param dist_explained A vector of numeric values of the percentage dissimilarity explained for the dimension pairs, default is NULL.
-#' @param dist_metric A character variable indicating what metric is used (e.g. unifrac, bray-curtis), default is NULL.
+#' @param dist_explained A vector of numeric values of the percentage dissimilarity explained for the dimension pairs (default: \code{NULL}).
+#' @param dist_metric A character variable indicating what metric is used (e.g. unifrac, bray-curtis) (default: \code{NULL}).
 #' @return A \link[ggplot2]{ggplot2} object to be further modified
 #' 
 #' @examples 
@@ -51,28 +51,33 @@ ordination_plot <- function(
   #--------------------------------------------------------------------#
 
   if (!inherits(data, "data.frame") && !inherits(data, "data.table"))
-    cli::cli_abort("Data must be a {.cls data.frame} or {.cls data.table}.")
+    cli::cli_abort("{.val data} must be a {.cls data.frame} or {.cls data.table}.")
+  
+  if (!is.character(col_name) || length(col_name) != 1) {
+    cli::cli_abort("{.val col_name} needs to contain characters with length of 1.")
+  } else if (!column_exists(col_name, data)) {
+    cli::cli_abort("The {.val col_name} column does not exist in the provided {.arg data}.")
+  }
 
   if (!is.character(pair)) {
-    cli::cli_abort("{.val {pair}} needs to be a characters {.cls vector}.")
+    cli::cli_abort("{.val pair} needs to be a characters {.cls vector}.")
   } else if (length(pair) != 2) {
-    cli::cli_abort("{.val {pair}} needs to be a {.cls vector} of length 2.")
+    cli::cli_abort("{.val pair} needs to be a {.cls vector} of length 2.")
   }
 
-  if (!is.character(col_name) && length(col_name) != 1) {
-    cli::cli_abort("{.val {col_name}} needs to contain characters with length of 1.")
-  } else if (!column_exists(col_name, data)) {
-    cli::cli_abort("The {.val {col_name}} column does not exist in the provided {.arg data}.")
+  if (!is.null(dist_explained)) {
+    if (!is.numeric(dist_explained)) {
+      cli::cli_abort("{.val dist_explained} needs to be a numeric {.cls vector}.")
+    } else if (length(dist_explained) != 2) {
+      cli::cli_abort("{.val dist_explained} needs to be a {.cls vector} of length 2.")
+    }
   }
 
-  if (!is.null(dist_explained) && !is.numeric(dist_explained)) {
-    cli::cli_abort("{.val {dist_explained}} needs to be a numeric {.cls vector}.")
-  } else if (!is.null(dist_explained) && length(dist_explained) < 2) {
-    cli::cli_abort("{.val {dist_explained}} needs to be a {.cls vector} of at least length is 2.")
-  }
-
-  if (!is.null(dist_metric) && !is.character(dist_metric) && length(dist_metric) != 1)
-    cli::cli_abort("{.val {dist_metric}} needs to contain characters with length of 1.")
+  if (!is.null(dist_metric)) {
+    if (!is.character(dist_metric) || length(dist_metric) != 1) {
+      cli::cli_abort("{.val dist_metric} needs to contain characters with length of 1.")
+    }
+  }    
 
   ## MAIN
   #--------------------------------------------------------------------#

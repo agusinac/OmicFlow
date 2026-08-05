@@ -4,10 +4,10 @@
 #' The function is compatible with the class \link{omics} method \code{composition()}.
 #'
 #' @param data A \link[base]{data.frame} or \link[data.table]{data.table}.
-#' @param palette An object with names and hexcode or color names, see \link{colormap}.
-#' @param feature_rank A character variable of the feature column.
-#' @param title_name A character to set the \code{ggtitle} of the \link[ggplot2]{ggplot}, (Default: NULL).
-#' @param group_by A character variable to aggregate the stacked bars by group (Default: NULL).
+#' @param palette A \link[stats]{setNames}, see \link{colormap}.
+#' @param feature_rank A column name containing the feature names.
+#' @param title_name A character to set the \code{ggtitle} of the \link[ggplot2]{ggplot}, (default: \code{NULL}).
+#' @param group_by A character variable to aggregate the stacked bars by group (default: \code{NULL}).
 #' @return A \link[ggplot2]{ggplot2} object to be further modified
 #' 
 #' @examples
@@ -75,30 +75,33 @@ composition_plot <- function(data,
   #--------------------------------------------------------------------#
 
   if (!inherits(data, "data.frame") && !inherits(data, "data.table"))
-    cli::cli_abort("Data must be a {.cls data.frame} or {.cls data.table}.")
+    cli::cli_abort("{.val data} must be a {.cls data.frame} or {.cls data.table}.")
 
   if (!is.character(palette))
-    cli::cli_abort("{.val {palette}} needs to contain characters.")
+    cli::cli_abort("{.val palette} needs to contain characters.")
 
-  if (!is.character(feature_rank) && length(feature_rank) != 1) {
-    cli::cli_abort("{.val {feature_rank}} needs to contain characters with length of 1.")
+  if (!is.character(feature_rank) || length(feature_rank) != 1) {
+    cli::cli_abort("{.val feature_rank} needs to contain characters with length of 1.")
   } else if (!column_exists(feature_rank, data)) {
-    cli::cli_abort("The {.val {feature_rank}} column does not exist in the provided {.arg data}.")
+    cli::cli_abort("The {.val {feature_rank}} column does not exist in the provided {.val data}.")
   }
 
-  if (!is.null(title_name) && !is.character(title_name))
-    cli::cli_abort("{.val {title_name}} needs to be of type character.")
+  if (!is.null(title_name)) {
+    if (!is.character(title_name) || length(title_name) != 1) {
+      cli::cli_abort("{.val title_name} must be a character and of length 1")
+    }
+  }
 
   if (!is.null(group_by)) {
-    if (!is.character(group_by) && length(group_by) != 1) {
-      cli::cli_abort("{.val {group_by}} must be a character and of length 1")
+    if (!is.character(group_by) || length(group_by) != 1) {
+      cli::cli_abort("{.val group_by} must be a character and of length 1")
     } else if (!column_exists(group_by, data)) {
-      cli::cli_abort("The specified {.val {group_by}} does not exist in the provided {.arg data}.")
+      cli::cli_abort("The specified {.val {group_by}} does not exist in the provided {.val data}.")
     }
   }
 
   if (!column_exists("SAMPLE_ID", data))
-    cli::cli_abort("{.arg SAMPLE_ID} needs to exist within the provided {.arg data}.")
+    cli::cli_abort("{.arg SAMPLE_ID} needs to exist within the provided {.val data}.")
 
   ## MAIN
   #--------------------------------------------------------------------#
