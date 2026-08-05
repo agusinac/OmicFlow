@@ -2,6 +2,7 @@
 
 ## Changed
 - Re-factoring and improving `roxygen2` code, documentation style and error handling.
+- Added additional parameters via `...` to be passed to `pairwise_adonis` and `pairwise_anosim` (.e.g. `parallel = 10` can be called now).
 - TODO: Add `tryCatch` where neccessary
 - Added `tryCatch` and better error handling in `omics$sample_subset`, `omics$feature_subset` and `omics$samplepair_subset`.
 - Replaced `jsonlite` by `yyjsonr` functionality, much faster and cleaner code.
