@@ -1002,8 +1002,8 @@ omics <- R6::R6Class(
       #--------------------------------------------------------------------#
 
       if (!is.null(col_name)) {
-        if (!is.character(col_name) || length(col_name) != 1) {
-          cli::cli_abort("{.val col_name} must be a character and of length 1.")
+        if (!is.character(col_name)) {
+          cli::cli_abort("{.val col_name} must be a character.")
         } else if (!column_exists(col_name, private$.metaData)) {
           cli::cli_abort("The specified {.val {col_name}} does not exist in the {.field metaData}.")
         }
