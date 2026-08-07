@@ -9,14 +9,6 @@
 ---
 
     Code
-      taxa$composition(feature_rank = "Genus", col_name = c("treatment", "sex"))
-    Condition
-      Error in `taxa$composition()`:
-      ! "col_name" must be a character and of length 1.
-
----
-
-    Code
       taxa$composition(feature_rank = "Genus", col_name = "nonexisting")
     Condition
       Error in `taxa$composition()`:

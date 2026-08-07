@@ -4,7 +4,7 @@
 #'
 #' @param x A \link[base]{matrix}, \link[Matrix]{sparseMatrix} or \link[Matrix]{Matrix}.
 #' @return A \link[data.table]{data.table} class.
-#' @noRd
+#' @export
 matrix_to_dtable <- function(x) {
   if (inherits(x, "denseMatrix") || inherits(x, "matrix") || inherits(x, "sparseMatrix")) {
       return(data.table::data.table(as.matrix(x)))
@@ -17,7 +17,7 @@ matrix_to_dtable <- function(x) {
 #' @param column A character vector.
 #' @param table A \link[data.table]{data.table} or \link[base]{data.frame}.
 #' @return A boolean value.
-#' @noRd
+#' @export
 column_exists <- function(column, table) {
 
   ## Error handling
