@@ -1443,26 +1443,25 @@ omics <- R6::R6Class(
     #' Finally, homogeneity of variance is computed based on the selected `aggregate_method` option. If \code{aggregate_method = "mean"} then the \link[matrixTests]{row_levene} is applied, 
     #' and if \code{aggregate_method = "median"} is used then the \link[matrixTests]{row_brownforsythe} is applied. Any filtering of the results is left to the end-user.
     #' 
-    #' @param feature_rank A column in the `featureData` to use as the feature scope (default: \code{"FEATURE_ID"}).
-    #' @param feature_filter A character or vector of characters to remove features via regex pattern (default: \code{NULL}).
+    #' @param condition.group A character variable of an existing column name in `metaData`, wherein the conditions A and B are located.
+    #' @param condition_A A character value or vector of characters.
+    #' @param condition_B A character value or vector of characters.
     #' @param method A character to choose the method of fold-change computation (default: \code{"identity"}). 
     #' \describe{
     #'  \item{\code{"identity"}}{Computes fold-change via \code{log2(condition_A) - log2(condition_B)}, and will handle zero's to prevent `Inf` values. 
-    #'  Proportional data is also supported and will be automatically detected. Features where }
+    #'  Proportional data is also supported and will be automatically detected.}
     #'  \item{\code{"log"}}{Computes fold-change via \code{condition_A - condition_B}.}
     #' }
     #' @param aggregate_method A function to aggregate the matrix values in \code{method = "log"} by taking e.g. the \code{median} of `condition_A` and `condition_B` prior to substraction, or in the case of \code{method = "identity"} to take the median of the fold-change \code{log2(median(A)) - log2(median(B))} (default: \code{median}).
-    #' @param paired A boolean value, the paired is only applicable when a `SAMPLEPAIR_ID` column exists within the `metaData`. See \link[stats]{wilcox.test} and [`samplepair_subset()`](#method-samplepair_subset).
-    #' @param condition.group A character variable of an existing column name in `metaData`, wherein the conditions A and B are located.
     #' @param group_by A character variable of an existing column in `metaData` to split the table in chunks prior to fold-change computation (default: \code{NULL}). When disabled then column names will end with `_in_all`.
-    #' @param merge A boolean value wether to merge features in `feature_rank` (default: \code{FALSE}).
-    #' @param condition_A A character value or vector of characters.
-    #' @param condition_B A character value or vector of characters.
+    #' @param feature_merge A boolean value wether to call [`feature_merge()`](#method-feature_merge) (default: \code{FALSE}).
+    #' @param feature_rank A column in the `featureData` to use as the feature scope (default: \code{"FEATURE_ID"}).
+    #' @param feature_filter A character or vector of characters to remove features via regex pattern (default: \code{NULL}).
+    #' @param paired A boolean value, the paired is only applicable when a `SAMPLEPAIR_ID` column exists within the `metaData`. See \link[stats]{wilcox.test} and [`samplepair_subset()`](#method-samplepair_subset).
     #' @param pvalue.threshold A numeric value used as a p-value threshold to label and color significant features (default: \code{0.05}).
     #' @param logfold.threshold A numeric value used as a fold-change threshold to label and color significantly expressed features (default: \code{0.06}).
     #' @param abundance.threshold A numeric value used as an abundance threshold to size the scatter dots based on their mean abundance (default: \code{0}).
     #' @examples
-    #' library("ggplot2")
     #' library("OmicFlow")
     #'
     #' metadata_file <- system.file("extdata", "metadata.tsv", package = "OmicFlow")
@@ -1474,13 +1473,15 @@ omics <- R6::R6Class(
     #'  countData = counts_file,
     #'  featureData = features_file
     #' )
-    #' obj$scale(method = "clr")
+    #' obj$scale(method = "tss")
     #' 
-    #' dfe <- obj$foldchange(feature_rank = "Genus",
-    #'                       paired = FALSE,
-    #'                       condition.group = "treatment",
-    #'                       condition_A = c("healthy"),
-    #'                       condition_B = c("tumor"))
+    #' dfe <- obj$foldchange(
+    #'  feature_rank = "Genus",
+    #'  feature_merge = TRUE,
+    #'  condition.group = "treatment",
+    #'  condition_A = "tumor",
+    #'  condition_B = "healthy"
+    #' )
     #' 
     #' @returns A list of components: \describe{
     #'  \item{`group_by` subsets}{A \link[base]{matrix} subset from each \code{group_by} separated by \code{condition_A} and \code{condition_B}.}
@@ -1495,7 +1496,7 @@ omics <- R6::R6Class(
       method = "identity",
       aggregate_method = "median",
       group_by = NULL,
-      merge = FALSE,
+      feature_merge = FALSE,
       feature_rank = "FEATURE_ID",
       feature_filter = NULL,
       paired = FALSE,
@@ -1508,55 +1509,52 @@ omics <- R6::R6Class(
       #--------------------------------------------------------------------#
 
       if (!is.character(condition.group) || length(condition.group) != 1) {
-        cli::cli_abort("{.val {condition.group}} needs to be a character with a length of 1")
+        cli::cli_abort("{.val condition.group} needs to be a character with a length of 1.")
       } else if (!column_exists(condition.group, private$.metaData)) {
-        cli::cli_abort("{.val {condition.group}} does not exist in the {.field metaData} or is empty.")
+        cli::cli_abort("{.val condition.group} does not exist in the {.field metaData} or is empty.")
       }
-      if (!is.character(condition_A))
-        cli::cli_abort("{.val {condition_A}} needs to be a character.")
 
-      if (!is.character(condition_B))
-        cli::cli_abort("{.val {condition_B}} needs to be a character.")
+      if (!is.character(condition_A)) {
+        cli::cli_abort("{.val condition_A} needs to be a character.")
+      } else if (!any(condition_A %in% private$.metaData[[ condition.group ]])) {
+        cli::cli_abort("{.val condition_A} does not exist in {.val condition.group}.")
+      }
+
+      if (!is.character(condition_B)) {
+        cli::cli_abort("{.val condition_B} needs to be a character.")
+      } else if (!any(condition_B %in% private$.metaData[[ condition.group ]])) {
+        cli::cli_abort("{.val condition_B} does not exist in {.val condition.group}.")
+      }
 
       OPTIONS <- c("identity", "log")
       if (!is.character(method) || length(method) != 1) {
-        cli::cli_abort("{.val method} needs to be either `TRUE` or `FALSE`.")
+        cli::cli_abort("{.val method} needs to be a character with a length of 1.")
       } else if (!c(method %in% OPTIONS)) {
         cli::cli_abort("{.val {method}} is not a valid option. \nValid options: {.val {OPTIONS}}")
       }
 
       OPTIONS <- c("median", "mean")
       if (!is.character(aggregate_method) || length(aggregate_method) != 1) {
-        cli::cli_abort("{.val aggregate_method} needs to be either `TRUE` or `FALSE`.")
+        cli::cli_abort("{.val aggregate_method} needs to be a character with a length of 1.")
       } else if (!c(aggregate_method %in% OPTIONS)) {
         cli::cli_abort("{.val {aggregate_method}} is not a valid option. \nValid options: {.val {OPTIONS}}")
       }
       
       if (!is.null(group_by)) {
         if (!is.character(group_by) || length(group_by) != 1) {
-          cli::cli_abort("{.val {group_by}} needs to contain characters with length of 1.")
+          cli::cli_abort("{.val group_by} needs to be a character with a length of 1.")
         } else if (!column_exists(group_by, private$.metaData)) {
           cli::cli_abort("The {.val {group_by}} column does not exist in the {.field metaData}.")
         }
       }
 
-      if (!is.logical(merge))
-        cli::cli_abort("{.val merge} needs to be either `TRUE` or `FALSE`.")
+      if (!is.logical(feature_merge))
+        cli::cli_abort("{.val feature_merge} needs to be either `TRUE` or `FALSE`.")
 
       if (paired && !column_exists(private$.samplepair_id, private$.metaData)) {
         cli::cli_alert_warning("Paired is set to {.val {paired}} but {.arg SAMPLEPAIR_ID} does not exist in the {.field metaData}.\n Differential feature analysis will continue now with paired set to {.val FALSE}!")
         paired <- FALSE
       }
-
-      if (!is.numeric(pvalue.threshold))
-        cli::cli_abort("{.val pvalue.threshold} need to be numeric.")
-
-      if (!is.numeric(logfold.threshold))
-        cli::cli_abort("{.val logfold.threshold} need to be numeric.")
-
-      if (!is.numeric(abundance.threshold))
-        cli::cli_abort("{.val abundance.threshold} need to be numeric.")
-
 
       ## MAIN
       #--------------------------------------------------------------------#
@@ -1579,7 +1577,7 @@ omics <- R6::R6Class(
       }, add = TRUE)
 
       # Agglomerate features by `feature_rank` and filter unwanted features
-      if (merge) {
+      if (feature_merge) {
         self$feature_merge(
           feature_rank = feature_rank,
           feature_filter = feature_filter
@@ -1676,9 +1674,9 @@ omics <- R6::R6Class(
 
           ## Computing wilcox test
           if (paired) {
-            foldchange_dt[, (paste0("pvalue_wilcox_", result_col_title)) := matrixTests::row_wilcoxon_paired(x = mat_A, y = mat_B)$pvalue]
+            foldchange_dt[, (paste0("pvalue_wilcox-paired_", result_col_title)) := matrixTests::row_wilcoxon_paired(x = mat_A, y = mat_B)$pvalue]
           } else {
-            foldchange_dt[, (paste0("pvalue_wilcox-paired_", result_col_title)) := matrixTests::row_wilcoxon_twosample(x = mat_A, y = mat_B)$pvalue]
+            foldchange_dt[, (paste0("pvalue_wilcox_", result_col_title)) := matrixTests::row_wilcoxon_twosample(x = mat_A, y = mat_B)$pvalue]
           }
           
           ## Compute homogeneity of variance test based on selected `aggregate_method`
@@ -1689,8 +1687,8 @@ omics <- R6::R6Class(
             "mean" = matrixTests::row_levene(x = combined_mat, g = combined_labels),
             "median" = matrixTests::row_brownforsythe(x = combined_mat, g = combined_labels)
           )
-          foldchange_dt[, (paste("homogeneity_test_pvalue_", result_col_title)) := homogeneity_test$pvalue]
-          foldchange_dt[, (paste("homogeneity_test_statistic_", result_col_title)) := homogeneity_test$statistic]
+          foldchange_dt[, (paste0("homogeneity_test_statistic_", result_col_title)) := homogeneity_test$statistic]
+          foldchange_dt[, (paste0("homogeneity_test_pvalue_", result_col_title)) := homogeneity_test$pvalue]
         }
       }
       output$data <- foldchange_dt
@@ -1701,8 +1699,9 @@ omics <- R6::R6Class(
 
       # Create & save volcano plot
       colnames_dfe <- colnames(foldchange_dt)
-      diff_columns <- colnames_dfe[grepl("Log2FC", colnames_dfe)]
-      pvalue_columns <- colnames_dfe[grepl("pvalue", colnames_dfe)]
+      diff_columns <- colnames_dfe[grepl("fold-change", colnames_dfe)]
+      pvalue_columns <- colnames_dfe[grepl("pvalue_wilcox", colnames_dfe)]
+      abun_column <- colnames_dfe[grepl("abun", colnames_dfe)]
       n_diff_columns <- length(diff_columns)
 
       output$volcano_plot <- lapply(1:n_diff_columns, function(i) {
@@ -1711,7 +1710,7 @@ omics <- R6::R6Class(
           logfold_col = diff_columns[i],
           pvalue_col = pvalue_columns[i],
           feature_rank = feature_rank,
-          abundance_col = "abun",
+          abundance_col = abun_column,
           pvalue.threshold = pvalue.threshold,
           logfold.threshold = logfold.threshold,
           abundance.threshold = abundance.threshold,

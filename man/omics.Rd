@@ -299,7 +299,6 @@ pcoa_plots
 ## Method `omics$foldchange()`
 ## ------------------------------------------------
 
-library("ggplot2")
 library("OmicFlow")
 
 metadata_file <- system.file("extdata", "metadata.tsv", package = "OmicFlow")
@@ -311,13 +310,15 @@ obj <- omics$new(
  countData = counts_file,
  featureData = features_file
 )
-obj$scale(method = "clr")
+obj$scale(method = "tss")
 
-dfe <- obj$foldchange(feature_rank = "Genus",
-                      paired = FALSE,
-                      condition.group = "treatment",
-                      condition_A = c("healthy"),
-                      condition_B = c("tumor"))
+dfe <- obj$foldchange(
+ feature_rank = "Genus",
+ feature_merge = TRUE,
+ condition.group = "treatment",
+ condition_A = "tumor",
+ condition_B = "healthy"
+)
 
 }
 \references{
@@ -1093,7 +1094,7 @@ and if \code{aggregate_method = "median"} is used then the \link[matrixTests]{ro
   method = "identity",
   aggregate_method = "median",
   group_by = NULL,
-  merge = FALSE,
+  feature_merge = FALSE,
   feature_rank = "FEATURE_ID",
   feature_filter = NULL,
   paired = FALSE,
@@ -1112,12 +1113,12 @@ and if \code{aggregate_method = "median"} is used then the \link[matrixTests]{ro
       \item{\code{method}}{A character to choose the method of fold-change computation (default: \code{"identity"}).
 \describe{
 \item{\code{"identity"}}{Computes fold-change via \code{log2(condition_A) - log2(condition_B)}, and will handle zero's to prevent \code{Inf} values.
-Proportional data is also supported and will be automatically detected. Features where }
+Proportional data is also supported and will be automatically detected.}
 \item{\code{"log"}}{Computes fold-change via \code{condition_A - condition_B}.}
 }}
       \item{\code{aggregate_method}}{A function to aggregate the matrix values in \code{method = "log"} by taking e.g. the \code{median} of \code{condition_A} and \code{condition_B} prior to substraction, or in the case of \code{method = "identity"} to take the median of the fold-change \code{log2(median(A)) - log2(median(B))} (default: \code{median}).}
       \item{\code{group_by}}{A character variable of an existing column in \code{metaData} to split the table in chunks prior to fold-change computation (default: \code{NULL}). When disabled then column names will end with \verb{_in_all}.}
-      \item{\code{merge}}{A boolean value wether to merge features in \code{feature_rank} (default: \code{FALSE}).}
+      \item{\code{feature_merge}}{A boolean value wether to call \href{#method-feature_merge}{\code{feature_merge()}} (default: \code{FALSE}).}
       \item{\code{feature_rank}}{A column in the \code{featureData} to use as the feature scope (default: \code{"FEATURE_ID"}).}
       \item{\code{feature_filter}}{A character or vector of characters to remove features via regex pattern (default: \code{NULL}).}
       \item{\code{paired}}{A boolean value, the paired is only applicable when a \code{SAMPLEPAIR_ID} column exists within the \code{metaData}. See \link[stats]{wilcox.test} and \href{#method-samplepair_subset}{\code{samplepair_subset()}}.}
@@ -1136,8 +1137,7 @@ Proportional data is also supported and will be automatically detected. Features
   }
   \subsection{Examples}{
     \if{html}{\out{<div class="r example copy">}}
-    \preformatted{library("ggplot2")
-library("OmicFlow")
+    \preformatted{library("OmicFlow")
 
 metadata_file <- system.file("extdata", "metadata.tsv", package = "OmicFlow")
 counts_file <- system.file("extdata", "counts.tsv", package = "OmicFlow")
@@ -1148,13 +1148,15 @@ obj <- omics$new(
  countData = counts_file,
  featureData = features_file
 )
-obj$scale(method = "clr")
+obj$scale(method = "tss")
 
-dfe <- obj$foldchange(feature_rank = "Genus",
-                      paired = FALSE,
-                      condition.group = "treatment",
-                      condition_A = c("healthy"),
-                      condition_B = c("tumor"))
+dfe <- obj$foldchange(
+ feature_rank = "Genus",
+ feature_merge = TRUE,
+ condition.group = "treatment",
+ condition_A = "tumor",
+ condition_B = "healthy"
+)
 }
     \if{html}{\out{</div>}}
   }
