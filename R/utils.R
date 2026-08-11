@@ -68,7 +68,7 @@ is.wholenumber <- function(x, tol = .Machine$double.eps^0.5) {
 is.color <- function(x) {
   return(
     all(sapply(x, function(X) {
-      tryCatch(is.matrix(col2rgb(X)), 
+      tryCatch(is.matrix(grDevices::col2rgb(X)), 
               error = function(e) FALSE)
       }))
   )

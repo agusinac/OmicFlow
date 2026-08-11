@@ -29,7 +29,7 @@ dt <- data.table::data.table(
 "sex" = c(rep("male", n_col / 4), rep("female", n_col / 4))
 )
 
-colors <- OmicFlow::colormap(dt, "treatment")
+colors <- OmicFlow::colormap(dt, "sex")
 
 test_that("`diversity_plot()` -- Argument checks", {
   expect_snapshot(diversity_plot(data = list()), error = TRUE)

@@ -173,6 +173,12 @@ diversity_plot <- function(
     ), by = .(group_numeric = as.numeric(as.factor(get(col_name))))]
   }
   pvalues_adjusted.filtered <- pvalues_adjusted[grepl("\\*", pvalues_adjusted$p.adj.signif) ,]
+  if (nrow(pvalues_adjusted.filtered) > 0) {
+    pvalues_dt <- data.table::as.data.table(pvalues_adjusted.filtered)
+    pvalues_dt[, "xmid" := (base::get("xmin") + base::get("xmax")) / 2]
+    pvalues_dt[, "bracket_height" := base::get("y.position") - 0.02 * diff(range(base::get("y.position"), na.rm = TRUE))]
+    pvalues_dt[, "label" := round(base::get("p.adj"), 3)]
+  }
   
   plt <- ggplot2::ggplot(
     data = data_tmp,
@@ -288,12 +294,51 @@ diversity_plot <- function(
     ggplot2::scale_colour_manual(
       name = "groups",
       values = palette
-    ) +
-    ggpubr::stat_pvalue_manual(
-      data = pvalues_adjusted.filtered,
-      label = "p.adj",
-      step.increase = 0.05
-    ) +
+    )
+  ## Adding p-labels if any significance detected
+  if (nrow(pvalues_adjusted.filtered) > 0) {
+    # horizontal line
+    plt <- plt + 
+      ggplot2::geom_segment(
+        data = pvalues_dt,
+        ggplot2::aes(
+            x = .data$xmin, xend = .data$xmax,
+            y = .data$y.position, yend = .data$y.position
+        ),
+        inherit.aes = FALSE
+      ) +
+      # Left vertical line
+      ggplot2::geom_segment(
+        data = pvalues_dt,
+        ggplot2::aes(
+            x = .data$xmin, xend = .data$xmin,
+            y = .data$y.position, yend = .data$y.position - 0.003
+        ),
+        inherit.aes = FALSE
+      ) +
+      # Right vertical line
+      ggplot2::geom_segment(
+        data = pvalues_dt,
+        ggplot2::aes(
+            x = .data$xmax, xend = .data$xmax,
+            y = .data$y.position, yend = .data$y.position - 0.003
+        ),
+        inherit.aes = FALSE
+      ) +
+      # Label
+      ggplot2::geom_text(
+        data = pvalues_dt,
+        ggplot2::aes(
+            x = .data$xmid,
+            y = .data$y.position,
+            label = .data$label
+        ),
+        vjust = -0.4,
+        inherit.aes = FALSE
+      )
+  }
+
+  plt <- plt +
     ggplot2::labs(
       title = NULL,
       subtitle = paste0(
