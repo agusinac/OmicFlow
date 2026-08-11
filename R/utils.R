@@ -60,6 +60,20 @@ is.wholenumber <- function(x, tol = .Machine$double.eps^0.5) {
   }
 }
 
+#' Check if input is a valid color
+#'
+#' @description Checks if a given value `x` contains red, green and blue channels.
+#' 
+#' @noRd
+is.color <- function(x) {
+  return(
+    all(sapply(x, function(X) {
+      tryCatch(is.matrix(col2rgb(X)), 
+              error = function(e) FALSE)
+      }))
+  )
+}
+
 #' Helper function in `omics$autoFlow` to combine conditions 
 #' 
 #' @noRd

@@ -106,9 +106,12 @@ diversity_plot <- function(
     }
   }
 
-  if (!is.character(palette))
+  if (!is.character(palette)) {
     cli::cli_abort("{.val palette} needs to contain characters.")
-  
+  } else if (!is.color(palette)) {
+    cli::cli_abort("{.val palette} contains invalid colors.")
+  }
+    
   if (!is.character(method)) {
     cli::cli_abort("{.val method} needs to be a character {.cls vector}.")
   }

@@ -25,6 +25,14 @@
 ---
 
     Code
+      composition_plot(data = comp$data, palette = c("foo1", "foo2"))
+    Condition
+      Error in `composition_plot()`:
+      ! "palette" contains invalid colors.
+
+---
+
+    Code
       composition_plot(data = comp$data, palette = comp$palette, feature_rank = 1)
     Condition
       Error in `composition_plot()`:

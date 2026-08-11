@@ -76,8 +76,11 @@ composition_plot <- function(data,
   if (!inherits(data, "data.frame") && !inherits(data, "data.table"))
     cli::cli_abort("{.val data} must be a {.cls data.frame} or {.cls data.table}.")
 
-  if (!is.character(palette))
+  if (!is.character(palette)) {
     cli::cli_abort("{.val palette} needs to contain characters.")
+  } else if (!is.color(palette)) {
+    cli::cli_abort("{.val palette} contains invalid colors.")
+  }
 
   if (!is.character(feature_rank) || length(feature_rank) != 1) {
     cli::cli_abort("{.val feature_rank} needs to contain characters with length of 1.")

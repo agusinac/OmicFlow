@@ -99,6 +99,15 @@
 ---
 
     Code
+      diversity_plot(data = dt, values = "shannon", col_name = "sex", palette = c(
+        "foo1", "foo2"))
+    Condition
+      Error in `diversity_plot()`:
+      ! "palette" contains invalid colors.
+
+---
+
+    Code
       diversity_plot(data = dt, values = "shannon", col_name = "sex", palette = colors,
         method = 1)
     Condition

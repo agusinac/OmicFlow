@@ -47,6 +47,7 @@ test_that("`diversity_plot()` -- Argument checks", {
   expect_snapshot(diversity_plot(data = dt,, values = "shannon", col_name = "sex", group_by = "nonexisting"), error = TRUE)
 
   expect_snapshot(diversity_plot(data = dt, values = "shannon", col_name = "sex", palette = c(1, 2, 3)), error = TRUE)
+  expect_snapshot(diversity_plot(data = dt, values = "shannon", col_name = "sex", palette = c("foo1", "foo2")), error = TRUE)
   expect_snapshot(diversity_plot(data = dt, values = "shannon", col_name = "sex", palette = colors, method = 1), error = TRUE)
   expect_snapshot(diversity_plot(data = dt, values = "shannon", col_name = "sex", palette = colors, paired = "FALSE"), error = TRUE)
   expect_snapshot(diversity_plot(data = dt, values = "shannon", col_name = "sex", palette = colors, p.adjust.method = 5), error = TRUE)

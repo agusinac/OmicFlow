@@ -17,6 +17,7 @@ test_that("`composition_plot()` -- Argument checks", {
   expect_snapshot(composition_plot(data = list()), error = TRUE)
   expect_snapshot(composition_plot(data = matrix()), error = TRUE)
   expect_snapshot(composition_plot(data = comp$data, palette = list()), error = TRUE)
+  expect_snapshot(composition_plot(data = comp$data, palette = c("foo1", "foo2")), error = TRUE)
   expect_snapshot(composition_plot(data = comp$data, palette = comp$palette, feature_rank = 1), error = TRUE)
   expect_snapshot(composition_plot(data = comp$data, palette = comp$palette, feature_rank = c("1", "2")), error = TRUE)
 
