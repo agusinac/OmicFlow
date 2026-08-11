@@ -48,7 +48,6 @@
 #' 
 #' # Unweighted UniFrac
 #' unifrac(x = taxa$countData, tree = taxa$treeData, weighted=FALSE)
-#' @importFrom Matrix sparseMatrix
 #' @export
 
 unifrac <- function(x, tree, weighted = TRUE, normalize = TRUE, threads = 1) {

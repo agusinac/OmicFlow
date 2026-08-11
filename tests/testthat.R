@@ -1,4 +1,5 @@
 library("testthat")
+library("ggplot2")
 library("OmicFlow")
 set.seed(100)
 

@@ -32,7 +32,6 @@
 #' taxa$scale(method = "tss")
 #'
 #' euclidean(taxa$countData)
-#' @importFrom Matrix sparseMatrix
 #' @export
 
 euclidean <- function(x, weighted = TRUE, threads = 1) {

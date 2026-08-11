@@ -7,7 +7,6 @@
 #' Every class is created with the \link[R6]{R6Class} method. Methods are either public or private, and only the public components are inherited by other omic classes.
 #' The omics class by default uses a \link[Matrix]{sparseMatrix} and \link[data.table]{data.table} data structures for quick and efficient data manipulation and returns the object by reference, same as the R6 class.
 #' The method by reference is very efficient when dealing with big data.
-#' @import R6 data.table
 #' @export
 
 omics <- R6::R6Class(
@@ -298,8 +297,6 @@ omics <- R6::R6Class(
     #' This function is used during the creation of a new object via [`new()`](#method-new) to validate the supplied metadata 
     #' via a filepath or existing \link[data.table]{data.table} or \link[base]{data.frame}.
     #' 
-    #' @importFrom jsonvalidate json_validate
-    #' @importFrom yyjsonr write_json_file
     #' @return None
     validate = function() {
       # Creates temporary json file from `metaData`
@@ -1743,7 +1740,6 @@ omics <- R6::R6Class(
     #' @param report A boolean value to create a HTML markdown report (default: \code{FALSE}). If \code{FALSE} a nested list of the plots and data is returned.
     #' @param filename A character to name the HTML report to be saved in the current working directory (default: \code{paste0(getwd(), "/report.html")}). The \code{getwd()} is required for rmarkdown to save it in the right path.
     #' 
-    #' @importFrom patchwork plot_layout wrap_plots
     #' @return List of plots/data or rendered HTML report
     autoFlow = function(feature_contrast = "FEATURE_ID",
                         feature_filter = NULL,

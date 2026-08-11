@@ -47,7 +47,6 @@
 #'   abundance_col = "rel_abun",
 #'   feature_rank = "Feature",
 #' )
-#' @import ggplot2
 #' @export
 
 volcano_plot <- function(

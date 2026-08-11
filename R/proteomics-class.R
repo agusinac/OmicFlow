@@ -6,7 +6,6 @@
 #' When omics data is very large, data loading becomes very expensive. It is therefore recommended to use the [`reset()`](#method-reset) method to reset your changes.
 #' Every omics class creates an internal memory efficient back-up of the data, the resetting of changes is an instant process.
 #' @seealso \link{omics}
-#' @import R6
 #' @export
 
 proteomics <- R6::R6Class(
@@ -55,7 +54,6 @@ proteomics <- R6::R6Class(
     #' @param metaData A path to an existing file, \link[data.table]{data.table} or data.frame.
     #' @param treeData A path to an existing newick file or class "phylo", see \link[ape]{read.tree}.
     #' 
-    #' @importFrom ape read.tree
     #' @return A new `proteomics` object.
     initialize = function(
       countData = NULL, 

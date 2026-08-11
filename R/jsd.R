@@ -35,7 +35,6 @@
 #' taxa$scale(method = "tss")
 #'
 #' jsd(taxa$countData)
-#' @importFrom Matrix sparseMatrix
 #' @export
 
 jsd <- function(x, weighted = TRUE, threads = 1) {

@@ -34,7 +34,6 @@
 #' taxa$scale(method = "tss")
 #'
 #' canberra(taxa$countData)
-#' @importFrom Matrix sparseMatrix
 #' @export
 
 canberra <- function(x, weighted = TRUE, threads = 1) {

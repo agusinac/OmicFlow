@@ -63,7 +63,6 @@
 #'   title_name = "Mock Genus Composition by Group",
 #'   group_by = "Group"
 #' )
-#' @import ggplot2
 #' @export
 
 composition_plot <- function(data,

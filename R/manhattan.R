@@ -34,7 +34,6 @@
 #' taxa$scale(method = "tss")
 #'
 #' manhattan(taxa$countData)
-#' @importFrom Matrix sparseMatrix
 #' @export
 
 manhattan <- function(x, weighted = TRUE, threads = 1) {

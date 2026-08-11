@@ -35,7 +35,6 @@
 #'  x = sparse_mat,
 #'  q = 2
 #' )
-#' @importFrom Matrix sparseMatrix
 #' @export
 
 hill_taxa <- function (

@@ -6,7 +6,6 @@
 #' When omics data is very large, data loading becomes very expensive. It is therefore recommended to use the [`reset()`](#method-reset) method to reset your changes.
 #' Every omics class creates an internal memory efficient back-up of the data, the resetting of changes is an instant process.
 #' @seealso \link{omics}
-#' @import R6
 #' @export
 
 metagenomics <- R6::R6Class(
@@ -56,10 +55,6 @@ metagenomics <- R6::R6Class(
     #' @param treeData A path to an existing newick file or class "phylo", see \link[ape]{read.tree}.
     #' @param biomData A path to an existing biom file, version 2.1.0 (http://biom-format.org/), see \link[rhdf5]{h5read}.
     #' @param feature_names A character vector to name the feature names that fit the supplied `featureData`.
-    #' 
-    #' @import rhdf5
-    #' @importFrom ape read.tree
-    #' @importFrom yyjsonr read_json_file validate_json_file
     #' 
     #' @return A new `metagenomics` object.
     initialize = function(
@@ -223,7 +218,6 @@ metagenomics <- R6::R6Class(
     #' @description
     #' Creates a BIOM file in HDF5 format of the loaded items via ['new()'](#method-new), which is compatible to the python biom-format version 2.1, see http://biom-format.org.
     #' @param filename A character variable of either the full path of filename of the biom file (e.g. `output.biom`)
-    #' @import rhdf5
     #' @examples
     #' library("OmicFlow")
     #'
