@@ -33,34 +33,9 @@ taxa <- metagenomics$new(
 taxa$write_biom(filename = "output.biom")
 file.remove("output.biom")
 
-
-## ------------------------------------------------
-## Method `metagenomics$foldchange()`
-## ------------------------------------------------
-
-library("OmicFlow")
-
-metadata_file <- system.file("extdata", "metadata.tsv", package = "OmicFlow")
-counts_file <- system.file("extdata", "counts.tsv", package = "OmicFlow")
-features_file <- system.file("extdata", "features.tsv", package = "OmicFlow")
-
-obj <- metagenomics$new(
- metaData = metadata_file,
- countData = counts_file,
- featureData = features_file
-)
-
-dfe <- obj$foldchange(feature_rank = "Genus",
-                      paired = FALSE,
-                      condition.group = "treatment",
-                      condition_A = c("healthy"),
-                      condition_B = c("tumor"))
-
 }
 \seealso{
 \link{omics}
-
-\link{volcano_plot}
 }
 \section{Super class}{
 \code{\link[OmicFlow:omics]{omics}} -> \code{metagenomics}
@@ -77,7 +52,6 @@ dfe <- obj$foldchange(feature_rank = "Genus",
   \itemize{
     \item \href{#method-metagenomics-initialize}{\code{metagenomics$new()}}
     \item \href{#method-metagenomics-write_biom}{\code{metagenomics$write_biom()}}
-    \item \href{#method-metagenomics-foldchange}{\code{metagenomics$foldchange()}}
     \item \href{#method-metagenomics-clone}{\code{metagenomics$clone()}}
   }
 }
@@ -90,6 +64,7 @@ dfe <- obj$foldchange(feature_rank = "Genus",
   <li><span class="pkg-link" data-pkg="OmicFlow" data-topic="omics" data-id="distance"><a href='../../OmicFlow/html/omics.html#method-omics-distance'><code>omics$distance()</code></a></span></li>
   <li><span class="pkg-link" data-pkg="OmicFlow" data-topic="omics" data-id="feature_merge"><a href='../../OmicFlow/html/omics.html#method-omics-feature_merge'><code>omics$feature_merge()</code></a></span></li>
   <li><span class="pkg-link" data-pkg="OmicFlow" data-topic="omics" data-id="feature_subset"><a href='../../OmicFlow/html/omics.html#method-omics-feature_subset'><code>omics$feature_subset()</code></a></span></li>
+  <li><span class="pkg-link" data-pkg="OmicFlow" data-topic="omics" data-id="foldchange"><a href='../../OmicFlow/html/omics.html#method-omics-foldchange'><code>omics$foldchange()</code></a></span></li>
   <li><span class="pkg-link" data-pkg="OmicFlow" data-topic="omics" data-id="ordination"><a href='../../OmicFlow/html/omics.html#method-omics-ordination'><code>omics$ordination()</code></a></span></li>
   <li><span class="pkg-link" data-pkg="OmicFlow" data-topic="omics" data-id="print"><a href='../../OmicFlow/html/omics.html#method-omics-print'><code>omics$print()</code></a></span></li>
   <li><span class="pkg-link" data-pkg="OmicFlow" data-topic="omics" data-id="rankstat"><a href='../../OmicFlow/html/omics.html#method-omics-rankstat'><code>omics$rankstat()</code></a></span></li>
@@ -170,80 +145,6 @@ taxa <- metagenomics$new(
 
 taxa$write_biom(filename = "output.biom")
 file.remove("output.biom")
-}
-    \if{html}{\out{</div>}}
-  }
-}
-
-\if{html}{\out{<hr>}}
-\if{html}{\out{<a id="method-metagenomics-foldchange"></a>}}
-\if{latex}{\out{\hypertarget{method-metagenomics-foldchange}{}}}
-\subsection{\code{metagenomics$foldchange()}}{
-  Differential feature expression (DFE) Total Sample Sum (TSS) transformed values for both paired and non-paired test.
-
-The function performs feature agglomeration, subsetting to remove NAs in \code{condition.group}, finding samplepairs and finally feature scaling prior to fold-change computation.
-Based on the \code{transform} method, fold-changes will be computed either via subtraction or division.
-  \subsection{Usage}{
-    \if{html}{\out{<div class="r">}}
-    \preformatted{metagenomics$foldchange(
-  condition.group,
-  condition_A,
-  condition_B,
-  group_by = NULL,
-  feature_rank = "FEATURE_ID",
-  feature_filter = NULL,
-  paired = FALSE,
-  normalize = FALSE,
-  pvalue.threshold = 0.05,
-  logfold.threshold = 0.06,
-  abundance.threshold = 0
-)}
-    \if{html}{\out{</div>}}
-  }
-  \subsection{Arguments}{
-    \if{html}{\out{<div class="arguments">}}
-    \describe{
-      \item{\code{condition.group}}{A character variable of an existing column name in \code{metaData}, wherein the conditions A and B are located.}
-      \item{\code{condition_A}}{A character value or vector of characters.}
-      \item{\code{condition_B}}{A character value or vector of characters.}
-      \item{\code{group_by}}{A character variable of an existing column in \code{metaData} to split the table in chunks prior to fold-change computation (default: NULL).}
-      \item{\code{feature_rank}}{A character or vector of characters in the \code{featureData} to aggregate via \href{#method-feature_merge}{\code{feature_merge()}} (default: \code{"FEATURE_ID"}).}
-      \item{\code{feature_filter}}{A character or vector of characters to remove features via regex pattern (default: \code{NULL}).}
-      \item{\code{paired}}{A boolean value, the paired is only applicable when a \code{SAMPLEPAIR_ID} column exists within the \code{metaData}. See \link[stats]{wilcox.test} and \href{#method-samplepair_subset}{\code{samplepair_subset()}}.}
-      \item{\code{normalize}}{A boolean value wether to normalize via Total Sample Sums (TSS) or not (default: \code{FALSE}).}
-      \item{\code{pvalue.threshold}}{A numeric value used as a p-value threshold to label and color significant features (default: 0.05).}
-      \item{\code{logfold.threshold}}{A numeric value used as a fold-change threshold to label and color significantly expressed features (default: 0.06).}
-      \item{\code{abundance.threshold}}{A numeric value used as an abundance threshold to size the scatter dots based on their mean abundance (default: 0.01).}
-    }
-    \if{html}{\out{</div>}}
-  }
-  \subsection{Returns}{
-    \itemize{
-\item \code{data} A long \link[data.table]{data.table} table.
-\item \code{volcano_plot} A \link[ggplot2]{ggplot} object.
-\item \code{A} A \link[data.table]{data.table} table for (each) condition A.
-\item \code{B} A \link[data.table]{data.table} table for (each) condition B.
-}
-  }
-  \subsection{Examples}{
-    \if{html}{\out{<div class="r example copy">}}
-    \preformatted{library("OmicFlow")
-
-metadata_file <- system.file("extdata", "metadata.tsv", package = "OmicFlow")
-counts_file <- system.file("extdata", "counts.tsv", package = "OmicFlow")
-features_file <- system.file("extdata", "features.tsv", package = "OmicFlow")
-
-obj <- metagenomics$new(
- metaData = metadata_file,
- countData = counts_file,
- featureData = features_file
-)
-
-dfe <- obj$foldchange(feature_rank = "Genus",
-                      paired = FALSE,
-                      condition.group = "treatment",
-                      condition_A = c("healthy"),
-                      condition_B = c("tumor"))
 }
     \if{html}{\out{</div>}}
   }

@@ -1,12 +1,13 @@
-# OmicFlow 1.6.0.9005
+# OmicFlow 1.6.0.9006
 
 ## Changed
 - Re-factoring and improving `roxygen2` code, documentation style and error handling.
+- Added additional parameters via `...` to be passed to `pairwise_adonis` and `pairwise_anosim` (.e.g. `parallel = 10` can be called now).
 - TODO: Add `tryCatch` where neccessary
 - Added `tryCatch` and better error handling in `omics$sample_subset`, `omics$feature_subset` and `omics$samplepair_subset`.
 - Replaced `jsonlite` by `yyjsonr` functionality, much faster and cleaner code.
 - Replaced `tests/testthat/input/metagenomics/biom_with_taxonomy_json.biom` with one from BIOM v2 example.
-- Re-combined `foldchange` into `omics` and option to use different fold-change computations via argument `method`.
+- [#43](https://github.com/agusinac/OmicFlow/issues/43) Re-combined `foldchange` into `omics` and option to use different fold-change computations via argument `method` and `aggregate_method`.
 
 ## Fixed
 - `omics$feature_merge` is optional in `omics$foldchange`

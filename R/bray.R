@@ -36,7 +36,6 @@
 #' taxa$scale(method = "tss")
 #'
 #' bray(taxa$countData)
-#' @importFrom Matrix sparseMatrix
 #' @export
 
 bray <- function(x, weighted = TRUE, threads = 1) {

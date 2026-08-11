@@ -36,7 +36,6 @@
 #'   dist_explained = c(45, 22),
 #'   dist_metric = "bray-curtis"
 #' )
-#' @import ggplot2
 #' @export
 
 ordination_plot <- function(

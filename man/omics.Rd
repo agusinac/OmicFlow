@@ -299,7 +299,6 @@ pcoa_plots
 ## Method `omics$foldchange()`
 ## ------------------------------------------------
 
-library("ggplot2")
 library("OmicFlow")
 
 metadata_file <- system.file("extdata", "metadata.tsv", package = "OmicFlow")
@@ -311,13 +310,15 @@ obj <- omics$new(
  countData = counts_file,
  featureData = features_file
 )
-obj$scale(method = "clr")
+obj$scale(method = "tss")
 
-dfe <- obj$foldchange(feature_rank = "Genus",
-                      paired = FALSE,
-                      condition.group = "treatment",
-                      condition_A = c("healthy"),
-                      condition_B = c("tumor"))
+dfe <- obj$foldchange(
+ feature_rank = "Genus",
+ feature_merge = TRUE,
+ condition.group = "treatment",
+ condition_A = "tumor",
+ condition_B = "healthy"
+)
 
 }
 \references{
@@ -1040,14 +1041,13 @@ thus far supports 'bray', 'jaccard', 'cosine', 'manhattan', 'jsd' (jensen-shanno
     \if{html}{\out{</div>}}
   }
   \subsection{Returns}{
-    A list of components:
-\itemize{
-\item \code{distmat} A distance dissimilarity in \link[base]{matrix} format.
-\item \code{stats} A statistical test as a \link[base]{data.frame}.
-\item \code{pcs} principal components as a \link[base]{data.frame}.
-\item \code{scree_plot} A \link[ggplot2]{ggplot} object.
-\item \code{anova_plot} A \link[ggplot2]{ggplot} object.
-\item \code{scores_plot} A \link[ggplot2]{ggplot} object.
+    A list of components: \describe{
+\item{distmat}{A distance dissimilarity in \link[base]{matrix} format.}
+\item{stats}{A statistical test as a \link[base]{data.frame}.}
+\item{pcs}{principal components as a \link[base]{data.frame}.}
+\item{scree_plot}{A \link[ggplot2]{ggplot} object.}
+\item{anova_plot}{A \link[ggplot2]{ggplot} object.}
+\item{scores_plot}{A \link[ggplot2]{ggplot} object.}
 }
   }
   \subsection{Examples}{
@@ -1079,17 +1079,22 @@ pcoa_plots
 \if{html}{\out{<a id="method-omics-foldchange"></a>}}
 \if{latex}{\out{\hypertarget{method-omics-foldchange}{}}}
 \subsection{\code{omics$foldchange()}}{
-  Differential feature expression (DFE) on log-transformed values for both paired and non-paired test.
+  Differential feature expression for both paired and non-paired data.
 
-The function performs feature agglomeration, subsetting to remove NAs in \code{condition.group} and finding samplepairs. It expects that the data is already log-transformed, this can be accomplished via \href{#method-scale}{\code{scale()}}
+The function performs feature agglomeration, subsetting to remove NAs in \code{condition.group} and finding samplepairs when \code{paired} is supplied.
+The fold-changes can be computed differently based on the \code{method} and \code{aggregate_method} options. Transformations of the data should be done beforehand via \href{#method-scale}{\code{scale()}}.
+Finally, homogeneity of variance is computed based on the selected \code{aggregate_method} option. If \code{aggregate_method = "mean"} then the \link[matrixTests]{row_levene} is applied,
+and if \code{aggregate_method = "median"} is used then the \link[matrixTests]{row_brownforsythe} is applied. Any filtering of the results is left to the end-user.
   \subsection{Usage}{
     \if{html}{\out{<div class="r">}}
     \preformatted{omics$foldchange(
   condition.group,
   condition_A,
   condition_B,
+  method = "identity",
+  aggregate_method = "median",
   group_by = NULL,
-  merge = FALSE,
+  feature_merge = FALSE,
   feature_rank = "FEATURE_ID",
   feature_filter = NULL,
   paired = FALSE,
@@ -1105,29 +1110,34 @@ The function performs feature agglomeration, subsetting to remove NAs in \code{c
       \item{\code{condition.group}}{A character variable of an existing column name in \code{metaData}, wherein the conditions A and B are located.}
       \item{\code{condition_A}}{A character value or vector of characters.}
       \item{\code{condition_B}}{A character value or vector of characters.}
+      \item{\code{method}}{A character to choose the method of fold-change computation (default: \code{"identity"}).
+\describe{
+\item{\code{"identity"}}{Computes fold-change via \code{log2(condition_A) - log2(condition_B)}, and will handle zero's to prevent \code{Inf} values.
+Proportional data is also supported and will be automatically detected.}
+\item{\code{"log"}}{Computes fold-change via \code{condition_A - condition_B}.}
+}}
+      \item{\code{aggregate_method}}{A function to aggregate the matrix values in \code{method = "log"} by taking e.g. the \code{median} of \code{condition_A} and \code{condition_B} prior to substraction, or in the case of \code{method = "identity"} to take the median of the fold-change \code{log2(median(A)) - log2(median(B))} (default: \code{median}).}
       \item{\code{group_by}}{A character variable of an existing column in \code{metaData} to split the table in chunks prior to fold-change computation (default: \code{NULL}). When disabled then column names will end with \verb{_in_all}.}
-      \item{\code{merge}}{A boolean value wether to merge features in \code{feature_rank} (default: \code{FALSE}).}
+      \item{\code{feature_merge}}{A boolean value wether to call \href{#method-feature_merge}{\code{feature_merge()}} (default: \code{FALSE}).}
       \item{\code{feature_rank}}{A column in the \code{featureData} to use as the feature scope (default: \code{"FEATURE_ID"}).}
       \item{\code{feature_filter}}{A character or vector of characters to remove features via regex pattern (default: \code{NULL}).}
       \item{\code{paired}}{A boolean value, the paired is only applicable when a \code{SAMPLEPAIR_ID} column exists within the \code{metaData}. See \link[stats]{wilcox.test} and \href{#method-samplepair_subset}{\code{samplepair_subset()}}.}
-      \item{\code{pvalue.threshold}}{A numeric value used as a p-value threshold to label and color significant features (default: 0.05).}
-      \item{\code{logfold.threshold}}{A numeric value used as a fold-change threshold to label and color significantly expressed features (default: 0.06).}
-      \item{\code{abundance.threshold}}{A numeric value used as an abundance threshold to size the scatter dots based on their mean abundance (default: 0.01).}
+      \item{\code{pvalue.threshold}}{A numeric value used as a p-value threshold to label and color significant features (default: \code{0.05}).}
+      \item{\code{logfold.threshold}}{A numeric value used as a fold-change threshold to label and color significantly expressed features (default: \code{0.06}).}
+      \item{\code{abundance.threshold}}{A numeric value used as an abundance threshold to size the scatter dots based on their mean abundance (default: \code{0}).}
     }
     \if{html}{\out{</div>}}
   }
   \subsection{Returns}{
-    \itemize{
-\item \code{data} A long \link[data.table]{data.table} table.
-\item \code{volcano_plot} A \link[ggplot2]{ggplot} object.
-\item \code{A} A \link[data.table]{data.table} table for (each) condition A
-\item \code{B} A \link[data.table]{data.table} table for (each) condition B
+    A list of components: \describe{
+\item{\code{group_by} subsets}{A \link[base]{matrix} subset from each \code{group_by} separated by \code{condition_A} and \code{condition_B}.}
+\item{data}{A \link[data.table]{data.table} main output of fold-changes between conditions, contains abundance, fold-change, and homogeneity tests.}
+\item{volcano_plot}{A list of \link[ggplot2]{ggplot} plots for each contrast of \code{A vs B}, number of plots depend on \code{group_by} and \code{condition_A} input.}
 }
   }
   \subsection{Examples}{
     \if{html}{\out{<div class="r example copy">}}
-    \preformatted{library("ggplot2")
-library("OmicFlow")
+    \preformatted{library("OmicFlow")
 
 metadata_file <- system.file("extdata", "metadata.tsv", package = "OmicFlow")
 counts_file <- system.file("extdata", "counts.tsv", package = "OmicFlow")
@@ -1138,13 +1148,15 @@ obj <- omics$new(
  countData = counts_file,
  featureData = features_file
 )
-obj$scale(method = "clr")
+obj$scale(method = "tss")
 
-dfe <- obj$foldchange(feature_rank = "Genus",
-                      paired = FALSE,
-                      condition.group = "treatment",
-                      condition_A = c("healthy"),
-                      condition_B = c("tumor"))
+dfe <- obj$foldchange(
+ feature_rank = "Genus",
+ feature_merge = TRUE,
+ condition.group = "treatment",
+ condition_A = "tumor",
+ condition_B = "healthy"
+)
 }
     \if{html}{\out{</div>}}
   }

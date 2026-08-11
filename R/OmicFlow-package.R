@@ -3,6 +3,8 @@
 
 ## usethis namespace: start
 #' @importFrom data.table := .SD
+#' @importFrom ggplot2 .data
+#' @importFrom Matrix sparseMatrix
 #' @useDynLib OmicFlow, .registration = TRUE
 #' @importFrom Rcpp sourceCpp
 #' @importFrom RcppParallel RcppParallelLibs

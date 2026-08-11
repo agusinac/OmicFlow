@@ -67,7 +67,6 @@
 #'  paired = FALSE,
 #'  p.adjust.method = "fdr"
 #' )
-#' @import ggplot2
 #' @export
 
 diversity_plot <- function(

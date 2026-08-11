@@ -34,7 +34,6 @@
 #' taxa$scale(method = "tss")
 #'
 #' cosine(taxa$countData)
-#' @importFrom Matrix sparseMatrix
 #' @export
 
 cosine <- function(x, weighted = TRUE, threads = 1) {

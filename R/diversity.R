@@ -38,7 +38,6 @@
 #'   x = sparse_mat,
 #'   metric = "shannon"
 #' ) 
-#' @importFrom Matrix sparseMatrix
 #' @export
 
 diversity <- function(x,

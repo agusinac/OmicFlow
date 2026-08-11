@@ -33,7 +33,6 @@
 #' taxa$scale(method = "tss")
 #'
 #' jaccard(taxa$countData)
-#' @importFrom Matrix sparseMatrix
 #' @export
 
 jaccard <- function(x, weighted = TRUE, threads = 1) {
