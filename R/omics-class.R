@@ -1612,36 +1612,41 @@ omics <- R6::R6Class(
 
         for (i in seq_along(condition_A)) {
           # Subset by `condition_A`
-          mat_A <- chunk_mat[, colnames(chunk_mat)[condition_labels %in% condition_A[i]]]
-          mat_B <- chunk_mat[, colnames(chunk_mat)[condition_labels %in% condition_B[i]]]
+          mat_A <- as.matrix(chunk_mat[, colnames(chunk_mat)[condition_labels %in% condition_A[i]]])
+          mat_B <- as.matrix(chunk_mat[, colnames(chunk_mat)[condition_labels %in% condition_B[i]]])
 
           # save intermediate condition tables
           output[[paste0(group_name, "_", condition_A[i])]] <- mat_A
           output[[paste0(group_name, "_", condition_B[i])]] <- mat_B
 
-          ## Computing fold-change by substraction
-          if (method == "log") {
-            fc_res <- switch(
-              aggregate_method,
-              "mean" = matrixStats::rowMeans2(mat_A - mat_B),
-              "median" = matrixStats::rowMedians(mat_A - mat_B)
-            )
-
-          ## Computing fold-change by division
-          } else if (method == "identity") {
-            max_val <- base::max(mat_A)
-
-            # get `condition_A` aggregate
+          ## Get mean/median for each condition
+          ### condition A
+          if (ncol(mat_A) == 1) {
+            row_A <- mat_A
+          } else {
             row_A <- switch(
               aggregate_method, 
               "mean" = matrixStats::rowMeans2(mat_A), "median" = matrixStats::rowMedians(mat_A)
               )
+          }
 
-            # get `condition_B` aggregate
-            row_B <- switch(
-              aggregate_method, 
-              "mean" = matrixStats::rowMeans2(mat_B), "median" = matrixStats::rowMedians(mat_B)
-            )
+          ### condition B
+          if (ncol(mat_B) == 1) {
+              row_B <- mat_B
+            } else {
+              row_B <- switch(
+                aggregate_method, 
+                "mean" = matrixStats::rowMeans2(mat_B), "median" = matrixStats::rowMedians(mat_B)
+              )
+            }
+          
+          ## computing fold-change based on method
+          if (method == "log") {
+            fc_res <- row_A - row_B
+
+          ## Computing fold-change by division
+          } else if (method == "identity") {
+            max_val <- base::max(mat_A)
             fc_res <- numeric(length(row_A))
 
             # Find zero's to prevent Inf

@@ -11,7 +11,8 @@
 - Replaced `jsonlite` by `yyjsonr` functionality, much faster and cleaner code.
 - Replaced `tests/testthat/input/metagenomics/biom_with_taxonomy_json.biom` with one from BIOM v2 example.
 - [#43](https://github.com/agusinac/OmicFlow/issues/43) Re-combined `foldchange` into `omics` and option to use different fold-change computations via argument `method` and `aggregate_method`.
-- replaced `ggpubr` by `ggplot2` functions in `diversity_plot`
+- replaced `ggpubr` by `ggplot2` functions in `diversity_plot`.
+- TODO: replace `rstatix` by `stats::pairwise.wilcox.test`
 
 ## Fixed
 - `omics$feature_merge` is optional in `omics$foldchange`
