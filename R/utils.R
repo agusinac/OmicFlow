@@ -74,6 +74,99 @@ is.color <- function(x) {
   )
 }
 
+#' Pairwise wilcox rank sum test
+#' Thus far a helper function in `diversity_plot`. It uses `matrixTests` in the background making it more efficient.
+#'
+#' @param data A data.table
+#' @param x_col A column with values in `data`
+#' @param g_col A column of groups in `data`
+#' @param paired A boolean value wether to use wilcox signed rank test (default: \code{FALSE})
+#' @param p.adjust.method A character string to specify the p-adjust method to use in `stats::p.adjust` (default: \code{"fdr"}).
+#' @param ... Extra arguments to be passed to \link[matrixTests]{row_wilcoxon_paired} when \code{paired = TRUE} or \link[matrixTests]{row_wilcoxon_twosample} when \code{paired = FALSE}.
+#' 
+#' @noRd
+pairwise_wilcox_test <- function(data, x_col, g_col, paired = FALSE, p.adjust.method = "fdr", ...) {
+  
+  ## Error handling
+  #--------------------------------------------------------------------#
+  if (!inherits(data, "data.frame") && !inherits(data, "data.table"))
+    cli::cli_abort("{.val data} must be a {.cls data.frame} or {.cls data.table}.")
+  
+  if (!is.character(x_col) || length(x_col) != 1) {
+    cli::cli_abort("{.val x_col} needs to contain characters with length of 1.")
+  } else if (!column_exists(x_col, data)) {
+    cli::cli_abort("The {.val x_col} column does not exist in the provided {.arg data}.")
+  }
+  if (!is.character(g_col) || length(g_col) != 1) {
+    cli::cli_abort("{.val g_col} needs to contain characters with length of 1.")
+  } else if (!column_exists(g_col, data)) {
+    cli::cli_abort("The {.val g_col} column does not exist in the provided {.arg data}.")
+  }
+  if (!is.logical(paired))
+    cli::cli_abort("{.val paired} needs to be either `TRUE` or `FALSE`.")
+
+  if (!is.character(p.adjust.method)) {
+    cli::cli_abort("{.val p.adjust.method} must be a character.")
+  } else if (!c(p.adjust.method %in% stats::p.adjust.methods)) {
+    cli::cli_abort("{.val {p.adjust.method}} is not a valid method. \nValid options: {.val {p.adjust.methods}}.")
+  }
+
+  ## MAIN
+  #--------------------------------------------------------------------#
+  data_tmp <- data.table::copy(data)
+  pvalue <- group1 <- group2 <- NULL
+
+  # Initialize required parameters
+  co <- utils::combn(unique(as.character(data_tmp[[ g_col ]])), 2)
+  n <- ncol(co)
+  out_list <- list()
+  groups <- data_tmp[, max(.SD[[ x_col ]], na.rm = TRUE), by = g_col]
+
+  # Loops through pairs
+  for(i in 1:n){
+    pair_1 <- co[1, i]
+    pair_2 <- co[2, i]
+
+    X <- data_tmp[[ x_col ]][data_tmp[[ g_col ]] %in% pair_1]
+    Y <- data_tmp[[ x_col ]][data_tmp[[ g_col ]] %in% pair_2]
+
+    if (paired) {
+      out <- matrixTests::row_wilcoxon_paired(x = X, y = Y)
+    } else {
+      out <- matrixTests::row_wilcoxon_twosample(x = X, y = Y)
+    }
+
+    # Saving stats
+    out[[ "group1" ]] <- paste(pair_1)
+    out[[ "group2" ]] <- paste(pair_2)
+    out[[ "y.position" ]] <- max(groups[groups[[ g_col ]] %in% c(pair_1, pair_2), ]$V1) * 1.01
+
+    out_list[[i]] <- out 
+  }
+  # Combine pairwise subsets, adjust p-value, set new order
+  pairw.res <- data.table::rbindlist(out_list)
+  pairw.res[, "p.adj" := data.table::fifelse(pvalue == 1, pvalue, stats::p.adjust(pvalue, method = p.adjust.method))]
+  
+  col_order <- c(
+    "group1", "group2", "obs.x", "obs.y", "obs.tot", "statistic", 
+    "pvalue", "p.adj", "location.null", "alternative", "exact", "corrected", "y.position"
+  )
+
+  if (paired)
+    col_order[5] <- "obs.paired"
+  
+  data.table::setcolorder(
+    x = pairw.res, 
+    neworder = col_order
+  )
+
+  ## Adding X positions
+  pairw.res[, "xmin" := as.numeric(as.factor(group1))]
+  pairw.res[, "xmax" := as.numeric(as.factor(group2)) + 1]
+
+  return(pairw.res)
+}
+
 #' Helper function in `omics$autoFlow` to combine conditions 
 #' 
 #' @noRd

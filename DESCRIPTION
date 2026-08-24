@@ -1,7 +1,7 @@
 Package: OmicFlow
 Title: Fast and Efficient (Automated) Analysis of Sparse Omics Data
-Version: 1.6.0.9006
-Date: 2026-08-10
+Version: 1.6.0.9007
+Date: 2026-08-24
 Authors@R: c(
     person(
         "Alem", "Gusinac",
@@ -45,7 +45,6 @@ Imports:
     R6,
     RColorBrewer,
     rhdf5,
-    rstatix,
     Rcpp (>= 0.12.6),
     RcppParallel (>= 4.3.20),
     stats,
@@ -62,5 +61,5 @@ LinkingTo:
     Rcpp,
     RcppParallel, 
     RcppArmadillo
-Config/roxygen2/version: 8.0.0
+Config/roxygen2/version: 8.1.0
 Config/Needs/website: rmarkdown

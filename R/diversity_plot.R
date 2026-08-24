@@ -1,15 +1,15 @@
 #' Diversity plot
 #' 
 #' @description Creates an Alpha diversity plot. This function is built into the class \link{omics} with method \code{alpha_diversity()}.
-#' It computes the pairwise wilcox test, paired or non-paired, given a data frame and adds useful labelling.
+#' It computes the pairwise wilcox test, paired or non-paired..
 #' @param data A \link[base]{data.frame} or \link[data.table]{data.table} computed from \link{diversity}.
 #' @param values A column name of a continuous variable.
 #' @param col_name A column name of a categorical variable.
 #' @param group_by A column name to perform grouped statistical test (default: \code{NULL}).
 #' @param palette An object with names and hexcode or color names, see \link{colormap}.
 #' @param method A character variable indicating what method is used to compute the diversity (default: \code{"custom"}).
-#' @param paired A boolean value to perform paired analysis in \link[stats]{wilcox.test} (default: \code{FALSE}).
-#' @param p.adjust.method A character variable to specify the p.adjust.method to be used (Default: fdr).
+#' @param paired A boolean value to perform paired analysis in \link[matrixTests]{row_wilcoxon_paired} (default: \code{FALSE}).
+#' @param p.adjust.method A character variable to specify the p.adjust.method to be used (default: \code{"fdr"}).
 #' @return A \link[ggplot2]{ggplot2} object to be further modified
 #' 
 #' @examples  
@@ -127,42 +127,42 @@ diversity_plot <- function(
 
   data_tmp <- data.table::copy(data)
   result <- list()
-  
+
   if (!is.null(group_by)) {
+    data.table::setnames(data_tmp, old = group_by, new = "group_by")
+    group_by <- "group_by"
+
     pvalues_adjusted <- data_tmp[, {
-      tmp <- rstatix::pairwise_wilcox_test(
-        data = .SD,
-        formula = stats::reformulate(col_name, response = values),
-        p.adjust.method = p.adjust.method,
-        paired = paired
+      tmp <- pairwise_wilcox_test(
+          data = .SD,
+          x_col = values,
+          g_col = col_name,
+          p.adjust.method = p.adjust.method,
+          paired = paired
       )
-      tmp <- rstatix::add_significance(tmp)
-      tmp <- rstatix::add_xy_position(tmp, x = group_by)
       tmp
     }, by = group_by]
-    
+
     # Creates box_stats for half geom_box
-    data.table::setnames(data_tmp, old = group_by, new = "group_col")
-    group_by <- "group_col"
     box_stats <- data_tmp[, .(
       ymin = base::min(base::get(values)),
       ymax = base::max(base::get(values)),
       lower = stats::quantile(base::get(values), 0.25),
       middle = stats::median(base::get(values)),
       upper = stats::quantile(base::get(values), 0.75)
-    ), by = .(group_numeric = as.numeric(as.factor(base::get(col_name))), group_col)]
+    ), by = .(group_numeric = as.numeric(as.factor(base::get(col_name))), group_by)]
   } else {
     pvalues_adjusted <- data_tmp[, {
-      tmp <- rstatix::pairwise_wilcox_test(
+      tmp <- pairwise_wilcox_test(
         data = .SD,
-        formula = stats::reformulate(col_name, response = values),
+        x_col = values,
+        g_col = col_name,
         p.adjust.method = p.adjust.method,
         paired = paired
       )
-      tmp <- rstatix::add_significance(tmp)
-      tmp <- rstatix::add_xy_position(tmp, x = col_name)
+      tmp
     }]
-    
+
     # Creates box_stats for half geom_box
     box_stats <- data_tmp[, .(
       ymin = base::min(base::get(values)),
@@ -172,14 +172,21 @@ diversity_plot <- function(
       upper = stats::quantile(base::get(values), 0.75)
     ), by = .(group_numeric = as.numeric(as.factor(get(col_name))))]
   }
-  pvalues_adjusted.filtered <- pvalues_adjusted[grepl("\\*", pvalues_adjusted$p.adj.signif) ,]
-  if (nrow(pvalues_adjusted.filtered) > 0) {
+
+  ## Check if any significant pairs
+  signif_rows <- pvalues_adjusted$p.adj < 0.05
+  xmin <- xmax <- y.position <- p.adj <- NULL
+  if (any(signif_rows)) {
+    pvalues_adjusted.filtered <- pvalues_adjusted[signif_rows, ]
     pvalues_dt <- data.table::as.data.table(pvalues_adjusted.filtered)
-    pvalues_dt[, "xmid" := (base::get("xmin") + base::get("xmax")) / 2]
-    pvalues_dt[, "bracket_height" := base::get("y.position") - 0.02 * diff(range(base::get("y.position"), na.rm = TRUE))]
-    pvalues_dt[, "label" := round(base::get("p.adj"), 3)]
+    pvalues_dt[, `:=` (
+      xmid = (xmin + xmax) / 2,
+      bracket_height = y.position - 0.02 * diff(range(y.position, na.rm = TRUE)),
+      label = round(p.adj, 2)
+      )
+    ]
   }
-  
+
   plt <- ggplot2::ggplot(
     data = data_tmp,
     mapping = ggplot2::aes(
@@ -187,19 +194,16 @@ diversity_plot <- function(
       y = .data[[values]]
     )
   )
-
   # Custom half-boxplot using pre-computed stats
   if (!is.null(group_by)) {
     suppressWarnings(
       plt <- plt + ggplot2::geom_boxplot(
         data = box_stats,
-        mapping = ggplot2::aes(
-          x = .data$group_numeric - 0.2,
-          ymin = .data$lower, ymax = .data$upper,
-          lower = .data$lower, middle = .data$middle, upper = .data$upper,
-          width = 0.4,
-          group = base::interaction(.data$group_numeric, .data$group_col)
-        ),
+        mapping = ggplot2::aes(x = .data$group_numeric - 0.2,
+            ymin = .data$lower, ymax = .data$upper,
+            lower = .data$lower, middle = .data$middle, upper = .data$upper,
+            width = 0.4,
+            group = base::interaction(.data$group_numeric, .data$group_by)),
         stat = "identity",
         fill = "white", color = "black",
         alpha = 0.8,
@@ -210,13 +214,11 @@ diversity_plot <- function(
     suppressWarnings(
       plt <- plt + ggplot2::geom_boxplot(
         data = box_stats,
-        mapping = ggplot2::aes(
-          x = .data$group_numeric - 0.2,
-          ymin = .data$lower, ymax = .data$upper,
-          lower = .data$lower, middle = .data$middle, upper = .data$upper,
-          width = 0.4,
-          group = base::interaction(.data$group_numeric)
-        ),
+        mapping = ggplot2::aes(x = .data$group_numeric - 0.2,
+            ymin = .data$lower, ymax = .data$upper,
+            lower = .data$lower, middle = .data$middle, upper = .data$upper,
+            width = 0.4,
+            group = base::interaction(.data$group_numeric)),
         stat = "identity",
         fill = "white", color = "black",
         alpha = 0.8,
@@ -224,6 +226,7 @@ diversity_plot <- function(
       )
     )
   }
+
   plt <- plt +
     # Points on right side
     ggplot2::geom_point(
@@ -269,13 +272,13 @@ diversity_plot <- function(
       color = "black", 
       linewidth = 0.3
     )
-  
+
   if (!is.null(group_by)) {
     plt <- plt +
       ggplot2::facet_wrap(~.data[[ group_by ]])
   }
-  
-  plt <- plt +
+
+  plt <- plt + 
     ggplot2::theme_bw() +
     ggplot2::theme(
       legend.position = "none",
@@ -295,60 +298,61 @@ diversity_plot <- function(
       name = "groups",
       values = palette
     )
-  ## Adding p-labels if any significance detected
-  if (nrow(pvalues_adjusted.filtered) > 0) {
-    # horizontal line
+
+  ## Adding significant bars
+  if (any(signif_rows)) {
     plt <- plt + 
-      ggplot2::geom_segment(
-        data = pvalues_dt,
-        ggplot2::aes(
-            x = .data$xmin, xend = .data$xmax,
-            y = .data$y.position, yend = .data$y.position
-        ),
-        inherit.aes = FALSE
-      ) +
-      # Left vertical line
-      ggplot2::geom_segment(
-        data = pvalues_dt,
-        ggplot2::aes(
-            x = .data$xmin, xend = .data$xmin,
-            y = .data$y.position, yend = .data$y.position - 0.003
-        ),
-        inherit.aes = FALSE
-      ) +
-      # Right vertical line
-      ggplot2::geom_segment(
-        data = pvalues_dt,
-        ggplot2::aes(
-            x = .data$xmax, xend = .data$xmax,
-            y = .data$y.position, yend = .data$y.position - 0.003
-        ),
-        inherit.aes = FALSE
-      ) +
-      # Label
-      ggplot2::geom_text(
-        data = pvalues_dt,
-        ggplot2::aes(
-            x = .data$xmid,
-            y = .data$y.position,
-            label = .data$label
-        ),
-        vjust = -0.4,
-        inherit.aes = FALSE
-      )
+    # horizontal line
+    ggplot2::geom_segment(
+      data = pvalues_dt,
+      mapping = ggplot2::aes(
+        x = .data$xmin, xend = .data$xmax,
+        y = .data$y.position, yend = .data$y.position
+      ),
+      inherit.aes = FALSE
+    ) +
+    # Left vertical line
+    ggplot2::geom_segment(
+      data = pvalues_dt,
+      mapping = ggplot2::aes(
+        x = .data$xmin, xend = .data$xmin,
+        y = .data$y.position, yend = .data$y.position - 0.003
+      ),
+      inherit.aes = FALSE
+    ) +
+    # Right vertical line
+    ggplot2::geom_segment(
+      data = pvalues_dt,
+      mapping = ggplot2::aes(
+        x = .data$xmax, xend = .data$xmax,
+        y = .data$y.position, yend = .data$y.position - 0.003
+      ),
+      inherit.aes = FALSE
+    ) +
+    # Label
+    ggplot2::geom_text(
+      data = pvalues_dt,
+      mapping = ggplot2::aes(
+        x = .data$xmid,
+        y = .data$y.position,
+        label = .data$label
+      ),
+      vjust = -0.4,
+      inherit.aes = FALSE
+    )
   }
 
   plt <- plt +
     ggplot2::labs(
       title = NULL,
       subtitle = paste0(
-        "Attribute: ", col_name,
-        ", test: ", ifelse(paired, "Wilcox signed rank test", "Mann-Whitney U test"),
-        ", p.adjusted by ", p.adjust.method),
+      "Attribute: ", col_name,
+      ", test: ", ifelse(paired, "Wilcox signed rank test", "Mann-Whitney U test"),
+      ", p.adjusted by ", p.adjust.method),
       x = "sample groups",
       y = paste0("Alpha diversity metric: ", method)
     )
-  
+
   result <- list(
     plot = plt,
     stats = pvalues_adjusted

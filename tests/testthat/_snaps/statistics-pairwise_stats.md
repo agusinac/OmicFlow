@@ -150,3 +150,103 @@
       Error in `pairwise_anosim()`:
       ! "perm" needs to be a whole number.
 
+# `pairwise_wilcox_test()` -- Argument checks
+
+    Code
+      pairwise_wilcox_test(data = list())
+    Condition
+      Error in `pairwise_wilcox_test()`:
+      ! "data" must be a <data.frame> or <data.table>.
+
+---
+
+    Code
+      pairwise_wilcox_test(data = matrix())
+    Condition
+      Error in `pairwise_wilcox_test()`:
+      ! "data" must be a <data.frame> or <data.table>.
+
+---
+
+    Code
+      pairwise_wilcox_test(data = dt, x_col = 1)
+    Condition
+      Error in `pairwise_wilcox_test()`:
+      ! "x_col" needs to contain characters with length of 1.
+
+---
+
+    Code
+      pairwise_wilcox_test(data = dt, x_col = c("1", "2"))
+    Condition
+      Error in `pairwise_wilcox_test()`:
+      ! "x_col" needs to contain characters with length of 1.
+
+---
+
+    Code
+      pairwise_wilcox_test(data = dt, x_col = "nonexisting")
+    Condition
+      Error in `pairwise_wilcox_test()`:
+      ! The "x_col" column does not exist in the provided `data`.
+
+---
+
+    Code
+      pairwise_wilcox_test(data = dt, x_col = "V1", g_col = 1)
+    Condition
+      Error in `pairwise_wilcox_test()`:
+      ! "g_col" needs to contain characters with length of 1.
+
+---
+
+    Code
+      pairwise_wilcox_test(data = dt, x_col = "V1", g_col = c("1", "2"))
+    Condition
+      Error in `pairwise_wilcox_test()`:
+      ! "g_col" needs to contain characters with length of 1.
+
+---
+
+    Code
+      pairwise_wilcox_test(data = dt, x_col = "V1", g_col = "nonexisting")
+    Condition
+      Error in `pairwise_wilcox_test()`:
+      ! The "g_col" column does not exist in the provided `data`.
+
+---
+
+    Code
+      pairwise_wilcox_test(data = dt, x_col = "V1", g_col = "CONTRAST_treatment",
+        paired = 1)
+    Condition
+      Error in `pairwise_wilcox_test()`:
+      ! "paired" needs to be either `TRUE` or `FALSE`.
+
+---
+
+    Code
+      pairwise_wilcox_test(data = dt, x_col = "V1", g_col = "CONTRAST_treatment",
+        paired = "FALSE")
+    Condition
+      Error in `pairwise_wilcox_test()`:
+      ! "paired" needs to be either `TRUE` or `FALSE`.
+
+---
+
+    Code
+      pairwise_wilcox_test(data = dt, x_col = "V1", g_col = "CONTRAST_treatment",
+        p.adjust.method = 1)
+    Condition
+      Error in `pairwise_wilcox_test()`:
+      ! "p.adjust.method" must be a character.
+
+---
+
+    Code
+      pairwise_wilcox_test(data = dt, x_col = "V1", g_col = "CONTRAST_treatment",
+        p.adjust.method = "nonexisting")
+    Condition
+      Error in `pairwise_wilcox_test()`:
+      ! "nonexisting" is not a valid method.  Valid options: "holm", "hochberg", "hommel", "bonferroni", "BH", "BY", "fdr", and "none".
+

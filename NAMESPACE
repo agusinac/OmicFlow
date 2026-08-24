@@ -25,10 +25,14 @@ export(unifrac)
 export(volcano_plot)
 importFrom(Matrix,sparseMatrix)
 importFrom(Rcpp,sourceCpp)
-importFrom(RcppParallel,RcppParallelLibs)
-importFrom(RcppParallel,setThreadOptions)
-importFrom(data.table,":=")
-importFrom(data.table,.SD)
+importFrom(RcppParallel,
+  RcppParallelLibs,
+  setThreadOptions
+)
+importFrom(data.table,
+  ":=",
+  .SD
+)
 importFrom(ggplot2,.data)
 importFrom(utils,globalVariables)
 useDynLib(OmicFlow, .registration = TRUE)

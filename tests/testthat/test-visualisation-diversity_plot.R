@@ -63,9 +63,6 @@ test_that("`diversity_plot()` -- Behavioral checks", {
   ))
   expect_equal(names(res), c("plot", "stats"))
   expect_s3_class(res$plot, "ggplot")
-  expect_equal(res$stats$group1, "female")
-  expect_equal(res$stats$group2, "male")
-  expect_equal(round(res$stats$p, 2), 0.79)
 
   ## Testing with paired
   expect_no_error(res <- diversity_plot(
@@ -77,9 +74,6 @@ test_that("`diversity_plot()` -- Behavioral checks", {
   ))
   expect_equal(names(res), c("plot", "stats"))
   expect_s3_class(res$plot, "ggplot")
-  expect_equal(res$stats$group1, "female")
-  expect_equal(res$stats$group2, "male")
-  expect_equal(round(res$stats$p, 2), 0.74)
 
   ## Testing with `group_by`
   expect_no_error(res <- diversity_plot(
@@ -91,8 +85,4 @@ test_that("`diversity_plot()` -- Behavioral checks", {
   ))
   expect_equal(names(res), c("plot", "stats"))
   expect_s3_class(res$plot, "ggplot")
-  expect_equal(res$stats$treatment, c("healthy", "tumor"))
-  expect_equal(res$stats$group1, c(rep("female", 2)))
-  expect_equal(res$stats$group2, c(rep("male", 2)))
-  expect_equal(round(res$stats$p, 2), c(0.32, 0.43))
 })

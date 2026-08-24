@@ -28,16 +28,16 @@ diversity_plot(
 
 \item{method}{A character variable indicating what method is used to compute the diversity (default: \code{"custom"}).}
 
-\item{paired}{A boolean value to perform paired analysis in \link[stats]{wilcox.test} (default: \code{FALSE}).}
+\item{paired}{A boolean value to perform paired analysis in \link[matrixTests]{row_wilcoxon_paired} (default: \code{FALSE}).}
 
-\item{p.adjust.method}{A character variable to specify the p.adjust.method to be used (Default: fdr).}
+\item{p.adjust.method}{A character variable to specify the p.adjust.method to be used (default: \code{"fdr"}).}
 }
 \value{
 A \link[ggplot2]{ggplot2} object to be further modified
 }
 \description{
 Creates an Alpha diversity plot. This function is built into the class \link{omics} with method \code{alpha_diversity()}.
-It computes the pairwise wilcox test, paired or non-paired, given a data frame and adds useful labelling.
+It computes the pairwise wilcox test, paired or non-paired..
 }
 \examples{
  

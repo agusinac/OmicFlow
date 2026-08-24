@@ -24,13 +24,13 @@ test_that("`omics$alpha_diversity()` -- Behavioral checks", {
   ## Testing with single `col_name`
   adiv <- suppressWarnings(taxa$alpha_diversity(col_name = "CONTRAST_sex"))
   expect_snapshot(adiv$data)
-  expect_equal(round(adiv$stats$p, 2), 0.67)
+  expect_equal(round(adiv$stats$pvalue, 2), 0.67)
   expect_s3_class(adiv$plot, "ggplot")
   expect_snapshot(taxa)
 
   ## Testing with `group_by`
   adiv <- suppressWarnings(taxa$alpha_diversity(col_name = "CONTRAST_sex", group_by = "treatment"))
   expect_snapshot(adiv$data)
-  expect_equal(round(adiv$stats$p, 2), c(1, 1))
+  expect_equal(round(adiv$stats$pvalue, 2), c(1, 1))
   expect_s3_class(adiv$plot, "ggplot")
 })

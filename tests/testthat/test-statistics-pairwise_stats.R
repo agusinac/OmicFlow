@@ -84,3 +84,58 @@ test_that("`pairwise_anosim()` -- Behavioral checks", {
   # expect_equal(round(res$anosimR, 2), 0.38)
   # expect_equal(res$p.value, 1)
 })
+
+
+dt <- test$alpha_diversity(col_name = "CONTRAST_treatment")$data
+
+test_that("`pairwise_wilcox_test()` -- Argument checks", {
+  expect_snapshot(pairwise_wilcox_test(data = list()), error = TRUE)
+  expect_snapshot(pairwise_wilcox_test(data = matrix()), error = TRUE)
+  expect_snapshot(pairwise_wilcox_test(data = dt, x_col = 1), error = TRUE)
+  expect_snapshot(pairwise_wilcox_test(data = dt, x_col = c("1", "2")), error = TRUE)
+  expect_snapshot(pairwise_wilcox_test(data = dt, x_col = "nonexisting"), error = TRUE)
+
+  expect_snapshot(pairwise_wilcox_test(data = dt, x_col = "V1", g_col = 1), error = TRUE)
+  expect_snapshot(pairwise_wilcox_test(data = dt, x_col = "V1", g_col = c("1", "2")), error = TRUE)
+  expect_snapshot(pairwise_wilcox_test(data = dt, x_col = "V1", g_col = "nonexisting"), error = TRUE)
+
+  expect_snapshot(pairwise_wilcox_test(data = dt, x_col = "V1", g_col = "CONTRAST_treatment", paired = 1), error = TRUE)
+  expect_snapshot(pairwise_wilcox_test(data = dt, x_col = "V1", g_col = "CONTRAST_treatment", paired = "FALSE"), error = TRUE)
+
+  expect_snapshot(pairwise_wilcox_test(data = dt, x_col = "V1", g_col = "CONTRAST_treatment", p.adjust.method = 1), error = TRUE)
+  expect_snapshot(pairwise_wilcox_test(data = dt, x_col = "V1", g_col = "CONTRAST_treatment", p.adjust.method = "nonexisting"), error = TRUE)
+})
+
+test_that("`pairwise_wilcox_test()` -- Behavioral checks", {
+  ## Testing with default settings
+  expect_no_error(res <- pairwise_wilcox_test(data = dt, x_col = "V1", g_col = "CONTRAST_treatment"))
+  expect_equal(res$group1, "tumor")
+  expect_equal(res$group2, "control")
+  expect_equal(colnames(res)[5], "obs.tot")
+  expect_equal(res$statistic, 12)
+  expect_equal(res$pvalue, 1)
+  expect_equal(res$xmin, 1)
+  expect_equal(res$xmax, 2)
+
+  ## Testing with `paired = TRUE`
+  expect_no_error(res <- pairwise_wilcox_test(data = dt, x_col = "V1", g_col = "CONTRAST_treatment", paired = TRUE))
+  expect_equal(res$group1, "tumor")
+  expect_equal(res$group2, "control")
+  expect_equal(colnames(res)[5], "obs.paired")
+  expect_equal(res$statistic, 5)
+  expect_equal(res$pvalue, 0.625)
+  expect_equal(res$xmin, 1)
+  expect_equal(res$xmax, 2)
+
+  ## Testing with multiple groups
+  dt[[ "CONTRAST_treatment" ]][4:5] <- c("unknown")
+  dt[[ "CONTRAST_treatment" ]][9:10] <- c("unknown")
+  expect_no_error(res <- pairwise_wilcox_test(data = dt, x_col = "V1", g_col = "CONTRAST_treatment"))
+  expect_equal(res$group1, c("tumor", "tumor", "unknown"))
+  expect_equal(res$group2, c("unknown", "control", "control"))
+  expect_equal(colnames(res)[5], "obs.tot")
+  expect_equal(res$statistic, c(8, 4, 2))
+  expect_equal(round(res$pvalue, 2), c(0.63, 1.00, 0.23))
+  expect_equal(res$xmin, c(1, 1, 2))
+  expect_equal(res$xmax, c(3, 2, 2))
+})

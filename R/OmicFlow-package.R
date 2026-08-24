@@ -12,5 +12,5 @@
 #' @importFrom utils globalVariables
 ## usethis namespace: end
 
-utils::globalVariables(c(".", "group_col"))
+utils::globalVariables(c("."))
 NULL
