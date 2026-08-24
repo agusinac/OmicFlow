@@ -1177,9 +1177,11 @@ For now only works with headers that start with prefix \code{CONTRAST_}. If the 
   distance_metrics = c("bray"),
   distmat = NULL,
   weighted = TRUE,
+  fc_method = "log",
+  aggregate_method = "median",
   pvalue.threshold = 0.05,
-  logfold.threshold = 1,
-  abundance.threshold = 0.01,
+  logfold.threshold = 0.06,
+  abundance.threshold = 0,
   perm = 999,
   threads = 1,
   report = TRUE,
@@ -1196,9 +1198,16 @@ For now only works with headers that start with prefix \code{CONTRAST_}. If the 
       \item{\code{distance_metrics}}{A character vector specifying what (dis)similarity metrics to use (default: \code{c("bray")}) When you are working with log-transformed data it is advised to use the \code{euclidean}.}
       \item{\code{distmat}}{A path to an existing file or a dense/sparse \link[Matrix]{Matrix} format (default: \code{NULL}).}
       \item{\code{weighted}}{A boolean value, whether to compute weighted or unweighted dissimilarities (default: \code{TRUE}).}
-      \item{\code{pvalue.threshold}}{A numeric value, the p-value is used to include/exclude composition and foldchanges plots coming from alpha- and beta diversity analysis (default: 0.05).}
-      \item{\code{logfold.threshold}}{A numeric value used as a fold-change threshold to label and color significantly expressed features, see \href{#method-foldchange}{\code{foldchange()}} (Default: 1).}
-      \item{\code{abundance.threshold}}{A numeric value used as an abundance threshold to size the scatter dots based on their mean abundance, see \href{#method-foldchange}{\code{foldchange()}} (default: 0.01).}
+      \item{\code{fc_method}}{A character to choose the method of fold-change computation (default: \code{"identity"}).
+\describe{
+\item{\code{"identity"}}{Computes fold-change via \code{log2(condition_A) - log2(condition_B)}, and will handle zero's to prevent \code{Inf} values.
+Proportional data is also supported and will be automatically detected.}
+\item{\code{"log"}}{Computes fold-change via \code{condition_A - condition_B}.}
+}}
+      \item{\code{aggregate_method}}{A function to aggregate the matrix values in \href{#method-foldchange}{\code{foldchange()}} by taking e.g. the \code{median} of \code{condition_A} and \code{condition_B} prior to substraction, or in the case of \code{method = "identity"} to take the median of the fold-change \code{log2(median(A)) - log2(median(B))} (default: \code{median}).}
+      \item{\code{pvalue.threshold}}{A numeric value used as a p-value threshold to label and color significant features (default: \code{0.05}).}
+      \item{\code{logfold.threshold}}{A numeric value used as a fold-change threshold to label and color significantly expressed features (default: \code{0.06}).}
+      \item{\code{abundance.threshold}}{A numeric value used as an abundance threshold to size the scatter dots based on their mean abundance (default: \code{0}).}
       \item{\code{perm}}{A wholenumber, number of permutations to compare against the null hypothesis of \link[vegan]{adonis2} or \link[vegan]{anosim} (default: 999).}
       \item{\code{threads}}{Number of threads to use, only used in \href{#method-distance}{\code{distance()}} when distmat is not supplied (default: 1).}
       \item{\code{report}}{A boolean value to create a HTML markdown report (default: \code{FALSE}). If \code{FALSE} a nested list of the plots and data is returned.}

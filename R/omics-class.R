@@ -1718,7 +1718,7 @@ omics <- R6::R6Class(
           abundance.threshold = abundance.threshold,
           label_A = condition_A,
           label_B = condition_B
-        ) + labs(
+        ) + ggplot2::labs(
             subtitle = paste0(
               "Attribute: ", condition.group,
               ", test: ", ifelse(paired, "Wilcox signed rank test", "Mann-Whitney U test")
@@ -1737,41 +1737,54 @@ omics <- R6::R6Class(
     #' @param distance_metrics A character vector specifying what (dis)similarity metrics to use (default: \code{c("bray")}) When you are working with log-transformed data it is advised to use the `euclidean`.
     #' @param distmat A path to an existing file or a dense/sparse \link[Matrix]{Matrix} format (default: \code{NULL}).
     #' @param weighted A boolean value, whether to compute weighted or unweighted dissimilarities (default: \code{TRUE}).
-    #' @param pvalue.threshold A numeric value, the p-value is used to include/exclude composition and foldchanges plots coming from alpha- and beta diversity analysis (default: 0.05).
-    #' @param logfold.threshold A numeric value used as a fold-change threshold to label and color significantly expressed features, see [`foldchange()`](#method-foldchange) (Default: 1).
-    #' @param abundance.threshold A numeric value used as an abundance threshold to size the scatter dots based on their mean abundance, see [`foldchange()`](#method-foldchange) (default: 0.01).
+    #' @param fc_method A character to choose the method of fold-change computation (default: \code{"identity"}). 
+    #' \describe{
+    #'  \item{\code{"identity"}}{Computes fold-change via \code{log2(condition_A) - log2(condition_B)}, and will handle zero's to prevent `Inf` values. 
+    #'  Proportional data is also supported and will be automatically detected.}
+    #'  \item{\code{"log"}}{Computes fold-change via \code{condition_A - condition_B}.}
+    #' }
+    #' @param aggregate_method A function to aggregate the matrix values in [`foldchange()`](#method-foldchange) by taking e.g. the \code{median} of `condition_A` and `condition_B` prior to substraction, or in the case of \code{method = "identity"} to take the median of the fold-change \code{log2(median(A)) - log2(median(B))} (default: \code{median}).
+    #' @param pvalue.threshold A numeric value used as a p-value threshold to label and color significant features (default: \code{0.05}).
+    #' @param logfold.threshold A numeric value used as a fold-change threshold to label and color significantly expressed features (default: \code{0.06}).
+    #' @param abundance.threshold A numeric value used as an abundance threshold to size the scatter dots based on their mean abundance (default: \code{0}).
     #' @param perm A wholenumber, number of permutations to compare against the null hypothesis of \link[vegan]{adonis2} or \link[vegan]{anosim} (default: 999).
     #' @param threads Number of threads to use, only used in [`distance()`](#method-distance) when distmat is not supplied (default: 1).
     #' @param report A boolean value to create a HTML markdown report (default: \code{FALSE}). If \code{FALSE} a nested list of the plots and data is returned.
     #' @param filename A character to name the HTML report to be saved in the current working directory (default: \code{paste0(getwd(), "/report.html")}). The \code{getwd()} is required for rmarkdown to save it in the right path.
     #' 
     #' @return List of plots/data or rendered HTML report
-    autoFlow = function(feature_contrast = "FEATURE_ID",
-                        feature_filter = NULL,
-                        feature_ranks = NULL,
-                        distance_metrics = c("bray"),
-                        distmat = NULL,
-                        weighted = TRUE,
-                        pvalue.threshold = 0.05,
-                        logfold.threshold = 1,
-                        abundance.threshold = 0.01,
-                        perm = 999,
-                        threads = 1,
-                        report = TRUE,
-                        filename = paste0(getwd(), "/report.html")
-                      ) {
+    autoFlow = function(
+      feature_contrast = "FEATURE_ID",
+      feature_filter = NULL,
+      feature_ranks = NULL,
+      distance_metrics = c("bray"),
+      distmat = NULL,
+      weighted = TRUE,
+      fc_method = "log",
+      aggregate_method = "median",
+      pvalue.threshold = 0.05,
+      logfold.threshold = 0.06,
+      abundance.threshold = 0,
+      perm = 999,
+      threads = 1,
+      report = TRUE,
+      filename = paste0(getwd(), "/report.html")
+    ) {
     ## Error handling
     #--------------------------------------------------------------------#
 
-    if (!is.character(filename) || length(filename) != 1)
-      cli::cli_abort("{.val {filename}} needs to be a character with a length of 1")
-      
-    if (!is.character(feature_contrast) || length(feature_contrast) != 1) {
-      cli::cli_abort("{.val {feature_contrast}} needs to be a character with a length of 1")
+    if (!is.character(feature_contrast)) {
+      cli::cli_abort("{.val feature_contrast} needs to contain characters.")
     } else if (!column_exists(feature_contrast, private$.featureData)) {
       cli::cli_abort("{.val {feature_contrast}} does not exist in {.field featureData}!")
     }
+    
+    if (!is.logical(report))
+      cli::cli_abort("{.val report} needs to be either `TRUE` or `FALSE`.")
 
+    if (!is.character(filename) || length(filename) != 1)
+      cli::cli_abort("{.val filename} needs to be a character with a length of 1")
+      
     ## MAIN
     #--------------------------------------------------------------------#
     is_empty = function(obj) {
@@ -1836,13 +1849,14 @@ omics <- R6::R6Class(
 
       # Load custom distance matrix if supplied
       if (!is.null(distmat)) {
-        distmat <- private$check_matrix(filepath = distmat)
+        distmat <- private$check_matrix(distmat)
         if (!inherits(distmat, "sparseMatrix")) {
           cli::cli_abort(c(
-            "Error in {.field countData}:",
-            "x" = cli::format_inline("{private$.countData}")
+            "Error in {.val distmat}:",
+            "x" = cli::format_inline("{distmat}")
           ))
         }
+
         distmat <- distmat[private$.metaData[[private$.sample_id]], private$.metaData[[private$.sample_id]]]
       }
 
@@ -2010,7 +2024,7 @@ omics <- R6::R6Class(
               )
             composition_data[[i, j]] <- list(data = res$data)
           } else {
-            cli::cli_alert_info("Skipping {.arg composition} method due to the detection of negative values.")
+            cli::cli_alert_info("Skipping {.function composition} method due to the detection of negative values.")
           }
           
           if (!is.null(conditions) && nrow(conditions) > 0) {
@@ -2019,8 +2033,11 @@ omics <- R6::R6Class(
               {
               # Default attempt
               self$foldchange(
+                feature_merge = ifelse(feature_contrast[j] == "FEATURE_ID", FALSE, TRUE),
                 feature_rank = feature_contrast[j],
                 feature_filter = feature_filter,
+                aggregate_method = aggregate_method,
+                method = fc_method,
                 paired = ifelse(column_exists(private$.samplepair_id, private$.metaData), TRUE, FALSE),
                 condition.group = col_name,
                 condition_A = c(conditions$group1),
@@ -2031,10 +2048,13 @@ omics <- R6::R6Class(
                 )
               },
               error = function(e) {
-                cli::cli_alert_warning("DFE with paired=TRUE failed. Retrying with paired=FALSE.")
+                cli::cli_alert_warning("{.function foldchange} with `paired=TRUE` failed. Retrying with `paired=FALSE`.")
                 self$foldchange(
+                  feature_merge = ifelse(feature_contrast[j] == "FEATURE_ID", FALSE, TRUE),
                   feature_rank = feature_contrast[j],
                   feature_filter = feature_filter,
+                  aggregate_method = aggregate_method,
+                  method = fc_method,
                   paired = FALSE,
                   condition.group = col_name,
                   condition_A = c(conditions$group1),
@@ -2042,24 +2062,9 @@ omics <- R6::R6Class(
                   pvalue.threshold = pvalue.threshold,
                   abundance.threshold = abundance.threshold,
                   logfold.threshold = logfold.threshold
-                  )
+                )
               }
             )
-            # if (class(self)[1] %in% c("omics", "proteomics")) {
-            #   dfe$data$p.adj <- p.adjust(p = dfe$data$pvalue_1, method = "fdr")
-            #   dfe$volcano_plot <- volcano_plot(
-            #     data = dfe$data,
-            #     logfold_col = "Log2FC_1",
-            #     pvalue_col = "p.adj",
-            #     feature_rank = feature_contrast[j],
-            #     abundance_col = "abun",
-            #     label_A = conditions$group1,
-            #     label_B = conditions$group2,
-            #     pvalue.threshold = pvalue.threshold,
-            #     abundance.threshold = abundance.threshold,
-            #     logfold.threshold = logfold.threshold
-            #   )
-            # }
             Log2FC_plots[[i, j]] <- patchwork::wrap_plots(dfe$volcano_plot, nrow=1)
             Log2FC_data[[i, j]] <- list(data = dfe$data)
           }
