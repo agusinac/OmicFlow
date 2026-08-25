@@ -1366,7 +1366,7 @@ omics <- R6::R6Class(
       }
 
       # Adds relevant data
-      df_pcs_points[, groups := private$.metaData[[ group_by ]] ]
+      df_pcs_points[, paste(group_by) := private$.metaData[[ group_by ]] ]
       df_pcs_points[, samples := row.names(df_pcs_points) ]
       plot_list$pcs <- df_pcs_points
 
@@ -1406,7 +1406,7 @@ omics <- R6::R6Class(
         # Loading score plot
         plot_list$scores_plot <- ordination_plot(
           data = df_pcs_points,
-          col_name = "groups",
+          col_name = group_by,
           pair=c("PC1", "PC2"),
           dist_explained = pcs$eig_norm[1:2],
           dist_metric = metric
@@ -1424,7 +1424,7 @@ omics <- R6::R6Class(
 
         plot_list$scores_plot <- ordination_plot(
           data = df_pcs_points,
-          col_name = "groups",
+          col_name = group_by,
           pair=c("MDS1", "MDS2"),
           dist_metric = metric
         )

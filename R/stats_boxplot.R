@@ -1,14 +1,16 @@
-#' Diversity plot
+#' Create a boxplot with jittered points and statistical tests
 #' 
-#' @description Creates an Alpha diversity plot. This function is built into the class \link{omics} with method \code{alpha_diversity()}.
-#' It computes the pairwise wilcox test, paired or non-paired..
-#' @param data A \link[base]{data.frame} or \link[data.table]{data.table} computed from \link{diversity}.
+#' @description
+#' Visualizes group differences using a half-boxplot, half-jitter plot with automatic statistical testing and p-value annotation. 
+#' Thus far only the wilcoxon rank test (non-paired) and wilcoxon signed rank test (paired) are supported.
+#' This function is built into the class \link{omics} with method \code{alpha_diversity()}.
+#' @param data A \link[base]{data.frame} or \link[data.table]{data.table} table.
 #' @param values A column name of a continuous variable.
 #' @param col_name A column name of a categorical variable.
 #' @param group_by A column name to perform grouped statistical test (default: \code{NULL}).
 #' @param palette An object with names and hexcode or color names, see \link{colormap}.
 #' @param method A character variable indicating what method is used to compute the diversity (default: \code{"custom"}).
-#' @param paired A boolean value to perform paired analysis in \link[matrixTests]{row_wilcoxon_paired} (default: \code{FALSE}).
+#' @param paired A boolean value to perform paired analysis with \link[matrixTests]{row_wilcoxon_paired} (default: \code{FALSE}).
 #' @param p.adjust.method A character variable to specify the p.adjust.method to be used (default: \code{"fdr"}).
 #' @return A \link[ggplot2]{ggplot2} object to be further modified
 #' 
@@ -46,7 +48,7 @@
 #' colors <- OmicFlow::colormap(dt, "treatment")
 #' 
 #' # Comparing two groups
-#' plt <- OmicFlow::diversity_plot(
+#' plt <- OmicFlow::boxjitter_test(
 #'  data = dt,
 #'  values = "shannon",
 #'  col_name = "treatment",
@@ -57,7 +59,7 @@
 #' )
 #' 
 #' # Performing a test while stratifying the plot in two groups
-#' plt <- OmicFlow::diversity_plot(
+#' plt <- OmicFlow::boxjitter_test(
 #'  data = dt,
 #'  values = "shannon",
 #'  col_name = "treatment",
@@ -69,7 +71,7 @@
 #' )
 #' @export
 
-diversity_plot <- function(
+boxjitter_test <- function(
   data,
   values,
   col_name,
@@ -295,7 +297,7 @@ diversity_plot <- function(
       labels = levels(as.factor(data_tmp[[col_name]]))
     ) +
     ggplot2::scale_colour_manual(
-      name = "groups",
+      name = col_name,
       values = palette
     )
 
@@ -359,4 +361,23 @@ diversity_plot <- function(
   )
   
   return(result)
+}
+
+#' Diversity plot
+#'
+#' @description Creates an Alpha diversity plot. This function is built into the class \link{omics} with method \code{alpha_diversity()}.
+#' It computes the pairwise wilcox test, paired or non-paired, given a data frame and adds useful labelling.
+#' 
+#' This function has been changed throughout iterations and become more generic than it's original use. Therefore the function name is changed to `boxjitter_test`, the current `diversity_plot` will be deprecated within the near future.
+#'
+#' @param ... arguments passed to \link{boxjitter_test}
+#' @export
+diversity_plot <- function(...) {
+  lifecycle::deprecate_warn(
+    when = "1.6.0",
+    what = "diversity_plot()",
+    with = "boxjitter_plot()",
+    details = "This function has been generalized for all group comparisons, not just alpha diversity."
+  )
+  boxjitter_test(...)
 }

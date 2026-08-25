@@ -45,7 +45,7 @@ test_that("`omics$ordination()` -- Behavioral checks", {
   expect_equal(round(res$anova_data$F.Model, 2), 1.75)
   expect_equal(dim(as.matrix(res$dist)), c(nrow(test$metaData), nrow(test$metaData)))
   expect_equal(any(grepl("PC", colnames(res$pcs))), TRUE)
-  expect_equal(column_exists("groups", res$pcs), TRUE)
+  expect_equal(column_exists("CONTRAST_treatment", res$pcs), TRUE)
   expect_equal(column_exists("samples", res$pcs), TRUE)
 
   expect_s3_class(res$scores_plot, "ggplot")
@@ -60,7 +60,7 @@ test_that("`omics$ordination()` -- Behavioral checks", {
   expect_equal(dim(as.matrix(res$dist)), c(nrow(test$metaData), nrow(test$metaData)))
   expect_equal(any(grepl("MDS", colnames(res$pcs))), TRUE)
   expect_equal(column_exists("stress", res$pcs), TRUE)
-  expect_equal(column_exists("groups", res$pcs), TRUE)
+  expect_equal(column_exists("CONTRAST_treatment", res$pcs), TRUE)
   expect_equal(column_exists("samples", res$pcs), TRUE)
 
   expect_s3_class(res$scores_plot, "ggplot")
@@ -75,7 +75,7 @@ test_that("`omics$ordination()` -- Behavioral checks", {
   expect_equal(round(res$anova_data$F.Model, 2), 1.74)
   expect_equal(dim(as.matrix(res$dist)), c(nrow(test$metaData), nrow(test$metaData)))
   expect_equal(any(grepl("PC", colnames(res$pcs))), TRUE)
-  expect_equal(column_exists("groups", res$pcs), TRUE)
+  expect_equal(column_exists("CONTRAST_treatment", res$pcs), TRUE)
   expect_equal(column_exists("samples", res$pcs), TRUE)
 
   expect_s3_class(res$scores_plot, "ggplot")

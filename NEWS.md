@@ -14,10 +14,14 @@
 - [#43](https://github.com/agusinac/OmicFlow/issues/43) Re-combined `foldchange` into `omics` and option to use different fold-change computations via argument `method` and `aggregate_method`.
 - replaced `ggpubr` by `ggplot2` functions in `diversity_plot`.
 - [#42](https://github.com/agusinac/OmicFlow/issues/42) replaced `rstatix` by inbuilt `pairwise_wilcox_test`, added also tests for the util.
+- Added colorblind coloring and replaced `"groups"` to actual `col_name` in `omics$ordination`
 
 ## Fixed
 - `omics$feature_merge` is optional in `omics$foldchange`
 - `omics$removeNAs` uses `stats::complete.cases` instead of `na.omit`
+
+## Deprecated
+- `diversity_plot` is replaced by `stats_boxplot`. The original `diversity_plot` is scheduled for deprecation.
 
 # OmicFlow 1.6.0 (2026-05-19)
 

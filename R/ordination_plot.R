@@ -94,32 +94,40 @@ ordination_plot <- function(
 
   data[[ col_name ]] <- as.factor(data[[ col_name ]])
 
-  return(
-      ggplot2::ggplot(
-        data = data,
-        mapping = ggplot2::aes(
-          x = .data[[ pair[1] ]],
-          y = .data[[ pair[2] ]],
-          color = .data[[ col_name ]],
-          linetype = .data[[ col_name ]]
-        )
-      ) +
-      ggplot2::geom_point(alpha = 5) +
-      ggplot2::stat_ellipse(type = "t") +
-      ggplot2::theme_bw() +
-      ggplot2::theme(
-        text = ggplot2::element_text(size=14),
-        legend.text = ggplot2::element_text(size=12),
-        legend.title = ggplot2::element_text(size=14),
-        axis.text = ggplot2::element_text(size=12),
-        axis.text.y = ggplot2::element_text(size=12),
-        axis.text.x = ggplot2::element_text(size=12)
-      ) +
-      ggplot2::labs(
-        title = dist_metric,
-        subtitle = NULL,
-        x = x_label,
-        y = y_label
-      )
+  plt <- ggplot2::ggplot(
+    data = data,
+    mapping = ggplot2::aes(
+      x = .data[[ pair[1] ]],
+      y = .data[[ pair[2] ]],
+      color = .data[[ col_name ]],
+      linetype = .data[[ col_name ]]
+    )
+  ) +
+  ggplot2::geom_point(alpha = 5) +
+  ggplot2::stat_ellipse(type = "t") +
+  ggplot2::theme_bw() +
+  ggplot2::theme(
+    text = ggplot2::element_text(size=14),
+    legend.text = ggplot2::element_text(size=12),
+    legend.title = ggplot2::element_text(size=14),
+    axis.text = ggplot2::element_text(size=12),
+    axis.text.y = ggplot2::element_text(size=12),
+    axis.text.x = ggplot2::element_text(size=12)
   )
+
+  if (length(unique(data[[col_name]])) <= 8) {
+    plt <- plt +
+    ggplot2::scale_colour_manual(
+      name = col_name,
+      values = colormap(data = data, col_name = col_name)
+    )
+  }
+  plt <- plt +
+  ggplot2::labs(
+    title = dist_metric,
+    subtitle = NULL,
+    x = x_label,
+    y = y_label
+  )
+  return(plt)
 }
