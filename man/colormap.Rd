@@ -4,12 +4,19 @@
 \alias{colormap}
 \title{Color map of a variable}
 \usage{
-colormap(data, col_name, Brewer.palID = "Set2")
+colormap(
+  data,
+  col_name = lifecycle::deprecated(),
+  groups,
+  Brewer.palID = "Set2"
+)
 }
 \arguments{
 \item{data}{A \link[base]{data.frame} or \link[data.table]{data.table}.}
 
-\item{col_name}{A column name of a categorical variable.}
+\item{col_name}{\ifelse{html}{\href{https://lifecycle.r-lib.org/articles/stages.html#deprecated}{\figure{lifecycle-deprecated.svg}{options: alt='[Deprecated]'}}}{\strong{[Deprecated]}} This argument has been renamed to \code{groups} for more clarity.}
+
+\item{groups}{A column name of a categorical variable in \code{data}.}
 
 \item{Brewer.palID}{A character name that exists in \link[RColorBrewer]{brewer.pal} (Default: \code{"Set2"}).}
 }
@@ -29,5 +36,5 @@ dt <- data.table(
 )
 
 colors <- colormap(data = dt,
-                   col_name = "treatment")
+                   groups = "treatment")
 }

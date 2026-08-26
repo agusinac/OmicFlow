@@ -223,7 +223,7 @@ obj <- metagenomics$new(
  featureData = features_file,
 )
 
-plt <- obj$alpha_diversity(col_name = "treatment",
+plt <- obj$alpha_diversity(groups = "treatment",
                            metric = "shannon")
 
 
@@ -325,7 +325,7 @@ dfe <- obj$foldchange(
 Aitchison, J. (1986) The Statistical Analysis of Compositional Data. Chapman and Hall, London, 416 p.
 }
 \seealso{
-\link{diversity_plot}
+\link{boxjitter_test}
 
 \link{composition_plot}
 
@@ -841,10 +841,12 @@ plt
   \subsection{Usage}{
     \if{html}{\out{<div class="r">}}
     \preformatted{omics$alpha_diversity(
-  col_name,
+  col_name = lifecycle::deprecated(),
+  groups,
   metric = "shannon",
   Brewer.palID = "Set2",
-  group_by = NULL,
+  group_by = lifecycle::deprecated(),
+  split_by = NULL,
   evenness = FALSE,
   paired = FALSE,
   p.adjust.method = "fdr"
@@ -854,13 +856,15 @@ plt
   \subsection{Arguments}{
     \if{html}{\out{<div class="arguments">}}
     \describe{
-      \item{\code{col_name}}{A character variable from the \code{metaData}.}
+      \item{\code{col_name}}{\ifelse{html}{\href{https://lifecycle.r-lib.org/articles/stages.html#deprecated}{\figure{lifecycle-deprecated.svg}{options: alt='[Deprecated]'}}}{\strong{[Deprecated]}} This argument has been renamed to \code{groups} for more clarity.}
+      \item{\code{groups}}{A column name in \code{metaData} to set the grouping variable.}
       \item{\code{metric}}{An alpha diversity metric as input to \link{diversity} (default: \code{"shannon"}).}
-      \item{\code{Brewer.palID}}{A character name for the palette set to be applied, see \link[RColorBrewer]{brewer.pal} or \link{colormap}.}
-      \item{\code{group_by}}{A column name to perform grouped statistical test in \link{diversity_plot} (default: \code{NULL}).}
-      \item{\code{evenness}}{A boolean wether to divide diversity by number of species, see \link[vegan]{specnumber}.}
+      \item{\code{Brewer.palID}}{A character name for the palette set to be applied, see \link[RColorBrewer]{brewer.pal} or \link{colormap} (default: \code{"Set2"}).}
+      \item{\code{group_by}}{\ifelse{html}{\href{https://lifecycle.r-lib.org/articles/stages.html#deprecated}{\figure{lifecycle-deprecated.svg}{options: alt='[Deprecated]'}}}{\strong{[Deprecated]}} This argument has been renamed to \code{split_by} for more clarity}
+      \item{\code{split_by}}{A column name to split the groups into chunks for grouped statistical test in \link{boxjitter_test} (default: \code{NULL}).}
+      \item{\code{evenness}}{A boolean wether to divide diversity by number of species, see \link[vegan]{specnumber} (default: \code{FALSE}).}
       \item{\code{paired}}{A boolean value to perform paired analysis in \link[stats]{wilcox.test} and samplepair subsetting via \href{#method-samplepair_subset}{\code{samplepair_subset()}}}
-      \item{\code{p.adjust.method}}{A character variable to specify the p.adjust.method to be used (default: \code{'fdr'}).}
+      \item{\code{p.adjust.method}}{A character variable to specify the p.adjust.method to be used (default: \code{"fdr"}).}
     }
     \if{html}{\out{</div>}}
   }
@@ -885,7 +889,7 @@ obj <- metagenomics$new(
  featureData = features_file,
 )
 
-plt <- obj$alpha_diversity(col_name = "treatment",
+plt <- obj$alpha_diversity(groups = "treatment",
                            metric = "shannon")
 }
     \if{html}{\out{</div>}}
@@ -902,7 +906,8 @@ plt <- obj$alpha_diversity(col_name = "treatment",
     \preformatted{omics$composition(
   feature_rank,
   feature_filter = NULL,
-  col_name = NULL,
+  col_name = lifecycle::deprecated(),
+  add_cols = NULL,
   feature_top = 10,
   Brewer.palID = "RdYlBu"
 )}
@@ -911,9 +916,10 @@ plt <- obj$alpha_diversity(col_name = "treatment",
   \subsection{Arguments}{
     \if{html}{\out{<div class="arguments">}}
     \describe{
-      \item{\code{feature_rank}}{A character variable in \code{featureData} to aggregate via \href{#method-feature_merge}{\code{feature_merge()}}.}
+      \item{\code{feature_rank}}{A column name in \code{featureData} to aggregate via \href{#method-feature_merge}{\code{feature_merge()}}.}
       \item{\code{feature_filter}}{A character or vector of characters to removes features by regex pattern.}
-      \item{\code{col_name}}{Optional, a character or vector of characters to add to the final compositional data output.}
+      \item{\code{col_name}}{\ifelse{html}{\href{https://lifecycle.r-lib.org/articles/stages.html#deprecated}{\figure{lifecycle-deprecated.svg}{options: alt='[Deprecated]'}}}{\strong{[Deprecated]}} This argument has been renamed to \code{add_cols} for more clarity.}
+      \item{\code{add_cols}}{Optional, a column name or vector of multiple column names from \code{metaData} to add to the final compositional data.}
       \item{\code{feature_top}}{A wholenumber of the top features to visualize, the max is 15, due to a limit of palettes (default: \code{10}).}
       \item{\code{Brewer.palID}}{A character name for the palette set to be applied, see \link[RColorBrewer]{brewer.pal} or \link{colormap}.}
     }
@@ -1093,7 +1099,8 @@ and if \code{aggregate_method = "median"} is used then the \link[matrixTests]{ro
   condition_B,
   method = "identity",
   aggregate_method = "median",
-  group_by = NULL,
+  group_by = lifecycle::deprecated(),
+  split_by = NULL,
   feature_merge = FALSE,
   feature_rank = "FEATURE_ID",
   feature_filter = NULL,
@@ -1117,7 +1124,8 @@ Proportional data is also supported and will be automatically detected.}
 \item{\code{"log"}}{Computes fold-change via \code{condition_A - condition_B}.}
 }}
       \item{\code{aggregate_method}}{A function to aggregate the matrix values in \code{method = "log"} by taking e.g. the \code{median} of \code{condition_A} and \code{condition_B} prior to substraction, or in the case of \code{method = "identity"} to take the median of the fold-change \code{log2(median(A)) - log2(median(B))} (default: \code{median}).}
-      \item{\code{group_by}}{A character variable of an existing column in \code{metaData} to split the table in chunks prior to fold-change computation (default: \code{NULL}). When disabled then column names will end with \verb{_in_all}.}
+      \item{\code{group_by}}{\ifelse{html}{\href{https://lifecycle.r-lib.org/articles/stages.html#deprecated}{\figure{lifecycle-deprecated.svg}{options: alt='[Deprecated]'}}}{\strong{[Deprecated]}} This argument has been renamed to \code{split_by} for more clarity.}
+      \item{\code{split_by}}{A character variable of an existing column in \code{metaData} to split the table in chunks prior to fold-change computation (default: \code{NULL}). When disabled then column names will end with \verb{_in_all}.}
       \item{\code{feature_merge}}{A boolean value wether to call \href{#method-feature_merge}{\code{feature_merge()}} (default: \code{FALSE}).}
       \item{\code{feature_rank}}{A column in the \code{featureData} to use as the feature scope (default: \code{"FEATURE_ID"}).}
       \item{\code{feature_filter}}{A character or vector of characters to remove features via regex pattern (default: \code{NULL}).}
@@ -1130,9 +1138,9 @@ Proportional data is also supported and will be automatically detected.}
   }
   \subsection{Returns}{
     A list of components: \describe{
-\item{\code{group_by} subsets}{A \link[base]{matrix} subset from each \code{group_by} separated by \code{condition_A} and \code{condition_B}.}
+\item{\code{split_by} subsets}{A \link[base]{matrix} subset from each \code{split_by} separated by \code{condition_A} and \code{condition_B}.}
 \item{data}{A \link[data.table]{data.table} main output of fold-changes between conditions, contains abundance, fold-change, and homogeneity tests.}
-\item{volcano_plot}{A list of \link[ggplot2]{ggplot} plots for each contrast of \code{A vs B}, number of plots depend on \code{group_by} and \code{condition_A} input.}
+\item{volcano_plot}{A list of \link[ggplot2]{ggplot} plots for each contrast of \code{A vs B}, number of plots depend on \code{split_by} and \code{condition_A} input.}
 }
   }
   \subsection{Examples}{

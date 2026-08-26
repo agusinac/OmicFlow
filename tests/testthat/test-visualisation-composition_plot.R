@@ -9,7 +9,7 @@ taxa$scale(method = "tss")
 comp <- taxa$composition(
   feature_rank = "Genus",
   feature_filter = c("uncultured"),
-  col_name = "CONTRAST_sex",
+  add_cols = "CONTRAST_sex",
   feature_top = 10
 )
 

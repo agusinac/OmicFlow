@@ -6,14 +6,17 @@
 #' This function is built into the class \link{omics} with method \code{alpha_diversity()}.
 #' @param data A \link[base]{data.frame} or \link[data.table]{data.table} table.
 #' @param values A column name of a continuous variable.
-#' @param col_name A column name of a categorical variable.
-#' @param group_by A column name to perform grouped statistical test (default: \code{NULL}).
-#' @param palette An object with names and hexcode or color names, see \link{colormap}.
-#' @param method A character variable indicating what method is used to compute the diversity (default: \code{"custom"}).
+#' @param groups A column name of a categorical variable.
+#' @param col_name `r lifecycle::badge("deprecated")` This argument has been renamed to `groups` for more clarity.
+#' @param split_by A column name to split the groups into chunks for grouped statistical test (default: \code{NULL}).
+#' @param group_by `r lifecycle::badge("deprecated")` This argument has been renamed to `split_by` for more clarity.
+#' @param palette An object with names and hexcode or color names, see \link{colormap} (default: \code{NULL}).
+#' @param method `r lifecycle::badge("deprecated")` This argument no longer labels the y-labels.
+#' @param test A character variable indicating what statistical test to apply (default: \code{"wilcox"}).
 #' @param paired A boolean value to perform paired analysis with \link[matrixTests]{row_wilcoxon_paired} (default: \code{FALSE}).
 #' @param p.adjust.method A character variable to specify the p.adjust.method to be used (default: \code{"fdr"}).
 #' @return A \link[ggplot2]{ggplot2} object to be further modified
-#' 
+#'
 #' @examples  
 #' n_row <- 1000
 #' n_col <- 100
@@ -51,9 +54,9 @@
 #' plt <- OmicFlow::boxjitter_test(
 #'  data = dt,
 #'  values = "shannon",
-#'  col_name = "treatment",
+#'  groups = "treatment",
 #'  palette = colors,
-#'  method = "shannon",
+#'  test = "wilcox",
 #'  paired = FALSE,
 #'  p.adjust.method = "fdr"
 #' )
@@ -62,10 +65,10 @@
 #' plt <- OmicFlow::boxjitter_test(
 #'  data = dt,
 #'  values = "shannon",
-#'  col_name = "treatment",
-#'  group_by = "sex",
+#'  groups = "treatment",
+#'  split_by = "sex",
 #'  palette = colors,
-#'  method = "shannon",
+#'  test = "wilcox",
 #'  paired = FALSE,
 #'  p.adjust.method = "fdr"
 #' )
@@ -74,13 +77,54 @@
 boxjitter_test <- function(
   data,
   values,
-  col_name,
-  group_by = NULL,
-  palette,
-  method = "custom",
+  col_name = lifecycle::deprecated(),
+  groups,
+  group_by = lifecycle::deprecated(),
+  split_by = NULL,
+  palette = NULL,
+  method = lifecycle::deprecated(),
+  test = "wilcox",
   paired = FALSE,
   p.adjust.method = "fdr"
   ) {
+
+  ## Lifecycle warn  
+  # col_name → groups
+  if (lifecycle::is_present(col_name)) {
+    lifecycle::deprecate_warn(
+      when = "1.7.0",
+      what = "boxjitter_plot(col_name)",
+      with = "boxjitter_plot(groups)",
+      details = "Use `groups` to specify the grouping variable."
+    )
+
+    if (missing(groups)) {
+      groups <- col_name
+    }
+  }
+  
+  # group_by → split_by
+  if (lifecycle::is_present(group_by)) {
+    lifecycle::deprecate_warn(
+      when = "1.7.0",
+      what = "boxjitter_plot(group_by)",
+      with = "boxjitter_plot(split_by)",
+      details = "Use `split_by` to specify the stratification variable."
+    )
+
+    if (missing(split_by)) {
+      split_by <- group_by
+    }
+  }
+  
+  # method → test (assuming this is the new name)
+  if (lifecycle::is_present(method)) {
+    lifecycle::deprecate_stop(
+      when = "1.7.0",
+      what = "boxjitter_plot(method)",
+      details = "The method to specify the alpha diversity method is no longer available. Please use `ggplot::labs()` to change the y-label."
+    )
+  }
   
   ## Error handling
   #--------------------------------------------------------------------#
@@ -94,28 +138,26 @@ boxjitter_test <- function(
     cli::cli_abort("The {.val values} column does not exist in the provided {.arg data}.")
   }
   
-  if (!is.character(col_name) || length(col_name) != 1) {
-    cli::cli_abort("{.val col_name} needs to contain characters with length of 1.")
-  } else if (!column_exists(col_name, data)) {
-    cli::cli_abort("The {.val col_name} column does not exist in the provided {.arg data}.")
+  if (!is.character(groups) || length(groups) != 1) {
+    cli::cli_abort("{.val groups} needs to contain characters with length of 1.")
+  } else if (!column_exists(groups, data)) {
+    cli::cli_abort("The {.val groups} column does not exist in the provided {.arg data}.")
   }
   
-  if (!is.null(group_by)) {
-    if (!is.character(group_by) || length(group_by) != 1) {
-      cli::cli_abort("{.val group_by} needs to contain characters with length of 1.")
-    } else if (!column_exists(group_by, data)) {
-      cli::cli_abort("The {.val group_by} column does not exist in the provided {.arg data}.")
+  if (!is.null(split_by)) {
+    if (!is.character(split_by) || length(split_by) != 1) {
+      cli::cli_abort("{.val split_by} needs to contain characters with length of 1.")
+    } else if (!column_exists(split_by, data)) {
+      cli::cli_abort("The {.val split_by} column does not exist in the provided {.arg data}.")
     }
   }
 
-  if (!is.character(palette)) {
-    cli::cli_abort("{.val palette} needs to contain characters.")
-  } else if (!is.color(palette)) {
-    cli::cli_abort("{.val palette} contains invalid colors.")
-  }
-    
-  if (!is.character(method)) {
-    cli::cli_abort("{.val method} needs to be a character {.cls vector}.")
+  if (!is.null(palette)) {
+    if (!is.character(palette)) {
+      cli::cli_abort("{.val palette} needs to contain characters.")
+    } else if (!is.color(palette)) {
+      cli::cli_abort("{.val palette} contains invalid colors.")
+    }
   }
 
   if (!is.logical(paired))
@@ -130,20 +172,21 @@ boxjitter_test <- function(
   data_tmp <- data.table::copy(data)
   result <- list()
 
-  if (!is.null(group_by)) {
-    data.table::setnames(data_tmp, old = group_by, new = "group_by")
-    group_by <- "group_by"
+  if (!is.null(split_by)) {
+    data.table::setnames(data_tmp, old = split_by, new = "split_by")
+    split_by <- "split_by"
 
     pvalues_adjusted <- data_tmp[, {
-      tmp <- pairwise_wilcox_test(
+      tmp <- pairwise_test(
           data = .SD,
           x_col = values,
-          g_col = col_name,
+          g_col = groups,
+          test = test,
           p.adjust.method = p.adjust.method,
           paired = paired
       )
       tmp
-    }, by = group_by]
+    }, by = split_by]
 
     # Creates box_stats for half geom_box
     box_stats <- data_tmp[, .(
@@ -152,13 +195,14 @@ boxjitter_test <- function(
       lower = stats::quantile(base::get(values), 0.25),
       middle = stats::median(base::get(values)),
       upper = stats::quantile(base::get(values), 0.75)
-    ), by = .(group_numeric = as.numeric(as.factor(base::get(col_name))), group_by)]
+    ), by = .(group_numeric = as.numeric(as.factor(base::get(groups))), split_by)]
   } else {
     pvalues_adjusted <- data_tmp[, {
-      tmp <- pairwise_wilcox_test(
+      tmp <- pairwise_test(
         data = .SD,
         x_col = values,
-        g_col = col_name,
+        g_col = groups,
+        test = test,
         p.adjust.method = p.adjust.method,
         paired = paired
       )
@@ -172,7 +216,7 @@ boxjitter_test <- function(
       lower = stats::quantile(base::get(values), 0.25),
       middle = stats::median(base::get(values)),
       upper = stats::quantile(base::get(values), 0.75)
-    ), by = .(group_numeric = as.numeric(as.factor(get(col_name))))]
+    ), by = .(group_numeric = as.numeric(as.factor(get(groups))))]
   }
 
   ## Check if any significant pairs
@@ -192,12 +236,12 @@ boxjitter_test <- function(
   plt <- ggplot2::ggplot(
     data = data_tmp,
     mapping = ggplot2::aes(
-      x = as.numeric(as.factor(.data[[col_name]])),
+      x = as.numeric(as.factor(.data[[groups]])),
       y = .data[[values]]
     )
   )
   # Custom half-boxplot using pre-computed stats
-  if (!is.null(group_by)) {
+  if (!is.null(split_by)) {
     suppressWarnings(
       plt <- plt + ggplot2::geom_boxplot(
         data = box_stats,
@@ -205,7 +249,7 @@ boxjitter_test <- function(
             ymin = .data$lower, ymax = .data$upper,
             lower = .data$lower, middle = .data$middle, upper = .data$upper,
             width = 0.4,
-            group = base::interaction(.data$group_numeric, .data$group_by)),
+            group = base::interaction(.data$group_numeric, .data$split_by)),
         stat = "identity",
         fill = "white", color = "black",
         alpha = 0.8,
@@ -233,8 +277,8 @@ boxjitter_test <- function(
     # Points on right side
     ggplot2::geom_point(
       mapping = ggplot2::aes(
-        x = as.numeric(as.factor(.data[[col_name]])) + 0.2, 
-        color = as.factor(.data[[col_name]])
+        x = as.numeric(as.factor(.data[[groups]])) + 0.2, 
+        color = as.factor(.data[[groups]])
       ), 
       position = ggplot2::position_jitter(width = 0.1, height = 0, seed = 1970), 
       shape = 20, size = 2
@@ -275,9 +319,9 @@ boxjitter_test <- function(
       linewidth = 0.3
     )
 
-  if (!is.null(group_by)) {
+  if (!is.null(split_by)) {
     plt <- plt +
-      ggplot2::facet_wrap(~.data[[ group_by ]])
+      ggplot2::facet_wrap(~.data[[ split_by ]])
   }
 
   plt <- plt + 
@@ -293,13 +337,18 @@ boxjitter_test <- function(
     ) +
     # Restore proper x-axis labels
     ggplot2::scale_x_continuous(
-      breaks = seq_along(unique(data_tmp[[col_name]])),
-      labels = levels(as.factor(data_tmp[[col_name]]))
-    ) +
-    ggplot2::scale_colour_manual(
-      name = col_name,
-      values = palette
+      breaks = seq_along(unique(data_tmp[[groups]])),
+      labels = levels(as.factor(data_tmp[[groups]]))
     )
+
+    # Palette is optional
+    if (!is.null(palette)) {
+      plt <- plt +
+        ggplot2::scale_colour_manual(
+          name = groups,
+          values = palette
+        )
+    }
 
   ## Adding significant bars
   if (any(signif_rows)) {
@@ -348,11 +397,12 @@ boxjitter_test <- function(
     ggplot2::labs(
       title = NULL,
       subtitle = paste0(
-      "Attribute: ", col_name,
-      ", test: ", ifelse(paired, "Wilcox signed rank test", "Mann-Whitney U test"),
-      ", p.adjusted by ", p.adjust.method),
-      x = "sample groups",
-      y = paste0("Alpha diversity metric: ", method)
+        "Attribute: ", groups,
+        ", test: ", test,
+        ", p.adjusted by ", p.adjust.method
+      ),
+      x = groups,
+      y = values
     )
 
   result <- list(
@@ -365,19 +415,26 @@ boxjitter_test <- function(
 
 #' Diversity plot
 #'
-#' @description Creates an Alpha diversity plot. This function is built into the class \link{omics} with method \code{alpha_diversity()}.
-#' It computes the pairwise wilcox test, paired or non-paired, given a data frame and adds useful labelling.
+#' @description 
+#' `r lifecycle::badge("deprecated")`
+#' This function has been changed throughout iterations and become more generic than it's original use. 
+#' Therefore the function name is changed to `boxjitter_test`, the current `diversity_plot` will be deprecated within the near future.
 #' 
-#' This function has been changed throughout iterations and become more generic than it's original use. Therefore the function name is changed to `boxjitter_test`, the current `diversity_plot` will be deprecated within the near future.
-#'
 #' @param ... arguments passed to \link{boxjitter_test}
+#' @keywords internal
 #' @export
-diversity_plot <- function(...) {
+diversity_plot <- function(
+  ...
+) {
+
   lifecycle::deprecate_warn(
-    when = "1.6.0",
+    when = "1.7.0",
     what = "diversity_plot()",
     with = "boxjitter_plot()",
     details = "This function has been generalized for all group comparisons, not just alpha diversity."
   )
-  boxjitter_test(...)
+
+  boxjitter_test(
+    ...
+  )
 }

@@ -6,7 +6,8 @@
 \usage{
 ordination_plot(
   data,
-  col_name,
+  col_name = lifecycle::deprecated(),
+  groups = lifecycle::deprecated(),
   pair,
   dist_explained = NULL,
   dist_metric = NULL
@@ -15,9 +16,11 @@ ordination_plot(
 \arguments{
 \item{data}{A \link[base]{data.frame} or \link[data.table]{data.table} of Principal Components as columns and rows as loading scores.}
 
-\item{col_name}{A categorical variable to color the contrasts (e.g. "groups").}
+\item{col_name}{\ifelse{html}{\href{https://lifecycle.r-lib.org/articles/stages.html#deprecated}{\figure{lifecycle-deprecated.svg}{options: alt='[Deprecated]'}}}{\strong{[Deprecated]}} This argument has been renamed to \code{groups} for more clarity.}
 
-\item{pair}{A vector of character variables indicating what dimension names (e.g. PC1, NMDS2).}
+\item{groups}{A categorical variable to color the groups (e.g. \code{"treatment"}).}
+
+\item{pair}{A vector of character variables indicating what dimension names (e.g. \code{c("PC1", "PC2")} or \code{c("NMDS1", "NMDS2")}).}
 
 \item{dist_explained}{A vector of numeric values of the percentage dissimilarity explained for the dimension pairs (default: \code{NULL}).}
 
@@ -44,14 +47,14 @@ mock_data <- data.frame(
 # Basic usage
 ordination_plot(
   data = mock_data,
-  col_name = "groups",
+  groups = "groups",
   pair = c("PC1", "PC2")
 )
 
 # Adding variance/dissimilarity explained.
 ordination_plot(
   data = mock_data,
-  col_name = "groups",
+  groups = "groups",
   pair = c("PC1", "PC2"),
   dist_explained = c(45, 22),
   dist_metric = "bray-curtis"

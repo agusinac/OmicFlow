@@ -835,13 +835,15 @@ omics <- R6::R6Class(
     },
     #' @description
     #' Alpha diversity based on \link{diversity}
-    #' @param col_name A character variable from the `metaData`.
+    #' @param col_name `r lifecycle::badge("deprecated")` This argument has been renamed to `groups` for more clarity.
+    #' @param groups A column name in `metaData` to set the grouping variable.
     #' @param metric An alpha diversity metric as input to \link{diversity} (default: \code{"shannon"}).
-    #' @param group_by A column name to perform grouped statistical test in \link{diversity_plot} (default: \code{NULL}).
-    #' @param Brewer.palID A character name for the palette set to be applied, see \link[RColorBrewer]{brewer.pal} or \link{colormap}.
-    #' @param evenness A boolean wether to divide diversity by number of species, see \link[vegan]{specnumber}.
+    #' @param group_by `r lifecycle::badge("deprecated")` This argument has been renamed to `split_by` for more clarity
+    #' @param split_by A column name to split the groups into chunks for grouped statistical test in \link{boxjitter_test} (default: \code{NULL}).
+    #' @param Brewer.palID A character name for the palette set to be applied, see \link[RColorBrewer]{brewer.pal} or \link{colormap} (default: \code{"Set2"}).
+    #' @param evenness A boolean wether to divide diversity by number of species, see \link[vegan]{specnumber} (default: \code{FALSE}).
     #' @param paired A boolean value to perform paired analysis in \link[stats]{wilcox.test} and samplepair subsetting via [`samplepair_subset()`](#method-samplepair_subset)
-    #' @param p.adjust.method A character variable to specify the p.adjust.method to be used (default: \code{'fdr'}).
+    #' @param p.adjust.method A character variable to specify the p.adjust.method to be used (default: \code{"fdr"}).
     #' @examples
     #' library("OmicFlow")
     #'
@@ -855,7 +857,7 @@ omics <- R6::R6Class(
     #'  featureData = features_file,
     #' )
     #' 
-    #' plt <- obj$alpha_diversity(col_name = "treatment",
+    #' plt <- obj$alpha_diversity(groups = "treatment",
     #'                            metric = "shannon")
     #'
     #' @returns A list of components: \describe{
@@ -863,32 +865,61 @@ omics <- R6::R6Class(
     #'  \item{stats}{A pairwise statistics from \link[rstatix]{pairwise_wilcox_test}.}
     #'  \item{plot}{A \link[ggplot2]{ggplot} object.}
     #' }
-    #' @seealso \link{diversity_plot}
-    alpha_diversity = function(col_name,
-                               metric = "shannon",
-                               Brewer.palID = "Set2",
-                               group_by = NULL,
-                               evenness = FALSE,
-                               paired = FALSE,
-                               p.adjust.method = "fdr") {
+    #' @seealso \link{boxjitter_test}
+    alpha_diversity = function(
+      col_name = lifecycle::deprecated(),
+      groups,
+      metric = "shannon",
+      Brewer.palID = "Set2",
+      group_by = lifecycle::deprecated(),
+      split_by = NULL,
+      evenness = FALSE,
+      paired = FALSE,
+      p.adjust.method = "fdr"
+    ) {
+
+      ## Lifecycle warning
+      if (lifecycle::is_present(col_name)) {
+        lifecycle::deprecate_warn(
+          when = "1.7.0",
+          what = "alpha_diversity(col_name)",
+          with = "alpha_diversity(groups)",
+          details = "Use `groups` to specify the grouping variable."
+        )
+        if (missing(groups)) {
+          groups <- col_name
+        }
+      }
+
+      if (lifecycle::is_present(group_by)) {
+        lifecycle::deprecate_warn(
+          when = "1.7.0",
+          what = "alpha_diversity(group_by)",
+          with = "alpha_diversity(split_by)",
+          details = "Use `split_by` to specify the stratification variable."
+        )
+        if (missing(split_by)) {
+          split_by <- group_by
+        }
+      }
 
       ## Error handling
       #--------------------------------------------------------------------#
 
-      if (!is.character(col_name) || length(col_name) != 1) {
-        cli::cli_abort("{.val col_name} must be a character and of length 1")
-      } else if (!column_exists(col_name, private$.metaData)) {
-        cli::cli_abort("The specified {.val {col_name}} does not exist in the {.field metaData}.")
+      if (!is.character(groups) || length(groups) != 1) {
+        cli::cli_abort("{.val groups} must be a character and of length 1")
+      } else if (!column_exists(groups, private$.metaData)) {
+        cli::cli_abort("The specified {.val {groups}} does not exist in the {.field metaData}.")
       }
 
-      if (!is.null(group_by)) {
-        if (!is.character(group_by) || length(group_by) != 1) {
-          cli::cli_abort("{.val group_by} must be a character and of length 1")
-        } else if (!column_exists(group_by, private$.metaData)) {
-          cli::cli_abort("The specified {.val {group_by}} does not exist in the {.field metaData}.")
+      if (!is.null(split_by)) {
+        if (!is.character(split_by) || length(split_by) != 1) {
+          cli::cli_abort("{.val split_by} must be a character and of length 1")
+        } else if (!column_exists(split_by, private$.metaData)) {
+          cli::cli_abort("The specified {.val {split_by}} does not exist in the {.field metaData}.")
         }
-        combined_cols <- c(col_name, group_by)
-      } else combined_cols <- col_name
+        combined_cols <- c(groups, split_by)
+      } else combined_cols <- groups
 
       if (!is.logical(evenness))
         cli::cli_abort("{.val evenness} can only be a `TRUE` or `FALSE`.")
@@ -919,8 +950,8 @@ omics <- R6::R6Class(
         private$.treeData <- .treeData
       }, add = TRUE)
 
-      # Remove NAs from `col_name`
-      self$removeNAs(col_name)
+      # Remove NAs from `groups`
+      self$removeNAs(groups)
 
       # Subset by samplepair completion
       if ( paired && column_exists(private$.samplepair_id, private$.metaData) )
@@ -933,17 +964,17 @@ omics <- R6::R6Class(
       if (evenness) div$V1 <- div$V1 / log(vegan::specnumber(div$V1))
 
       # get colors
-      colors <- colormap(private$.metaData, col_name, Brewer.palID)
+      colors <- colormap(data = private$.metaData, groups = groups, Brewer.palID = Brewer.palID)
 
       # Create and saves plots
       plot_list$data <- div
-      diversity_plt <- diversity_plot(
+      diversity_plt <- boxjitter_test(
         data = stats::na.omit(div),
         values = "V1",
-        col_name = col_name,
-        group_by = group_by,
+        groups = groups,
+        split_by = split_by,
         palette = colors,
-        method = metric,
+        test = "wilcox",
         paired = paired,
         p.adjust.method = p.adjust.method
         )
@@ -955,9 +986,10 @@ omics <- R6::R6Class(
     },
     #' @description
     #' Creates a table most abundant compositional features. Also assigns a color blind friendly palette for visualizations.
-    #' @param feature_rank A character variable in `featureData` to aggregate via [`feature_merge()`](#method-feature_merge).
+    #' @param feature_rank A column name in `featureData` to aggregate via [`feature_merge()`](#method-feature_merge).
     #' @param feature_filter A character or vector of characters to removes features by regex pattern.
-    #' @param col_name Optional, a character or vector of characters to add to the final compositional data output.
+    #' @param col_name `r lifecycle::badge("deprecated")` This argument has been renamed to `add_cols` for more clarity.
+    #' @param add_cols Optional, a column name or vector of multiple column names from `metaData` to add to the final compositional data.
     #' @param feature_top A wholenumber of the top features to visualize, the max is 15, due to a limit of palettes (default: \code{10}).
     #' @param Brewer.palID A character name for the palette set to be applied, see \link[RColorBrewer]{brewer.pal} or \link{colormap}.
     #' @examples
@@ -990,19 +1022,33 @@ omics <- R6::R6Class(
     composition = function(
       feature_rank,
       feature_filter = NULL,
-      col_name = NULL,
+      col_name = lifecycle::deprecated(),
+      add_cols = NULL,
       feature_top = 10,
       Brewer.palID = "RdYlBu"
     ) {
 
+      # Handle group_by → split_by
+      if (lifecycle::is_present(col_name)) {
+        lifecycle::deprecate_warn(
+          when = "1.7.0",
+          what = "composition(col_name)",
+          with = "composition(add_cols)",
+          details = "Use `add_cols` to add column names from {.field metaData}."
+        )
+        if (missing(add_cols)) {
+          add_cols <- col_name
+        }
+      }
+
       ## Error handling
       #--------------------------------------------------------------------#
 
-      if (!is.null(col_name)) {
-        if (!is.character(col_name)) {
-          cli::cli_abort("{.val col_name} must be a character.")
-        } else if (!column_exists(col_name, private$.metaData)) {
-          cli::cli_abort("The specified {.val {col_name}} does not exist in the {.field metaData}.")
+      if (!is.null(add_cols)) {
+        if (!is.character(add_cols)) {
+          cli::cli_abort("{.val add_cols} must be a character.")
+        } else if (!column_exists(add_cols, private$.metaData)) {
+          cli::cli_abort("The specified {.val {add_cols}} does not exist in the {.field metaData}.")
         }
       }
 
@@ -1035,9 +1081,9 @@ omics <- R6::R6Class(
       # Agglomerate by feature_rank
       self$feature_merge(feature_rank = feature_rank, feature_filter = feature_filter)
 
-      # Remove NAs when col_name is specified
-      if (!is.null(col_name) && length(col_name) == 1)
-        self$removeNAs(col_name)
+      # Remove NAs when add_cols is specified
+      if (!is.null(add_cols) && length(add_cols) == 1)
+        self$removeNAs(add_cols)
 
       # Converts matrix to data.table
       counts <- matrix_to_dtable(private$.countData)
@@ -1085,10 +1131,10 @@ omics <- R6::R6Class(
       colnames(final_long) <- c(feature_rank, private$.sample_id, "value")
 
       # Adds metadata columns by user input
-      if (!is.null(col_name)) {
+      if (!is.null(add_cols)) {
         composition_merged <- base::merge(
           x = final_long,
-          y = private$.metaData[, .SD, .SDcols = c(private$.sample_id, col_name)],
+          y = private$.metaData[, .SD, .SDcols = c(private$.sample_id, add_cols)],
           by = private$.sample_id,
           all = TRUE,
           allow.cartesian = TRUE)
@@ -1406,7 +1452,7 @@ omics <- R6::R6Class(
         # Loading score plot
         plot_list$scores_plot <- ordination_plot(
           data = df_pcs_points,
-          col_name = group_by,
+          groups = group_by,
           pair=c("PC1", "PC2"),
           dist_explained = pcs$eig_norm[1:2],
           dist_metric = metric
@@ -1424,7 +1470,7 @@ omics <- R6::R6Class(
 
         plot_list$scores_plot <- ordination_plot(
           data = df_pcs_points,
-          col_name = group_by,
+          groups = group_by,
           pair=c("MDS1", "MDS2"),
           dist_metric = metric
         )
@@ -1450,7 +1496,8 @@ omics <- R6::R6Class(
     #'  \item{\code{"log"}}{Computes fold-change via \code{condition_A - condition_B}.}
     #' }
     #' @param aggregate_method A function to aggregate the matrix values in \code{method = "log"} by taking e.g. the \code{median} of `condition_A` and `condition_B` prior to substraction, or in the case of \code{method = "identity"} to take the median of the fold-change \code{log2(median(A)) - log2(median(B))} (default: \code{median}).
-    #' @param group_by A character variable of an existing column in `metaData` to split the table in chunks prior to fold-change computation (default: \code{NULL}). When disabled then column names will end with `_in_all`.
+    #' @param group_by `r lifecycle::badge("deprecated")` This argument has been renamed to `split_by` for more clarity.
+    #' @param split_by A character variable of an existing column in `metaData` to split the table in chunks prior to fold-change computation (default: \code{NULL}). When disabled then column names will end with `_in_all`.
     #' @param feature_merge A boolean value wether to call [`feature_merge()`](#method-feature_merge) (default: \code{FALSE}).
     #' @param feature_rank A column in the `featureData` to use as the feature scope (default: \code{"FEATURE_ID"}).
     #' @param feature_filter A character or vector of characters to remove features via regex pattern (default: \code{NULL}).
@@ -1481,9 +1528,9 @@ omics <- R6::R6Class(
     #' )
     #' 
     #' @returns A list of components: \describe{
-    #'  \item{`group_by` subsets}{A \link[base]{matrix} subset from each \code{group_by} separated by \code{condition_A} and \code{condition_B}.}
+    #'  \item{`split_by` subsets}{A \link[base]{matrix} subset from each \code{split_by} separated by \code{condition_A} and \code{condition_B}.}
     #'  \item{data}{A \link[data.table]{data.table} main output of fold-changes between conditions, contains abundance, fold-change, and homogeneity tests.}
-    #'  \item{volcano_plot}{A list of \link[ggplot2]{ggplot} plots for each contrast of \code{A vs B}, number of plots depend on \code{group_by} and \code{condition_A} input.}
+    #'  \item{volcano_plot}{A list of \link[ggplot2]{ggplot} plots for each contrast of \code{A vs B}, number of plots depend on \code{split_by} and \code{condition_A} input.}
     #' }
     #' @seealso \link{volcano_plot}
     foldchange = function(
@@ -1492,7 +1539,8 @@ omics <- R6::R6Class(
       condition_B,
       method = "identity",
       aggregate_method = "median",
-      group_by = NULL,
+      group_by = lifecycle::deprecated(),
+      split_by = NULL,
       feature_merge = FALSE,
       feature_rank = "FEATURE_ID",
       feature_filter = NULL,
@@ -1501,6 +1549,18 @@ omics <- R6::R6Class(
       logfold.threshold = 0.06,
       abundance.threshold = 0
       ) {
+
+      ## Lifecycle warning
+      if (lifecycle::is_present(group_by)) {
+        lifecycle::deprecate_warn(
+          when = "1.7.0",
+          what = "foldchange(group_by)",
+          with = "foldchange(split_by)"
+        )
+        if (missing(split_by)) {
+          split_by <- group_by
+        }
+      }
 
       ## Error handling
       #--------------------------------------------------------------------#
@@ -1537,11 +1597,11 @@ omics <- R6::R6Class(
         cli::cli_abort("{.val {aggregate_method}} is not a valid option. \nValid options: {.val {OPTIONS}}")
       }
       
-      if (!is.null(group_by)) {
-        if (!is.character(group_by) || length(group_by) != 1) {
-          cli::cli_abort("{.val group_by} needs to be a character with a length of 1.")
-        } else if (!column_exists(group_by, private$.metaData)) {
-          cli::cli_abort("The {.val {group_by}} column does not exist in the {.field metaData}.")
+      if (!is.null(split_by)) {
+        if (!is.character(split_by) || length(split_by) != 1) {
+          cli::cli_abort("{.val split_by} needs to be a character with a length of 1.")
+        } else if (!column_exists(split_by, private$.metaData)) {
+          cli::cli_abort("The {.val {split_by}} column does not exist in the {.field metaData}.")
         }
       }
 
@@ -1588,9 +1648,9 @@ omics <- R6::R6Class(
       if (paired && column_exists(private$.samplepair_id, private$.metaData))
         self$samplepair_subset()
 
-      # Apply `group_by`
-      if (!is.null(group_by)) {
-        chunks <- base::split(private$.metaData, by = group_by)
+      # Apply `split_by`
+      if (!is.null(split_by)) {
+        chunks <- base::split(private$.metaData, by = split_by)
       } else {
         chunks <- list(all = private$.metaData)
       }
@@ -1885,7 +1945,7 @@ omics <- R6::R6Class(
           {
             # Default attempt
             self$alpha_diversity(
-              col_name = col_name,
+              groups = col_name,
               metric = "shannon",
               paired = ifelse(column_exists(private$.samplepair_id, private$.metaData), TRUE, FALSE)
             )
@@ -1896,7 +1956,7 @@ omics <- R6::R6Class(
           # Retry with paired = FALSE
           res2 <- tryCatch(
             self$alpha_diversity(
-              col_name = col_name,
+              groups = col_name,
               metric = "shannon",
               paired = FALSE
             ),

@@ -74,18 +74,60 @@ is.color <- function(x) {
   )
 }
 
-#' Pairwise wilcox rank sum test
-#' Thus far a helper function in `diversity_plot`. It uses `matrixTests` in the background making it more efficient.
+#' Perform pairwise or omnibus statistical tests between groups
 #'
-#' @param data A data.table
-#' @param x_col A column with values in `data`
-#' @param g_col A column of groups in `data`
-#' @param paired A boolean value wether to use wilcox signed rank test (default: \code{FALSE})
-#' @param p.adjust.method A character string to specify the p-adjust method to use in `stats::p.adjust` (default: \code{"fdr"}).
-#' @param ... Extra arguments to be passed to \link[matrixTests]{row_wilcoxon_paired} when \code{paired = TRUE} or \link[matrixTests]{row_wilcoxon_twosample} when \code{paired = FALSE}.
+#' Performs statistical comparisons between groups using various tests from the
+#' \code{matrixTests} package. Supports location tests (t-test, Wilcoxon, Kruskal-Wallis,
+#' Van der Waerden) and scale tests (Levene, Bartlett, Brown-Forsythe, Fligner-Killeen).
 #' 
+#' @param data A \link[data.table]{data.table} or \link[base]{data.frame}.
+#' @param x_col A character string specifying the column with numeric values in \code{data}
+#' @param g_col A character string specifying the column with group labels in \code{data}
+#' @param test A character string specifying the statistical test:
+#'   \describe{
+#'     \item{\strong{Pairwise tests:}}{
+#'       \itemize{
+#'         \item \code{"t.test"} - Welch t-test (default, unequal variances assumed)
+#'         \item \code{"t.equalvar"} - Equal variance t-test (Student's t-test)
+#'         \item \code{"wilcox"} - Wilcoxon rank-sum/Mann-Whitney U test
+#'       }
+#'     }
+#'   }
+#' @param paired A boolean value whether to use paired tests (default: \code{FALSE}).
+#'   For \code{test = "t.test"}, uses \link[matrixTests]{row_t_paired} when \code{TRUE}
+#'   or \link[matrixTests]{row_t_welch} when \code{FALSE}.
+#'   For \code{test = "wilcox"}, uses \link[matrixTests]{row_wilcoxon_paired} when \code{TRUE}
+#'   or \link[matrixTests]{row_wilcoxon_twosample} when \code{FALSE}.
+#' @param p.adjust.method A character string to specify the p-adjust method to use in `stats::p.adjust` (default: \code{"fdr"}).
+#' @param ... Extra arguments passed to the underlying \code{matrixTests} function.
+#' @return A data.table with pairwise comparison results including: \describe{
+#'   \item{group1, group2}{The two groups being compared}
+#'   \item{obs.x, obs.y, obs.tot}{Number of observations in each group and total}
+#'   \item{statistic}{Test statistic}
+#'   \item{pvalue}{Raw p-value}
+#'   \item{p.adj}{P-value adjusted for multiple testing}
+#'   \item{y.position}{Y position for plotting significance brackets}
+#'   \item{xmin, xmax}{X positions for plotting significance brackets}
+#'   \item{Additional columns}{Test-specific statistics (e.g., conf.low, conf.high for t-tests)}
+#' }
+#' 
+#' For omnibus tests (≥2 groups), returns a single-row result with overall test statistics.
+#' @examples
+#' \dontrun{
+#' # Pairwise Welch t-test (2 groups)
+#' pairwise_test(data, x_col = "value", g_col = "group", test = "t.test")
+#'
+#' # Pairwise Wilcoxon (2 groups)
+#' pairwise_test(data, x_col = "value", g_col = "group", test = "wilcox")
+#' }
 #' @noRd
-pairwise_wilcox_test <- function(data, x_col, g_col, paired = FALSE, p.adjust.method = "fdr", ...) {
+pairwise_test <- function(
+  data, 
+  x_col, 
+  g_col, 
+  test = "wilcox", 
+  paired = FALSE, 
+  p.adjust.method = "fdr", ...) {
   
   ## Error handling
   #--------------------------------------------------------------------#
@@ -102,6 +144,15 @@ pairwise_wilcox_test <- function(data, x_col, g_col, paired = FALSE, p.adjust.me
   } else if (!column_exists(g_col, data)) {
     cli::cli_abort("The {.val g_col} column does not exist in the provided {.arg data}.")
   }
+
+  # Define valid methods by category
+  OPTIONS <- c("t.test", "t.equalvar", "wilcox")
+  if (!test %in% OPTIONS) {
+    cli::cli_abort(
+      "{.val {test}} is not a valid test.\nValid options: {.val {OPTIONS}}."
+    )
+  }
+
   if (!is.logical(paired))
     cli::cli_abort("{.val paired} needs to be either `TRUE` or `FALSE`.")
 
@@ -117,48 +168,84 @@ pairwise_wilcox_test <- function(data, x_col, g_col, paired = FALSE, p.adjust.me
   pvalue <- group1 <- group2 <- NULL
 
   # Initialize required parameters
-  co <- utils::combn(unique(as.character(data_tmp[[ g_col ]])), 2)
+  unique_groups <- unique(as.character(data_tmp[[ g_col ]]))
+  n_groups <- length(unique_groups)
+
+  if (n_groups < 2) {
+    cli::cli_abort("At least 2 groups are required for test {.val {test}}.")
+  }
+
+  # Fetch right test
+  get_test <- function(test, paired) {
+    if (paired) {
+      switch(test,
+        "t.test" = matrixTests::row_t_paired,
+        "t.equalvar" = matrixTests::row_t_paired,
+        "wilcox" = matrixTests::row_wilcoxon_paired,
+        cli::cli_abort("Invalid paired test.")
+      )
+    } else {
+      switch(test,
+        "t.test" = matrixTests::row_t_welch,
+        "t.equalvar" = matrixTests::row_t_equalvar,
+        "wilcox" = matrixTests::row_wilcoxon_twosample,
+        cli::cli_abort("Invalid test.")
+      )
+    }
+  }
+
+  test_fun <- get_test(test, paired)
+
+  # Initialize pair combinations
+  co <- utils::combn(unique_groups, 2)
   n <- ncol(co)
   out_list <- list()
-  groups <- data_tmp[, max(.SD[[ x_col ]], na.rm = TRUE), by = g_col]
 
-  # Loops through pairs
-  for(i in 1:n){
+  ## Grouped max values for Y positioning
+  groups_max <- data_tmp[, max(.SD[[x_col]], na.rm = TRUE), by = g_col]
+
+  # Loop through pairs
+  for (i in seq_len(n)) {
     pair_1 <- co[1, i]
     pair_2 <- co[2, i]
 
-    X <- data_tmp[[ x_col ]][data_tmp[[ g_col ]] %in% pair_1]
-    Y <- data_tmp[[ x_col ]][data_tmp[[ g_col ]] %in% pair_2]
+    X <- data_tmp[[x_col]][data_tmp[[g_col]] %in% pair_1]
+    Y <- data_tmp[[x_col]][data_tmp[[g_col]] %in% pair_2]
 
-    if (paired) {
-      out <- matrixTests::row_wilcoxon_paired(x = X, y = Y)
-    } else {
-      out <- matrixTests::row_wilcoxon_twosample(x = X, y = Y)
-    }
+    # Run the test
+    out <- test_fun(x = X, y = Y)
 
     # Saving stats
-    out[[ "group1" ]] <- paste(pair_1)
-    out[[ "group2" ]] <- paste(pair_2)
-    out[[ "y.position" ]] <- max(groups[groups[[ g_col ]] %in% c(pair_1, pair_2), ]$V1) * 1.01
+    out[["group1"]] <- as.character(pair_1)
+    out[["group2"]] <- as.character(pair_2)
+    out[["y.position"]] <- max(groups_max[groups_max[[g_col]] %in% c(pair_1, pair_2), ]$V1) * 1.01
 
-    out_list[[i]] <- out 
+    out_list[[i]] <- out
   }
   # Combine pairwise subsets, adjust p-value, set new order
   pairw.res <- data.table::rbindlist(out_list)
-  pairw.res[, "p.adj" := data.table::fifelse(pvalue == 1, pvalue, stats::p.adjust(pvalue, method = p.adjust.method))]
-  
-  col_order <- c(
-    "group1", "group2", "obs.x", "obs.y", "obs.tot", "statistic", 
-    "pvalue", "p.adj", "location.null", "alternative", "exact", "corrected", "y.position"
-  )
+  pairw.res[, "p.adj" := data.table::fifelse(pvalue == 1, pvalue,
+                                             stats::p.adjust(pvalue, method = p.adjust.method))]
 
-  if (paired)
-    col_order[5] <- "obs.paired"
-  
-  data.table::setcolorder(
-    x = pairw.res, 
-    neworder = col_order
-  )
+  # Define column order based on method
+  base_cols <- c("group1", "group2", "obs.x", "obs.y", "obs.tot", "statistic",
+                 "pvalue", "p.adj", "alternative", "y.position")
+
+  # Add method-specific columns
+  if (test %in% c("t.test", "t.equalvar")) {
+    extra_cols <- c("conf.low", "conf.high", "mean.x", "mean.y", "mean.diff")
+  } else if (test == "wilcox") {
+    extra_cols <- c("location.null", "exact", "corrected")
+  }
+
+  if (paired) {
+    base_cols[5] <- "obs.paired"
+  }
+
+  col_order <- c(base_cols, extra_cols)
+  col_order <- intersect(col_order, names(pairw.res))
+
+  data.table::setcolorder(x = pairw.res, neworder = col_order)
 
   ## Adding X positions
   pairw.res[, "xmin" := as.numeric(as.factor(group1))]

@@ -5,7 +5,8 @@
 #' \link{metagenomics} and \link{proteomics}.
 #'
 #' @param data A \link[base]{data.frame} or \link[data.table]{data.table}.
-#' @param col_name A column name of a categorical variable.
+#' @param groups A column name of a categorical variable in `data`.
+#' @param col_name `r lifecycle::badge("deprecated")` This argument has been renamed to `groups` for more clarity.
 #' @param Brewer.palID A character name that exists in \link[RColorBrewer]{brewer.pal} (Default: \code{"Set2"}).
 #' @return A \link[stats]{setNames}.
 #'
@@ -17,12 +18,27 @@
 #' )
 #'
 #' colors <- colormap(data = dt,
-#'                    col_name = "treatment")
+#'                    groups = "treatment")
 #' @export
 
-colormap <- function(data,
-                     col_name,
-                     Brewer.palID = "Set2") {
+colormap <- function(
+  data,
+  col_name = lifecycle::deprecated(),
+  groups,
+  Brewer.palID = "Set2"
+) {
+  
+  ## Lifecycle warn
+  if (lifecycle::is_present(col_name)) {
+    lifecycle::deprecate_warn(
+      when = "1.7.0",
+      what = "colormap(col_name)",
+      with = "colormap(groups)"
+    )
+    if (missing(groups)) {
+      groups <- col_name
+    }
+  }
 
   ## Error handling
   #--------------------------------------------------------------------#
@@ -31,10 +47,10 @@ colormap <- function(data,
   if (!inherits(data, "data.frame") && !inherits(data, "data.table"))
     cli::cli_abort("{.val data} must be a {.cls data.frame} or {.cls data.table}.")
 
-  if (!is.character(col_name) || length(col_name) != 1) {
-    cli::cli_abort("{.val col_name} needs to contain characters with length of 1.")
-  } else if (!column_exists(col_name, data)) {
-    cli::cli_abort("The {.val col_name} column does not exist in the provided data.")
+  if (!is.character(groups) || length(groups) != 1) {
+    cli::cli_abort("{.val groups} needs to contain characters with length of 1.")
+  } else if (!column_exists(groups, data)) {
+    cli::cli_abort("The {.val groups} column does not exist in the provided data.")
   }
 
   if (!is.character(Brewer.palID) || length(Brewer.palID) != 1) {
@@ -46,7 +62,7 @@ colormap <- function(data,
   ## MAIN
   #--------------------------------------------------------------------#
 
-  unique_groups <- unique(data[[col_name]])
+  unique_groups <- unique(data[[groups]])
   len_unique_groups <- length(unique_groups)
   suppressWarnings(
     chosen_palette <- RColorBrewer::brewer.pal(len_unique_groups, Brewer.palID)

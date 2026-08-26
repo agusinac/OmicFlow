@@ -1,7 +1,7 @@
 # `omics$composition()` -- Argument checks
 
     Code
-      taxa$composition(feature_rank = "Genus", col_name = "1")
+      taxa$composition(feature_rank = "Genus", add_cols = "1")
     Condition
       Error in `taxa$composition()`:
       ! The specified "1" does not exist in the metaData.
@@ -9,7 +9,7 @@
 ---
 
     Code
-      taxa$composition(feature_rank = "Genus", col_name = "nonexisting")
+      taxa$composition(feature_rank = "Genus", add_cols = "nonexisting")
     Condition
       Error in `taxa$composition()`:
       ! The specified "nonexisting" does not exist in the metaData.

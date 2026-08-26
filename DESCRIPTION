@@ -1,7 +1,7 @@
 Package: OmicFlow
 Title: Fast and Efficient (Automated) Analysis of Sparse Omics Data
-Version: 1.6.0.9007
-Date: 2026-08-24
+Version: 1.6.0.9008
+Date: 2026-08-26
 Authors@R: c(
     person(
         "Alem", "Gusinac",
@@ -37,6 +37,7 @@ Imports:
     ggplot2,
     grDevices,
     jsonvalidate,
+    lifecycle,
     methods,
     Matrix,
     matrixTests,
@@ -56,8 +57,7 @@ Suggests:
     downloadthis,
     rmarkdown,
     parallel,
-    testthat (>= 3.0.0),
-    lifecycle
+    testthat (>= 3.0.0)
 LinkingTo:
     Rcpp,
     RcppParallel, 

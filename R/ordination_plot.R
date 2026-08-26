@@ -5,8 +5,9 @@
 #' \link{metagenomics} and \link{proteomics}.
 #' 
 #' @param data A \link[base]{data.frame} or \link[data.table]{data.table} of Principal Components as columns and rows as loading scores.
-#' @param col_name A categorical variable to color the contrasts (e.g. "groups").
-#' @param pair A vector of character variables indicating what dimension names (e.g. PC1, NMDS2).
+#' @param groups A categorical variable to color the groups (e.g. \code{"treatment"}).
+#' @param col_name `r lifecycle::badge("deprecated")` This argument has been renamed to `groups` for more clarity.
+#' @param pair A vector of character variables indicating what dimension names (e.g. \code{c("PC1", "PC2")} or \code{c("NMDS1", "NMDS2")}).
 #' @param dist_explained A vector of numeric values of the percentage dissimilarity explained for the dimension pairs (default: \code{NULL}).
 #' @param dist_metric A character variable indicating what metric is used (e.g. unifrac, bray-curtis) (default: \code{NULL}).
 #' @return A \link[ggplot2]{ggplot2} object to be further modified
@@ -24,14 +25,14 @@
 #' # Basic usage
 #' ordination_plot(
 #'   data = mock_data,
-#'   col_name = "groups",
+#'   groups = "groups",
 #'   pair = c("PC1", "PC2")
 #' )
 #' 
 #' # Adding variance/dissimilarity explained.
 #' ordination_plot(
 #'   data = mock_data,
-#'   col_name = "groups",
+#'   groups = "groups",
 #'   pair = c("PC1", "PC2"),
 #'   dist_explained = c(45, 22),
 #'   dist_metric = "bray-curtis"
@@ -40,11 +41,24 @@
 
 ordination_plot <- function(
   data, 
-  col_name,
+  col_name = lifecycle::deprecated(),
+  groups = lifecycle::deprecated(),
   pair, 
   dist_explained = NULL, 
   dist_metric = NULL
   ) {
+
+  ## lifecycle warn
+  if (lifecycle::is_present(col_name)) {
+    lifecycle::deprecate_warn(
+      when = "1.7.0",
+      what = "ordination_plot(col_name)",
+      with = "ordination_plot(groups)"
+    )
+    if (!lifecycle::is_present(groups)) {
+      groups <- col_name
+    }
+  }
   
   ## Error handling
   #--------------------------------------------------------------------#
@@ -52,10 +66,10 @@ ordination_plot <- function(
   if (!inherits(data, "data.frame") && !inherits(data, "data.table"))
     cli::cli_abort("{.val data} must be a {.cls data.frame} or {.cls data.table}.")
   
-  if (!is.character(col_name) || length(col_name) != 1) {
-    cli::cli_abort("{.val col_name} needs to contain characters with length of 1.")
-  } else if (!column_exists(col_name, data)) {
-    cli::cli_abort("The {.val col_name} column does not exist in the provided {.arg data}.")
+  if (!is.character(groups) || length(groups) != 1) {
+    cli::cli_abort("{.val groups} needs to contain characters with length of 1.")
+  } else if (!column_exists(groups, data)) {
+    cli::cli_abort("The {.val groups} column does not exist in the provided {.arg data}.")
   }
 
   if (!is.character(pair)) {
@@ -92,15 +106,15 @@ ordination_plot <- function(
     y_label <- paste0(pair[2])
   }
 
-  data[[ col_name ]] <- as.factor(data[[ col_name ]])
+  data[[ groups ]] <- as.factor(data[[ groups ]])
 
   plt <- ggplot2::ggplot(
     data = data,
     mapping = ggplot2::aes(
       x = .data[[ pair[1] ]],
       y = .data[[ pair[2] ]],
-      color = .data[[ col_name ]],
-      linetype = .data[[ col_name ]]
+      color = .data[[ groups ]],
+      linetype = .data[[ groups ]]
     )
   ) +
   ggplot2::geom_point(alpha = 5) +
@@ -115,11 +129,11 @@ ordination_plot <- function(
     axis.text.x = ggplot2::element_text(size=12)
   )
 
-  if (length(unique(data[[col_name]])) <= 8) {
+  if (length(unique(data[[groups]])) <= 8) {
     plt <- plt +
     ggplot2::scale_colour_manual(
-      name = col_name,
-      values = colormap(data = data, col_name = col_name)
+      name = groups,
+      values = colormap(data = data, groups = groups)
     )
   }
   plt <- plt +

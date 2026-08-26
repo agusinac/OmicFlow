@@ -7,8 +7,8 @@ taxa <- metagenomics$new(
 
 test_that("`omics$composition()` -- Argument checks", {
   ## feature_rank and feature_filter are already tested in `omics-feature_merge`
-  expect_snapshot(taxa$composition(feature_rank = "Genus", col_name = "1"), error = TRUE)
-  expect_snapshot(taxa$composition(feature_rank = "Genus", col_name = "nonexisting"), error = TRUE)
+  expect_snapshot(taxa$composition(feature_rank = "Genus", add_cols = "1"), error = TRUE)
+  expect_snapshot(taxa$composition(feature_rank = "Genus", add_cols = "nonexisting"), error = TRUE)
 
   expect_snapshot(taxa$composition(feature_rank = "Genus", feature_top = "10"), error = TRUE)
   expect_snapshot(taxa$composition(feature_rank = "Genus", feature_top = c(10, 15)), error = TRUE)
@@ -21,7 +21,7 @@ test_that("`omics$composition()` -- Behavioral checks", {
     taxa$scale(method = "tss")
     res <- taxa$composition(
       feature_rank = "Genus",
-      col_name = "CONTRAST_sex",
+      add_cols = "CONTRAST_sex",
       feature_top = 10
     )
     expect_snapshot(res$data)
@@ -33,14 +33,14 @@ test_that("`omics$composition()` -- Behavioral checks", {
     taxa$scale(method = "tss")
     res <- taxa$composition(
       feature_rank = "Genus",
-      col_name = "CONTRAST_sex",
+      add_cols = "CONTRAST_sex",
       feature_top = 15
     )
     expect_snapshot(res$data)
     expect_snapshot(res$palette)
     expect_equal(length(res$palette), 16)
 
-    ## Testing without col_name with top 10
+    ## Testing without add_cols with top 10
     taxa$reset()
     taxa$scale(method = "tss")
     res <- taxa$composition(

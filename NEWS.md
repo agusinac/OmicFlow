@@ -1,11 +1,11 @@
-# OmicFlow 1.6.0.9007
+# OmicFlow 1.6.0.9008
 
 ## Added
 - Added additional parameters via `...` to be passed to `pairwise_adonis` and `pairwise_anosim` (.e.g. `parallel = 10` can be called now).
 - Added `tryCatch` and better error handling in `omics$sample_subset`, `omics$feature_subset` and `omics$samplepair_subset`.
 - Added `R/dependencies.R` file as placeholder to prevent NAMESPACE declaration issue by R6 class (reducing namespace imports).
 - Added `is.color` internal util function to check for valid color input.
-- Added a `pairwise_wilcox_test` as an util that uses `matrixTests::row_wilcoxon_*` functions, might make this available in the future
+- Added a `pairwise_test` as an util that uses `matrixTests` functions, and implements `t.test`, `t.equalvar` and `wilcox` with paired option.
 
 ## Changed
 - Re-factoring and improved `roxygen2` code, documentation style and error handling.
@@ -22,6 +22,11 @@
 
 ## Deprecated
 - `diversity_plot` is replaced by `stats_boxplot`. The original `diversity_plot` is scheduled for deprecation.
+- Scheduled deprecation of arguments for the future, such as: 
+    * `col_name` to be replaced by `groups` in `composition_plot`, `colormap`, `boxjitter_test`, `omics$alpha_diversity`
+    * `col_name` to be replaced by `add_cols` in `omics$composition`
+    * `group_by` to be replaced by `split_by` in `omics$foldchange`, `omics$alpha_diversity` and `boxjitter_test`.
+    * `method` for labelling is removed in `boxjitter_plot`, instead an argument `test` can be specified to perform a pairwise statistcal tests on the `groups`. 
 
 # OmicFlow 1.6.0 (2026-05-19)
 

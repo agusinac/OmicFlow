@@ -38,19 +38,20 @@ test_that("`boxjitter_test()` -- Argument checks", {
   expect_snapshot(boxjitter_test(data = dt, values = c("1", "2")), error = TRUE)
   expect_snapshot(boxjitter_test(data = dt, values = "nonexisting"), error = TRUE)
 
-  expect_snapshot(boxjitter_test(data = dt, values = "shannon", col_name = 1), error = TRUE)
-  expect_snapshot(boxjitter_test(data = dt, values = "shannon", col_name = c("1", "2")), error = TRUE)
-  expect_snapshot(boxjitter_test(data = dt,, values = "shannon", col_name = "nonexisting"), error = TRUE)
+  expect_snapshot(boxjitter_test(data = dt, values = "shannon", groups = 1), error = TRUE)
+  expect_snapshot(boxjitter_test(data = dt, values = "shannon", groups = c("1", "2")), error = TRUE)
+  expect_snapshot(boxjitter_test(data = dt,, values = "shannon", groups = "nonexisting"), error = TRUE)
 
-  expect_snapshot(boxjitter_test(data = dt, values = "shannon", col_name = "sex", group_by = 1), error = TRUE)
-  expect_snapshot(boxjitter_test(data = dt, values = "shannon", col_name = "sex", group_by = c("1", "2")), error = TRUE)
-  expect_snapshot(boxjitter_test(data = dt,, values = "shannon", col_name = "sex", group_by = "nonexisting"), error = TRUE)
+  expect_snapshot(boxjitter_test(data = dt, values = "shannon", groups = "sex", split_by = 1), error = TRUE)
+  expect_snapshot(boxjitter_test(data = dt, values = "shannon", groups = "sex", split_by = c("1", "2")), error = TRUE)
+  expect_snapshot(boxjitter_test(data = dt,, values = "shannon", groups = "sex", split_by = "nonexisting"), error = TRUE)
 
-  expect_snapshot(boxjitter_test(data = dt, values = "shannon", col_name = "sex", palette = c(1, 2, 3)), error = TRUE)
-  expect_snapshot(boxjitter_test(data = dt, values = "shannon", col_name = "sex", palette = c("foo1", "foo2")), error = TRUE)
-  expect_snapshot(boxjitter_test(data = dt, values = "shannon", col_name = "sex", palette = colors, method = 1), error = TRUE)
-  expect_snapshot(boxjitter_test(data = dt, values = "shannon", col_name = "sex", palette = colors, paired = "FALSE"), error = TRUE)
-  expect_snapshot(boxjitter_test(data = dt, values = "shannon", col_name = "sex", palette = colors, p.adjust.method = 5), error = TRUE)
+  expect_snapshot(boxjitter_test(data = dt, values = "shannon", groups = "sex", palette = c(1, 2, 3)), error = TRUE)
+  expect_snapshot(boxjitter_test(data = dt, values = "shannon", groups = "sex", palette = c("foo1", "foo2")), error = TRUE)
+  expect_snapshot(boxjitter_test(data = dt, values = "shannon", groups = "sex", palette = colors, test = 1), error = TRUE)
+  expect_snapshot(boxjitter_test(data = dt, values = "shannon", groups = "sex", palette = colors, test = "none"), error = TRUE)
+  expect_snapshot(boxjitter_test(data = dt, values = "shannon", groups = "sex", palette = colors, paired = "FALSE"), error = TRUE)
+  expect_snapshot(boxjitter_test(data = dt, values = "shannon", groups = "sex", palette = colors, p.adjust.method = 5), error = TRUE)
 })
 
 test_that("`boxjitter_test()` -- Behavioral checks", { 
@@ -58,7 +59,7 @@ test_that("`boxjitter_test()` -- Behavioral checks", {
   expect_no_error(res <- boxjitter_test(
     data = dt,
     values = "shannon",
-    col_name = "sex",
+    groups = "sex",
     palette = colors
   ))
   expect_equal(names(res), c("plot", "stats"))
@@ -68,19 +69,19 @@ test_that("`boxjitter_test()` -- Behavioral checks", {
   expect_no_error(res <- boxjitter_test(
     data = dt,
     values = "shannon",
-    col_name = "sex",
+    groups = "sex",
     palette = colors,
     paired = TRUE
   ))
   expect_equal(names(res), c("plot", "stats"))
   expect_s3_class(res$plot, "ggplot")
 
-  ## Testing with `group_by`
+  ## Testing with `split_by`
   expect_no_error(res <- boxjitter_test(
     data = dt,
     values = "shannon",
-    col_name = "sex",
-    group_by = "treatment",
+    groups = "sex",
+    split_by = "treatment",
     palette = colors
   ))
   expect_equal(names(res), c("plot", "stats"))

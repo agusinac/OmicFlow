@@ -1,39 +1,15 @@
 # `omics$alpha_diversity()` -- Argument checks
 
     Code
-      taxa$alpha_diversity(col_name = 1)
+      taxa$alpha_diversity(groups = 1)
     Condition
       Error in `taxa$alpha_diversity()`:
-      ! "col_name" must be a character and of length 1
+      ! "groups" must be a character and of length 1
 
 ---
 
     Code
-      taxa$alpha_diversity(col_name = "1")
-    Condition
-      Error in `taxa$alpha_diversity()`:
-      ! The specified "1" does not exist in the metaData.
-
----
-
-    Code
-      taxa$alpha_diversity(col_name = c("1", "2"))
-    Condition
-      Error in `taxa$alpha_diversity()`:
-      ! "col_name" must be a character and of length 1
-
----
-
-    Code
-      taxa$alpha_diversity(col_name = "CONTRAST_sex", group_by = 1)
-    Condition
-      Error in `taxa$alpha_diversity()`:
-      ! "group_by" must be a character and of length 1
-
----
-
-    Code
-      taxa$alpha_diversity(col_name = "CONTRAST_sex", group_by = "1")
+      taxa$alpha_diversity(groups = "1")
     Condition
       Error in `taxa$alpha_diversity()`:
       ! The specified "1" does not exist in the metaData.
@@ -41,15 +17,39 @@
 ---
 
     Code
-      taxa$alpha_diversity(col_name = "CONTRAST_sex", group_by = c("1", "2"))
+      taxa$alpha_diversity(groups = c("1", "2"))
     Condition
       Error in `taxa$alpha_diversity()`:
-      ! "group_by" must be a character and of length 1
+      ! "groups" must be a character and of length 1
 
 ---
 
     Code
-      taxa$alpha_diversity(col_name = "CONTRAST_sex", evenness = "FALSE")
+      taxa$alpha_diversity(groups = "CONTRAST_sex", split_by = 1)
+    Condition
+      Error in `taxa$alpha_diversity()`:
+      ! "split_by" must be a character and of length 1
+
+---
+
+    Code
+      taxa$alpha_diversity(groups = "CONTRAST_sex", split_by = "1")
+    Condition
+      Error in `taxa$alpha_diversity()`:
+      ! The specified "1" does not exist in the metaData.
+
+---
+
+    Code
+      taxa$alpha_diversity(groups = "CONTRAST_sex", split_by = c("1", "2"))
+    Condition
+      Error in `taxa$alpha_diversity()`:
+      ! "split_by" must be a character and of length 1
+
+---
+
+    Code
+      taxa$alpha_diversity(groups = "CONTRAST_sex", evenness = "FALSE")
     Condition
       Error in `taxa$alpha_diversity()`:
       ! "evenness" can only be a `TRUE` or `FALSE`.
@@ -57,7 +57,7 @@
 ---
 
     Code
-      taxa$alpha_diversity(col_name = "CONTRAST_sex", paired = "FALSE")
+      taxa$alpha_diversity(groups = "CONTRAST_sex", paired = "FALSE")
     Condition
       Error in `taxa$alpha_diversity()`:
       ! "paired" can only be a `TRUE` or `FALSE`.
@@ -65,7 +65,7 @@
 ---
 
     Code
-      taxa$alpha_diversity(col_name = "CONTRAST_sex", p.adjust.method = "nothing")
+      taxa$alpha_diversity(groups = "CONTRAST_sex", p.adjust.method = "nothing")
     Condition
       Error in `taxa$alpha_diversity()`:
       ! Specified "nothing" is not valid.  Valid options: "holm", "hochberg", "hommel", "bonferroni", "BH", "BY", "fdr", and "none"
