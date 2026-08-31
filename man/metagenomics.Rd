@@ -96,9 +96,9 @@ file.remove("output.biom")
   \subsection{Arguments}{
     \if{html}{\out{<div class="arguments">}}
     \describe{
-      \item{\code{countData}}{A path to an existing file or a dense/sparse \link[Matrix]{Matrix} format.}
-      \item{\code{metaData}}{A path to an existing file, \link[data.table]{data.table} or data.frame.}
-      \item{\code{featureData}}{A path to an existing file, \link[data.table]{data.table} or data.frame.}
+      \item{\code{countData}}{A path to an existing file, \link[Matrix]{Matrix}, \link[data.table]{data.table} or \link[base]{data.frame}.}
+      \item{\code{metaData}}{A path to an existing file, \link[data.table]{data.table} or \link[base]{data.frame}.}
+      \item{\code{featureData}}{A path to an existing file, \link[data.table]{data.table} or \link[base]{data.frame}.}
       \item{\code{treeData}}{A path to an existing newick file or class "phylo", see \link[ape]{read.tree}.}
       \item{\code{biomData}}{A path to an existing biom file, version 2.1.0 (http://biom-format.org/), see \link[rhdf5]{h5read}.}
       \item{\code{feature_names}}{A character vector to name the feature names that fit the supplied \code{featureData}.}

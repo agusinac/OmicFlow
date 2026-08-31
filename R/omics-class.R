@@ -119,15 +119,15 @@ omics <- R6::R6Class(
     #' To create a new object use [`new()`](#method-new) method. Do notice that the abstract class only checks if the metadata is valid!
     #' The `countData` and `featureData` will not be checked, these are handled by the sub-classes. 
     #' Using the omics class to load your data is not supported and still experimental.
-    #' @param countData A path to an existing file or a dense/sparse \link[Matrix]{Matrix} format.
-    #' @param featureData A path to an existing file, \link[data.table]{data.table} or data.frame.
-    #' @param metaData A path to an existing file, \link[data.table]{data.table} or data.frame.
+    #' @param countData A path to an existing file, \link[Matrix]{Matrix}, \link[data.table]{data.table} or \link[base]{data.frame}.
+    #' @param featureData A path to an existing file, \link[data.table]{data.table} or \link[base]{data.frame}
+    #' @param metaData A path to an existing file, \link[data.table]{data.table} or \link[base]{data.frame}
     #' @return A new `omics` object.
     #'
     initialize = function(
+      metaData = NULL,
       countData = NULL, 
-      featureData = NULL, 
-      metaData = NULL
+      featureData = NULL
     ) {
       #-------------------#
       ###   metaData    ###
@@ -203,12 +203,7 @@ omics <- R6::R6Class(
           }
 
         } else {
-          FEATURE_ID <- paste0("feature_", 1:nrow(private$.featureData))
-          private$.featureData[, private$.feature_id := FEATURE_ID]
-          data.table::setcolorder(
-            x = private$.featureData,
-            neworder = c(private$.feature_id, base::setdiff(colnames(private$.featureData), private$.feature_id))
-          )
+          private$add_FEATURE_ID()
         }
         cli::cli_alert_success("{.field featureData} is loaded.")
       }
@@ -2243,7 +2238,7 @@ omics <- R6::R6Class(
         # Keep only common features based on countData
         if (!is.null(private$.countData)) {
           common_features <- base::intersect(private$.featureData[[ private$.feature_id ]], rownames(private$.countData))
-          
+
           if (length(common_features) == 0)
             cli::cli_abort("None FEATURE_IDs are matching, check if {.val FEATURE_ID} matches the rownames in {.field countData}!")
 
@@ -2256,6 +2251,8 @@ omics <- R6::R6Class(
         cli::cli_alert_warning("Placeholder {.field featureData} created.")
       }
     },
+    # Helper function to remove empty rows/columns
+    #--------------------------------------#
     removeZeros = function() {
       keep_cols <- base::diff(private$.countData@p) > 0
       keep_rows <- base::diff(Matrix::t(private$.countData)@p) > 0
@@ -2267,68 +2264,117 @@ omics <- R6::R6Class(
       if (!is.null(private$.treeData))
         private$.treeData <- ape::keep.tip(private$.treeData, private$.featureData[[ private$.feature_id ]])
     },
+    # Adds a `featureData`
+    #--------------------------------------#
     add_featureData = function() {
       private$.featureData <- data.table::data.table()
       countData_with_rownames <- rownames(private$.countData)
 
       if (is.null(countData_with_rownames)) {
-        FEATURE_ID <- paste0("feature_", 1:nrow(private$.countData))
-        private$.featureData <- private$.featureData[, (private$.feature_id) := FEATURE_ID]
-        rownames(private$.countData) <- FEATURE_ID
+        private$.featureData[, (private$.feature_id) := paste0("feature_", 1:nrow(private$.countData))]
+        rownames(private$.countData) <- private$.featureData[[ private$.feature_id ]]
       } else {
-        private$.featureData <- private$.featureData[, (private$.feature_id) := countData_with_rownames]
-      }          
+        private$.featureData[, (private$.feature_id) := countData_with_rownames]
+      }
+      private$add_FEATURE_ID()       
+    },
+    # Adds or re-aligns `FEATURE_ID` as first column
+    #--------------------------------------#
+    add_FEATURE_ID = function() {
+      if (!column_exists(private$.feature_id, private$.featureData)) {
+        FEATURE_ID <- paste0("feature_", 1:nrow(private$.featureData))
+        private$.featureData[, (private$.feature_id) := FEATURE_ID]
+      }
+      data.table::setcolorder(
+        x = private$.featureData, 
+        neworder = c(private$.feature_id, base::setdiff(private$.feature_id, colnames(private$.featureData)))
+      )
+    },
+    # Extension of `countData`
+    # Atm this function is only applied when `countData` is a `data.table`
+    # Any columns not in `metaData` are moved to `featureData`
+    #--------------------------------------#
+    split_countdata = function(data) {
+      data_tmp <- data.table::as.data.table(data)
+
+      samples_in_metadata <- colnames(data_tmp) %in% private$.metaData[[ private$.sample_id ]]
+
+      if (any(samples_in_metadata == FALSE)) {
+        # Removes non-SAMPLE_IDs and adds them to the `featureData`
+        private$.featureData <- data_tmp[, .SD, .SDcols = colnames(data_tmp)[!samples_in_metadata]]
+        private$add_FEATURE_ID()
+        cli::cli_alert_warning("Placeholder {.field featureData} extracted from {.field countData}.")
+
+        data_tmp[, (colnames(data_tmp)[!samples_in_metadata]) := NULL]
+      }
+      return(data_tmp)
     },
     # Checks & loads input table/filepath
     #--------------------------------------#
     check_table = function(data) {
-    if (is.character(data) && length(data) == 1 && file.exists(data))
-      return(data.table::fread(data, header = TRUE))
+      if (is.character(data) && length(data) == 1 && file.exists(data))
+        return(data.table::fread(data, header = TRUE))
 
-    if (inherits(data, "data.table") && !all(dim(data) == 0))
-      return(data)
+      if (inherits(data, "data.table") && !all(dim(data) == 0))
+        return(data)
 
-    if (is.data.frame(data) && !all(dim(data) == 0))
-      return(data.table::as.data.table(data))
+      if (is.data.frame(data) && !all(dim(data) == 0))
+        return(data.table::as.data.table(data))
 
-    return("Input must be an existing {.val filepath}, non-empty {.cls data.frame} or {.cls data.table}.")
-  },
+      return("Input must be an existing {.val filepath}, non-empty {.cls data.frame} or {.cls data.table}.")
+    },
+    # Checks & loads input matrix/filepath
+    #--------------------------------------#
+    check_matrix = function(data) {
+      if (inherits(data, "sparseMatrix") && !all(dim(data) == 0))
+        return(data)
+        
+      if ((is.matrix(data) || inherits(data, "denseMatrix")) && !all(dim(data) == 0))
+        return(methods::as(data, "CsparseMatrix"))
+        
+      if (is.character(data) && length(data) == 1 && file.exists(data)) {
+        dt <- data.table::fread(data, header = TRUE)
 
-  # Checks & loads input matrix/filepath
-  #--------------------------------------#
-  check_matrix = function(data) {
-    if (is.character(data) && length(data) == 1 && file.exists(data)) {
-      dt <- data.table::fread(data, header = TRUE)
-      # Change character values to numeric
-      for (col in names(dt)) {
-        dt[is.na(get(col)), (col) := 0]
-        dt[get(col) == "", (col) := 0]
-      }
-
-      # Removes rownames if present
-      if (!is.null(dt$V1)) {
-        dt_rownames <- dt$V1
-        dt[, V1 := NULL]
-      } else {
+        # Removes rownames if present
+        if (!is.null(dt$V1)) {
+          dt_rownames <- dt$V1
+          dt[, V1 := NULL]
+        } else {
+          dt_rownames <- NULL
+        }
+      } else if (inherits(data, "data.frame") || inherits(data, "data.table")) {
+        dt <- data.table::as.data.table(data)
         dt_rownames <- NULL
+      } else {
+        return("Input must be an existing {.val filepath}, non-empty {.cls matrix}, {.cls Matrix}, {.cls data.frame} or {.cls data.table}.")
       }
-      # Convert to matrix format
-      mat <- Matrix::Matrix(
-        data = as.matrix(dt),
-        dimnames = list(dt_rownames, colnames(dt))
-      )
-      
-      # Return CsparseMatrix
-      return(methods::as(mat, "CsparseMatrix"))
-    }
 
-    if (inherits(data, "sparseMatrix") && !all(dim(data) == 0))
-      return(data)
+      if (nrow(dt) == 0) {
+        return("{.val filepath}, {.cls data.frame} or {.cls data.table} cannot be empty.")
+      }
 
-    if ((is.matrix(data) || inherits(data, "denseMatrix")) && !all(dim(data) == 0))
-      return(methods::as(data, "CsparseMatrix"))
+      # Only applies during data field initialisation.
+      if (is.null(private$.countData) && is.null(private$.featureData)) {
+        dt <- private$split_countdata(data = dt)
+      }
 
-    return("Input must be an existing {.val filepath}, non-empty {.cls matrix} or {.cls Matrix}.")
+      ## Replace strings to zero's
+      cols <- names(dt)
+      dt[, (cols) := lapply(.SD, function(x) {
+            x <- as.numeric(as.character(x))
+            x[is.na(x)] <- 0
+            x
+          }), .SDcols = cols
+        ]
+
+      if (inherits(dt, "data.table")) {
+        # Return CsparseMatrix
+        mat <- Matrix::Matrix(
+          data = as.matrix(dt),
+          dimnames = list(dt_rownames, colnames(dt))
+        )
+        return(methods::as(mat, "CsparseMatrix"))
+      }
     }
   )
 )

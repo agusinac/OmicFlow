@@ -383,15 +383,15 @@ The \code{countData} and \code{featureData} will not be checked, these are handl
 Using the omics class to load your data is not supported and still experimental.
   \subsection{Usage}{
     \if{html}{\out{<div class="r">}}
-    \preformatted{omics$new(countData = NULL, featureData = NULL, metaData = NULL)}
+    \preformatted{omics$new(metaData = NULL, countData = NULL, featureData = NULL)}
     \if{html}{\out{</div>}}
   }
   \subsection{Arguments}{
     \if{html}{\out{<div class="arguments">}}
     \describe{
-      \item{\code{countData}}{A path to an existing file or a dense/sparse \link[Matrix]{Matrix} format.}
-      \item{\code{featureData}}{A path to an existing file, \link[data.table]{data.table} or data.frame.}
-      \item{\code{metaData}}{A path to an existing file, \link[data.table]{data.table} or data.frame.}
+      \item{\code{metaData}}{A path to an existing file, \link[data.table]{data.table} or \link[base]{data.frame}}
+      \item{\code{countData}}{A path to an existing file, \link[Matrix]{Matrix}, \link[data.table]{data.table} or \link[base]{data.frame}.}
+      \item{\code{featureData}}{A path to an existing file, \link[data.table]{data.table} or \link[base]{data.frame}}
     }
     \if{html}{\out{</div>}}
   }

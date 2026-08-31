@@ -74,7 +74,7 @@
     Condition
       Error in `initialize()`:
       ! Error in countData:
-      x Input must be an existing "filepath", non-empty <matrix> or <Matrix>.
+      x "filepath", <data.frame> or <data.table> cannot be empty.
 
 ---
 
@@ -86,7 +86,7 @@
     Condition
       Error in `initialize()`:
       ! Error in countData:
-      x Input must be an existing "filepath", non-empty <matrix> or <Matrix>.
+      x "filepath", <data.frame> or <data.table> cannot be empty.
 
 ---
 
@@ -144,6 +144,39 @@
       i Checking for duplicated identifiers ..
       v countData is loaded.
       ! Created placeholder featureData.
+
+---
+
+    Code
+      test
+    Message
+      
+      -- <omics> object 
+      metaData: 1 variables x 3 samples
+      countData: 3 samples x 3 features
+      featureData: 1 attributes x 3 features
+
+---
+
+    Code
+      test
+    Message
+      
+      -- <omics> object 
+      metaData: 1 variables x 3 samples
+      countData: 3 samples x 3 features
+      featureData: 1 attributes x 3 features
+
+---
+
+    Code
+      test
+    Message
+      
+      -- <omics> object 
+      metaData: 1 variables x 3 samples
+      countData: 3 samples x 3 features
+      featureData: 1 attributes x 3 features
 
 ---
 

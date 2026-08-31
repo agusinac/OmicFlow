@@ -21,7 +21,7 @@
     Condition
       Error in `taxa$autoFlow()`:
       ! Error in "distmat":
-      x Input must be an existing "filepath", non-empty <matrix> or <Matrix>.
+      x Input must be an existing "filepath", non-empty <matrix>, <Matrix>, <data.frame> or <data.table>.
 
 ---
 
@@ -30,7 +30,7 @@
     Condition
       Error in `taxa$autoFlow()`:
       ! Error in "distmat":
-      x Input must be an existing "filepath", non-empty <matrix> or <Matrix>.
+      x Input must be an existing "filepath", non-empty <matrix>, <Matrix>, <data.frame> or <data.table>.
 
 ---
 

@@ -49,9 +49,9 @@ proteomics <- R6::R6Class(
   public = list(
     #' @description
     #' Initializes the proteomics class object with \code{proteomics$new()}
-    #' @param countData A path to an existing file or a dense/sparse \link[Matrix]{Matrix} format.
-    #' @param featureData A path to an existing file, \link[data.table]{data.table} or data.frame.
-    #' @param metaData A path to an existing file, \link[data.table]{data.table} or data.frame.
+    #' @param countData A path to an existing file, \link[Matrix]{Matrix}, \link[data.table]{data.table} or \link[base]{data.frame}.
+    #' @param featureData A path to an existing file, \link[data.table]{data.table} or \link[base]{data.frame}.
+    #' @param metaData A path to an existing file, \link[data.table]{data.table} or \link[base]{data.frame}.
     #' @param treeData A path to an existing newick file or class "phylo", see \link[ape]{read.tree}.
     #' 
     #' @return A new `proteomics` object.

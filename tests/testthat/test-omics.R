@@ -54,6 +54,70 @@ test_that("`omics` -- Behavioral checks", {
   expect_equal(rownames(test$countData), test$featureData$FEATURE_ID)
   expect_equal(colnames(test$countData), test$metaData$SAMPLE_ID)
 
+  # Intialising `countData` from file (mixed with features)
+  metadata <- data.table::data.table(SAMPLE_ID = c("S1", "S2", "S3"))
+  counts <- data.table::data.table(S1 = c(2,3,0), S2 = c(2,"",1), S3 = c(2,1,NA), proteins = c("ZEB1", "ZEB2", "MAPK"))
+
+  # Intialising `countData` from data.frame (mixed with features)
+  expect_no_error(
+    test <- omics$new(
+      metaData = metadata,
+      countData = as.data.frame(counts)
+    )
+  )
+  expect_snapshot(test)
+  expect_equal(rownames(test$countData), test$featureData$FEATURE_ID)
+  expect_equal(test$featureData$proteins, counts$proteins)
+  expect_equal(test$countData[3,1], 0) # Real zero
+  expect_equal(test$countData[2,2], 0) # String replaced by zero
+  expect_equal(test$countData[3,3], 0) # NA replaced by zero
+  expect_s4_class(test$countData, "sparseMatrix")
+  expect_s3_class(test$metaData, "data.table")
+  expect_s3_class(test$featureData, "data.table")
+
+  # Intialising `countData` from data.table (mixed with features)
+  expect_no_error(
+    test <- omics$new(
+      metaData = metadata,
+      countData = counts
+    )
+  )
+  expect_snapshot(test)
+  expect_equal(rownames(test$countData), test$featureData$FEATURE_ID)
+  expect_equal(test$featureData$proteins, counts$proteins)
+  expect_equal(test$countData[3,1], 0) # Real zero
+  expect_equal(test$countData[2,2], 0) # String replaced by zero
+  expect_equal(test$countData[3,3], 0) # NA replaced by zero
+  expect_s4_class(test$countData, "sparseMatrix")
+  expect_s3_class(test$metaData, "data.table")
+  expect_s3_class(test$featureData, "data.table")
+
+  # From filepath
+  tmp_metadata_file <- paste0(tempdir(), "tmp_metadata.csv")
+  tmp_count_file <- paste0(tempdir(), "tmp_counts.csv")
+
+  data.table::fwrite(x = metadata, file = tmp_metadata_file)
+  data.table::fwrite(x = counts, file = tmp_count_file)
+
+  expect_no_error(
+    test <- omics$new(
+      metaData = tmp_metadata_file,
+      countData = tmp_count_file
+    )
+  )
+  expect_snapshot(test)
+  expect_equal(rownames(test$countData), test$featureData$FEATURE_ID)
+  expect_equal(test$featureData$proteins, counts$proteins)
+  expect_equal(test$countData[3,1], 0) # Real zero
+  expect_equal(test$countData[2,2], 0) # String replaced by zero
+  expect_equal(test$countData[3,3], 0) # NA replaced by zero
+  expect_s4_class(test$countData, "sparseMatrix")
+  expect_s3_class(test$metaData, "data.table")
+  expect_s3_class(test$featureData, "data.table")
+  ## remove files
+  file.remove(tmp_metadata_file)
+  file.remove(tmp_count_file)
+
   # Loading all three components with sparse counts
   expect_snapshot(
     sparse <- omics$new(

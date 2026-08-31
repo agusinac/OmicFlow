@@ -66,7 +66,7 @@
     Condition
       Error in `super$initialize()`:
       ! Error in countData:
-      x Input must be an existing "filepath", non-empty <matrix> or <Matrix>.
+      x "filepath", <data.frame> or <data.table> cannot be empty.
 
 ---
 
@@ -78,7 +78,7 @@
     Condition
       Error in `super$initialize()`:
       ! Error in countData:
-      x Input must be an existing "filepath", non-empty <matrix> or <Matrix>.
+      x "filepath", <data.frame> or <data.table> cannot be empty.
 
 ---
 
