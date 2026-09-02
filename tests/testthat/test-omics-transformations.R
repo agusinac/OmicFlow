@@ -35,9 +35,17 @@ test_that("`omics$scale()` -- Behavioral checks", {
   
   # Perform clr standardisation
   test$reset()
+  mat <- as.matrix(test$countData)
+
   test$scale(method = "clr")
   expect_snapshot(as.vector(test$countData[, 1]))
-  
+
+  ## Comparing approaches
+  ## vegan::decostand approach with `clr`
+  clog <- log(mat)
+  clog <- clog - rowMeans(clog, na.rm = TRUE)
+  expect_equal(clog, as.matrix(test$countData))
+
   # Perform tss normalisation
   test$reset()
   test$scale(method = "tss")

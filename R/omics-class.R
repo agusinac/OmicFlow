@@ -709,7 +709,7 @@ omics <- R6::R6Class(
       ## MAIN
       #--------------------------------------------------------------------#
       if (!is.null(pseudocount)) 
-        private$.countData <- private$.countData + pseudocount
+        private$.countData <- methods::as(private$.countData + pseudocount, "CsparseMatrix")
       
       if (is.function(transform))
         private$.countData@x <- transform(private$.countData@x)
@@ -720,7 +720,8 @@ omics <- R6::R6Class(
         "clr" = {
           ref <- private$.countData
           ref@x <- log(ref@x, base=base)
-          ref - Matrix::rowMeans(ref)
+          row_means <- Matrix::rowSums(ref, na.rm = TRUE) / base::diff(Matrix::t(ref)@p)
+          ref - row_means
         },
         "binary" = {
           ref <- private$.countData
@@ -1585,7 +1586,7 @@ omics <- R6::R6Class(
         cli::cli_abort("{.val {method}} is not a valid option. \nValid options: {.val {OPTIONS}}")
       }
 
-      OPTIONS <- c("median", "mean")
+      OPTIONS <- c("median", "mean", "geomean", "none")
       if (!is.character(aggregate_method) || length(aggregate_method) != 1) {
         cli::cli_abort("{.val aggregate_method} needs to be a character with a length of 1.")
       } else if (!c(aggregate_method %in% OPTIONS)) {
@@ -1610,6 +1611,13 @@ omics <- R6::R6Class(
 
       ## MAIN
       #--------------------------------------------------------------------#
+      ## Adapted from DESeq2 `geoMeanNZ` but re-implemented in sparse format
+      geomean <- function(m) {
+        ref <- methods::as(m, "CsparseMatrix")
+        ref@x <- suppressWarnings(log(ref@x))
+        row_means <- exp( Matrix::rowSums(ref, na.rm = TRUE) / ncol(ref) )
+        return(row_means)
+      }
 
       # Final output
       output <- list()
@@ -1681,7 +1689,8 @@ omics <- R6::R6Class(
           } else {
             row_A <- switch(
               aggregate_method, 
-              "mean" = matrixStats::rowMeans2(mat_A), "median" = matrixStats::rowMedians(mat_A)
+              "mean" = matrixStats::rowMeans2(mat_A), "median" = matrixStats::rowMedians(mat_A),
+              "geomean" = geomean(mat_A), "none" = mat_A
               )
           }
 
@@ -1691,7 +1700,8 @@ omics <- R6::R6Class(
             } else {
               row_B <- switch(
                 aggregate_method, 
-                "mean" = matrixStats::rowMeans2(mat_B), "median" = matrixStats::rowMedians(mat_B)
+                "mean" = matrixStats::rowMeans2(mat_B), "median" = matrixStats::rowMedians(mat_B),
+                "geomean" = geomean(mat_B), "none" = mat_B
               )
             }
           
@@ -1701,9 +1711,18 @@ omics <- R6::R6Class(
 
           ## Computing fold-change by division
           } else if (method == "identity") {
-            max_val <- base::max(mat_A)
-            fc_res <- numeric(length(row_A))
+            max_val <- base::max(row_A)
 
+            if (is.null(dim(row_A))) {
+              fc_res <- numeric(length(row_A))
+            } else {
+              fc_res <- matrix(
+                data = 0, 
+                nrow = nrow(row_A), 
+                ncol = ncol(row_A),
+                dimnames = list(rownames(row_A), colnames(row_A))
+              )
+            }
             # Find zero's to prevent Inf
             both_zero <- row_A == 0 & row_B == 0
             row_A_zero <- row_A == 0 & row_B != 0
@@ -1726,8 +1745,11 @@ omics <- R6::R6Class(
 
           ## Combine fold-change with main table
           foldchange_dt <- cbind(foldchange_dt, fc_res)
+          
           result_col_title <- paste0(condition_A[i], "_vs_", condition_B[i], "_in_", group_name)
-          colnames(foldchange_dt)[grepl("fc_res", colnames(foldchange_dt))] <- paste0("fold-change_", result_col_title)
+          if (aggregate_method != "none") {
+            colnames(foldchange_dt)[grepl("fc_res", colnames(foldchange_dt))] <- paste0("fold-change_", result_col_title)
+          }
 
           ## Computing wilcox test
           if (paired) {
@@ -1737,6 +1759,8 @@ omics <- R6::R6Class(
           }
           
           ## Compute homogeneity of variance test based on selected `aggregate_method`
+          if (aggregate_method == "geomean") aggregate_method <- "mean"
+
           combined_mat <- cbind(mat_A, mat_B)
           combined_labels <- c(rep(paste0(condition_A), ncol(mat_A)), rep(paste0(condition_B), ncol(mat_B)))
           homogeneity_test <- switch(
@@ -1744,8 +1768,10 @@ omics <- R6::R6Class(
             "mean" = matrixTests::row_levene(x = combined_mat, g = combined_labels),
             "median" = matrixTests::row_brownforsythe(x = combined_mat, g = combined_labels)
           )
-          foldchange_dt[, (paste0("homogeneity_test_statistic_", result_col_title)) := homogeneity_test$statistic]
-          foldchange_dt[, (paste0("homogeneity_test_pvalue_", result_col_title)) := homogeneity_test$pvalue]
+          if (!is.null(homogeneity_test)) {
+            foldchange_dt[, (paste0("homogeneity_test_statistic_", result_col_title)) := homogeneity_test$statistic]
+            foldchange_dt[, (paste0("homogeneity_test_pvalue_", result_col_title)) := homogeneity_test$pvalue]
+          }
         }
       }
       output$data <- foldchange_dt
@@ -1754,32 +1780,34 @@ omics <- R6::R6Class(
       # Visualization        #
       #----------------------#
 
-      # Create & save volcano plot
-      colnames_dfe <- colnames(foldchange_dt)
-      diff_columns <- colnames_dfe[grepl("fold-change", colnames_dfe)]
-      pvalue_columns <- colnames_dfe[grepl("pvalue_wilcox", colnames_dfe)]
-      abun_column <- colnames_dfe[grepl("abun", colnames_dfe)]
-      n_diff_columns <- length(diff_columns)
+      # Create & save volcano plot if method is not `"none"`
+      if (aggregate_method != "none") {
+        colnames_dfe <- colnames(foldchange_dt)
+        diff_columns <- colnames_dfe[grepl("fold-change", colnames_dfe)]
+        pvalue_columns <- colnames_dfe[grepl("pvalue_wilcox", colnames_dfe)]
+        abun_column <- colnames_dfe[grepl("abun", colnames_dfe)]
+        n_diff_columns <- length(diff_columns)
 
-      output$volcano_plot <- lapply(1:n_diff_columns, function(i) {
-        volcano_plot(
-          data = foldchange_dt,
-          logfold_col = diff_columns[i],
-          pvalue_col = pvalue_columns[i],
-          feature_rank = feature_rank,
-          abundance_col = abun_column,
-          pvalue.threshold = pvalue.threshold,
-          logfold.threshold = logfold.threshold,
-          abundance.threshold = abundance.threshold,
-          label_A = condition_A,
-          label_B = condition_B
-        ) + ggplot2::labs(
-            subtitle = paste0(
-              "Attribute: ", condition.group,
-              ", test: ", ifelse(paired, "Wilcox signed rank test", "Mann-Whitney U test")
-              )
-          )
-      })
+        output$volcano_plot <- lapply(1:n_diff_columns, function(i) {
+          volcano_plot(
+            data = foldchange_dt,
+            logfold_col = diff_columns[i],
+            pvalue_col = pvalue_columns[i],
+            feature_rank = feature_rank,
+            abundance_col = abun_column,
+            pvalue.threshold = pvalue.threshold,
+            logfold.threshold = logfold.threshold,
+            abundance.threshold = abundance.threshold,
+            label_A = condition_A,
+            label_B = condition_B
+          ) + ggplot2::labs(
+              subtitle = paste0(
+                "Attribute: ", condition.group,
+                ", test: ", ifelse(paired, "Wilcox signed rank test", "Mann-Whitney U test")
+                )
+            )
+        })
+      }
 
       return(output)
     },
