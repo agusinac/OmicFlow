@@ -75,7 +75,7 @@
     Code
       adiv$data
     Output
-               V1 CONTRAST_sex
+          shannon CONTRAST_sex
             <num>       <char>
       1: 3.403898         male
       2: 3.776849       female
@@ -99,7 +99,7 @@
     Code
       adiv$data
     Output
-               V1 CONTRAST_sex treatment
+          shannon CONTRAST_sex treatment
             <num>       <char>    <char>
       1: 3.403898         male     tumor
       2: 3.776849       female     tumor

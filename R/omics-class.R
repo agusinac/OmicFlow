@@ -955,9 +955,10 @@ omics <- R6::R6Class(
 
       # Alpha diversity based on 'metric'
       div <- data.table::data.table(diversity(x = private$.countData, metric=metric))
+      data.table::setnames(x = div, old = "V1", new = metric)
       div[, (combined_cols) := private$.metaData[, .SD, .SDcols = c(combined_cols)]]
       # Adjusts for evenness
-      if (evenness) div$V1 <- div$V1 / log(vegan::specnumber(div$V1))
+      if (evenness) div[[ metric ]] <- div[[ metric ]] / log(vegan::specnumber(div[[ metric ]]))
 
       # get colors
       colors <- colormap(data = private$.metaData, groups = groups, Brewer.palID = Brewer.palID)
@@ -966,7 +967,7 @@ omics <- R6::R6Class(
       plot_list$data <- div
       diversity_plt <- boxjitter_test(
         data = stats::na.omit(div),
-        values = "V1",
+        values = metric,
         groups = groups,
         split_by = split_by,
         palette = colors,

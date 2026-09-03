@@ -382,33 +382,35 @@ metagenomics <- R6::R6Class(
     construct_hdf5_featureData = function() {
       if (!is.null(private$.biomData$observation$metadata$taxonomy)) {
         private$.featureData <- data.table::data.table(t(private$.biomData$observation$metadata$taxonomy))
-      }
+      } else cli::cli_abort("Supplied biom in {.field biomData} does not contain `observation$metadata$taxonomy`!")
       
-      if (any(grepl(private$.feature_id, colnames(private$.metaData))) && !all(is.na(private$.metaData[[ private$.feature_id ]]))) {
-        FEATURE_ID <- private$.metaData[[private$.feature_id]]
-      } else if (!is.null(private$.biomData$observation$ids)) {
+      if (!is.null(private$.biomData$observation$ids)) {
         FEATURE_ID <- private$.biomData$observation$ids
-      } else {
-        FEATURE_ID <- NULL
-      }
-
-      # Adds feature id as first column
-      if (!is.null(FEATURE_ID) && !is.null(private$.featureData)) {
         private$.featureData[[ private$.feature_id ]] <- FEATURE_ID
-      }
+        private$add_FEATURE_ID()
+      } else if (!is.null(private$.featureData)) {
+        private$add_FEATURE_ID()
+      } else cli::cli_abort("Supplied biom in {.field biomData} does not contain `observation ids`!")
 
       cli::cli_alert_success("{.field featureData} is loaded.")
     },
     construct_hdf5_countData = function() {
       sample_ids <- private$.biomData$sample$ids
-      feature_ids <- private$.biomData$observation$ids
+      feature_ids <- private$.featureData[[ private$.feature_id ]]
+      data <- private$.biomData$observation$matrix$data
+      indices <- private$.biomData$observation$matrix$indices
       indptr <- as.numeric(private$.biomData$observation$matrix$indptr)
+
+      if (is.null(sample_ids)) cli::cli_abort("Supplied biom in {.field biomData} does not contain sample `ids`!")
+      if (is.null(data)) cli::cli_abort("Supplied biom in {.field biomData} does not contain `data` points!")
+      if (is.null(indices)) cli::cli_abort("Supplied biom in {.field biomData} does not contain `indices`!")
+      if (is.null(indptr)) cli::cli_abort("Supplied biom in {.field biomData} does not contain `indptr`!")
 
       ## Extract positive values from triplet format
       private$.countData <- Matrix::sparseMatrix(
         i = unlist(sapply(1:(length(indptr)-1), function (i) rep(i, diff(indptr[c(i,i+1)])))),
-        j = as.numeric(private$.biomData$observation$matrix$indices) + 1,
-        x = as.numeric(private$.biomData$observation$matrix$data),
+        j = as.numeric(indices) + 1,
+        x = as.numeric(data),
         dims = c(length(feature_ids), length(sample_ids)),
         dimnames = list(
           as.character(feature_ids),

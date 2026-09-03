@@ -1,4 +1,4 @@
-# OmicFlow 1.6.0.9010
+# OmicFlow 1.6.0.9011
 
 ## Added
 - Added additional parameters via `...` to be passed to `pairwise_adonis` and `pairwise_anosim` (.e.g. `parallel = 10` can be called now).
@@ -20,6 +20,7 @@
 ## Fixed
 - `omics$feature_merge` is optional in `omics$foldchange`
 - `omics$removeNAs` uses `stats::complete.cases` instead of `na.omit`
+- Added extra error handling in `metagenomics` when `biomData` is used.
 
 ## Deprecated
 - `diversity_plot` is replaced by `stats_boxplot`. The original `diversity_plot` is scheduled for deprecation.

@@ -228,7 +228,7 @@ boxjitter_test <- function(
     pvalues_dt[, `:=` (
       xmid = (xmin + xmax) / 2,
       bracket_height = y.position - 0.02 * diff(range(y.position, na.rm = TRUE)),
-      label = round(p.adj, 2)
+      label = base::formatC(p.adj, format = "e", digits = 2)
       )
     ]
   }
@@ -321,7 +321,7 @@ boxjitter_test <- function(
 
   if (!is.null(split_by)) {
     plt <- plt +
-      ggplot2::facet_wrap(~.data[[ split_by ]])
+      ggplot2::facet_wrap(~.data$split_by)
   }
 
   plt <- plt + 
