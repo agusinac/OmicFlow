@@ -96,7 +96,7 @@
       v metaData template passed the JSON validation.
       i Checking for duplicated identifiers ..
       v countData is loaded.
-      ! Created placeholder featureData.
+      i Created placeholder featureData.
     Condition
       Error in `private$sync()`:
       ! None SAMPLE_IDs are matching, check if "SAMPLE_ID" are matching the colnames in countData!
@@ -133,7 +133,7 @@
       v metaData template passed the JSON validation.
       i Checking for duplicated identifiers ..
       v countData is loaded.
-      ! Created placeholder featureData.
+      i Created placeholder featureData.
 
 ---
 
@@ -143,7 +143,7 @@
       v metaData template passed the JSON validation.
       i Checking for duplicated identifiers ..
       v countData is loaded.
-      ! Created placeholder featureData.
+      i Created placeholder featureData.
 
 ---
 

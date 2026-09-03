@@ -223,7 +223,7 @@ omics <- R6::R6Class(
 
         if (is.null(private$.featureData)) {
           private$add_featureData()
-          cli::cli_alert_warning("Created placeholder {.field featureData}.")
+          cli::cli_alert_info("Created placeholder {.field featureData}.")
         } else {
           rownames(private$.countData) <- private$.featureData[[ private$.feature_id ]]
         }
@@ -2277,7 +2277,7 @@ omics <- R6::R6Class(
         }
       } else if (!is.null(private$.countData)) {
         private$add_featureData()
-        cli::cli_alert_warning("Placeholder {.field featureData} created.")
+        cli::cli_alert_info("Placeholder {.field featureData} created.")
       }
     },
     # Helper function to remove empty rows/columns
@@ -2332,7 +2332,7 @@ omics <- R6::R6Class(
         # Removes non-SAMPLE_IDs and adds them to the `featureData`
         private$.featureData <- data_tmp[, .SD, .SDcols = colnames(data_tmp)[!samples_in_metadata]]
         private$add_FEATURE_ID()
-        cli::cli_alert_warning("Placeholder {.field featureData} extracted from {.field countData}.")
+        cli::cli_alert_info("Placeholder {.field featureData} extracted from {.field countData}.")
 
         data_tmp[, (colnames(data_tmp)[!samples_in_metadata]) := NULL]
       }

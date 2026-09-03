@@ -126,7 +126,7 @@
       v metaData template passed the JSON validation.
       i Checking for duplicated identifiers ..
       v countData is loaded.
-      ! Created placeholder featureData.
+      i Created placeholder featureData.
     Condition
       Error in `private$sync()`:
       ! None SAMPLE_IDs are matching, check if "SAMPLE_ID" are matching the colnames in countData!
@@ -240,4 +240,41 @@
       countData: 4 samples x 242 features
       featureData: 7 attributes x 242 features
       treeData: 242 tips x 241 nodes
+
+---
+
+    Code
+      test <- metagenomics$new(metaData = metadata_file, biomData = biom_hdf5,
+        feature_names = c("Kingdom", "Phylum", "Class", "Order", "Family", "Genus",
+          "Species", "variants"))
+    Message
+      v metaData template passed the JSON validation.
+      i Checking for duplicated identifiers ..
+      v featureData is loaded.
+      v countData is loaded.
+      i Final steps .. cleaning & creating back-up
+      
+      -- <metagenomics> object 
+      metaData: 9 variables x 4 samples
+      countData: 4 samples x 242 features
+      featureData: 7 attributes x 242 features
+
+---
+
+    Code
+      test <- metagenomics$new(metaData = metadata_file, biomData = biom_hdf5,
+        feature_names = c("Kingdom", "Phylum", "Class"))
+    Message
+      v metaData template passed the JSON validation.
+      i Checking for duplicated identifiers ..
+      v featureData is loaded.
+      v countData is loaded.
+      i Final steps .. cleaning & creating back-up
+      ! The number of columns in featureData is greater than "feature_names". 
+      Please check and rename the featureData columns by yourself!
+      
+      -- <metagenomics> object 
+      metaData: 9 variables x 4 samples
+      countData: 4 samples x 242 features
+      featureData: 7 attributes x 242 features
 

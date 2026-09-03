@@ -90,4 +90,27 @@ test_that("`metagenomics` -- Behavioral checks", {
   expect_equal(inherits(test$countData, "sparseMatrix"), inherits(taxa_ref$countData, "sparseMatrix"))
   expect_equal(class(test$metaData)[1], class(taxa_ref$metaData)[1])
   expect_equal(class(test$featureData)[1], class(taxa_ref$featureData)[1])
+
+  ## Handles `feature_names` with extra labels that are not present
+  expect_snapshot(
+    test <- metagenomics$new(
+      metaData = metadata_file,
+      biomData = biom_hdf5,
+      feature_names = c("Kingdom", "Phylum", "Class", "Order", "Family", "Genus", "Species", "variants")
+    )
+  )
+  expect_equal(all(rownames(test$countData) == test$featureData$FEATURE_ID), TRUE)
+  expect_equal(all(colnames(test$countData) == test$metaData$SAMPLE_ID), TRUE)
+  expect_s4_class(test$countData, "sparseMatrix")
+  expect_s3_class(test$metaData, "data.table")
+  expect_s3_class(test$featureData, "data.table")
+
+  ## Gives warning if less `feature_names` are provided than found in the `featureData`
+  expect_snapshot(
+    test <- metagenomics$new(
+      metaData = metadata_file,
+      biomData = biom_hdf5,
+      feature_names = c("Kingdom", "Phylum", "Class")
+    )
+  )
 })

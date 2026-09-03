@@ -141,7 +141,7 @@ metagenomics <- R6::R6Class(
             private$.featureData <- data.table::data.table()
             private$.featureData <- private$.featureData[, (private$.feature_id) := FEATURE_ID]
             rownames(private$.countData) <- private$.featureData[[ private$.feature_id ]]
-            cli::cli_alert_warning("Created placeholder {.field featureData}.")
+            cli::cli_alert_info("Created placeholder {.field featureData}.")
           }
           rownames(private$.countData) <- private$.featureData[[ private$.feature_id ]]
           data.table::setcolorder(
@@ -197,11 +197,20 @@ metagenomics <- R6::R6Class(
       # Replace empty strings by <NA>
       private$.featureData <- private$.featureData[, 
             lapply(.SD, function(x) ifelse(x == "", NA, x)),
-            .SDcols = colnames(private$.featureData)]
-      # Rename last column names by feature_names
-      n_feature_names <- length(feature_names)
-      n_cols_featureData <- ncol(private$.featureData)
-      colnames(private$.featureData)[n_cols_featureData:(n_cols_featureData - n_feature_names + 1)] <- base::rev(feature_names)
+            .SDcols = colnames(private$.featureData)
+          ]
+
+      # Add feature_names after `FEATURE_ID` column (always at first position)
+      n_cols_featureData <- ncol(private$.featureData) - 1
+      if (n_cols_featureData > length(feature_names)) {
+        cli::cli_alert_warning("The number of columns in {.field featureData} is greater than {.val feature_names}. \nPlease check and rename the {.field featureData} columns by yourself!")
+      } else {
+        data.table::setnames(
+          x = private$.featureData, 
+          old = colnames(private$.featureData), 
+          new = c(private$.feature_id, feature_names[1:n_cols_featureData])
+        )
+      }
 
       # Subsetting countData by metadata
       private$sync()
