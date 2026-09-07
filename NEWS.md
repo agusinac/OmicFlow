@@ -1,4 +1,4 @@
-# OmicFlow 1.6.0.9012
+# OmicFlow 1.6.0.9013
 
 ## Added
 - Added additional parameters via `...` to be passed to `pairwise_adonis` and `pairwise_anosim` (.e.g. `parallel = 10` can be called now).

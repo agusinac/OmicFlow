@@ -15,6 +15,7 @@
 #' @param test A character variable indicating what statistical test to apply (default: \code{"wilcox"}).
 #' @param paired A boolean value to perform paired analysis with \link[matrixTests]{row_wilcoxon_paired} (default: \code{FALSE}).
 #' @param p.adjust.method A character variable to specify the p.adjust.method to be used (default: \code{"fdr"}).
+#' @param step.increase A numeric value to create a gap between Y-positions (default": \code{0.05}).
 #' @return A \link[ggplot2]{ggplot2} object to be further modified
 #'
 #' @examples  
@@ -85,7 +86,8 @@ boxjitter_test <- function(
   method = lifecycle::deprecated(),
   test = "wilcox",
   paired = FALSE,
-  p.adjust.method = "fdr"
+  p.adjust.method = "fdr",
+  step.increase = 0.05
   ) {
 
   ## Lifecycle warn  
@@ -183,7 +185,8 @@ boxjitter_test <- function(
           g_col = groups,
           test = test,
           p.adjust.method = p.adjust.method,
-          paired = paired
+          paired = paired,
+          step.increase = step.increase
       )
       tmp
     }, by = split_by]
@@ -204,7 +207,8 @@ boxjitter_test <- function(
         g_col = groups,
         test = test,
         p.adjust.method = p.adjust.method,
-        paired = paired
+        paired = paired,
+        step.increase = step.increase
       )
       tmp
     }]
@@ -367,7 +371,7 @@ boxjitter_test <- function(
       data = pvalues_dt,
       mapping = ggplot2::aes(
         x = .data$xmin, xend = .data$xmin,
-        y = .data$y.position, yend = .data$y.position - 0.003
+        y = .data$y.position, yend = .data$y.position - 0.01
       ),
       inherit.aes = FALSE
     ) +
@@ -376,7 +380,7 @@ boxjitter_test <- function(
       data = pvalues_dt,
       mapping = ggplot2::aes(
         x = .data$xmax, xend = .data$xmax,
-        y = .data$y.position, yend = .data$y.position - 0.003
+        y = .data$y.position, yend = .data$y.position - 0.01
       ),
       inherit.aes = FALSE
     ) +

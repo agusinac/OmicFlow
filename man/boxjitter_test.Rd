@@ -15,7 +15,8 @@ boxjitter_test(
   method = lifecycle::deprecated(),
   test = "wilcox",
   paired = FALSE,
-  p.adjust.method = "fdr"
+  p.adjust.method = "fdr",
+  step.increase = 0.05
 )
 }
 \arguments{
@@ -40,6 +41,8 @@ boxjitter_test(
 \item{paired}{A boolean value to perform paired analysis with \link[matrixTests]{row_wilcoxon_paired} (default: \code{FALSE}).}
 
 \item{p.adjust.method}{A character variable to specify the p.adjust.method to be used (default: \code{"fdr"}).}
+
+\item{step.increase}{A numeric value to create a gap between Y-positions (default": \code{0.05}).}
 }
 \value{
 A \link[ggplot2]{ggplot2} object to be further modified

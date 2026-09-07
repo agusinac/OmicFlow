@@ -99,6 +99,7 @@ is.color <- function(x) {
 #'   For \code{test = "wilcox"}, uses \link[matrixTests]{row_wilcoxon_paired} when \code{TRUE}
 #'   or \link[matrixTests]{row_wilcoxon_twosample} when \code{FALSE}.
 #' @param p.adjust.method A character string to specify the p-adjust method to use in `stats::p.adjust` (default: \code{"fdr"}).
+#' @param step.increase A numeric value to create a gap between Y-positions (default": \code{0.05}).
 #' @param ... Extra arguments passed to the underlying \code{matrixTests} function.
 #' @return A data.table with pairwise comparison results including: \describe{
 #'   \item{group1, group2}{The two groups being compared}
@@ -127,7 +128,9 @@ pairwise_test <- function(
   g_col, 
   test = "wilcox", 
   paired = FALSE, 
-  p.adjust.method = "fdr", ...) {
+  p.adjust.method = "fdr",
+  step.increase = 0.05,
+  ...) {
   
   ## Error handling
   #--------------------------------------------------------------------#
@@ -161,6 +164,9 @@ pairwise_test <- function(
   } else if (!c(p.adjust.method %in% stats::p.adjust.methods)) {
     cli::cli_abort("{.val {p.adjust.method}} is not a valid method. \nValid options: {.val {p.adjust.methods}}.")
   }
+
+  if (!is.numeric(step.increase) || length(step.increase) != 1)
+    cli::cli_abort("{.val step.increase} needs to be a single value of {.cls numeric} type.")
 
   ## MAIN
   #--------------------------------------------------------------------#
@@ -200,6 +206,7 @@ pairwise_test <- function(
   co <- utils::combn(unique_groups, 2)
   n <- ncol(co)
   out_list <- list()
+  y_used <- numeric(0)
 
   ## Grouped max values for Y positioning
   groups_max <- data_tmp[, max(.SD[[x_col]], na.rm = TRUE), by = g_col]
@@ -218,9 +225,15 @@ pairwise_test <- function(
     # Saving stats
     out[["group1"]] <- as.character(pair_1)
     out[["group2"]] <- as.character(pair_2)
-    out[["y.position"]] <- max(groups_max[groups_max[[g_col]] %in% c(pair_1, pair_2), ]$V1) * 1.01
+
+    # Y position with step increase
+    pair_max <- max(groups_max[groups_max[[g_col]] %in% c(pair_1, pair_2), ]$V1) * 1.01
+    n_used <- ifelse(i == 1, 0, sum(y_used == pair_max))
+    y_pos <- pair_max + n_used * step.increase
+    out[["y.position"]] <- y_pos
 
     out_list[[i]] <- out
+    y_used <- c(y_used, y_pos)
   }
   # Combine pairwise subsets, adjust p-value, set new order
   pairw.res <- data.table::rbindlist(out_list)
