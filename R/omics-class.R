@@ -720,8 +720,7 @@ omics <- R6::R6Class(
         "clr" = {
           ref <- private$.countData
           ref@x <- log(ref@x, base=base)
-          row_means <- Matrix::rowSums(ref, na.rm = TRUE) / base::diff(Matrix::t(ref)@p)
-          ref - row_means
+          ref - Matrix::rowMeans(ref)
         },
         "binary" = {
           ref <- private$.countData
