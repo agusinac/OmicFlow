@@ -2,12 +2,12 @@
 % Please edit documentation in R/utils.R
 \name{column_exists}
 \alias{column_exists}
-\title{Checks if column exists in table}
+\title{Checks if given column name exists in provide table}
 \usage{
 column_exists(column, table)
 }
 \arguments{
-\item{column}{A character vector.}
+\item{column}{A column name in \code{table}.}
 
 \item{table}{A \link[data.table]{data.table} or \link[base]{data.frame}.}
 }

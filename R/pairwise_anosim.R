@@ -1,10 +1,11 @@
-#' Pairwise anosim (ANOSIM) computation
+#' Pairwise ANOSIM
 #'
 #' @description Computes pairwise \link[vegan]{anosim}, given a distance matrix and a vector of labels.
 #' This function is built into the class \link{omics} with method \code{ordination()} and inherited by other omics classes, such as;
 #' \link{metagenomics} and \link{proteomics}.
 #'
 #' @inheritParams pairwise_adonis
+#' @param ... Additional arguments passed to \link[vegan]{anosim}.
 #' @seealso \link[vegan]{anosim}
 #' @return A \link[base]{data.frame} containing: \describe{
 #' \item{pairs}{combinations of group comparisons}

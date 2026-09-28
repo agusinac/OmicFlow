@@ -1,10 +1,10 @@
 #' Sub-class metagenomics
 #'
 #' @description This is a sub-class that is compatible to data obtained from either 16S rRNA marker-gene sequencing or shot-gun metagenomics sequencing.
-#' It inherits all methods from the abstract class \link{omics} and only adapts the \code{initialize} function.
-#' It supports BIOM format data (v2.1.0 from \url{http://biom-format.org/}) in both HDF5 and JSON format, also pre-existing data structures can be used or text files.
-#' When omics data is very large, data loading becomes very expensive. It is therefore recommended to use the [`reset()`](#method-reset) method to reset your changes.
-#' Every omics class creates an internal memory efficient back-up of the data, the resetting of changes is an instant process.
+#' This sub-class has similar functionality as the main `omics` class, inherits all methods from the abstract class \link{omics} and only adapts the [`new()`](#method-new) method, and additionality adds a `biomData` and `treeData` field to be supplied. 
+#' When a `treeData` is supplied than every class field is arranged according to the tree tip labels.
+#' 
+#' `biomData` can only be loaded from an existing filepath, these biom should be of BIOM format data (v2.1.0 from \url{http://biom-format.org/}) of HDF5 or JSON format.
 #' @seealso \link{omics}
 #' @export
 
@@ -48,13 +48,13 @@ metagenomics <- R6::R6Class(
   ),
   public = list(
     #' @description
-    #' Initializes the metagenomics class object with \code{metagenomics$new()}
-    #' @param countData A path to an existing file, \link[Matrix]{Matrix}, \link[data.table]{data.table} or \link[base]{data.frame}.
-    #' @param featureData A path to an existing file, \link[data.table]{data.table} or \link[base]{data.frame}.
-    #' @param metaData A path to an existing file, \link[data.table]{data.table} or \link[base]{data.frame}.
-    #' @param treeData A path to an existing newick file or class "phylo", see \link[ape]{read.tree}.
-    #' @param biomData A path to an existing biom file, version 2.1.0 (http://biom-format.org/), see \link[rhdf5]{h5read}.
-    #' @param feature_names A character vector to name the feature names that fit the supplied `featureData`.
+    #' Initializes the `metagenomics` class object with \code{metagenomics$new()}, requires at least a `metaData` and `countData` or `biomData`.
+    #' @param countData A path to an existing file, \link[Matrix]{Matrix}, \link[data.table]{data.table} or \link[base]{data.frame} (default: \code{NULL}).
+    #' @param featureData A path to an existing file, \link[data.table]{data.table} or \link[base]{data.frame} (default: \code{NULL}).
+    #' @param metaData A path to an existing file, \link[data.table]{data.table} or \link[base]{data.frame} (default: \code{NULL}).
+    #' @param treeData A path to an existing newick file or class "phylo", see \link[ape]{read.tree} (default: \code{NULL}).
+    #' @param biomData A path to an existing biom file, version 2.1.0 (http://biom-format.org/) (see \link[rhdf5]{h5read}) or JSON format (see \link[.yyjsonr]{validate_json_file}) (default: \code{NULL}).
+    #' @param feature_names A character vector to name the feature names that fit the supplied `featureData` (default: \code{c("Kingdom", "Phylum", "Class", "Order", "Family", "Genus", "Species")}).
     #' 
     #' @return A new `metagenomics` object.
     initialize = function(
@@ -225,8 +225,8 @@ metagenomics <- R6::R6Class(
       )
     },
     #' @description
-    #' Creates a BIOM file in HDF5 format of the loaded items via ['new()'](#method-new), which is compatible to the python biom-format version 2.1, see http://biom-format.org.
-    #' @param filename A character variable of either the full path of filename of the biom file (e.g. `output.biom`)
+    #' Creates a BIOM file in HDF5 format, which is compatible to the python biom-format version 2.1, see http://biom-format.org.
+    #' @param filename A character variable of a non-existing file path (e.g. \code{"output.biom"} or \code{"my/path/output.biom"})
     #' @examples
     #' library("OmicFlow")
     #'

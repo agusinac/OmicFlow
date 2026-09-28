@@ -1,4 +1,4 @@
-#' Pairwise adonis2 (PERMANOVA) computation
+#' Pairwise adonis2 (PERMANOVA)
 #'
 #' @description Computes pairwise \link[vegan]{adonis2}, given a distance matrix and a vector of labels.
 #' This function is built into the class \link{omics} with method \code{ordination()} and inherited by other omics classes, such as;
@@ -6,10 +6,10 @@
 #'
 #' @param x A distance matrix in the form of \link[stats]{dist}.
 #' Obtained from a dissimilarity metric, in the case of similarity metric please use \code{1-dist}
-#' @param groups A character vector (e.g. a column from a the `metadata`) to match the sample group labels.
+#' @param groups A character vector with equal length as the distance matrix.
 #' @param metadata A \link[data.table]{data.table} or \link[base]{data.frame} as input to the function \code{perm_design} (default: \code{NULL}).
 #' @param perm_design A function that takes the `metadata` and returns a permutation design with \link[permute]{how} (default: \code{NULL}).
-#' @param p.adjust.method A character as input to adjust the p-values, see \link[stats]{p.adjust} (default: \code{"bonferroni"}).
+#' @param p.adjust.method A character variable to adjust the p-values, see \link[stats]{p.adjust} (default: \code{"bonferroni"}).
 #' @param perm A whole number to define the number of permutations in \link[vegan]{adonis2} (default: \code{999}).
 #' @param ... Additional arguments passed to \link[vegan]{adonis2}.
 #' @seealso \link[vegan]{adonis2}

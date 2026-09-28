@@ -4,10 +4,8 @@
 #' Code is adapted from \link[hillR]{hill_taxa} and uses \link[Matrix]{sparseMatrix} in triplet format over the dense matrix.
 #' The code is much faster and memory efficient, while still being mathematical correct.
 #'
-#' @param x A \link[base]{matrix}, \link[Matrix]{sparseMatrix} or \link[Matrix]{Matrix}.
-#' @param q A wholenumber for 0, 1 or 2, default is 0.
-#' @param normalize A boolean variable for sample normalization by column sums.
-#' @param base Input for \link[base]{log} to use natural logarithmic scale, log2, log10 or other.
+#' @inheritParams diversity
+#' @param q A wholenumber to specify what hill numbers to use (default: \code{0})
 #' @return A numeric vector with type double.
 #' @seealso \link[hillR]{hill_taxa}
 #' 

@@ -1,10 +1,7 @@
 #' Sub-class proteomics
 #'
-#' @description This is a sub-class that is compatible to preprocessed data obtained from https://fragpipe.nesvilab.org/. 
-#' It inherits all methods from the abstract class \link{omics} and only adapts the \code{initialize} function.
-#' It supports pre-existing data structures or paths to text files.
-#' When omics data is very large, data loading becomes very expensive. It is therefore recommended to use the [`reset()`](#method-reset) method to reset your changes.
-#' Every omics class creates an internal memory efficient back-up of the data, the resetting of changes is an instant process.
+#' @description This sub-class has similar functionality as the main `omics` class, inherits all methods from the abstract class \link{omics} and only adapts the [`new()`](#method-new) method, and additionality adds a `treeData` field to be supplied. 
+#' When a `treeData` is supplied than every class field is arranged according to the tree tip labels.
 #' @seealso \link{omics}
 #' @export
 
@@ -48,11 +45,11 @@ proteomics <- R6::R6Class(
   ),
   public = list(
     #' @description
-    #' Initializes the proteomics class object with \code{proteomics$new()}
-    #' @param countData A path to an existing file, \link[Matrix]{Matrix}, \link[data.table]{data.table} or \link[base]{data.frame}.
-    #' @param featureData A path to an existing file, \link[data.table]{data.table} or \link[base]{data.frame}.
-    #' @param metaData A path to an existing file, \link[data.table]{data.table} or \link[base]{data.frame}.
-    #' @param treeData A path to an existing newick file or class "phylo", see \link[ape]{read.tree}.
+    #' Initializes the `proteomics` class object with \code{proteomics$new()}, requires at least a `metaData` and `countData`.
+    #' @param countData A path to an existing file, \link[Matrix]{Matrix}, \link[data.table]{data.table} or \link[base]{data.frame} (default: \code{NULL}).
+    #' @param featureData A path to an existing file, \link[data.table]{data.table} or \link[base]{data.frame} (default: \code{NULL}).
+    #' @param metaData A path to an existing file, \link[data.table]{data.table} or \link[base]{data.frame} (default: \code{NULL}).
+    #' @param treeData A path to an existing newick file or class "phylo", see \link[ape]{read.tree} (default: \code{NULL}).
     #' 
     #' @return A new `proteomics` object.
     initialize = function(

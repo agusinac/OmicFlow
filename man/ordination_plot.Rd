@@ -14,23 +14,23 @@ ordination_plot(
 )
 }
 \arguments{
-\item{data}{A \link[base]{data.frame} or \link[data.table]{data.table} of Principal Components as columns and rows as loading scores.}
+\item{data}{A \link[base]{data.frame} or \link[data.table]{data.table} with Principal Components as columns and rows as loading scores.}
 
 \item{col_name}{\ifelse{html}{\href{https://lifecycle.r-lib.org/articles/stages.html#deprecated}{\figure{lifecycle-deprecated.svg}{options: alt='[Deprecated]'}}}{\strong{[Deprecated]}} This argument has been renamed to \code{groups} for more clarity.}
 
-\item{groups}{A categorical variable to color the groups (e.g. \code{"treatment"}).}
+\item{groups}{A categorical variable in \code{data} to color the groups (e.g. \code{"treatment"}).}
 
-\item{pair}{A vector of character variables indicating what dimension names (e.g. \code{c("PC1", "PC2")} or \code{c("NMDS1", "NMDS2")}).}
+\item{pair}{A vector of character variables indicating what dimension names (e.g. \code{c("PC1", "PC2")} or \code{c("NMDS1", "NMDS2")}) in \code{data}.}
 
 \item{dist_explained}{A vector of numeric values of the percentage dissimilarity explained for the dimension pairs (default: \code{NULL}).}
 
-\item{dist_metric}{A character variable indicating what metric is used (e.g. unifrac, bray-curtis) (default: \code{NULL}).}
+\item{dist_metric}{A character variable indicating what metric is used (e.g. \code{"bray-curtis"}) (default: \code{NULL}).}
 }
 \value{
 A \link[ggplot2]{ggplot2} object to be further modified
 }
 \description{
-Creates an ordination plot pre-computed principal components from \link[vegan]{wcmdscale}.
+Creates an ordination plot from pre-computed principal components.
 This function is built into the class \link{omics} with method \code{ordination()} and inherited by other omics classes, such as;
 \link{metagenomics} and \link{proteomics}.
 }

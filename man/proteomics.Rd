@@ -4,11 +4,8 @@
 \alias{proteomics}
 \title{Sub-class proteomics}
 \description{
-This is a sub-class that is compatible to preprocessed data obtained from https://fragpipe.nesvilab.org/.
-It inherits all methods from the abstract class \link{omics} and only adapts the \code{initialize} function.
-It supports pre-existing data structures or paths to text files.
-When omics data is very large, data loading becomes very expensive. It is therefore recommended to use the \href{#method-reset}{\code{reset()}} method to reset your changes.
-Every omics class creates an internal memory efficient back-up of the data, the resetting of changes is an instant process.
+This sub-class has similar functionality as the main \code{omics} class, inherits all methods from the abstract class \link{omics} and only adapts the \href{#method-new}{\code{new()}} method, and additionality adds a \code{treeData} field to be supplied.
+When a \code{treeData} is supplied than every class field is arranged according to the tree tip labels.
 }
 \seealso{
 \link{omics}
@@ -55,7 +52,7 @@ Every omics class creates an internal memory efficient back-up of the data, the 
 \if{html}{\out{<a id="method-proteomics-initialize"></a>}}
 \if{latex}{\out{\hypertarget{method-proteomics-initialize}{}}}
 \subsection{\code{proteomics$new()}}{
-  Initializes the proteomics class object with \code{proteomics$new()}
+  Initializes the \code{proteomics} class object with \code{proteomics$new()}, requires at least a \code{metaData} and \code{countData}.
   \subsection{Usage}{
     \if{html}{\out{<div class="r">}}
     \preformatted{proteomics$new(
@@ -69,10 +66,10 @@ Every omics class creates an internal memory efficient back-up of the data, the 
   \subsection{Arguments}{
     \if{html}{\out{<div class="arguments">}}
     \describe{
-      \item{\code{countData}}{A path to an existing file, \link[Matrix]{Matrix}, \link[data.table]{data.table} or \link[base]{data.frame}.}
-      \item{\code{metaData}}{A path to an existing file, \link[data.table]{data.table} or \link[base]{data.frame}.}
-      \item{\code{featureData}}{A path to an existing file, \link[data.table]{data.table} or \link[base]{data.frame}.}
-      \item{\code{treeData}}{A path to an existing newick file or class "phylo", see \link[ape]{read.tree}.}
+      \item{\code{countData}}{A path to an existing file, \link[Matrix]{Matrix}, \link[data.table]{data.table} or \link[base]{data.frame} (default: \code{NULL}).}
+      \item{\code{metaData}}{A path to an existing file, \link[data.table]{data.table} or \link[base]{data.frame} (default: \code{NULL}).}
+      \item{\code{featureData}}{A path to an existing file, \link[data.table]{data.table} or \link[base]{data.frame} (default: \code{NULL}).}
+      \item{\code{treeData}}{A path to an existing newick file or class "phylo", see \link[ape]{read.tree} (default: \code{NULL}).}
     }
     \if{html}{\out{</div>}}
   }

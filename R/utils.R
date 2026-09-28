@@ -1,6 +1,6 @@
 #' Converting a Matrix to data.table
 #'
-#' @description Wrapper function that converts a sparseMatrix to data.table
+#' @description Wrapper function that converts a sparseMatrix or `countData` field from omics classes to a `data.table`
 #'
 #' @param x A \link[base]{matrix}, \link[Matrix]{sparseMatrix} or \link[Matrix]{Matrix}.
 #' @return A \link[data.table]{data.table} class.
@@ -10,11 +10,11 @@ matrix_to_dtable <- function(x) {
       return(data.table::data.table(as.matrix(x)))
   } else cli::cli_abort("{.val x} isn't a {.cls matrix}, {.cls denseMatrix} or {.cls sparseMatrix}.")
 }
-#' Checks if column exists in table
+#' Checks if given column name exists in provide table
 #'
 #' @description Mainly used within \link{omics} and other functions to check if given column name(s) exist in the table and is not completely empty (containing NAs).
 #'
-#' @param column A character vector.
+#' @param column A column name in `table`.
 #' @param table A \link[data.table]{data.table} or \link[base]{data.frame}.
 #' @return A boolean value.
 #' @export

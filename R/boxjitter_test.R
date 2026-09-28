@@ -1,20 +1,19 @@
 #' Create a boxplot with jittered points and statistical tests
 #' 
 #' @description
-#' Visualizes group differences using a half-boxplot, half-jitter plot with automatic statistical testing and p-value annotation. 
-#' Thus far only the wilcoxon rank test (non-paired) and wilcoxon signed rank test (paired) are supported.
+#' Visualizes group differences using a half-boxplot, half-jitter plot with pairwise statistical testing and p-value annotation.
 #' This function is built into the class \link{omics} with method \code{alpha_diversity()}.
 #' @param data A \link[base]{data.frame} or \link[data.table]{data.table} table.
-#' @param values A column name of a continuous variable.
-#' @param groups A column name of a categorical variable.
+#' @param values A column name of a continuous variable in `data`.
+#' @param groups A column name of a categorical variable in `data`.
 #' @param col_name `r lifecycle::badge("deprecated")` This argument has been renamed to `groups` for more clarity.
-#' @param split_by A column name to split the groups into chunks for grouped statistical test (default: \code{NULL}).
+#' @param split_by A column name to split the groups into chunks based on the `data` for grouped statistical testing (default: \code{NULL}).
 #' @param group_by `r lifecycle::badge("deprecated")` This argument has been renamed to `split_by` for more clarity.
-#' @param palette An object with names and hexcode or color names, see \link{colormap} (default: \code{NULL}).
-#' @param method `r lifecycle::badge("deprecated")` This argument no longer labels the y-labels.
+#' @param palette An \link[stats]{setNames} class with names and values as hexcode or color names, see \link{colormap} (default: \code{NULL}).
+#' @param method `r lifecycle::badge("deprecated")` This argument no longer labels the y-labels, you can accomplish this by adding \code{+ labs(y = "label")} to the returned plot.
 #' @param test A character variable indicating what statistical test to apply (default: \code{"wilcox"}).
 #' @param paired A boolean value to perform paired analysis with \link[matrixTests]{row_wilcoxon_paired} (default: \code{FALSE}).
-#' @param p.adjust.method A character variable to specify the p.adjust.method to be used (default: \code{"fdr"}).
+#' @param p.adjust.method A character variable to adjust the p-values, see \link[stats]{p.adjust} (default: \code{"fdr"}).
 #' @param step.increase A numeric value to create a gap between Y-positions (default": \code{0.05}).
 #' @return A \link[ggplot2]{ggplot2} object to be further modified
 #'
@@ -119,7 +118,6 @@ boxjitter_test <- function(
     }
   }
   
-  # method → test (assuming this is the new name)
   if (lifecycle::is_present(method)) {
     lifecycle::deprecate_stop(
       when = "1.7.0",

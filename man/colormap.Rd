@@ -24,7 +24,7 @@ colormap(
 A \link[stats]{setNames}.
 }
 \description{
-Creates an object of hexcode colors with names given a vector of characters.
+Creates a color map of \link[stats]{setNames} class with names as unique group labels given a column name and values as hexcode colors.
 This function is built into the \code{composition} method from the abstract class \link{omics} and inherited by other omics classes, such as;
 \link{metagenomics} and \link{proteomics}.
 }

@@ -2,7 +2,7 @@
 % Please edit documentation in R/plot_pairwise_stats.R
 \name{plot_pairwise_stats}
 \alias{plot_pairwise_stats}
-\title{Create pairwise stats plot}
+\title{Creates barplot from \code{pairwise_adonis} or \code{pairwise_anosim}}
 \usage{
 plot_pairwise_stats(
   data,
@@ -16,21 +16,21 @@ plot_pairwise_stats(
 \arguments{
 \item{data}{A \link[base]{data.frame} or \link[data.table]{data.table}.}
 
-\item{stats_col}{A column name of a continuous variable.}
+\item{stats_col}{A column name of a continuous variable in \code{data}.}
 
-\item{group_col}{A column name of a categorical variable.}
+\item{group_col}{A column name of a categorical variable in \code{data}.}
 
-\item{label_col}{A column name of a categorical variable to label the bars.}
+\item{label_col}{A column name of a categorical variable to label the bars in \code{data}.}
 
 \item{y_axis_title}{A character variable to name the Y - axis title (default: \code{NULL}).}
 
 \item{plot_title}{A character variable to name the plot title (default: \code{NULL}).}
 }
 \value{
-A \link[ggplot2]{ggplot2} object to be further modified
+A \link[ggplot2]{ggplot2} object to be further modified.
 }
 \description{
-Creates a pairwise stats plot from \link{pairwise_adonis} or \link{pairwise_anosim} results.
+Creates a pairwise barplot of stats and F-test statistics plot from \link{pairwise_adonis} or \link{pairwise_anosim} results.
 This function is built into the class \link{omics} with method \code{ordination()} and inherited by other omics classes, such as;
 \link{metagenomics} and \link{proteomics}.
 }

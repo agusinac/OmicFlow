@@ -2,7 +2,7 @@
 % Please edit documentation in R/pairwise_adonis.R
 \name{pairwise_adonis}
 \alias{pairwise_adonis}
-\title{Pairwise adonis2 (PERMANOVA) computation}
+\title{Pairwise adonis2 (PERMANOVA)}
 \usage{
 pairwise_adonis(
   x,
@@ -18,13 +18,13 @@ pairwise_adonis(
 \item{x}{A distance matrix in the form of \link[stats]{dist}.
 Obtained from a dissimilarity metric, in the case of similarity metric please use \code{1-dist}}
 
-\item{groups}{A character vector (e.g. a column from a the \code{metadata}) to match the sample group labels.}
+\item{groups}{A character vector with equal length as the distance matrix.}
 
 \item{metadata}{A \link[data.table]{data.table} or \link[base]{data.frame} as input to the function \code{perm_design} (default: \code{NULL}).}
 
 \item{perm_design}{A function that takes the \code{metadata} and returns a permutation design with \link[permute]{how} (default: \code{NULL}).}
 
-\item{p.adjust.method}{A character as input to adjust the p-values, see \link[stats]{p.adjust} (default: \code{"bonferroni"}).}
+\item{p.adjust.method}{A character variable to adjust the p-values, see \link[stats]{p.adjust} (default: \code{"bonferroni"}).}
 
 \item{perm}{A whole number to define the number of permutations in \link[vegan]{adonis2} (default: \code{999}).}
 

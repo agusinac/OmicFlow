@@ -1,16 +1,16 @@
-#' Create pairwise stats plot
+#' Creates barplot from `pairwise_adonis` or `pairwise_anosim`
 #'
-#' @description Creates a pairwise stats plot from \link{pairwise_adonis} or \link{pairwise_anosim} results. 
+#' @description Creates a pairwise barplot of stats and F-test statistics plot from \link{pairwise_adonis} or \link{pairwise_anosim} results. 
 #' This function is built into the class \link{omics} with method \code{ordination()} and inherited by other omics classes, such as;
 #' \link{metagenomics} and \link{proteomics}.
 #'
 #' @param data A \link[base]{data.frame} or \link[data.table]{data.table}.
-#' @param stats_col A column name of a continuous variable.
-#' @param group_col A column name of a categorical variable.
-#' @param label_col A column name of a categorical variable to label the bars.
+#' @param stats_col A column name of a continuous variable in `data`.
+#' @param group_col A column name of a categorical variable in `data`.
+#' @param label_col A column name of a categorical variable to label the bars in `data`.
 #' @param y_axis_title A character variable to name the Y - axis title (default: \code{NULL}).
 #' @param plot_title A character variable to name the plot title (default: \code{NULL}).
-#' @return A \link[ggplot2]{ggplot2} object to be further modified
+#' @return A \link[ggplot2]{ggplot2} object to be further modified.
 #' @examples 
 #' # Create random data
 #' set.seed(42)

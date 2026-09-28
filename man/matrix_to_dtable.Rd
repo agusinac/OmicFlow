@@ -13,5 +13,5 @@ matrix_to_dtable(x)
 A \link[data.table]{data.table} class.
 }
 \description{
-Wrapper function that converts a sparseMatrix to data.table
+Wrapper function that converts a sparseMatrix or \code{countData} field from omics classes to a \code{data.table}
 }

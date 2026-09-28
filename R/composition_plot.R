@@ -4,10 +4,10 @@
 #' The function is compatible with the class \link{omics} method \code{composition()}.
 #'
 #' @param data A \link[base]{data.frame} or \link[data.table]{data.table}.
-#' @param palette A \link[stats]{setNames}, see \link{colormap}.
-#' @param feature_rank A column name containing the feature names.
+#' @param palette An \link[stats]{setNames} class with names and values as hexcode or color names, see \link{colormap}.
+#' @param feature_rank A column name containing the feature names in `data`.
 #' @param title_name A character to set the \code{ggtitle} of the \link[ggplot2]{ggplot}, (default: \code{NULL}).
-#' @param group_by A character variable to aggregate the stacked bars by group (default: \code{NULL}).
+#' @param group_by A character variable to aggregate the stacked bars by groups (default: \code{NULL}).
 #' @return A \link[ggplot2]{ggplot2} object to be further modified
 #' 
 #' @examples

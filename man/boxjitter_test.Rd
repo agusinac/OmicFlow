@@ -22,25 +22,25 @@ boxjitter_test(
 \arguments{
 \item{data}{A \link[base]{data.frame} or \link[data.table]{data.table} table.}
 
-\item{values}{A column name of a continuous variable.}
+\item{values}{A column name of a continuous variable in \code{data}.}
 
 \item{col_name}{\ifelse{html}{\href{https://lifecycle.r-lib.org/articles/stages.html#deprecated}{\figure{lifecycle-deprecated.svg}{options: alt='[Deprecated]'}}}{\strong{[Deprecated]}} This argument has been renamed to \code{groups} for more clarity.}
 
-\item{groups}{A column name of a categorical variable.}
+\item{groups}{A column name of a categorical variable in \code{data}.}
 
 \item{group_by}{\ifelse{html}{\href{https://lifecycle.r-lib.org/articles/stages.html#deprecated}{\figure{lifecycle-deprecated.svg}{options: alt='[Deprecated]'}}}{\strong{[Deprecated]}} This argument has been renamed to \code{split_by} for more clarity.}
 
-\item{split_by}{A column name to split the groups into chunks for grouped statistical test (default: \code{NULL}).}
+\item{split_by}{A column name to split the groups into chunks based on the \code{data} for grouped statistical testing (default: \code{NULL}).}
 
-\item{palette}{An object with names and hexcode or color names, see \link{colormap} (default: \code{NULL}).}
+\item{palette}{An \link[stats]{setNames} class with names and values as hexcode or color names, see \link{colormap} (default: \code{NULL}).}
 
-\item{method}{\ifelse{html}{\href{https://lifecycle.r-lib.org/articles/stages.html#deprecated}{\figure{lifecycle-deprecated.svg}{options: alt='[Deprecated]'}}}{\strong{[Deprecated]}} This argument no longer labels the y-labels.}
+\item{method}{\ifelse{html}{\href{https://lifecycle.r-lib.org/articles/stages.html#deprecated}{\figure{lifecycle-deprecated.svg}{options: alt='[Deprecated]'}}}{\strong{[Deprecated]}} This argument no longer labels the y-labels, you can accomplish this by adding \code{+ labs(y = "label")} to the returned plot.}
 
 \item{test}{A character variable indicating what statistical test to apply (default: \code{"wilcox"}).}
 
 \item{paired}{A boolean value to perform paired analysis with \link[matrixTests]{row_wilcoxon_paired} (default: \code{FALSE}).}
 
-\item{p.adjust.method}{A character variable to specify the p.adjust.method to be used (default: \code{"fdr"}).}
+\item{p.adjust.method}{A character variable to adjust the p-values, see \link[stats]{p.adjust} (default: \code{"fdr"}).}
 
 \item{step.increase}{A numeric value to create a gap between Y-positions (default": \code{0.05}).}
 }
@@ -48,8 +48,7 @@ boxjitter_test(
 A \link[ggplot2]{ggplot2} object to be further modified
 }
 \description{
-Visualizes group differences using a half-boxplot, half-jitter plot with automatic statistical testing and p-value annotation.
-Thus far only the wilcoxon rank test (non-paired) and wilcoxon signed rank test (paired) are supported.
+Visualizes group differences using a half-boxplot, half-jitter plot with pairwise statistical testing and p-value annotation.
 This function is built into the class \link{omics} with method \code{alpha_diversity()}.
 }
 \examples{

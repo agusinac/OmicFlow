@@ -5,10 +5,10 @@
 \title{Sub-class metagenomics}
 \description{
 This is a sub-class that is compatible to data obtained from either 16S rRNA marker-gene sequencing or shot-gun metagenomics sequencing.
-It inherits all methods from the abstract class \link{omics} and only adapts the \code{initialize} function.
-It supports BIOM format data (v2.1.0 from \url{http://biom-format.org/}) in both HDF5 and JSON format, also pre-existing data structures can be used or text files.
-When omics data is very large, data loading becomes very expensive. It is therefore recommended to use the \href{#method-reset}{\code{reset()}} method to reset your changes.
-Every omics class creates an internal memory efficient back-up of the data, the resetting of changes is an instant process.
+This sub-class has similar functionality as the main \code{omics} class, inherits all methods from the abstract class \link{omics} and only adapts the \href{#method-new}{\code{new()}} method, and additionality adds a \code{biomData} and \code{treeData} field to be supplied.
+When a \code{treeData} is supplied than every class field is arranged according to the tree tip labels.
+
+\code{biomData} can only be loaded from an existing filepath, these biom should be of BIOM format data (v2.1.0 from \url{http://biom-format.org/}) of HDF5 or JSON format.
 }
 \examples{
 
@@ -80,7 +80,7 @@ file.remove("output.biom")
 \if{html}{\out{<a id="method-metagenomics-initialize"></a>}}
 \if{latex}{\out{\hypertarget{method-metagenomics-initialize}{}}}
 \subsection{\code{metagenomics$new()}}{
-  Initializes the metagenomics class object with \code{metagenomics$new()}
+  Initializes the \code{metagenomics} class object with \code{metagenomics$new()}, requires at least a \code{metaData} and \code{countData} or \code{biomData}.
   \subsection{Usage}{
     \if{html}{\out{<div class="r">}}
     \preformatted{metagenomics$new(
@@ -96,12 +96,12 @@ file.remove("output.biom")
   \subsection{Arguments}{
     \if{html}{\out{<div class="arguments">}}
     \describe{
-      \item{\code{countData}}{A path to an existing file, \link[Matrix]{Matrix}, \link[data.table]{data.table} or \link[base]{data.frame}.}
-      \item{\code{metaData}}{A path to an existing file, \link[data.table]{data.table} or \link[base]{data.frame}.}
-      \item{\code{featureData}}{A path to an existing file, \link[data.table]{data.table} or \link[base]{data.frame}.}
-      \item{\code{treeData}}{A path to an existing newick file or class "phylo", see \link[ape]{read.tree}.}
-      \item{\code{biomData}}{A path to an existing biom file, version 2.1.0 (http://biom-format.org/), see \link[rhdf5]{h5read}.}
-      \item{\code{feature_names}}{A character vector to name the feature names that fit the supplied \code{featureData}.}
+      \item{\code{countData}}{A path to an existing file, \link[Matrix]{Matrix}, \link[data.table]{data.table} or \link[base]{data.frame} (default: \code{NULL}).}
+      \item{\code{metaData}}{A path to an existing file, \link[data.table]{data.table} or \link[base]{data.frame} (default: \code{NULL}).}
+      \item{\code{featureData}}{A path to an existing file, \link[data.table]{data.table} or \link[base]{data.frame} (default: \code{NULL}).}
+      \item{\code{treeData}}{A path to an existing newick file or class "phylo", see \link[ape]{read.tree} (default: \code{NULL}).}
+      \item{\code{biomData}}{A path to an existing biom file, version 2.1.0 (http://biom-format.org/) (see \link[rhdf5]{h5read}) or JSON format (see \link[.yyjsonr]{validate_json_file}) (default: \code{NULL}).}
+      \item{\code{feature_names}}{A character vector to name the feature names that fit the supplied \code{featureData} (default: \code{c("Kingdom", "Phylum", "Class", "Order", "Family", "Genus", "Species")}).}
     }
     \if{html}{\out{</div>}}
   }
@@ -114,7 +114,7 @@ file.remove("output.biom")
 \if{html}{\out{<a id="method-metagenomics-write_biom"></a>}}
 \if{latex}{\out{\hypertarget{method-metagenomics-write_biom}{}}}
 \subsection{\code{metagenomics$write_biom()}}{
-  Creates a BIOM file in HDF5 format of the loaded items via \href{#method-new}{'new()'}, which is compatible to the python biom-format version 2.1, see http://biom-format.org.
+  Creates a BIOM file in HDF5 format, which is compatible to the python biom-format version 2.1, see http://biom-format.org.
   \subsection{Usage}{
     \if{html}{\out{<div class="r">}}
     \preformatted{metagenomics$write_biom(filename)}
@@ -123,7 +123,7 @@ file.remove("output.biom")
   \subsection{Arguments}{
     \if{html}{\out{<div class="arguments">}}
     \describe{
-      \item{\code{filename}}{A character variable of either the full path of filename of the biom file (e.g. \code{output.biom})}
+      \item{\code{filename}}{A character variable of a non-existing file path (e.g. \code{"output.biom"} or \code{"my/path/output.biom"})}
     }
     \if{html}{\out{</div>}}
   }

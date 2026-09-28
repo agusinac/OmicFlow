@@ -1,15 +1,15 @@
 #' Ordination plot
 #'
-#' @description Creates an ordination plot pre-computed principal components from \link[vegan]{wcmdscale}. 
+#' @description Creates an ordination plot from pre-computed principal components. 
 #' This function is built into the class \link{omics} with method \code{ordination()} and inherited by other omics classes, such as;
 #' \link{metagenomics} and \link{proteomics}.
 #' 
-#' @param data A \link[base]{data.frame} or \link[data.table]{data.table} of Principal Components as columns and rows as loading scores.
-#' @param groups A categorical variable to color the groups (e.g. \code{"treatment"}).
+#' @param data A \link[base]{data.frame} or \link[data.table]{data.table} with Principal Components as columns and rows as loading scores.
+#' @param groups A categorical variable in `data` to color the groups (e.g. \code{"treatment"}).
 #' @param col_name `r lifecycle::badge("deprecated")` This argument has been renamed to `groups` for more clarity.
-#' @param pair A vector of character variables indicating what dimension names (e.g. \code{c("PC1", "PC2")} or \code{c("NMDS1", "NMDS2")}).
+#' @param pair A vector of character variables indicating what dimension names (e.g. \code{c("PC1", "PC2")} or \code{c("NMDS1", "NMDS2")}) in `data`.
 #' @param dist_explained A vector of numeric values of the percentage dissimilarity explained for the dimension pairs (default: \code{NULL}).
-#' @param dist_metric A character variable indicating what metric is used (e.g. unifrac, bray-curtis) (default: \code{NULL}).
+#' @param dist_metric A character variable indicating what metric is used (e.g. \code{"bray-curtis"}) (default: \code{NULL}).
 #' @return A \link[ggplot2]{ggplot2} object to be further modified
 #' 
 #' @examples 
