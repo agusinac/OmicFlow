@@ -1,4 +1,4 @@
-# OmicFlow 1.6.0.9013
+# OmicFlow 1.6.0.9014
 
 ## Added
 - Added additional parameters via `...` to be passed to `pairwise_adonis` and `pairwise_anosim` (.e.g. `parallel = 10` can be called now).
@@ -16,6 +16,7 @@
 - [#42](https://github.com/agusinac/OmicFlow/issues/42) replaced `rstatix` by inbuilt `pairwise_wilcox_test`, added also tests for the util.
 - Added colorblind coloring and replaced `"groups"` to actual `col_name` in `omics$ordination`
 - [#41](https://github.com/agusinac/OmicFlow/issues/41) Extended `countData` to handle `data.tables` with both `feature` and `sample` columns.
+- Moved `omics$validate()` from public to private, since it is only used as an internal function in `$new()`
 
 ## Fixed
 - `omics$feature_merge` is optional in `omics$foldchange`

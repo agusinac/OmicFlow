@@ -1,11 +1,44 @@
-#' Sub-class metagenomics
-#'
-#' @description This is a sub-class that is compatible to data obtained from either 16S rRNA marker-gene sequencing or shot-gun metagenomics sequencing.
-#' This sub-class has similar functionality as the main `omics` class, inherits all methods from the abstract class \link{omics} and only adapts the [`new()`](#method-new) method, and additionality adds a `biomData` and `treeData` field to be supplied. 
-#' When a `treeData` is supplied than every class field is arranged according to the tree tip labels.
+#' @title Sub-class metagenomics
+#' @docType class
+#' @section Introduction:
+#' OmicFlow is constructed around the main superclass \link{omics} that in turn is 
+#' inherited by \link{metagenomics} and \link{proteomics}, that offer additional 
+#' fields or functions. The superclass \link{omics} contains both public and private 
+#' methods, only the public componenents are documented, whereas the private 
+#' methods can be accessed via `metagenomics$private_methods`, which is not supported.
 #' 
-#' `biomData` can only be loaded from an existing filepath, these biom should be of BIOM format data (v2.1.0 from \url{http://biom-format.org/}) of HDF5 or JSON format.
-#' @seealso \link{omics}
+#' The \link{omics} class components use \link{Matrix} and \link{data.table} in the 
+#' background for fast loading and data wrangling, these data structures return 
+#' the data by reference, so does the R6 class, therefore classes in OmicFlow do 
+#' not create copies of the object unless called via \code{$copy()}.
+#' 
+#' All classes needs to be first initialised via the \code{$new()} method and 
+#' require the `metaData` and `countData` (or `biomData` in case of \code{metagenomics}) 
+#' field components. Alternatively, you can also initialise with only the `metaData` 
+#' and later add the other fields via the active binding, but this will not create 
+#' a back-up and is not advised!
+#' For more hands-on examples see [Getting Started with OmicFlow](https://agusinac.github.io/OmicFlow/articles/getting-started.html).
+#' 
+#' \subsection{Additional arguments in \code{metagenomics$new()}}{
+#' The \code{metagenomics} class also offers the loading of a phylogenetic tree as
+#' a `phylo` class (see \link[ape]{as.phylo}) that can be supplied to `treeData`. 
+#' When a `treeData` is supplied than every class field is arranged according to 
+#' the tree tip labels.
+#' 
+#' The `biomData` argument expects a [BIOM v2.1.0.](http://biom-format.org/) in either
+#' HDF5 or JSON format. The `biomData` must be supplied via a filepath and required
+#' contents are checked upfront, such as the existence of \code{
+#' "/observation/matrix/data",
+#' "/observation/matrix/indptr",
+#' "/observation/matrix/indices",
+#' "/observation/metadata/taxonomy",
+#' "/observation/ids",
+#' "/sample/ids"
+#' }. 
+#' }
+#' 
+#' @inheritSection omics Input requirements
+#' @inheritSection omics Metadata validation
 #' @export
 
 metagenomics <- R6::R6Class(
@@ -42,21 +75,38 @@ metagenomics <- R6::R6Class(
         success <- TRUE
         invisible(self)
       } else {
-        cli::cli_abort("Data input must be {.cls phylo} like {.field treeData}.")
+        cli::cli_abort("Input must be {.cls phylo} like {.field treeData}.")
       }
     }
   ),
   public = list(
-    #' @description
-    #' Initializes the `metagenomics` class object with \code{metagenomics$new()}, requires at least a `metaData` and `countData` or `biomData`.
-    #' @param countData A path to an existing file, \link[Matrix]{Matrix}, \link[data.table]{data.table} or \link[base]{data.frame} (default: \code{NULL}).
-    #' @param featureData A path to an existing file, \link[data.table]{data.table} or \link[base]{data.frame} (default: \code{NULL}).
-    #' @param metaData A path to an existing file, \link[data.table]{data.table} or \link[base]{data.frame} (default: \code{NULL}).
     #' @param treeData A path to an existing newick file or class "phylo", see \link[ape]{read.tree} (default: \code{NULL}).
-    #' @param biomData A path to an existing biom file, version 2.1.0 (http://biom-format.org/) (see \link[rhdf5]{h5read}) or JSON format (see \link[.yyjsonr]{validate_json_file}) (default: \code{NULL}).
+    #' @param biomData A path to an existing biom file, [version 2.1.0](http://biom-format.org/) (see \link[rhdf5]{h5read}) or JSON format (see \link[.yyjsonr]{validate_json_file}) (default: \code{NULL}).
     #' @param feature_names A character vector to name the feature names that fit the supplied `featureData` (default: \code{c("Kingdom", "Phylum", "Class", "Order", "Family", "Genus", "Species")}).
+    #' @examples
+    #' library("OmicFlow")
     #' 
-    #' @return A new `metagenomics` object.
+    #' ## Method 1: Load from filepath
+    #' metadata_file <- system.file("extdata", "metadata.tsv", package = "OmicFlow")
+    #' counts_file <- system.file("extdata", "counts.tsv", package = "OmicFlow")
+    #' features_file <- system.file("extdata", "features.tsv", package = "OmicFlow")
+    #' tree_file <- system.file("extdata", "tree.newick", package = "OmicFlow")
+    #' 
+    #' taxa <- metagenomics$new(
+    #'  metaData = metadata_file,
+    #'  countData = counts_file,
+    #'  featureData = features_file,  # optional
+    #'  treeData = tree_file          # optional
+    #' )
+    #' 
+    #' ## Method 2: Load from a biom file
+    #' biom_file <- system.file("extdata", "biomv2.biom", package = "OmicFlow")
+    #' 
+    #' taxa <- metagenomics$new(
+    #'  metaData = metadata_file,
+    #'  biomData = biom_file
+    #' )
+    #' @return A new \link{metagenomics} object.
     initialize = function(
       countData = NULL,
       metaData = NULL,
@@ -75,9 +125,6 @@ metagenomics <- R6::R6Class(
         metaData = metaData
       )
 
-      # Maybe `biomData` is supplied.. collect potential errors
-      messages <- c()
-
       if (!is.null(biomData)) {
 
         if (file.exists(biomData)) {
@@ -95,8 +142,10 @@ metagenomics <- R6::R6Class(
               "/observation/matrix/data",
               "/observation/matrix/indptr",
               "/observation/matrix/indices",
+              "/observation/metadata/taxonomy",
               "/observation/ids",
-              "/sample/ids")
+              "/sample/ids"
+            )
 
             missing <- base::setdiff(expected_content, hdf5_contents$content)
 
@@ -225,7 +274,8 @@ metagenomics <- R6::R6Class(
       )
     },
     #' @description
-    #' Creates a BIOM file in HDF5 format, which is compatible to the python biom-format version 2.1, see http://biom-format.org.
+    #' Creates a BIOM file in HDF5 format, which is compatible to the [python biom-format v2.1.0.](http://biom-format.org)
+    #' It only saves the `featureData` and `countData` to the biom format, no `treeData` is supported thus far.
     #' @param filename A character variable of a non-existing file path (e.g. \code{"output.biom"} or \code{"my/path/output.biom"})
     #' @examples
     #' library("OmicFlow")

@@ -1,12 +1,111 @@
-#' Abstract omics class
+#' @title Superclass omics
+#' @docType class
+#' @section Introduction:
+#' OmicFlow is constructed around the main superclass `omics` that in turn is 
+#' inherited by \link{metagenomics} and \link{proteomics}, that offer additional 
+#' fields or functions. The superclass `omics` contains both public and private 
+#' methods, only the public componenents are documented, whereas the private 
+#' methods can be accessed via `omics$private_methods`, which is not supported.
+#' 
+#' The `omics` class components use \link{Matrix} and \link{data.table} in the 
+#' background for fast loading and data wrangling, these data structures return 
+#' the data by reference, so does the R6 class, therefore classes in OmicFlow do 
+#' not create copies of the object unless called via \code{$copy()}.
+#' 
+#' All classes needs to be first initialised via the \code{$new()} method and 
+#' require the `metaData` and `countData` field components. Alternatively, you 
+#' can also initialise with only the `metaData` and later add the other fields 
+#' via the active binding, but this will not create a back-up and is not advised!
+#' For more hands-on examples see [Getting Started with OmicFlow](https://agusinac.github.io/OmicFlow/articles/getting-started.html).
+#' 
+#' @section Input requirements:
+#' Every class in OmicFlow requires at least a `metaData` and `countData` field to
+#' be specified. The `metaData` must contain a `SAMPLE_ID` and optionally a `SAMPLEPAIR_ID`, 
+#' see section "Metadata validation" below.
+#' 
+#' The `countData` can be both a matrix or data frame. If the original contains 
+#' rownames, then these will become the `FEATURE_ID` in `featureData` (automatically created), 
+#' otherwise a random feature identifier is assigned. If the `countData` is a filetype
+#'  or a data frame with both matching sample identifiers in `SAMPLE_ID` and other 
+#' additional columns, then these will be automatically split, columns matching the 
+#' `SAMPLE_ID` will be placed in the `countData`, any other columns will be placed 
+#' in front of the `FEATURE_ID` column in `featureData`.
+#' 
+#' @section Metadata validation:
+#' Every class in OmicFlow begins by validating the sample metadata. 
+#' This validation checks that sample identifiers match the sample IDs
+#' present in the abundance tables.
 #'
-#' @description This is the abstract class 'omics', contains a variety of methods that are inherited and applied in the omics classes:
-#' \link{metagenomics} and \link{proteomics}. 
+#' The validation rules are defined in JSON format in the omics class. 
+#' Metadata can be supplied as either:
+#' \itemize{
+#'   \item A CSV or TSV file.
+#'   \item A `data.table`.
+#' }
 #'
-#' @details
-#' Every class is created with the \link[R6]{R6Class} method. Methods are either public or private, and only the public components are inherited by other omic classes.
-#' The omics class by default uses a \link[Matrix]{sparseMatrix} and \link[data.table]{data.table} data structures for quick and efficient data manipulation and returns the object by reference, same as the R6 class.
-#' The method by reference is very efficient when dealing with big data.
+#' In both cases, metadata must include a header row and follow a
+#' one-row-per-sample structure. For file inputs, the header must be 
+#' on the first line. Columns not described below are permitted and 
+#' are ignored during metadata validation.
+#'
+#' \subsection{Minimum requirement}{
+#' The metadata must contain a `SAMPLE_ID` column.
+#'
+#' \itemize{
+#'   \item Each row must have a unique, non-empty sample identifier.
+#'   \item Sample identifiers cannot contain spaces; use underscores (`_`) or
+#'   dashes (`-`) instead.
+#' }
+#'
+#' Example metadata:
+#'
+#' \preformatted{
+#' SAMPLE_ID  SAMPLEPAIR_ID  CONTRAST_Treatment  VARIABLE_Age
+#' S1         P1             Drug                42
+#' S2         P1             Placebo             36
+#' S3         P2             Drug                51
+#' }
+#' }
+#'
+#' \subsection{Column types and naming rules}{
+#'
+#' \strong{Required column}
+#'
+#' \tabular{lll}{
+#' Column \tab Type \tab Rules \cr
+#' `SAMPLE_ID` \tab string \tab Unique, non-empty, no spaces; one identifier
+#' per sample row
+#' }
+#'
+#' \strong{Optional standard columns}
+#'
+#' \tabular{lll}{
+#' Column \tab Type \tab Rules \cr
+#' `SAMPLEPAIR_ID` \tab string \tab Optional; no spaces. Used for samples that
+#' are paired or originate from the same individual or subject.
+#' }
+#' Some functions require a `SAMEPLEPAIR_ID` in the `metaData` when \code{paired = TRUE} is used.
+#' The user can add or remove the `SAMPLEPAIR_ID` at anytime to the `metaData` via active binding.
+#'
+#' \strong{Pattern-based columns}
+#'
+#' Additional variables can be defined with special column-name prefixes:
+#'
+#' \itemize{
+#'   \item `CONTRAST_...`: Grouping or category labels for differential
+#'   comparisons. For example, `CONTRAST_Treatment` may contain `Drug` and
+#'   `Placebo`.
+#'   \item `VARIABLE_...`: Numeric or string variables for statistical
+#'   analysis. For example, `VARIABLE_Age` may contain values such as `42` and
+#'   `51`.
+#' }
+#' }
+#' Pattern-based columns are only used in [`autoFlow()`](#method-autoFlow). Currently, only columns
+#' with the `CONTRAST_` prefix are supported.
+#' 
+#' @param countData A path to an existing file, \link[Matrix]{Matrix}, \link[data.table]{data.table} or \link[base]{data.frame} (default: \code{NULL}).
+#' @param featureData A path to an existing file, \link[data.table]{data.table} or \link[base]{data.frame} (default: \code{NULL}).
+#' @param metaData A path to an existing file, \link[data.table]{data.table} or \link[base]{data.frame} (default: \code{NULL}).
 #' @export
 
 omics <- R6::R6Class(
@@ -42,7 +141,7 @@ omics <- R6::R6Class(
         self$print()
         invisible(self)
       } else {
-        cli::cli_abort("{.val value} input must be {.cls data.table} like {.field metaData}.")
+        cli::cli_abort("Input must be {.cls data.table} like {.field metaData}.")
       }
     },
     #' @field featureData A \link[data.table]{data.table} with `FEATURE_ID` column.
@@ -74,10 +173,10 @@ omics <- R6::R6Class(
         self$print()
         invisible(self)
       } else {
-        cli::cli_abort("{.val value} must be {.cls data.table} like {.field featureData}.")
+        cli::cli_abort("Input must be {.cls data.table} like {.field featureData}.")
       }
     },
-    #' @field countData A dense or sparse \link[Matrix]{Matrix}.
+    #' @field countData A \link[Matrix]{sparseMatrix} with rownames matching `FEATURE_ID` of `featureData` and colnames matching `SAMPLE_ID` of `countData`.
     countData = function(value) {
       # back-up
       .countData <- private$.countData
@@ -106,24 +205,48 @@ omics <- R6::R6Class(
         self$print()
         invisible(self)
       } else {
-        cli::cli_abort("{.val value} must be {.cls Matrix} like {.field countData}.")
+        cli::cli_abort("Input must be {.cls sparseMatrix} like {.field countData}.")
       }
     }
   ),
   public = list(
-    #' @description
-    #' Wrapper function that is inherited and adapted for each omics class.
-    #' The omics classes requires a metadata samplesheet, that is validated by the metadata_schema.json.
-    #' It requires a column `SAMPLE_ID` and optionally a `SAMPLEPAIR_ID` can be supplied. 
-    #' The `SAMPLE_ID` will be used to link the metaData to the countData, and will act as the key during subsetting of other columns.
-    #' To create a new object use [`new()`](#method-new) method. Do notice that the abstract class only checks if the metadata is valid!
-    #' The `countData` and `featureData` will not be checked, these are handled by the sub-classes. 
-    #' Using the omics class to load your data is not supported and still experimental.
-    #' @param countData A path to an existing file, \link[Matrix]{Matrix}, \link[data.table]{data.table} or \link[base]{data.frame}.
-    #' @param featureData A path to an existing file, \link[data.table]{data.table} or \link[base]{data.frame}
-    #' @param metaData A path to an existing file, \link[data.table]{data.table} or \link[base]{data.frame}
-    #' @return A new `omics` object.
+    #' @examples
+    #' library("OmicFlow")
     #'
+    #' ## Method 1: load from filepath
+    #' metadata_file <- system.file("extdata", "metadata.tsv", package = "OmicFlow")
+    #' counts_file <- system.file("extdata", "counts.tsv", package = "OmicFlow")
+    #' obj <- omics$new(
+    #'  metaData = metadata_file,
+    #'  countData = counts_file
+    #' )
+    #' 
+    #' ## Method 2: Load from data.frame or matrix
+    #' n_cols <- 5
+    #' n_rows <- 100
+    #' n_vals <- n_cols * n_rows
+    #' metadata <- data.frame("SAMPLE_ID" = paste0("Sample_", 1:n_cols))
+    #' features <- data.frame("FEATURE_ID" = paste0("protein_", 1:n_rows))
+    #' counts <- Matrix::Matrix(
+    #'  1:n_vals, nrow = n_rows, ncol = n_cols, 
+    #'  dimnames = list(features$FEATURE_ID, metadata$SAMPLE_ID)
+    #' )
+    #' 
+    #' obj <- omics$new(
+    #'  metaData = metadata,
+    #'  featureData = features, # optional
+    #'  countData = counts
+    #' )
+    #'
+    #' ## Method 3: you have features and counts in a single data.frame
+    #' metadata <- data.frame(SAMPLE_ID = c("S1", "S2", "S3"))
+    #' counts <- data.frame(S1 = c(2,3,0), S2 = c(2,"",1), S3 = c(2,1,NA), proteins = c("ZEB1", "ZEB2", "MAPK"))
+    #' 
+    #' obj <- omics$new(
+    #'  metaData = metadata,
+    #'  countData = counts
+    #' )
+    #' @return A new \link{omics} object.
     initialize = function(
       metaData = NULL,
       countData = NULL, 
@@ -143,7 +266,7 @@ omics <- R6::R6Class(
             "x" = cli::format_inline("{private$.metaData}")
           ))
         }
-        self$validate()
+        private$validate()
 
         if (private$.valid_schema) {
           cli::cli_alert_success("{.field metaData} template passed the JSON validation.")
@@ -243,9 +366,9 @@ omics <- R6::R6Class(
       )
     },
     #' @description
-    #' Create a copy of the object-class
-    #' 
-    #' This method is very similar to the existing [`clone()`](#method-clone) function, except it also resets the back-up of the OmicFlow data types that is invoked with [`reset()`](#method-reset)
+    #' This method is very similar to the existing [`clone()`](#method-clone) function, 
+    #' except it also creates a new save of the back-up of each class that is created when 
+    #' [`new()`](#method-new) is called and can be reverted to via [`reset()`](#method-reset)
     #' 
     #' @param deep A boolean value to create a shallow or deep copy (default: \code{FALSE}).
     #' @examples
@@ -266,7 +389,7 @@ omics <- R6::R6Class(
     #' cloned$scale(method = "clr")
     #' cloned$reset() # resets to data after clone creation.
     #' 
-    #' @return A copy of `omics` object
+    #' @return A copy of \code{omics} object.
     copy = function(deep = FALSE) {
       # Base clone
       cloned <- self$clone(deep)
@@ -282,41 +405,7 @@ omics <- R6::R6Class(
       cloned
     },
     #' @description
-    #' Validates an input metadata against the JSON schema. See [metadata file specification](https://agusinac.github.io/OmicFlow/articles/metadata.html) for more information.
-    #' 
-    #' Acceptable column headers: \describe{
-    #'  \item{SAMPLE_ID}{(required) Sample IDs that should match those in the `countData` columns}
-    #'  \item{SAMPLEPAIR_ID}{(optional) Sample IDs that belong to a common source/subject}
-    #'  \item{CONTRAST_}{(optional) A prefix that can be added to columns to be recognised by [`autoFlow()`](#method-autoFlow).}
-    #' } 
-    #' This function is used during the creation of a new object via [`new()`](#method-new) to validate the supplied metadata 
-    #' via a filepath or existing \link[data.table]{data.table} or \link[base]{data.frame}.
-    #' 
-    #' @return None
-    validate = function() {
-      # Creates temporary json file from `metaData`
-      tmp_json <- base::tempfile(fileext = ".json")
-
-      yyjsonr::write_json_file(
-        x = private$.metaData,
-        filename = tmp_json
-      )
-
-      # Check against schema
-      private$.valid_schema <- jsonvalidate::json_validate(
-        tmp_json,
-        system.file("metadata_schema.json", package = "OmicFlow"),
-        engine = "ajv",
-        verbose = TRUE,
-        error = FALSE,
-        strict = TRUE
-      )
-
-      unlink(tmp_json)
-      invisible(self)
-    },
-    #' @description
-    #' Displays parameters of the omics class via stdout.
+    #' Displays field parameters of the class via stdout.
     #' @examples
     #' library("OmicFlow")
     #'
@@ -347,9 +436,10 @@ omics <- R6::R6Class(
         cli::cli_inform("{.field treeData}: {.val {length(private$.treeData$tip.label)}} tips {cli::symbol$times} {.val {private$.treeData$Nnode}} nodes")
     },
     #' @description
-    #' Upon creation of a new `omics` object a small backup of the original data is created.
-    #' Since modification of the object is done by reference and duplicates are not made, it is possible to `reset` changes to the class.
-    #' The methods from the abstract class \link{omics} also contains a private method to prevent any changes to the original object when using methods such as \code{ordination} \code{alpha_diversity} or \code{foldchange}.
+    #' Upon creation of a new class object (i.e. \code{omics}, \code{metagenomics} or \code{proteomics}) a backup of the original data is created.
+    #' Since modification of the object is done by reference and duplicates are not made, it is possible to revert back to the unmodified data via \code{$reset()}.
+    #' The methods from the super class \link{omics} also contains a private method to prevent any changes to the original object when using methods,
+    #' such as \code{ordination}, \code{alpha_diversity} or \code{foldchange}.
     #' @examples
     #' library(ggplot2)
     #' library("OmicFlow")
@@ -384,8 +474,8 @@ omics <- R6::R6Class(
       } else cli::cli_alert_warning("There is no back-up of the data made. This typically happens when the class is not initialized via the {fun. new}.")
     },
     #' @description
-    #' Remove NAs from `metaData` and updates the `countData`.
-    #' @param column The column from where NAs should be removed, this can be either wholenumbers or characters. Multiple inputs are supported.
+    #' Subset `metaData` via the \link[stats]{complete.cases} given a single or vector of column names, then synchronize the object.
+    #' @param column A character vector of a single or multiple column names to remove NAs.
     #' @examples
     #' library("OmicFlow")
     #'
@@ -553,9 +643,9 @@ omics <- R6::R6Class(
       invisible(self)
     },
     #' @description
-    #' Agglomerates features by column, automatically applies synchronization.
-    #' @param feature_rank A character value or vector of columns to aggregate from the `featureData`.
-    #' @param feature_filter A character value or vector of characters to remove features via regex pattern.
+    #' Agglomerates features by column, then synchronize the object.
+    #' @param feature_rank A character (vector) of columns to aggregate from the `featureData`.
+    #' @param feature_filter A character (vector) of characters to remove features via regex substring pattern matching (default: \code{NULL}).
     #' @examples
     #' library("OmicFlow")
     #'
@@ -647,8 +737,36 @@ omics <- R6::R6Class(
       invisible(self)
     },
     #' @description
-    #' Feature scaling on the `countData`. The `scale` function is able to apply transformations element-wise on the positive values, (optional: add pseudocounts) and perform normalisation or standardisation methods.
-    #' @param method A character to choose a standardisation/normalisation method, options: `tss`, `clr`, `binary`, `hellinger`, `none` (default: \code{"tss"}).
+    #' Feature scaling on the `countData`. The \code{$scale} function is able to apply transformations element-wise on the positive values, (optional: add pseudocounts) and perform normalisation or standardisation methods.
+    #' @param method A character to choose a standardisation/normalisation method, options: `"tss"`, `"clr"`, `"binary"`, `"hellinger"`, `"none"` (default: \code{"tss"}).
+    #' \describe{
+    #'  \item{\code{"tss"}}{
+    #'    Total-sum scaling. Each column is divided by their column sum, converting
+    #'    absolute abundance to relative abundances in range from 0 to 1.
+    #'  }
+    #'  \item{\code{"clr"}}{
+    #'    Centered log-ratio-like transformation. Non-zero entries are
+    #'    log-transformed using \code{log} and \code{base}, then each feature row is centered by 
+    #'    subtracting by their respective geometric mean. 
+    #'    Input counts must be strictly positive for his transformation. 
+    #'    If \code{pseudocount} is used, then output is equal to \code{vegan::decostand(method = "clr")},
+    #'    otherwise the current \code{"clr"} approximates the \code{vegan::decostand(method = "rclr")}, 
+    #'    the main difference is that vegan replaces all zero's by NAs and then excludes them when the
+    #'    arithmetic mean is taken, whereas zero's in \code{"clr"} are only not used for log-transformation 
+    #'    but preserved when taking the arithmetic mean of each feature row.
+    #'  }
+    #'  \item{\code{"binary"}}{
+    #'    Presence-absence transformation. Every stored non-zero count is
+    #'    replaced by one, while implicit zeros in the sparse matrix remain zero.
+    #'  }
+    #'  \item{\code{"hellinger"}}{
+    #'    Hellinger transformation. Counts are first total-sum scaled with \code{"tss"}
+    #'    to relative abundances, after which the square root of each non-zero value is taken.
+    #'  }
+    #'  \item{\code{"none"}}{
+    #'    No transformation. Typically applied when \code{transform} is used.
+    #'  }
+    #' }
     #' @param transform A function to apply on the positive values of `countData`, skip standardisation/normalisation with \code{method = "none"} (default: \code{NULL}).
     #' @param base Input for \link[base]{log} to use natural logarithmic scale, log2, log10 or other (default: \code{exp(1)}) in CLR.
     #' @param pseudocount A numeric value to replace zero's (default: \code{NULL}).
@@ -738,11 +856,10 @@ omics <- R6::R6Class(
       invisible(self)
     },
     #' @description
-    #' Rank statistics based on `featureData`
-    #' @details
-    #' Counts the number of (unique) features identified for each column of interest from the `featureData`.
+    #' Rank statistics based on `featureData`. 
+    #' Counts the number of (unique) features identified for each column of interest from the `featureData` (excluding the `FEATURE_ID`).
     #' @param feature_ranks A vector of characters that match the `featureData`.
-    #' @param unique A boolean value to display only unique entries in `feature_ranks`.
+    #' @param unique A boolean value to display only unique entries in `feature_ranks` (default: \code{FALSE}).
     #' @examples
     #' library("OmicFlow")
     #'
@@ -759,7 +876,6 @@ omics <- R6::R6Class(
     #' plt <- obj$rankstat(feature_ranks = c("Kingdom", "Phylum", "Family", "Genus", "Species"))
     #' plt
     #' @return A \link[ggplot2]{ggplot} object.
-    #'
     rankstat = function(feature_ranks, unique = FALSE) {
 
       ## Error handling
@@ -829,10 +945,14 @@ omics <- R6::R6Class(
       )
     },
     #' @description
-    #' Alpha diversity based on \link{diversity}
+    #' Alpha diversity computation, statistical testing and visualisation.
+    #' 
+    #' It computes the alpha diversity via \link{diversity}, performs a pairwise wilcoxon statistical test given
+    #' `groups` via the \link{boxjitter_test}.
+    #' 
     #' @param col_name `r lifecycle::badge("deprecated")` This argument has been renamed to `groups` for more clarity.
-    #' @param groups A column name in `metaData` to set the grouping variable.
-    #' @param metric An alpha diversity metric as input to \link{diversity} (default: \code{"shannon"}).
+    #' @param groups A column name in `metaData` to define the contrast of interest for statistical testing and visualisation.
+    #' @param metric An alpha diversity metric as input to \link{diversity}, options: `"shannon"`, `"simpson"`, `"invsimpson"` (default: \code{"shannon"}).
     #' @param group_by `r lifecycle::badge("deprecated")` This argument has been renamed to `split_by` for more clarity
     #' @param split_by A column name to split the groups into chunks for grouped statistical test in \link{boxjitter_test} (default: \code{NULL}).
     #' @param Brewer.palID A character name for the palette set to be applied, see \link[RColorBrewer]{brewer.pal} or \link{colormap} (default: \code{"Set2"}).
@@ -855,12 +975,11 @@ omics <- R6::R6Class(
     #' plt <- obj$alpha_diversity(groups = "treatment",
     #'                            metric = "shannon")
     #'
-    #' @returns A list of components: \describe{
+    #' @return A list of components: \describe{
     #'  \item{data}{A \link[base]{data.frame} from \link{diversity}.}
     #'  \item{stats}{A pairwise statistics from \link[rstatix]{pairwise_wilcox_test}.}
     #'  \item{plot}{A \link[ggplot2]{ggplot} object.}
     #' }
-    #' @seealso \link{boxjitter_test}
     alpha_diversity = function(
       col_name = lifecycle::deprecated(),
       groups,
@@ -981,13 +1100,16 @@ omics <- R6::R6Class(
       return(plot_list)
     },
     #' @description
-    #' Creates a table most abundant compositional features. Also assigns a color blind friendly palette for visualizations.
+    #' Creates a long `data.table` of `SAMPLE_ID`s, the top 10-15 most abundant bacteria based on the \code{feature_rank} with
+    #' any additional columns specified via \code{add_cols}. The \code{$composition()} method works with aggregated 
+    #' values by running first [`feature_merge()`](#method-feature_merge), then sorting for the most abundant bacteria based on
+    #' the row sums. The output of \code{$composition()} can be used as input to \link{composition_plot}.
     #' @param feature_rank A column name in `featureData` to aggregate via [`feature_merge()`](#method-feature_merge).
-    #' @param feature_filter A character or vector of characters to removes features by regex pattern.
+    #' @param feature_filter A character or vector of characters to removes features by regex substring pattern matching via [`feature_merge()`](#method-feature_merge) (default: \code{NULL}).
     #' @param col_name `r lifecycle::badge("deprecated")` This argument has been renamed to `add_cols` for more clarity.
-    #' @param add_cols Optional, a column name or vector of multiple column names from `metaData` to add to the final compositional data.
+    #' @param add_cols Optional, a column name or vector of multiple column names from `metaData` to add to the `data` list name (default": \code{NULL}).
     #' @param feature_top A wholenumber of the top features to visualize, the max is 15, due to a limit of palettes (default: \code{10}).
-    #' @param Brewer.palID A character name for the palette set to be applied, see \link[RColorBrewer]{brewer.pal} or \link{colormap}.
+    #' @param Brewer.palID A character name for the palette set to be applied, see \link[RColorBrewer]{brewer.pal} or \link{colormap} (default: \code{"RdYlBu"}).
     #' @examples
     #' library("OmicFlow")
     #'
@@ -1009,12 +1131,10 @@ omics <- R6::R6Class(
     #'                         palette = result$palette,
     #'                         feature_rank = "Genus")
     #'
-    #' @returns A list of components: \describe{
+    #' @return A list of components: \describe{
     #'  \item{data}{A \link[data.table]{data.table} of feature compositions.}
     #'  \item{palette}{A \link[stats]{setNames} palette from \link{colormap} matching the top features.}
     #' }
-    #' 
-    #' @seealso \link{composition_plot}
     composition = function(
       feature_rank,
       feature_filter = NULL,
@@ -1154,15 +1274,27 @@ omics <- R6::R6Class(
     #' @description
     #' Compute a distance metric from `countData`
     #' @param metric A dissimilarity metric to be applied on the `countData`, 
-    #' thus far supports 'bray', 'jaccard', 'cosine', 'manhattan', 'aitchison', 'euclidean', 'jsd' (jensen-shannon divergence), 'canberra' and 'unifrac' when a tree is provided via `treeData`, see [`distance()`](#method-distance).
-    #' @param weighted A boolean value, to use abundances (\code{weighted = TRUE}) or absence/presence (\code{weighted=FALSE}) (default: TRUE).
-    #' @param normalize A boolean value, whether to normalize weighted UniFrac distances to be between 0 and 1. Unweighted UniFrac is always normalized (default: TRUE).
-    #' @param pseudocount A numeric value to replace zero's, used in [`scale()`](#method-scale) (default: \code{1e-15}).
+    #' options: \describe{
+    #'  \item{\code{"bray"}}{\link{bray}}
+    #'  \item{\code{"jaccard"}}{\link{jaccard}}
+    #'  \item{\code{"cosine"}}{\link{cosine}}
+    #'  \item{\code{"manhattan"}}{\link{manhattan}}
+    #'  \item{\code{"euclidean"}}{\link{euclidean}}
+    #'  \item{\code{"jsd"}}{\link{jsd}}
+    #'  \item{\code{"canberra"}}{\link{canberra}}
+    #'  \item{\code{"unifrac"}}{\link{unifrac}}
+    #'  \item{\code{"aitchison"}}{
+    #'    The `"aitchison"` metric uses the \code{$scale(method = "clr")} without any pseudocounts, see [`scale()`](#method-scale),
+    #'    followed by euclidean dissimilarity computation.
+    #'    
+    #'    Ref: Aitchison, J. (1986) The Statistical Analysis of Compositional Data. Chapman and Hall, London, 416 p.
+    #'  }
+    #' }
+    #' @param weighted A boolean value, to use abundances (\code{weighted = TRUE}) or absence/presence (\code{weighted=FALSE}) (default: \code{TRUE}).
+    #' @param normalize A boolean value, whether to normalize weighted UniFrac distances to be between 0 and 1. Unweighted UniFrac is always normalized (default: \code{TRUE}).
     #' @param base Input for \link[base]{log} to use natural logarithmic scale, log2, log10 or other (default: \code{exp(1)}).
-    #' @param threads A wholenumber, indicating the number of threads to use (Default: 1).
+    #' @param threads A wholenumber, indicating the number of threads to use (default: \code{1}).
     #' @return A column x column \link[stats]{dist} object.
-    #' @references
-    #' Aitchison, J. (1986) The Statistical Analysis of Compositional Data. Chapman and Hall, London, 416 p.
     #' @examples
     #' library("OmicFlow")
     #'
@@ -1178,7 +1310,6 @@ omics <- R6::R6Class(
     #'
     #' obj$feature_subset(Kingdom == "Bacteria")
     #' dist <- obj$distance(metric = "bray")
-    #' @seealso \link{bray}, \link{canberra}, \link{cosine}, \link{jaccard}, \link{jsd}, \link{manhattan}, \link{unifrac}
     distance = function(metric, weighted = TRUE, threads = 1, normalize = TRUE, base = exp(1)) {
 
       ## Error handling
@@ -1238,17 +1369,41 @@ omics <- R6::R6Class(
       return(distmat)
     },
     #' @description
-    #' Ordination of `countData` with statistical testing.
-    #' @param metric A dissimilarity or similarity metric to be applied on the `countData`, 
-    #' thus far supports 'bray', 'jaccard', 'cosine', 'manhattan', 'jsd' (jensen-shannon divergence), 'canberra' and 'unifrac' when a tree is provided via `treeData`, see [`distance()`](#method-distance).
-    #' @param method Ordination method, supports "pcoa" and "nmds", see \link[vegan]{wcmdscale}.
-    #' @param distmat A custom distance matrix in either \link[stats]{dist} or \link[Matrix]{Matrix} format.
+    #' The \code{$ordination()} method either computes a distance matrix by specification of the \code{metric} or 
+    #' takes a custom distance matrix via \code{distmat}. It then computes either the pairwise PERMANOVA test on
+    #' the defined contrast via \code{group_by} via \link{pairwise_adonis} or the pairwise ANOSIM test via \link{pairwise_anosim}.
+    #' 
+    #' Which pairwise test to compute is decided via the \code{method} argument, where `"pcoa"` results in
+    #' the \link{pairwise_adonis} and `"nmds"` to \link{pairwise_anosim}.
+    #' 
+    #' It also visualises these results as a scree-plot (only when `"pcoa"` is used), scores-plot (see \link{ordination_plot}) 
+    #' and an anova-plot (see \link{plot_pairwise_stats}). These plots, alongisde the distance matrix, principal components
+    #' are returned as a list.
+    #' 
+    #' @param metric A dissimilarity or similarity metric to be applied on the `countData`, see [`distance()`](#method-distance) (default: \code{"bray"}).
+    #' @param method Ordination method, options: `"pcoa"` or `"nmds"`, see \link[vegan]{wcmdscale} (default: \code{"pcoa"}).
+    #' \describe{
+    #'  \item{\code{"pcoa"}}{
+    #'    When `"pcoa"` (Principal Coordinate Analysis) is chosen, a pairwise PERMANOVA test via \link{pairwise_adonis} is conducted on 
+    #'    the contrast specified by \code{group_by} with n number of permutations, \code{perm}.
+    #'  }
+    #'  \item{\code{"nmds"}}{
+    #'    When `"nmds"` (Non-Metric Multidimensional Scaling) is chosen, a pairwise ANOSIM test via \link{pairwise_anosim} is conducted on 
+    #'    the contrast specified by \code{group_by} with n number of permutations, \code{perm}. This method returns 2 dimensions by default,
+    #'    and a stress score in the `pcs` list name, that acts as the confidence, see \link[vegan]{metaMDS}. Since only two dimensions
+    #'    are returned, there is no `scree_plot` output.
+    #'  }
+    #' }
+    #' @param distmat A custom distance matrix as either \link[stats]{dist} or \link[Matrix]{Matrix} (default: \code{NULL}).
     #' @param group_by A character variable in `metaData` to be used for the \link{pairwise_adonis} or \link{pairwise_anosim} statistical test.
-    #' @param weighted A boolean value, whether to compute weighted or unweighted dissimilarities (default: \code{TRUE}).
-    #' @param normalize A boolean value, wether to normalize weighted UniFrac distances to be between 0 and 1 (default: \code{TRUE}).
-    #' @param threads A wholenumber, indicating the number of threads to use (Default: 1).
-    #' @param perm_design A function that takes `metaData` and constructs a permutation design with \link[permute]{how} (default: \code{NULL}).
-    #' @param perm A wholenumber, number of permutations to compare against the null hypothesis of \link[vegan]{adonis2} and \link[vegan]{anosim} (default: \code{perm=999}).
+    #' @param weighted A boolean value, whether to compute weighted or unweighted dissimilarities, 
+    #' see [`distance()`](#method-distance) (default: \code{TRUE}).
+    #' @param normalize A boolean value, wether to normalize weighted UniFrac distances to be between 0 and 1, 
+    #' see \link{unifrac} (default: \code{TRUE}).
+    #' @param threads A wholenumber, indicating the number of threads to use (default: \code{1}).
+    #' @param perm_design A function that takes `metaData` and constructs a permutation design with \link[permute]{how}, 
+    #' see [example](https://agusinac.github.io/OmicFlow/articles/visualisation.html#beta-diversity) (default: \code{NULL}).
+    #' @param perm A whole number to define the number of permutations in \link[vegan]{adonis2} and \link[vegan]{anosim} (default: \code{999}).
     #' @examples
     #' library("ggplot2")
     #' library("OmicFlow")
@@ -1269,7 +1424,7 @@ omics <- R6::R6Class(
     #'                              weighted = TRUE)
     #' pcoa_plots
     #'
-    #' @returns A list of components: \describe{
+    #' @return A list of components: \describe{
     #'  \item{distmat}{A distance dissimilarity in \link[base]{matrix} format.}
     #'  \item{stats}{A statistical test as a \link[base]{data.frame}.}
     #'  \item{pcs}{principal components as a \link[base]{data.frame}.}
@@ -1277,7 +1432,6 @@ omics <- R6::R6Class(
     #'  \item{anova_plot}{A \link[ggplot2]{ggplot} object.}
     #'  \item{scores_plot}{A \link[ggplot2]{ggplot} object.}
     #' } 
-    #' @seealso \link{ordination_plot}, \link{plot_pairwise_stats}, \link{pairwise_anosim}, \link{pairwise_adonis}
     ordination = function(metric = "bray",
                           method = "pcoa",
                           group_by,
@@ -1477,30 +1631,52 @@ omics <- R6::R6Class(
     #' @description
     #' Differential feature expression for both paired and non-paired data.
     #' 
-    #' The function performs feature agglomeration, subsetting to remove NAs in `condition.group` and finding samplepairs when `paired` is supplied.
-    #' The fold-changes can be computed differently based on the `method` and `aggregate_method` options. Transformations of the data should be done beforehand via [`scale()`](#method-scale).
+    #' The function performs feature agglomeration via [`feature_merge()`](#method-feature_merge) (which can be disabled via \code{feature_merge=FALSE}), 
+    #' subsetting to remove NAs in `condition.group` via [`removeNAs()`](#method-removeNAs) and finding samplepairs when \code{paired = TRUE} is supplied
+    #' via [`subset_samplepairs()`](#method-subset_samplepairs).
+    #'  
+    #' The fold-changes can be computed differently based on the `method` and `aggregate_method` options. 
+    #' Transformations of the data should be done beforehand via [`scale()`](#method-scale).
     #' Finally, homogeneity of variance is computed based on the selected `aggregate_method` option. If \code{aggregate_method = "mean"} then the \link[matrixTests]{row_levene} is applied, 
-    #' and if \code{aggregate_method = "median"} is used then the \link[matrixTests]{row_brownforsythe} is applied. Any filtering of the results is left to the end-user.
+    #' and if \code{aggregate_method = "median"} is used then the \link[matrixTests]{row_brownforsythe} is applied. Any filtering of the results is left to the end-user, 
+    #' volcano plots are automatically added to the list name `volcano_plot` via \link{volcano_plot}.
     #' 
-    #' @param condition.group A character variable of an existing column name in `metaData`, wherein the conditions A and B are located.
-    #' @param condition_A A character value or vector of characters.
-    #' @param condition_B A character value or vector of characters.
+    #' @param condition.group A character of an existing column name in `metaData`, wherein the conditions A and B are located.
+    #' @param condition_A A character (vector) in `condition.group`.
+    #' @param condition_B A character (vector) in `condition.group`.
     #' @param method A character to choose the method of fold-change computation (default: \code{"identity"}). 
     #' \describe{
     #'  \item{\code{"identity"}}{Computes fold-change via \code{log2(condition_A) - log2(condition_B)}, and will handle zero's to prevent `Inf` values. 
     #'  Proportional data is also supported and will be automatically detected.}
     #'  \item{\code{"log"}}{Computes fold-change via \code{condition_A - condition_B}.}
     #' }
-    #' @param aggregate_method A function to aggregate the matrix values in \code{method = "log"} by taking e.g. the \code{median} of `condition_A` and `condition_B` prior to substraction, or in the case of \code{method = "identity"} to take the median of the fold-change \code{log2(median(A)) - log2(median(B))} (default: \code{median}).
+    #' How to aggregate the fold-change values for \code{condition_A} and \code{condition_B} can be controlled with the `aggregate_method` argument. 
+    #' @param aggregate_method A function to aggregate the fold-change values from multiple samples (default: \code{"median"}). 
+    #' options: \describe{
+    #'  \item{\code{"mean"}}{
+    #'    It takes the arithmetic mean for each feature, separately for `condition_A` and `condition_B`.
+    #'  }
+    #'  \item{\code{"median"}}{
+    #'    It takes the median for each feature, separately for `condition_A` and `condition_B`.
+    #'  }
+    #'  \item{\code{"geomean"}}{
+    #'    It computes the geometric mean of the positive counts, similar to the \link[DESeq2]{estimateSizeFactors()}, when \code{type = "poscount"}.
+    #'    The only difference, is that the code is adapted to handle a \link[Matrix]{sparseMatrix}.
+    #'  }
+    #'  \item{\code{"none"}}{
+    #'    No aggreation is applied, the whole matrix is used as it is.
+    #'  }  
+    #' }
+    #' 
     #' @param group_by `r lifecycle::badge("deprecated")` This argument has been renamed to `split_by` for more clarity.
     #' @param split_by A character variable of an existing column in `metaData` to split the table in chunks prior to fold-change computation (default: \code{NULL}). When disabled then column names will end with `_in_all`.
     #' @param feature_merge A boolean value wether to call [`feature_merge()`](#method-feature_merge) (default: \code{FALSE}).
     #' @param feature_rank A column in the `featureData` to use as the feature scope (default: \code{"FEATURE_ID"}).
-    #' @param feature_filter A character or vector of characters to remove features via regex pattern (default: \code{NULL}).
-    #' @param paired A boolean value, the paired is only applicable when a `SAMPLEPAIR_ID` column exists within the `metaData`. See \link[stats]{wilcox.test} and [`samplepair_subset()`](#method-samplepair_subset).
-    #' @param pvalue.threshold A numeric value used as a p-value threshold to label and color significant features (default: \code{0.05}).
-    #' @param logfold.threshold A numeric value used as a fold-change threshold to label and color significantly expressed features (default: \code{0.06}).
-    #' @param abundance.threshold A numeric value used as an abundance threshold to size the scatter dots based on their mean abundance (default: \code{0}).
+    #' @param feature_filter A character or vector of characters to remove features via regex substring pattern matching via [`feature_merge()`](#method-feature_merge) (default: \code{NULL}).
+    #' @param paired A boolean value, the paired is only applicable when a `SAMPLEPAIR_ID` column exists within the `metaData` (default: \code{FALSE}), see [`samplepair_subset()`](#method-samplepair_subset).
+    #' @param pvalue.threshold A numeric value used as a p-value threshold to label and color significant features (default: \code{0.05}), see \link{volcano_plot}.
+    #' @param logfold.threshold A numeric value used as a fold-change threshold to label and color significantly expressed features (default: \code{0.06}), see \link{volcano_plot}.
+    #' @param abundance.threshold A numeric value used as an abundance threshold to size the scatter dots based on their mean abundance (default: \code{0}), see \link{volcano_plot}.
     #' @examples
     #' library("OmicFlow")
     #'
@@ -1513,22 +1689,38 @@ omics <- R6::R6Class(
     #'  countData = counts_file,
     #'  featureData = features_file
     #' )
+    #' ## Method 1: using non-log transformation
     #' obj$scale(method = "tss")
     #' 
     #' dfe <- obj$foldchange(
     #'  feature_rank = "Genus",
     #'  feature_merge = TRUE,
+    #'  method = "identity",
+    #'  aggregate_method = "median",
     #'  condition.group = "treatment",
     #'  condition_A = "tumor",
     #'  condition_B = "healthy"
     #' )
     #' 
-    #' @returns A list of components: \describe{
+    #' ## Method 2: using log transformation
+    #' obj$reset()
+    #' obj$scale(method = "clr")
+    #' 
+    #' dfe <- obj$foldchange(
+    #'  feature_rank = "Genus",
+    #'  feature_merge = TRUE,
+    #'  method = "log",
+    #'  aggregate_method = "mean",
+    #'  condition.group = "treatment",
+    #'  condition_A = "tumor",
+    #'  condition_B = "healthy"
+    #' )
+    #' 
+    #' @return A list of components: \describe{
     #'  \item{`split_by` subsets}{A \link[base]{matrix} subset from each \code{split_by} separated by \code{condition_A} and \code{condition_B}.}
     #'  \item{data}{A \link[data.table]{data.table} main output of fold-changes between conditions, contains abundance, fold-change, and homogeneity tests.}
     #'  \item{volcano_plot}{A list of \link[ggplot2]{ggplot} plots for each contrast of \code{A vs B}, number of plots depend on \code{split_by} and \code{condition_A} input.}
     #' }
-    #' @seealso \link{volcano_plot}
     foldchange = function(
       condition.group,
       condition_A,
@@ -1812,27 +2004,30 @@ omics <- R6::R6Class(
       return(output)
     },
     #' @description
-    #' Automated Omics Analysis based on the `metaData`, see [`validate()`](#method-validate).
-    #' For now only works with headers that start with prefix `CONTRAST_`. If the data is from the class `omics` or `proteomics` than FDR adjusted p-values are computed for the volcano plots. Log-transformed values will lead to the skipping of [`composition()`](#method-composition) and [`alpha_diversity()`](#method-alpha_diversity) methods.
+    #' Automated Omics Analysis on column headers with the prefix `CONTRAST_`. If the data is from the class `omics` or `proteomics` than FDR adjusted 
+    #' p-values are computed for the volcano plots. Log-transformed values will lead to the skipping of [`composition()`](#method-composition) 
+    #' and [`alpha_diversity()`](#method-alpha_diversity) methods.
+    #' 
+    #' 
     #' @param feature_contrast A character vector of feature columns in the `featureData` to aggregate via [`feature_merge()`](#method-feature_merge) (default: \code{"FEATURE_ID"}).
     #' @param feature_filter A character vector to filter unwanted features, (default: \code{NULL}).
     #' @param feature_ranks A character vector as input to [`rankstat()`](#method-rankstat) (default: \code{NULL}).
     #' @param distance_metrics A character vector specifying what (dis)similarity metrics to use (default: \code{c("bray")}) When you are working with log-transformed data it is advised to use the `euclidean`.
     #' @param distmat A path to an existing file or a dense/sparse \link[Matrix]{Matrix} format (default: \code{NULL}).
     #' @param weighted A boolean value, whether to compute weighted or unweighted dissimilarities (default: \code{TRUE}).
-    #' @param fc_method A character to choose the method of fold-change computation (default: \code{"identity"}). 
+    #' @param fc_method A character to choose the method of fold-change computation (default: \code{"identity"}), see [`foldchange()`](#method-foldchange). 
     #' \describe{
     #'  \item{\code{"identity"}}{Computes fold-change via \code{log2(condition_A) - log2(condition_B)}, and will handle zero's to prevent `Inf` values. 
     #'  Proportional data is also supported and will be automatically detected.}
     #'  \item{\code{"log"}}{Computes fold-change via \code{condition_A - condition_B}.}
     #' }
-    #' @param aggregate_method A function to aggregate the matrix values in [`foldchange()`](#method-foldchange) by taking e.g. the \code{median} of `condition_A` and `condition_B` prior to substraction, or in the case of \code{method = "identity"} to take the median of the fold-change \code{log2(median(A)) - log2(median(B))} (default: \code{median}).
-    #' @param pvalue.threshold A numeric value used as a p-value threshold to label and color significant features (default: \code{0.05}).
-    #' @param logfold.threshold A numeric value used as a fold-change threshold to label and color significantly expressed features (default: \code{0.06}).
-    #' @param abundance.threshold A numeric value used as an abundance threshold to size the scatter dots based on their mean abundance (default: \code{0}).
+    #' @param aggregate_method A function to aggregate the matrix values in [`foldchange()`](#method-foldchange) by taking e.g. the \code{median} of `condition_A` and `condition_B` (default: \code{median}), see [`foldchange()`](#method-foldchange).
+    #' @param pvalue.threshold A numeric value used as a p-value threshold to label and color significant features (default: \code{0.05}), see \link{volcano_plot}.
+    #' @param logfold.threshold A numeric value used as a fold-change threshold to label and color significantly expressed features (default: \code{0.06}), see \link{volcano_plot}.
+    #' @param abundance.threshold A numeric value used as an abundance threshold to size the scatter dots based on their mean abundance (default: \code{0}), see \link{volcano_plot}.
     #' @param perm A wholenumber, number of permutations to compare against the null hypothesis of \link[vegan]{adonis2} or \link[vegan]{anosim} (default: 999).
-    #' @param threads Number of threads to use, only used in [`distance()`](#method-distance) when distmat is not supplied (default: 1).
-    #' @param report A boolean value to create a HTML markdown report (default: \code{FALSE}). If \code{FALSE} a nested list of the plots and data is returned.
+    #' @param threads Number of threads to use, only used in [`distance()`](#method-distance) when distmat is not supplied (default: \code{1}).
+    #' @param report A boolean value, whether to create a HTML markdown report (default: \code{FALSE}). If \code{FALSE} a nested list of the plots and data is returned.
     #' @param filename A character to name the HTML report to be saved in the current working directory (default: \code{paste0(getwd(), "/report.html")}). The \code{getwd()} is required for rmarkdown to save it in the right path.
     #' 
     #' @return List of plots/data or rendered HTML report
@@ -1867,6 +2062,20 @@ omics <- R6::R6Class(
 
     if (!is.character(filename) || length(filename) != 1)
       cli::cli_abort("{.val filename} needs to be a character with a length of 1")
+
+    if (report) {
+      required_packages <- c("DT", "rmarkdown", "downloadthis")
+      for (pkg in required_packages) {
+        if (!requireNamespace(pkg, quietly = TRUE)) {
+          cli::cli_abort(
+            c(
+              "!" = "Package {.pkg {pkg}} is required to generate a HTML report.",
+              "i" = "Install it with {.code install.packages('{pkg}')}."
+            )
+          )
+        }
+      }
+    }
       
     ## MAIN
     #--------------------------------------------------------------------#
@@ -2207,6 +2416,30 @@ omics <- R6::R6Class(
     .samplepair_id = "SAMPLEPAIR_ID",
     original_data = list(),
 
+    # Validate metadata schema
+    #---------------------------------------------------------#
+    validate = function() {
+      # Creates temporary json file from `metaData`
+      tmp_json <- base::tempfile(fileext = ".json")
+
+      yyjsonr::write_json_file(
+        x = private$.metaData,
+        filename = tmp_json
+      )
+
+      # Check against schema
+      private$.valid_schema <- jsonvalidate::json_validate(
+        tmp_json,
+        system.file("metadata_schema.json", package = "OmicFlow"),
+        engine = "ajv",
+        verbose = TRUE,
+        error = FALSE,
+        strict = TRUE
+      )
+
+      unlink(tmp_json)
+      invisible(self)
+    },
     # Function for synchronization of private data fields
     #---------------------------------------------------------#
     sync = function() {

@@ -13,7 +13,7 @@ hill_taxa(x, q = 0, normalize = TRUE, base = exp(1))
 
 \item{normalize}{A boolean variable to normalise the each value by their column sum (default: \code{TRUE}).}
 
-\item{base}{A numeric variable in \link[base]{log} to use natural logarithmic scale, log2, log10 or other (default: \code{exp(1)}).}
+\item{base}{A numeric variable in \link[base]{log} to use natural logarithmic scale, log2, log10 or other in \code{"shannon"} (default: \code{exp(1)}).}
 }
 \value{
 A numeric vector with type double.
