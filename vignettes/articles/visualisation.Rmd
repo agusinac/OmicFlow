@@ -200,21 +200,40 @@ composition_plot(
 ```
 
 ## Fold-change
-The `foldchange` of the `metagenomics` class differs from those in `omics` and `proteomics`. Namely, it expects the data to be proportional, and it cannot handle log-transformed data. **This will soon change!**
+The current method is compatible for all kind of data that is transformed before-hand with the `$scale()` method. 
+Below two examples, where we either apply the `$scale(method = "tss")` or `$scale(method = "clr")`, the aggregation
+of the conditions can now be controlled with the `$foldchange(aggregate_method)` that offers `"median"`, `"mean"`, `"geomean"` and `"none"`
+
+
 ```{r, eval = FALSE}
-taxa$foldchange(
+taxa$reset()
+taxa$scale(method = "tss")
+
+dfe <- obj$foldchange(
   feature_rank = "Genus",
-  paired = FALSE,
+  feature_merge = TRUE,
+  method = "identity",
+  aggregate_method = "median",
   condition.group = "treatment",
-  
-  # Able to split your data into male/female
-  group_by = "CONTRAST_sex",
-  condition_A = c("healthy"),
-  condition_B = c("tumor")
+  condition_A = "tumor",
+  condition_B = "healthy"
+)
+
+taxa$reset()
+taxa$scale(method = "clr")
+
+dfe <- obj$foldchange(
+  feature_rank = "Genus",
+  feature_merge = TRUE,
+  method = "log",
+  aggregate_method = "median",
+  condition.group = "treatment",
+  condition_A = "tumor",
+  condition_B = "healthy"
 )
 ```
 
-Please visit [foldchange](https://agusinac.github.io/OmicFlow/reference/metagenomics.html#metagenomics-foldchange-) for more information.
+Please visit [foldchange](https://agusinac.github.io/OmicFlow/reference/metagenomics.html#omics-foldchange-) for more information.
 
 # Proteomics
 

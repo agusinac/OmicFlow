@@ -67,22 +67,14 @@ The sub-class `metagenomics` contains the same fields as the `omics` class, such
 
 ```{r}
 metadata_file <- system.file("extdata", "metadata.tsv", package = "OmicFlow")
-counts_file <- system.file("extdata", "counts.tsv", package = "OmicFlow")
-features_file <- system.file("extdata", "features.tsv", package = "OmicFlow")
+biom_file <- system.file("extdata", "biomv2.biom", package = "OmicFlow")
 tree_file <- system.file("extdata", "tree.newick", package = "OmicFlow")
 
 test <- metagenomics$new(
   metaData = metadata_file,
-  countData = counts_file,
-  featureData = features_file,
+  biomData = biom_file,
   treeData = tree_file
 )
-
-## BIOM example, where `featureData` and `countData` are extracted from `biomData`
-# test <- metagenomics$new(
-#   metaData = "metadata.csv",
-#   biomData = "test.biom"
-# )
 
 ```
 
@@ -135,24 +127,18 @@ test$feature_subset(Genus == "Acinetobacter")
 
 The transformation or standardisation of the `countData` can be achieved via the `scale` function, which performs normalisation methods or transformations together or independently.
 
-```{r}
-## Original data
-hist(test$countData@x)
-
-# Normalisation
+```{r, eval = FALSE}
+# Total-sum scaling
 test$scale(method = "tss")
-hist(test$countData@x)
 
 # Standardisation
 test$reset()
 ## CLR skips zero's if pseudocount is not added
 test$scale(method = "clr")
-hist(test$countData@x)
 
-# Transformation
+# Log2 transformation
 test$reset()
 test$scale(method = "none", transform = log2)
-hist(test$countData@x)
 ```
 
 

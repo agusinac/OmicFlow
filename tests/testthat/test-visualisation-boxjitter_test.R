@@ -29,7 +29,7 @@ dt <- data.table::data.table(
 "sex" = c(rep("male", n_col / 4), rep("female", n_col / 4))
 )
 
-colors <- OmicFlow::colormap(dt, "sex")
+colors <- OmicFlow::colormap(data = dt, groups = "sex")
 
 test_that("`boxjitter_test()` -- Argument checks", {
   expect_snapshot(boxjitter_test(data = list()), error = TRUE)

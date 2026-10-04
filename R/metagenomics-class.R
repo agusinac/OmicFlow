@@ -81,7 +81,7 @@ metagenomics <- R6::R6Class(
   ),
   public = list(
     #' @param treeData A path to an existing newick file or class "phylo", see \link[ape]{read.tree} (default: \code{NULL}).
-    #' @param biomData A path to an existing biom file, [version 2.1.0](http://biom-format.org/) (see \link[rhdf5]{h5read}) or JSON format (see \link[.yyjsonr]{validate_json_file}) (default: \code{NULL}).
+    #' @param biomData A path to an existing biom file, [version 2.1.0](http://biom-format.org/) (see \link[rhdf5]{h5read}) or JSON format (see \link[yyjsonr]{validate_json_file}) (default: \code{NULL}).
     #' @param feature_names A character vector to name the feature names that fit the supplied `featureData` (default: \code{c("Kingdom", "Phylum", "Class", "Order", "Family", "Genus", "Species")}).
     #' @examples
     #' library("OmicFlow")
@@ -142,7 +142,6 @@ metagenomics <- R6::R6Class(
               "/observation/matrix/data",
               "/observation/matrix/indptr",
               "/observation/matrix/indices",
-              "/observation/metadata/taxonomy",
               "/observation/ids",
               "/sample/ids"
             )

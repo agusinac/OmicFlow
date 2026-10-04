@@ -247,7 +247,7 @@ file.remove("output.biom")
       \item{\code{metaData}}{A path to an existing file, \link[data.table]{data.table} or \link[base]{data.frame} (default: \code{NULL}).}
       \item{\code{featureData}}{A path to an existing file, \link[data.table]{data.table} or \link[base]{data.frame} (default: \code{NULL}).}
       \item{\code{treeData}}{A path to an existing newick file or class "phylo", see \link[ape]{read.tree} (default: \code{NULL}).}
-      \item{\code{biomData}}{A path to an existing biom file, \href{http://biom-format.org/}{version 2.1.0} (see \link[rhdf5]{h5read}) or JSON format (see \link[.yyjsonr]{validate_json_file}) (default: \code{NULL}).}
+      \item{\code{biomData}}{A path to an existing biom file, \href{http://biom-format.org/}{version 2.1.0} (see \link[rhdf5]{h5read}) or JSON format (see \link[yyjsonr]{validate_json_file}) (default: \code{NULL}).}
       \item{\code{feature_names}}{A character vector to name the feature names that fit the supplied \code{featureData} (default: \code{c("Kingdom", "Phylum", "Class", "Order", "Family", "Genus", "Species")}).}
     }
     \if{html}{\out{</div>}}

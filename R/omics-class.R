@@ -2004,33 +2004,91 @@ omics <- R6::R6Class(
       return(output)
     },
     #' @description
-    #' Automated Omics Analysis on column headers with the prefix `CONTRAST_`. If the data is from the class `omics` or `proteomics` than FDR adjusted 
-    #' p-values are computed for the volcano plots. Log-transformed values will lead to the skipping of [`composition()`](#method-composition) 
-    #' and [`alpha_diversity()`](#method-alpha_diversity) methods.
+    #' Automated Omics Analysis only works if there are column names in the `metaData` with the prefix \code{"CONTRAST_"},
+    #' which is detected via sub-string pattern matching. The transformation of the data is left to the user via the
+    #' [`scale()`](#method-scale) method. The \code{$autoFlow()} incorporates the following functions: \describe{
+    #'  \item{\code{$rankstat()}}{
+    #'    This function is only applied when \code{feature_ranks} is specified, useful in \link{metagenomics},
+    #'    see [`rankstat()`](#method-rankstat) for more information.
+    #'  }
+    #'  \item{\code{$alpha_diversity()}}{
+    #'    This function only works with the `metagenomics` class, uses `"shannon"`
+    #'    metric, and works for both paired and non-paired data, applied on each `"CONTRAST_"` column,
+    #'    see [`alpha_diversity()`](#method-alpha_diversity) for more information.
+    #'  }
+    #'  \item{\code{$ordination()}}{
+    #'    This function is applied on all classes, multiple \code{distance_metrics} can be supplied,
+    #'    and only the Principal Component method (\code{$ordination(method = "pcoa")}) is used.
+    #'    Additional arguments can be controlled with \code{distance_metrics}, \code{distmat},
+    #'    \code{weighted}, \code{perm}, \code{threads}, see [`ordination()`](#method-ordination)
+    #'    for more information. **NOTE**: \code{perm_design} is not supported in [`autoFlow()`](#method-autoFlow).
+    #'  }
+    #'  \item{\code{$composition()}}{
+    #'    This function is applied on the significant contrasts that are obtained from either
+    #'    \code{$alpha_diversity()} or \code{$ordination()}. Multiple \code{feature_contrasts} can be
+    #'    supplied, by default it only uses the \code{feature_contrasts = "FEATURE_ID"}. The 
+    #'    composition plots are created by default via the \code{composition_plot(group_by)} with
+    #'    \code{feature_top = 15}. Additional arguments can be controlled with \code{feature_filter},
+    #'    see [`composition()`](#method-composition) for more information.
+    #'  }
+    #'  \item{\code{$foldchange()}}{
+    #'    This function is applied on the significant contrasts that are obtained from either 
+    #'    \code{$alpha_diversity()} or \code{$ordination()}. Multiple \code{feature_contrasts} can be
+    #'    supplied, by default it only uses the \code{feature_contrasts = "FEATURE_ID"}. Additional arguments
+    #'    can be controlled with \code{fc_method}, \code{aggregate_method}, \code{pvalue.threshold}, 
+    #'    \code{logfold.threshold}, \code{abundance.threshold}, 
+    #'    see [`foldchange()`](#method-foldchange) for more information.
+    #'  }
+    #' }
+    #' The above functions are called in order, only significant contrasts are further used to create
+    #' composition and volcano plots. The \code{autoFlow} is intended as a first screening of certain
+    #' contrasts and extra analysis, such as the use of a permutation design are not supported and should
+    #' be applied by the user.
     #' 
+    #' The \code{report} argument controls if an `rmarkdown` document is created, and with \code{filename}
+    #' the output filename can be specified.
     #' 
     #' @param feature_contrast A character vector of feature columns in the `featureData` to aggregate via [`feature_merge()`](#method-feature_merge) (default: \code{"FEATURE_ID"}).
-    #' @param feature_filter A character vector to filter unwanted features, (default: \code{NULL}).
+    #' @param feature_filter A character vector to filter unwanted features, see [`feature_merge()`](#method-feature_merge) (default: \code{NULL}).
     #' @param feature_ranks A character vector as input to [`rankstat()`](#method-rankstat) (default: \code{NULL}).
-    #' @param distance_metrics A character vector specifying what (dis)similarity metrics to use (default: \code{c("bray")}) When you are working with log-transformed data it is advised to use the `euclidean`.
-    #' @param distmat A path to an existing file or a dense/sparse \link[Matrix]{Matrix} format (default: \code{NULL}).
-    #' @param weighted A boolean value, whether to compute weighted or unweighted dissimilarities (default: \code{TRUE}).
-    #' @param fc_method A character to choose the method of fold-change computation (default: \code{"identity"}), see [`foldchange()`](#method-foldchange). 
+    #' @param distance_metrics A character vector specifying what (dis)similarity metrics to use in [`ordination()`](#method-ordination) (default: \code{c("bray")}).
+    #' When you are working with log-transformed data it is advised to use the `"euclidean"`.
+    #' @param distmat A path to an existing file or a dense/sparse \link[Matrix]{Matrix} format to be used in [`ordination()`](#method-ordination) (default: \code{NULL}).
+    #' @param weighted A boolean value, whether to compute weighted or unweighted dissimilarities in [`ordination()`](#method-ordination) (default: \code{TRUE}).
+    #' @param fc_method A character to choose the method in [`foldchange()`](#method-foldchange) (default: \code{"identity"}). 
     #' \describe{
     #'  \item{\code{"identity"}}{Computes fold-change via \code{log2(condition_A) - log2(condition_B)}, and will handle zero's to prevent `Inf` values. 
     #'  Proportional data is also supported and will be automatically detected.}
     #'  \item{\code{"log"}}{Computes fold-change via \code{condition_A - condition_B}.}
     #' }
-    #' @param aggregate_method A function to aggregate the matrix values in [`foldchange()`](#method-foldchange) by taking e.g. the \code{median} of `condition_A` and `condition_B` (default: \code{median}), see [`foldchange()`](#method-foldchange).
-    #' @param pvalue.threshold A numeric value used as a p-value threshold to label and color significant features (default: \code{0.05}), see \link{volcano_plot}.
-    #' @param logfold.threshold A numeric value used as a fold-change threshold to label and color significantly expressed features (default: \code{0.06}), see \link{volcano_plot}.
-    #' @param abundance.threshold A numeric value used as an abundance threshold to size the scatter dots based on their mean abundance (default: \code{0}), see \link{volcano_plot}.
-    #' @param perm A wholenumber, number of permutations to compare against the null hypothesis of \link[vegan]{adonis2} or \link[vegan]{anosim} (default: 999).
+    #' @param aggregate_method A function to aggregate the matrix values in [`foldchange()`](#method-foldchange) by taking e.g. 
+    #' the \code{median} of `condition_A` and `condition_B` prior to substraction, or in the case of \code{method = "identity"} 
+    #' to take the median of the fold-change \code{log2(median(A)) - log2(median(B))} (default: \code{median}).
+    #' @param pvalue.threshold A numeric value used as a p-value threshold to label and color significant features in [`foldchange()`](#method-foldchange) (default: \code{0.05}).
+    #' @param logfold.threshold A numeric value used as a fold-change threshold to label and color significantly expressed features in [`foldchange()`](#method-foldchange) (default: \code{0.06}).
+    #' @param abundance.threshold A numeric value used as an abundance threshold to size the scatter dots based on their mean abundance in [`foldchange()`](#method-foldchange) (default: \code{0}).
+    #' @param perm A wholenumber, number of permutations to compare against the null hypothesis of \link[vegan]{adonis2} or \link[vegan]{anosim} in [`ordination()`](#method-ordination) (default: \code{999}).
     #' @param threads Number of threads to use, only used in [`distance()`](#method-distance) when distmat is not supplied (default: \code{1}).
-    #' @param report A boolean value, whether to create a HTML markdown report (default: \code{FALSE}). If \code{FALSE} a nested list of the plots and data is returned.
+    #' @param report A boolean value to create a HTML markdown report (default: \code{FALSE}). If \code{FALSE} a nested list of the plots and data is returned.
     #' @param filename A character to name the HTML report to be saved in the current working directory (default: \code{paste0(getwd(), "/report.html")}). The \code{getwd()} is required for rmarkdown to save it in the right path.
     #' 
-    #' @return List of plots/data or rendered HTML report
+    #' @return if \code{report = TRUE} a HTML report is generated, otherwise a list containing: \describe{
+    #'  \item{plots}{
+    #'    - `rankstat_plot` as a \link[ggplot2]{ggplot}.
+    #'    - `alpha_div_plots` as a list of \link[ggplot2]{ggplot}.
+    #'    - `pcoa_plots` as a nested matrix of lists with \link[ggplot2]{ggplot} (`contrasts` x `distance_metrics`).
+    #'    - `composition_plots` as a nested matrix of lists with \link[ggplot2]{ggplot} (`contrasts` x `feature_contrasts`).
+    #'    - `Log2FC_plots` as a nested matrix of lists with \link[ggplot2]{ggplot} (`contrasts` x `feature_contrasts`).
+    #'  }
+    #' 
+    #'  \item{data}{
+    #'    - `alpha_div_data` as a list of lists of `data` and `stats`.
+    #'    - `pcoa_data` as a nested matrix of lists of `stats`, `dist_mat` and `pcs` (`contrasts` x `distance_metrics`).
+    #'    - `composition_data` as a nested matrix of lists of `data` (`contrasts` x `feature_contrasts`).
+    #'    - `Log2FC_data` as a nested matrix of lists of `data` (`contrasts` x `feature_contrasts`).
+    #'  }
+    #' } 
+    #' 
     autoFlow = function(
       feature_contrast = "FEATURE_ID",
       feature_filter = NULL,
@@ -2062,20 +2120,6 @@ omics <- R6::R6Class(
 
     if (!is.character(filename) || length(filename) != 1)
       cli::cli_abort("{.val filename} needs to be a character with a length of 1")
-
-    if (report) {
-      required_packages <- c("DT", "rmarkdown", "downloadthis")
-      for (pkg in required_packages) {
-        if (!requireNamespace(pkg, quietly = TRUE)) {
-          cli::cli_abort(
-            c(
-              "!" = "Package {.pkg {pkg}} is required to generate a HTML report.",
-              "i" = "Install it with {.code install.packages('{pkg}')}."
-            )
-          )
-        }
-      }
-    }
       
     ## MAIN
     #--------------------------------------------------------------------#
@@ -2173,43 +2217,45 @@ omics <- R6::R6Class(
         #--------------------------------------------------------------------#
         ## Alpha diversity
         #--------------------------------------------------------------------#
-        res <- tryCatch(
-          {
-            # Default attempt
-            self$alpha_diversity(
-              groups = col_name,
-              metric = "shannon",
-              paired = ifelse(column_exists(private$.samplepair_id, private$.metaData), TRUE, FALSE)
-            )
-          },
-          error = function(e) {
-            cli::cli_alert_warning("{.arg alpha_diversity} with {.val paired=TRUE} failed. Retrying with {.val paired=FALSE}.")
+        if ("metagenomics" %in% class(self)) {
+          res <- tryCatch(
+            {
+              # Default attempt
+              self$alpha_diversity(
+                groups = col_name,
+                metric = "shannon",
+                paired = ifelse(column_exists(private$.samplepair_id, private$.metaData), TRUE, FALSE)
+              )
+            },
+            error = function(e) {
+              cli::cli_alert_warning("{.arg alpha_diversity} with {.val paired=TRUE} failed. Retrying with {.val paired=FALSE}.")
 
-          # Retry with paired = FALSE
-          res2 <- tryCatch(
-            self$alpha_diversity(
-              groups = col_name,
-              metric = "shannon",
-              paired = FALSE
-            ),
-            error = function(e2) {
-              cli::cli_alert_info("Skipping {.arg alpha_diversity}, which failed due to an error: {.val {e2}}.")
-              NULL
-              }
-            )
-            res2
+            # Retry with paired = FALSE
+            res2 <- tryCatch(
+              self$alpha_diversity(
+                groups = col_name,
+                metric = "shannon",
+                paired = FALSE
+              ),
+              error = function(e2) {
+                cli::cli_alert_info("Skipping {.arg alpha_diversity}, which failed due to an error: {.val {e2}}.")
+                NULL
+                }
+              )
+              res2
+            }
+          )
+
+          if (!is.null(res)) {
+            ## Save plots & data
+            alpha_div_plots[[i]] <- res$plot
+            alpha_div_data[[i]] <- list(data = res$data, stats = res$stats)
+            
+            ### Identify significant groups for composition plots & volcano plots
+            signif_pairs <- res$stats[res$stats$p.adj < pvalue.threshold, ][c("group1", "group2")]
+            if (nrow(signif_pairs) > 0)
+              conditions <- signif_pairs
           }
-        )
-
-        if (!is.null(res)) {
-          ## Save plots & data
-          alpha_div_plots[[i]] <- res$plot
-          alpha_div_data[[i]] <- list(data = res$data, stats = res$stats)
-          
-          ### Identify significant groups for composition plots & volcano plots
-          signif_pairs <- res$stats[res$stats$p.adj < pvalue.threshold, ][c("group1", "group2")]
-          if (nrow(signif_pairs) > 0)
-            conditions <- signif_pairs
         }
 
         #--------------------------------------------------------------------#

@@ -1438,9 +1438,49 @@ dfe <- obj$foldchange(
 \if{html}{\out{<a id="method-omics-autoFlow"></a>}}
 \if{latex}{\out{\hypertarget{method-omics-autoFlow}{}}}
 \subsection{\code{omics$autoFlow()}}{
-  Automated Omics Analysis on column headers with the prefix \code{CONTRAST_}. If the data is from the class \code{omics} or \code{proteomics} than FDR adjusted
-p-values are computed for the volcano plots. Log-transformed values will lead to the skipping of \href{#method-composition}{\code{composition()}}
-and \href{#method-alpha_diversity}{\code{alpha_diversity()}} methods.
+  Automated Omics Analysis only works if there are column names in the \code{metaData} with the prefix \code{"CONTRAST_"},
+which is detected via sub-string pattern matching. The transformation of the data is left to the user via the
+\href{#method-scale}{\code{scale()}} method. The \code{$autoFlow()} incorporates the following functions: \describe{
+\item{\code{$rankstat()}}{
+This function is only applied when \code{feature_ranks} is specified, useful in \link{metagenomics},
+see \href{#method-rankstat}{\code{rankstat()}} for more information.
+}
+\item{\code{$alpha_diversity()}}{
+This function only works with the \code{metagenomics} class, uses \code{"shannon"}
+metric, and works for both paired and non-paired data, applied on each \code{"CONTRAST_"} column,
+see \href{#method-alpha_diversity}{\code{alpha_diversity()}} for more information.
+}
+\item{\code{$ordination()}}{
+This function is applied on all classes, multiple \code{distance_metrics} can be supplied,
+and only the Principal Component method (\code{$ordination(method = "pcoa")}) is used.
+Additional arguments can be controlled with \code{distance_metrics}, \code{distmat},
+\code{weighted}, \code{perm}, \code{threads}, see \href{#method-ordination}{\code{ordination()}}
+for more information. \strong{NOTE}: \code{perm_design} is not supported in \href{#method-autoFlow}{\code{autoFlow()}}.
+}
+\item{\code{$composition()}}{
+This function is applied on the significant contrasts that are obtained from either
+\code{$alpha_diversity()} or \code{$ordination()}. Multiple \code{feature_contrasts} can be
+supplied, by default it only uses the \code{feature_contrasts = "FEATURE_ID"}. The
+composition plots are created by default via the \code{composition_plot(group_by)} with
+\code{feature_top = 15}. Additional arguments can be controlled with \code{feature_filter},
+see \href{#method-composition}{\code{composition()}} for more information.
+}
+\item{\code{$foldchange()}}{
+This function is applied on the significant contrasts that are obtained from either
+\code{$alpha_diversity()} or \code{$ordination()}. Multiple \code{feature_contrasts} can be
+supplied, by default it only uses the \code{feature_contrasts = "FEATURE_ID"}. Additional arguments
+can be controlled with \code{fc_method}, \code{aggregate_method}, \code{pvalue.threshold},
+\code{logfold.threshold}, \code{abundance.threshold},
+see \href{#method-foldchange}{\code{foldchange()}} for more information.
+}
+}
+The above functions are called in order, only significant contrasts are further used to create
+composition and volcano plots. The \code{autoFlow} is intended as a first screening of certain
+contrasts and extra analysis, such as the use of a permutation design are not supported and should
+be applied by the user.
+
+The \code{report} argument controls if an \code{rmarkdown} document is created, and with \code{filename}
+the output filename can be specified.
   \subsection{Usage}{
     \if{html}{\out{<div class="r">}}
     \preformatted{omics$autoFlow(
@@ -1466,30 +1506,52 @@ and \href{#method-alpha_diversity}{\code{alpha_diversity()}} methods.
     \if{html}{\out{<div class="arguments">}}
     \describe{
       \item{\code{feature_contrast}}{A character vector of feature columns in the \code{featureData} to aggregate via \href{#method-feature_merge}{\code{feature_merge()}} (default: \code{"FEATURE_ID"}).}
-      \item{\code{feature_filter}}{A character vector to filter unwanted features, (default: \code{NULL}).}
+      \item{\code{feature_filter}}{A character vector to filter unwanted features, see \href{#method-feature_merge}{\code{feature_merge()}} (default: \code{NULL}).}
       \item{\code{feature_ranks}}{A character vector as input to \href{#method-rankstat}{\code{rankstat()}} (default: \code{NULL}).}
-      \item{\code{distance_metrics}}{A character vector specifying what (dis)similarity metrics to use (default: \code{c("bray")}) When you are working with log-transformed data it is advised to use the \code{euclidean}.}
-      \item{\code{distmat}}{A path to an existing file or a dense/sparse \link[Matrix]{Matrix} format (default: \code{NULL}).}
-      \item{\code{weighted}}{A boolean value, whether to compute weighted or unweighted dissimilarities (default: \code{TRUE}).}
-      \item{\code{fc_method}}{A character to choose the method of fold-change computation (default: \code{"identity"}), see \href{#method-foldchange}{\code{foldchange()}}.
+      \item{\code{distance_metrics}}{A character vector specifying what (dis)similarity metrics to use in \href{#method-ordination}{\code{ordination()}} (default: \code{c("bray")}).
+When you are working with log-transformed data it is advised to use the \code{"euclidean"}.}
+      \item{\code{distmat}}{A path to an existing file or a dense/sparse \link[Matrix]{Matrix} format to be used in \href{#method-ordination}{\code{ordination()}} (default: \code{NULL}).}
+      \item{\code{weighted}}{A boolean value, whether to compute weighted or unweighted dissimilarities in \href{#method-ordination}{\code{ordination()}} (default: \code{TRUE}).}
+      \item{\code{fc_method}}{A character to choose the method in \href{#method-foldchange}{\code{foldchange()}} (default: \code{"identity"}).
 \describe{
 \item{\code{"identity"}}{Computes fold-change via \code{log2(condition_A) - log2(condition_B)}, and will handle zero's to prevent \code{Inf} values.
 Proportional data is also supported and will be automatically detected.}
 \item{\code{"log"}}{Computes fold-change via \code{condition_A - condition_B}.}
 }}
-      \item{\code{aggregate_method}}{A function to aggregate the matrix values in \href{#method-foldchange}{\code{foldchange()}} by taking e.g. the \code{median} of \code{condition_A} and \code{condition_B} (default: \code{median}), see \href{#method-foldchange}{\code{foldchange()}}.}
-      \item{\code{pvalue.threshold}}{A numeric value used as a p-value threshold to label and color significant features (default: \code{0.05}), see \link{volcano_plot}.}
-      \item{\code{logfold.threshold}}{A numeric value used as a fold-change threshold to label and color significantly expressed features (default: \code{0.06}), see \link{volcano_plot}.}
-      \item{\code{abundance.threshold}}{A numeric value used as an abundance threshold to size the scatter dots based on their mean abundance (default: \code{0}), see \link{volcano_plot}.}
-      \item{\code{perm}}{A wholenumber, number of permutations to compare against the null hypothesis of \link[vegan]{adonis2} or \link[vegan]{anosim} (default: 999).}
+      \item{\code{aggregate_method}}{A function to aggregate the matrix values in \href{#method-foldchange}{\code{foldchange()}} by taking e.g.
+the \code{median} of \code{condition_A} and \code{condition_B} prior to substraction, or in the case of \code{method = "identity"}
+to take the median of the fold-change \code{log2(median(A)) - log2(median(B))} (default: \code{median}).}
+      \item{\code{pvalue.threshold}}{A numeric value used as a p-value threshold to label and color significant features in \href{#method-foldchange}{\code{foldchange()}} (default: \code{0.05}).}
+      \item{\code{logfold.threshold}}{A numeric value used as a fold-change threshold to label and color significantly expressed features in \href{#method-foldchange}{\code{foldchange()}} (default: \code{0.06}).}
+      \item{\code{abundance.threshold}}{A numeric value used as an abundance threshold to size the scatter dots based on their mean abundance in \href{#method-foldchange}{\code{foldchange()}} (default: \code{0}).}
+      \item{\code{perm}}{A wholenumber, number of permutations to compare against the null hypothesis of \link[vegan]{adonis2} or \link[vegan]{anosim} in \href{#method-ordination}{\code{ordination()}} (default: \code{999}).}
       \item{\code{threads}}{Number of threads to use, only used in \href{#method-distance}{\code{distance()}} when distmat is not supplied (default: \code{1}).}
-      \item{\code{report}}{A boolean value, whether to create a HTML markdown report (default: \code{FALSE}). If \code{FALSE} a nested list of the plots and data is returned.}
+      \item{\code{report}}{A boolean value to create a HTML markdown report (default: \code{FALSE}). If \code{FALSE} a nested list of the plots and data is returned.}
       \item{\code{filename}}{A character to name the HTML report to be saved in the current working directory (default: \code{paste0(getwd(), "/report.html")}). The \code{getwd()} is required for rmarkdown to save it in the right path.}
     }
     \if{html}{\out{</div>}}
   }
   \subsection{Returns}{
-    List of plots/data or rendered HTML report
+    if \code{report = TRUE} a HTML report is generated, otherwise a list containing: \describe{
+\item{plots}{
+\itemize{
+\item \code{rankstat_plot} as a \link[ggplot2]{ggplot}.
+\item \code{alpha_div_plots} as a list of \link[ggplot2]{ggplot}.
+\item \code{pcoa_plots} as a nested matrix of lists with \link[ggplot2]{ggplot} (\code{contrasts} x \code{distance_metrics}).
+\item \code{composition_plots} as a nested matrix of lists with \link[ggplot2]{ggplot} (\code{contrasts} x \code{feature_contrasts}).
+\item \code{Log2FC_plots} as a nested matrix of lists with \link[ggplot2]{ggplot} (\code{contrasts} x \code{feature_contrasts}).
+}
+}
+
+\item{data}{
+\itemize{
+\item \code{alpha_div_data} as a list of lists of \code{data} and \code{stats}.
+\item \code{pcoa_data} as a nested matrix of lists of \code{stats}, \code{dist_mat} and \code{pcs} (\code{contrasts} x \code{distance_metrics}).
+\item \code{composition_data} as a nested matrix of lists of \code{data} (\code{contrasts} x \code{feature_contrasts}).
+\item \code{Log2FC_data} as a nested matrix of lists of \code{data} (\code{contrasts} x \code{feature_contrasts}).
+}
+}
+}
   }
 }
 
