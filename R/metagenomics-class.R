@@ -142,6 +142,7 @@ metagenomics <- R6::R6Class(
               "/observation/matrix/data",
               "/observation/matrix/indptr",
               "/observation/matrix/indices",
+              "/observation/metadata/taxonomy",
               "/observation/ids",
               "/sample/ids"
             )
@@ -149,19 +150,26 @@ metagenomics <- R6::R6Class(
             missing <- base::setdiff(expected_content, hdf5_contents$content)
 
             if (length(missing) > 0 ) {
-              cli::cli_abort(
-                "Expected content is missing",
-                "i" = "\n{ paste(missing, collapse = ',')}"
-              )
+              cli::cli_abort(c(
+                "Error in {.field biomData}:",
+                "x" = cli::format_inline("The HDF5 {.field biomData} is missing the following required content: {.val {missing}}")
+              ))
             }
 
             # Checks if data contains any dimensions
-            list_of_dimensions <- hdf5_contents$dim[grepl(paste(expected_content, collapse="|"), hdf5_contents$content)]
-            if (!all(as.numeric(list_of_dimensions) > 0)) {
-              cli::cli_abort(
-                "Expected content does not contain any dimensions",
-                "i" = "\n{ paste(expected_content, collapse = ',')}"
-              )
+            list_of_dimensions <- hdf5_contents[grepl(paste(expected_content, collapse="|"), hdf5_contents$content), ]
+            for (i in seq_along(list_of_dimensions$dim)) {
+              elem <- list_of_dimensions$dim[i]
+              
+              if (grepl("x", elem)) {
+                elem <- unlist(base::strsplit(elem, " x "))
+              }
+              if (!all(as.numeric(elem) > 0)) {
+                cli::cli_abort(c(
+                  "Error in {.field biomData}:",
+                  "x" = cli::format_inline("The HDF5 content {.val {list_of_dimensions$content[i]}} contains no dimensions {.val {elem}}")
+                ))
+              }
             }
 
             # Loads data in memory
