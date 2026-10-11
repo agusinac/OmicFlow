@@ -5,17 +5,13 @@
 \alias{proteomics}
 \title{Sub-class proteomics}
 \description{
-Sub-class proteomics
-}
-\section{Introduction}{
-
 OmicFlow is constructed around the main superclass \link{omics} that in turn is
 inherited by \link{metagenomics} and \link{proteomics}, that offer additional
-fields or functions. The superclass \link{omics} contains both public and private
+fields or methods. The superclass \link{omics} contains both public and private
 methods, only the public componenents are documented, whereas the private
 methods can be accessed via \code{proteomics$private_methods}, which is not supported.
 
-The \link{omics} class components use \link{Matrix} and \link{data.table} in the
+The \link{omics} class components use \link[Matrix]{Matrix} and \link[data.table]{data.table} in the
 background for fast loading and data wrangling, these data structures return
 the data by reference, so does the R6 class, therefore classes in OmicFlow do
 not create copies of the object unless called via \code{$copy()}.
@@ -33,7 +29,6 @@ When a \code{treeData} is supplied than every class field is arranged according 
 the tree tip labels.
 }
 }
-
 \section{Input requirements}{
 
 Every class in OmicFlow requires at least a \code{metaData} and \code{countData} field to
@@ -119,7 +114,7 @@ analysis. For example, \code{VARIABLE_Age} may contain values such as \code{42} 
 \code{51}.
 }
 }
-Pattern-based columns are only used in \href{#method-autoFlow}{\code{autoFlow()}}. Currently, only columns
+Pattern-based columns are only used in \href{#method-autoFlow}{\verb{$autoFlow()}}. Currently, only columns
 with the \code{CONTRAST_} prefix are supported.
 }
 

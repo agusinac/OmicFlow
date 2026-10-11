@@ -1,13 +1,13 @@
 #' @title Sub-class metagenomics
 #' @docType class
-#' @section Introduction:
+#' @description 
 #' OmicFlow is constructed around the main superclass \link{omics} that in turn is 
 #' inherited by \link{metagenomics} and \link{proteomics}, that offer additional 
-#' fields or functions. The superclass \link{omics} contains both public and private 
+#' fields or methods. The superclass \link{omics} contains both public and private 
 #' methods, only the public componenents are documented, whereas the private 
 #' methods can be accessed via `metagenomics$private_methods`, which is not supported.
 #' 
-#' The \link{omics} class components use \link{Matrix} and \link{data.table} in the 
+#' The \link{omics} class components use \link[Matrix]{Matrix} and \link[data.table]{data.table} in the 
 #' background for fast loading and data wrangling, these data structures return 
 #' the data by reference, so does the R6 class, therefore classes in OmicFlow do 
 #' not create copies of the object unless called via \code{$copy()}.

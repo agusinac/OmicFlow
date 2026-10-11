@@ -1,13 +1,13 @@
 #' @title Superclass omics
 #' @docType class
-#' @section Introduction:
+#' @description 
 #' OmicFlow is constructed around the main superclass `omics` that in turn is 
 #' inherited by \link{metagenomics} and \link{proteomics}, that offer additional 
-#' fields or functions. The superclass `omics` contains both public and private 
+#' fields or methods. The superclass `omics` contains both public and private 
 #' methods, only the public componenents are documented, whereas the private 
 #' methods can be accessed via `omics$private_methods`, which is not supported.
 #' 
-#' The `omics` class components use \link{Matrix} and \link{data.table} in the 
+#' The `omics` class components use \link[Matrix]{Matrix} and \link[data.table]{data.table} in the 
 #' background for fast loading and data wrangling, these data structures return 
 #' the data by reference, so does the R6 class, therefore classes in OmicFlow do 
 #' not create copies of the object unless called via \code{$copy()}.
@@ -100,7 +100,7 @@
 #'   `51`.
 #' }
 #' }
-#' Pattern-based columns are only used in [`autoFlow()`](#method-autoFlow). Currently, only columns
+#' Pattern-based columns are only used in [`$autoFlow()`](#method-autoFlow). Currently, only columns
 #' with the `CONTRAST_` prefix are supported.
 #' 
 #' @param countData A path to an existing file, \link[Matrix]{Matrix}, \link[data.table]{data.table} or \link[base]{data.frame} (default: \code{NULL}).
@@ -366,9 +366,9 @@ omics <- R6::R6Class(
       )
     },
     #' @description
-    #' This method is very similar to the existing [`clone()`](#method-clone) function, 
+    #' This method is very similar to the existing [`$clone()`](#method-clone) function, 
     #' except it also creates a new save of the back-up of each class that is created when 
-    #' [`new()`](#method-new) is called and can be reverted to via [`reset()`](#method-reset)
+    #' [`$new()`](#method-new) is called and can be reverted to via [`$reset()`](#method-reset)
     #' 
     #' @param deep A boolean value to create a shallow or deep copy (default: \code{FALSE}).
     #' @examples
@@ -463,7 +463,7 @@ omics <- R6::R6Class(
     #' # An inbuilt reset function prevents unwanted modification to the taxa object.
     #' taxa$rankstat(feature_ranks = c("Kingdom", "Phylum", "Family", "Genus", "Species"))
     #'
-    #' @return The object is modified in place and returned (invisibly). If a copy is required, please use [`copy()`](#method-copy) beforehand with \code{obj2 <- obj$copy()}.
+    #' @return The object is modified in place and returned (invisibly). If a copy is required, please use [`$copy()`](#method-copy) beforehand with \code{obj2 <- obj$copy()}.
     reset = function() {
       if (!is.null(private$original_data)) {
         private$.countData = private$original_data$counts
@@ -491,7 +491,7 @@ omics <- R6::R6Class(
     #' 
     #' obj$removeNAs(column = "treatment")
     #' 
-    #' @return The object is modified in place and returned (invisibly). If a copy is required, please use [`copy()`](#method-copy) beforehand with \code{obj2 <- obj$copy()}.
+    #' @return The object is modified in place and returned (invisibly). If a copy is required, please use [`$copy()`](#method-copy) beforehand with \code{obj2 <- obj$copy()}.
     removeNAs = function(column) {
 
       ## Error handling
@@ -530,7 +530,7 @@ omics <- R6::R6Class(
     #' 
     #' obj$feature_subset(Genus == "Pseudomonas")
     #' 
-    #' @return The object is modified in place and returned (invisibly). If a copy is required, please use [`copy()`](#method-copy) beforehand with \code{obj2 <- obj$copy()}.
+    #' @return The object is modified in place and returned (invisibly). If a copy is required, please use [`$copy()`](#method-copy) beforehand with \code{obj2 <- obj$copy()}.
     feature_subset = function(expr) {
       expr <- base::substitute(expr)
 
@@ -581,7 +581,7 @@ omics <- R6::R6Class(
     #' 
     #' obj$sample_subset(treatment == "tumor")
     #'
-    #' @return The object is modified in place and returned (invisibly). If a copy is required, please use [`copy()`](#method-copy) beforehand with \code{obj2 <- obj$copy()}.
+    #' @return The object is modified in place and returned (invisibly). If a copy is required, please use [`$copy()`](#method-copy) beforehand with \code{obj2 <- obj$copy()}.
     sample_subset = function(expr) {
       expr <- base::substitute(expr)
       metadata <- data.table::copy(private$.metaData)
@@ -616,7 +616,7 @@ omics <- R6::R6Class(
     #' meaning the maximum number of unique pairs will be used to subset the data. 
     #' Let's say you have three samples for each pair, then the `num_unique_pairs` will be set to 3.
     #' 
-    #' @return The object is modified in place and returned (invisibly). If a copy is required, please use [`copy()`](#method-copy) beforehand with \code{obj2 <- obj$copy()}.
+    #' @return The object is modified in place and returned (invisibly). If a copy is required, please use [`$copy()`](#method-copy) beforehand with \code{obj2 <- obj$copy()}.
     samplepair_subset = function(num_unique_pairs = NULL) {
 
       ## Error handling
@@ -662,7 +662,7 @@ omics <- R6::R6Class(
     #' obj$feature_merge(feature_rank = c("Kingdom", "Phylum"))
     #' obj$feature_merge(feature_rank = "Genus", feature_filter = c("uncultured", "metagenome"))
     #'
-    #' @return The object is modified in place and returned (invisibly). If a copy is required, please use [`copy()`](#method-copy) beforehand with \code{obj2 <- obj$copy()}.
+    #' @return The object is modified in place and returned (invisibly). If a copy is required, please use [`$copy()`](#method-copy) beforehand with \code{obj2 <- obj$copy()}.
     feature_merge = function(feature_rank, feature_filter = NULL) {
 
       ## Error handling
@@ -793,7 +793,7 @@ omics <- R6::R6Class(
     #' obj$reset()
     #' obj$scale(method = "none", transform = log2)
     #' 
-    #' @return The object is modified in place and returned (invisibly). If a copy is required, please use [`copy()`](#method-copy) beforehand with \code{obj2 <- obj$copy()}.
+    #' @return The object is modified in place and returned (invisibly). If a copy is required, please use [`$copy()`](#method-copy) beforehand with \code{obj2 <- obj$copy()}.
     scale = function(method = "tss", transform = NULL, base = exp(1), pseudocount = NULL) {
 
       ## Nested Functions
@@ -957,7 +957,7 @@ omics <- R6::R6Class(
     #' @param split_by A column name to split the groups into chunks for grouped statistical test in \link{boxjitter_test} (default: \code{NULL}).
     #' @param Brewer.palID A character name for the palette set to be applied, see \link[RColorBrewer]{brewer.pal} or \link{colormap} (default: \code{"Set2"}).
     #' @param evenness A boolean wether to divide diversity by number of species, see \link[vegan]{specnumber} (default: \code{FALSE}).
-    #' @param paired A boolean value to perform paired analysis in \link[stats]{wilcox.test} and samplepair subsetting via [`samplepair_subset()`](#method-samplepair_subset)
+    #' @param paired A boolean value to perform paired analysis in \link[stats]{wilcox.test} and samplepair subsetting via [`$samplepair_subset()`](#method-samplepair_subset)
     #' @param p.adjust.method A character variable to specify the p.adjust.method to be used (default: \code{"fdr"}).
     #' @examples
     #' library("OmicFlow")
@@ -1102,10 +1102,10 @@ omics <- R6::R6Class(
     #' @description
     #' Creates a long `data.table` of `SAMPLE_ID`s, the top 10-15 most abundant bacteria based on the \code{feature_rank} with
     #' any additional columns specified via \code{add_cols}. The \code{$composition()} method works with aggregated 
-    #' values by running first [`feature_merge()`](#method-feature_merge), then sorting for the most abundant bacteria based on
+    #' values by running first [`$feature_merge()`](#method-feature_merge), then sorting for the most abundant bacteria based on
     #' the row sums. The output of \code{$composition()} can be used as input to \link{composition_plot}.
-    #' @param feature_rank A column name in `featureData` to aggregate via [`feature_merge()`](#method-feature_merge).
-    #' @param feature_filter A character or vector of characters to removes features by regex substring pattern matching via [`feature_merge()`](#method-feature_merge) (default: \code{NULL}).
+    #' @param feature_rank A column name in `featureData` to aggregate via [`$feature_merge()`](#method-feature_merge).
+    #' @param feature_filter A character or vector of characters to removes features by regex substring pattern matching via [`$feature_merge()`](#method-feature_merge) (default: \code{NULL}).
     #' @param col_name `r lifecycle::badge("deprecated")` This argument has been renamed to `add_cols` for more clarity.
     #' @param add_cols Optional, a column name or vector of multiple column names from `metaData` to add to the `data` list name (default": \code{NULL}).
     #' @param feature_top A wholenumber of the top features to visualize, the max is 15, due to a limit of palettes (default: \code{10}).
@@ -1284,7 +1284,7 @@ omics <- R6::R6Class(
     #'  \item{\code{"canberra"}}{\link{canberra}}
     #'  \item{\code{"unifrac"}}{\link{unifrac}}
     #'  \item{\code{"aitchison"}}{
-    #'    The `"aitchison"` metric uses the \code{$scale(method = "clr")} without any pseudocounts, see [`scale()`](#method-scale),
+    #'    The `"aitchison"` metric uses the \code{$scale(method = "clr")} without any pseudocounts, see [`$scale()`](#method-scale),
     #'    followed by euclidean dissimilarity computation.
     #'    
     #'    Ref: Aitchison, J. (1986) The Statistical Analysis of Compositional Data. Chapman and Hall, London, 416 p.
@@ -1380,7 +1380,7 @@ omics <- R6::R6Class(
     #' and an anova-plot (see \link{plot_pairwise_stats}). These plots, alongisde the distance matrix, principal components
     #' are returned as a list.
     #' 
-    #' @param metric A dissimilarity or similarity metric to be applied on the `countData`, see [`distance()`](#method-distance) (default: \code{"bray"}).
+    #' @param metric A dissimilarity or similarity metric to be applied on the `countData`, see [`$distance()`](#method-distance) (default: \code{"bray"}).
     #' @param method Ordination method, options: `"pcoa"` or `"nmds"`, see \link[vegan]{wcmdscale} (default: \code{"pcoa"}).
     #' \describe{
     #'  \item{\code{"pcoa"}}{
@@ -1397,7 +1397,7 @@ omics <- R6::R6Class(
     #' @param distmat A custom distance matrix as either \link[stats]{dist} or \link[Matrix]{Matrix} (default: \code{NULL}).
     #' @param group_by A character variable in `metaData` to be used for the \link{pairwise_adonis} or \link{pairwise_anosim} statistical test.
     #' @param weighted A boolean value, whether to compute weighted or unweighted dissimilarities, 
-    #' see [`distance()`](#method-distance) (default: \code{TRUE}).
+    #' see [`$distance()`](#method-distance) (default: \code{TRUE}).
     #' @param normalize A boolean value, wether to normalize weighted UniFrac distances to be between 0 and 1, 
     #' see \link{unifrac} (default: \code{TRUE}).
     #' @param threads A wholenumber, indicating the number of threads to use (default: \code{1}).
@@ -1631,12 +1631,12 @@ omics <- R6::R6Class(
     #' @description
     #' Differential feature expression for both paired and non-paired data.
     #' 
-    #' The function performs feature agglomeration via [`feature_merge()`](#method-feature_merge) (which can be disabled via \code{feature_merge=FALSE}), 
-    #' subsetting to remove NAs in `condition.group` via [`removeNAs()`](#method-removeNAs) and finding samplepairs when \code{paired = TRUE} is supplied
-    #' via [`subset_samplepairs()`](#method-subset_samplepairs).
+    #' The function performs feature agglomeration via [`$feature_merge()`](#method-feature_merge) (which can be disabled via \code{feature_merge=FALSE}), 
+    #' subsetting to remove NAs in `condition.group` via [`$removeNAs()`](#method-removeNAs) and finding samplepairs when \code{paired = TRUE} is supplied
+    #' via [`$subset_samplepairs()`](#method-subset_samplepairs).
     #'  
     #' The fold-changes can be computed differently based on the `method` and `aggregate_method` options. 
-    #' Transformations of the data should be done beforehand via [`scale()`](#method-scale).
+    #' Transformations of the data should be done beforehand via [`$scale()`](#method-scale).
     #' Finally, homogeneity of variance is computed based on the selected `aggregate_method` option. If \code{aggregate_method = "mean"} then the \link[matrixTests]{row_levene} is applied, 
     #' and if \code{aggregate_method = "median"} is used then the \link[matrixTests]{row_brownforsythe} is applied. Any filtering of the results is left to the end-user, 
     #' volcano plots are automatically added to the list name `volcano_plot` via \link{volcano_plot}.
@@ -1670,10 +1670,10 @@ omics <- R6::R6Class(
     #' 
     #' @param group_by `r lifecycle::badge("deprecated")` This argument has been renamed to `split_by` for more clarity.
     #' @param split_by A character variable of an existing column in `metaData` to split the table in chunks prior to fold-change computation (default: \code{NULL}). When disabled then column names will end with `_in_all`.
-    #' @param feature_merge A boolean value wether to call [`feature_merge()`](#method-feature_merge) (default: \code{FALSE}).
+    #' @param feature_merge A boolean value wether to call [`$feature_merge()`](#method-feature_merge) (default: \code{FALSE}).
     #' @param feature_rank A column in the `featureData` to use as the feature scope (default: \code{"FEATURE_ID"}).
-    #' @param feature_filter A character or vector of characters to remove features via regex substring pattern matching via [`feature_merge()`](#method-feature_merge) (default: \code{NULL}).
-    #' @param paired A boolean value, the paired is only applicable when a `SAMPLEPAIR_ID` column exists within the `metaData` (default: \code{FALSE}), see [`samplepair_subset()`](#method-samplepair_subset).
+    #' @param feature_filter A character or vector of characters to remove features via regex substring pattern matching via [`$feature_merge()`](#method-feature_merge) (default: \code{NULL}).
+    #' @param paired A boolean value, the paired is only applicable when a `SAMPLEPAIR_ID` column exists within the `metaData` (default: \code{FALSE}), see [`$samplepair_subset()`](#method-samplepair_subset).
     #' @param pvalue.threshold A numeric value used as a p-value threshold to label and color significant features (default: \code{0.05}), see \link{volcano_plot}.
     #' @param logfold.threshold A numeric value used as a fold-change threshold to label and color significantly expressed features (default: \code{0.06}), see \link{volcano_plot}.
     #' @param abundance.threshold A numeric value used as an abundance threshold to size the scatter dots based on their mean abundance (default: \code{0}), see \link{volcano_plot}.
@@ -2006,22 +2006,23 @@ omics <- R6::R6Class(
     #' @description
     #' Automated Omics Analysis only works if there are column names in the `metaData` with the prefix \code{"CONTRAST_"},
     #' which is detected via sub-string pattern matching. The transformation of the data is left to the user via the
-    #' [`scale()`](#method-scale) method. The \code{$autoFlow()} incorporates the following functions: \describe{
+    #' [`$scale()`](#method-scale) method. The \code{$autoFlow()} incorporates the following functions: \describe{
     #'  \item{\code{$rankstat()}}{
     #'    This function is only applied when \code{feature_ranks} is specified, useful in \link{metagenomics},
-    #'    see [`rankstat()`](#method-rankstat) for more information.
+    #'    see [`$rankstat()`](#method-rankstat) for more information.
     #'  }
     #'  \item{\code{$alpha_diversity()}}{
     #'    This function only works with the `metagenomics` class, uses `"shannon"`
     #'    metric, and works for both paired and non-paired data, applied on each `"CONTRAST_"` column,
-    #'    see [`alpha_diversity()`](#method-alpha_diversity) for more information.
+    #'    see [`$alpha_diversity()`](#method-alpha_diversity) for more information.
     #'  }
     #'  \item{\code{$ordination()}}{
     #'    This function is applied on all classes, multiple \code{distance_metrics} can be supplied,
     #'    and only the Principal Component method (\code{$ordination(method = "pcoa")}) is used.
     #'    Additional arguments can be controlled with \code{distance_metrics}, \code{distmat},
-    #'    \code{weighted}, \code{perm}, \code{threads}, see [`ordination()`](#method-ordination)
-    #'    for more information. **NOTE**: \code{perm_design} is not supported in [`autoFlow()`](#method-autoFlow).
+    #'    \code{weighted}, \code{perm}, \code{threads}, see [`$ordination()`](#method-ordination)
+    #'    for more information. 
+    #'    **NOTE**: \code{perm_design} is not supported in [`$autoFlow()`](#method-autoFlow).
     #'  }
     #'  \item{\code{$composition()}}{
     #'    This function is applied on the significant contrasts that are obtained from either
@@ -2029,7 +2030,7 @@ omics <- R6::R6Class(
     #'    supplied, by default it only uses the \code{feature_contrasts = "FEATURE_ID"}. The 
     #'    composition plots are created by default via the \code{composition_plot(group_by)} with
     #'    \code{feature_top = 15}. Additional arguments can be controlled with \code{feature_filter},
-    #'    see [`composition()`](#method-composition) for more information.
+    #'    see [`$composition()`](#method-composition) for more information.
     #'  }
     #'  \item{\code{$foldchange()}}{
     #'    This function is applied on the significant contrasts that are obtained from either 
@@ -2037,7 +2038,7 @@ omics <- R6::R6Class(
     #'    supplied, by default it only uses the \code{feature_contrasts = "FEATURE_ID"}. Additional arguments
     #'    can be controlled with \code{fc_method}, \code{aggregate_method}, \code{pvalue.threshold}, 
     #'    \code{logfold.threshold}, \code{abundance.threshold}, 
-    #'    see [`foldchange()`](#method-foldchange) for more information.
+    #'    see [`$foldchange()`](#method-foldchange) for more information.
     #'  }
     #' }
     #' The above functions are called in order, only significant contrasts are further used to create
@@ -2048,27 +2049,27 @@ omics <- R6::R6Class(
     #' The \code{report} argument controls if an `rmarkdown` document is created, and with \code{filename}
     #' the output filename can be specified.
     #' 
-    #' @param feature_contrast A character vector of feature columns in the `featureData` to aggregate via [`feature_merge()`](#method-feature_merge) (default: \code{"FEATURE_ID"}).
-    #' @param feature_filter A character vector to filter unwanted features, see [`feature_merge()`](#method-feature_merge) (default: \code{NULL}).
-    #' @param feature_ranks A character vector as input to [`rankstat()`](#method-rankstat) (default: \code{NULL}).
+    #' @param feature_contrast A character vector of feature columns in the `featureData` to aggregate via [`$feature_merge()`](#method-feature_merge) (default: \code{"FEATURE_ID"}).
+    #' @param feature_filter A character vector to filter unwanted features, see [`$feature_merge()`](#method-feature_merge) (default: \code{NULL}).
+    #' @param feature_ranks A character vector as input to [`$rankstat()`](#method-rankstat) (default: \code{NULL}).
     #' @param distance_metrics A character vector specifying what (dis)similarity metrics to use in [`ordination()`](#method-ordination) (default: \code{c("bray")}).
     #' When you are working with log-transformed data it is advised to use the `"euclidean"`.
-    #' @param distmat A path to an existing file or a dense/sparse \link[Matrix]{Matrix} format to be used in [`ordination()`](#method-ordination) (default: \code{NULL}).
-    #' @param weighted A boolean value, whether to compute weighted or unweighted dissimilarities in [`ordination()`](#method-ordination) (default: \code{TRUE}).
-    #' @param fc_method A character to choose the method in [`foldchange()`](#method-foldchange) (default: \code{"identity"}). 
+    #' @param distmat A path to an existing file or a dense/sparse \link[Matrix]{Matrix} format to be used in [`$ordination()`](#method-ordination) (default: \code{NULL}).
+    #' @param weighted A boolean value, whether to compute weighted or unweighted dissimilarities in [`$ordination()`](#method-ordination) (default: \code{TRUE}).
+    #' @param fc_method A character to choose the method in [`$foldchange()`](#method-foldchange) (default: \code{"identity"}). 
     #' \describe{
     #'  \item{\code{"identity"}}{Computes fold-change via \code{log2(condition_A) - log2(condition_B)}, and will handle zero's to prevent `Inf` values. 
     #'  Proportional data is also supported and will be automatically detected.}
     #'  \item{\code{"log"}}{Computes fold-change via \code{condition_A - condition_B}.}
     #' }
-    #' @param aggregate_method A function to aggregate the matrix values in [`foldchange()`](#method-foldchange) by taking e.g. 
+    #' @param aggregate_method A function to aggregate the matrix values in [`$foldchange()`](#method-foldchange) by taking e.g. 
     #' the \code{median} of `condition_A` and `condition_B` prior to substraction, or in the case of \code{method = "identity"} 
     #' to take the median of the fold-change \code{log2(median(A)) - log2(median(B))} (default: \code{median}).
-    #' @param pvalue.threshold A numeric value used as a p-value threshold to label and color significant features in [`foldchange()`](#method-foldchange) (default: \code{0.05}).
-    #' @param logfold.threshold A numeric value used as a fold-change threshold to label and color significantly expressed features in [`foldchange()`](#method-foldchange) (default: \code{0.06}).
-    #' @param abundance.threshold A numeric value used as an abundance threshold to size the scatter dots based on their mean abundance in [`foldchange()`](#method-foldchange) (default: \code{0}).
-    #' @param perm A wholenumber, number of permutations to compare against the null hypothesis of \link[vegan]{adonis2} or \link[vegan]{anosim} in [`ordination()`](#method-ordination) (default: \code{999}).
-    #' @param threads Number of threads to use, only used in [`distance()`](#method-distance) when distmat is not supplied (default: \code{1}).
+    #' @param pvalue.threshold A numeric value used as a p-value threshold to label and color significant features in [`$foldchange()`](#method-foldchange) (default: \code{0.05}).
+    #' @param logfold.threshold A numeric value used as a fold-change threshold to label and color significantly expressed features in [`$foldchange()`](#method-foldchange) (default: \code{0.06}).
+    #' @param abundance.threshold A numeric value used as an abundance threshold to size the scatter dots based on their mean abundance in [`$foldchange()`](#method-foldchange) (default: \code{0}).
+    #' @param perm A wholenumber, number of permutations to compare against the null hypothesis of \link[vegan]{adonis2} or \link[vegan]{anosim} in [`$ordination()`](#method-ordination) (default: \code{999}).
+    #' @param threads Number of threads to use, only used in [`$distance()`](#method-distance) when distmat is not supplied (default: \code{1}).
     #' @param report A boolean value to create a HTML markdown report (default: \code{FALSE}). If \code{FALSE} a nested list of the plots and data is returned.
     #' @param filename A character to name the HTML report to be saved in the current working directory (default: \code{paste0(getwd(), "/report.html")}). The \code{getwd()} is required for rmarkdown to save it in the right path.
     #' 

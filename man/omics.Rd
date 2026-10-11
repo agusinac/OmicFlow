@@ -5,17 +5,13 @@
 \alias{omics}
 \title{Superclass omics}
 \description{
-Superclass omics
-}
-\section{Introduction}{
-
 OmicFlow is constructed around the main superclass \code{omics} that in turn is
 inherited by \link{metagenomics} and \link{proteomics}, that offer additional
-fields or functions. The superclass \code{omics} contains both public and private
+fields or methods. The superclass \code{omics} contains both public and private
 methods, only the public componenents are documented, whereas the private
 methods can be accessed via \code{omics$private_methods}, which is not supported.
 
-The \code{omics} class components use \link{Matrix} and \link{data.table} in the
+The \code{omics} class components use \link[Matrix]{Matrix} and \link[data.table]{data.table} in the
 background for fast loading and data wrangling, these data structures return
 the data by reference, so does the R6 class, therefore classes in OmicFlow do
 not create copies of the object unless called via \code{$copy()}.
@@ -26,7 +22,6 @@ can also initialise with only the \code{metaData} and later add the other fields
 via the active binding, but this will not create a back-up and is not advised!
 For more hands-on examples see \href{https://agusinac.github.io/OmicFlow/articles/getting-started.html}{Getting Started with OmicFlow}.
 }
-
 \section{Input requirements}{
 
 Every class in OmicFlow requires at least a \code{metaData} and \code{countData} field to
@@ -112,7 +107,7 @@ analysis. For example, \code{VARIABLE_Age} may contain values such as \code{42} 
 \code{51}.
 }
 }
-Pattern-based columns are only used in \href{#method-autoFlow}{\code{autoFlow()}}. Currently, only columns
+Pattern-based columns are only used in \href{#method-autoFlow}{\verb{$autoFlow()}}. Currently, only columns
 with the \code{CONTRAST_} prefix are supported.
 }
 
@@ -583,9 +578,9 @@ obj <- omics$new(
 \if{html}{\out{<a id="method-omics-copy"></a>}}
 \if{latex}{\out{\hypertarget{method-omics-copy}{}}}
 \subsection{\code{omics$copy()}}{
-  This method is very similar to the existing \href{#method-clone}{\code{clone()}} function,
+  This method is very similar to the existing \href{#method-clone}{\verb{$clone()}} function,
 except it also creates a new save of the back-up of each class that is created when
-\href{#method-new}{\code{new()}} is called and can be reverted to via \href{#method-reset}{\code{reset()}}
+\href{#method-new}{\verb{$new()}} is called and can be reverted to via \href{#method-reset}{\verb{$reset()}}
   \subsection{Usage}{
     \if{html}{\out{<div class="r">}}
     \preformatted{omics$copy(deep = FALSE)}
@@ -673,7 +668,7 @@ such as \code{ordination}, \code{alpha_diversity} or \code{foldchange}.
     \if{html}{\out{</div>}}
   }
   \subsection{Returns}{
-    The object is modified in place and returned (invisibly). If a copy is required, please use \href{#method-copy}{\code{copy()}} beforehand with \code{obj2 <- obj$copy()}.
+    The object is modified in place and returned (invisibly). If a copy is required, please use \href{#method-copy}{\verb{$copy()}} beforehand with \code{obj2 <- obj$copy()}.
   }
   \subsection{Examples}{
     \if{html}{\out{<div class="r example copy">}}
@@ -721,7 +716,7 @@ taxa$rankstat(feature_ranks = c("Kingdom", "Phylum", "Family", "Genus", "Species
     \if{html}{\out{</div>}}
   }
   \subsection{Returns}{
-    The object is modified in place and returned (invisibly). If a copy is required, please use \href{#method-copy}{\code{copy()}} beforehand with \code{obj2 <- obj$copy()}.
+    The object is modified in place and returned (invisibly). If a copy is required, please use \href{#method-copy}{\verb{$copy()}} beforehand with \code{obj2 <- obj$copy()}.
   }
   \subsection{Examples}{
     \if{html}{\out{<div class="r example copy">}}
@@ -761,7 +756,7 @@ obj$removeNAs(column = "treatment")
     \if{html}{\out{</div>}}
   }
   \subsection{Returns}{
-    The object is modified in place and returned (invisibly). If a copy is required, please use \href{#method-copy}{\code{copy()}} beforehand with \code{obj2 <- obj$copy()}.
+    The object is modified in place and returned (invisibly). If a copy is required, please use \href{#method-copy}{\verb{$copy()}} beforehand with \code{obj2 <- obj$copy()}.
   }
   \subsection{Examples}{
     \if{html}{\out{<div class="r example copy">}}
@@ -801,7 +796,7 @@ obj$feature_subset(Genus == "Pseudomonas")
     \if{html}{\out{</div>}}
   }
   \subsection{Returns}{
-    The object is modified in place and returned (invisibly). If a copy is required, please use \href{#method-copy}{\code{copy()}} beforehand with \code{obj2 <- obj$copy()}.
+    The object is modified in place and returned (invisibly). If a copy is required, please use \href{#method-copy}{\verb{$copy()}} beforehand with \code{obj2 <- obj$copy()}.
   }
   \subsection{Examples}{
     \if{html}{\out{<div class="r example copy">}}
@@ -843,7 +838,7 @@ Let's say you have three samples for each pair, then the \code{num_unique_pairs}
     \if{html}{\out{</div>}}
   }
   \subsection{Returns}{
-    The object is modified in place and returned (invisibly). If a copy is required, please use \href{#method-copy}{\code{copy()}} beforehand with \code{obj2 <- obj$copy()}.
+    The object is modified in place and returned (invisibly). If a copy is required, please use \href{#method-copy}{\verb{$copy()}} beforehand with \code{obj2 <- obj$copy()}.
   }
 }
 
@@ -866,7 +861,7 @@ Let's say you have three samples for each pair, then the \code{num_unique_pairs}
     \if{html}{\out{</div>}}
   }
   \subsection{Returns}{
-    The object is modified in place and returned (invisibly). If a copy is required, please use \href{#method-copy}{\code{copy()}} beforehand with \code{obj2 <- obj$copy()}.
+    The object is modified in place and returned (invisibly). If a copy is required, please use \href{#method-copy}{\verb{$copy()}} beforehand with \code{obj2 <- obj$copy()}.
   }
   \subsection{Examples}{
     \if{html}{\out{<div class="r example copy">}}
@@ -943,7 +938,7 @@ No transformation. Typically applied when \code{transform} is used.
     \if{html}{\out{</div>}}
   }
   \subsection{Returns}{
-    The object is modified in place and returned (invisibly). If a copy is required, please use \href{#method-copy}{\code{copy()}} beforehand with \code{obj2 <- obj$copy()}.
+    The object is modified in place and returned (invisibly). If a copy is required, please use \href{#method-copy}{\verb{$copy()}} beforehand with \code{obj2 <- obj$copy()}.
   }
   \subsection{Examples}{
     \if{html}{\out{<div class="r example copy">}}
@@ -1049,7 +1044,7 @@ It computes the alpha diversity via \link{diversity}, performs a pairwise wilcox
       \item{\code{group_by}}{\ifelse{html}{\href{https://lifecycle.r-lib.org/articles/stages.html#deprecated}{\figure{lifecycle-deprecated.svg}{options: alt='[Deprecated]'}}}{\strong{[Deprecated]}} This argument has been renamed to \code{split_by} for more clarity}
       \item{\code{split_by}}{A column name to split the groups into chunks for grouped statistical test in \link{boxjitter_test} (default: \code{NULL}).}
       \item{\code{evenness}}{A boolean wether to divide diversity by number of species, see \link[vegan]{specnumber} (default: \code{FALSE}).}
-      \item{\code{paired}}{A boolean value to perform paired analysis in \link[stats]{wilcox.test} and samplepair subsetting via \href{#method-samplepair_subset}{\code{samplepair_subset()}}}
+      \item{\code{paired}}{A boolean value to perform paired analysis in \link[stats]{wilcox.test} and samplepair subsetting via \href{#method-samplepair_subset}{\verb{$samplepair_subset()}}}
       \item{\code{p.adjust.method}}{A character variable to specify the p.adjust.method to be used (default: \code{"fdr"}).}
     }
     \if{html}{\out{</div>}}
@@ -1088,7 +1083,7 @@ plt <- obj$alpha_diversity(groups = "treatment",
 \subsection{\code{omics$composition()}}{
   Creates a long \code{data.table} of \code{SAMPLE_ID}s, the top 10-15 most abundant bacteria based on the \code{feature_rank} with
 any additional columns specified via \code{add_cols}. The \code{$composition()} method works with aggregated
-values by running first \href{#method-feature_merge}{\code{feature_merge()}}, then sorting for the most abundant bacteria based on
+values by running first \href{#method-feature_merge}{\verb{$feature_merge()}}, then sorting for the most abundant bacteria based on
 the row sums. The output of \code{$composition()} can be used as input to \link{composition_plot}.
   \subsection{Usage}{
     \if{html}{\out{<div class="r">}}
@@ -1105,8 +1100,8 @@ the row sums. The output of \code{$composition()} can be used as input to \link{
   \subsection{Arguments}{
     \if{html}{\out{<div class="arguments">}}
     \describe{
-      \item{\code{feature_rank}}{A column name in \code{featureData} to aggregate via \href{#method-feature_merge}{\code{feature_merge()}}.}
-      \item{\code{feature_filter}}{A character or vector of characters to removes features by regex substring pattern matching via \href{#method-feature_merge}{\code{feature_merge()}} (default: \code{NULL}).}
+      \item{\code{feature_rank}}{A column name in \code{featureData} to aggregate via \href{#method-feature_merge}{\verb{$feature_merge()}}.}
+      \item{\code{feature_filter}}{A character or vector of characters to removes features by regex substring pattern matching via \href{#method-feature_merge}{\verb{$feature_merge()}} (default: \code{NULL}).}
       \item{\code{col_name}}{\ifelse{html}{\href{https://lifecycle.r-lib.org/articles/stages.html#deprecated}{\figure{lifecycle-deprecated.svg}{options: alt='[Deprecated]'}}}{\strong{[Deprecated]}} This argument has been renamed to \code{add_cols} for more clarity.}
       \item{\code{add_cols}}{Optional, a column name or vector of multiple column names from \code{metaData} to add to the \code{data} list name (default": \code{NULL}).}
       \item{\code{feature_top}}{A wholenumber of the top features to visualize, the max is 15, due to a limit of palettes (default: \code{10}).}
@@ -1176,7 +1171,7 @@ options: \describe{
 \item{\code{"canberra"}}{\link{canberra}}
 \item{\code{"unifrac"}}{\link{unifrac}}
 \item{\code{"aitchison"}}{
-The \code{"aitchison"} metric uses the \code{$scale(method = "clr")} without any pseudocounts, see \href{#method-scale}{\code{scale()}},
+The \code{"aitchison"} metric uses the \code{$scale(method = "clr")} without any pseudocounts, see \href{#method-scale}{\verb{$scale()}},
 followed by euclidean dissimilarity computation.
 
 Ref: Aitchison, J. (1986) The Statistical Analysis of Compositional Data. Chapman and Hall, London, 416 p.
@@ -1245,7 +1240,7 @@ are returned as a list.
   \subsection{Arguments}{
     \if{html}{\out{<div class="arguments">}}
     \describe{
-      \item{\code{metric}}{A dissimilarity or similarity metric to be applied on the \code{countData}, see \href{#method-distance}{\code{distance()}} (default: \code{"bray"}).}
+      \item{\code{metric}}{A dissimilarity or similarity metric to be applied on the \code{countData}, see \href{#method-distance}{\verb{$distance()}} (default: \code{"bray"}).}
       \item{\code{method}}{Ordination method, options: \code{"pcoa"} or \code{"nmds"}, see \link[vegan]{wcmdscale} (default: \code{"pcoa"}).
 \describe{
 \item{\code{"pcoa"}}{
@@ -1262,7 +1257,7 @@ are returned, there is no \code{scree_plot} output.
       \item{\code{group_by}}{A character variable in \code{metaData} to be used for the \link{pairwise_adonis} or \link{pairwise_anosim} statistical test.}
       \item{\code{distmat}}{A custom distance matrix as either \link[stats]{dist} or \link[Matrix]{Matrix} (default: \code{NULL}).}
       \item{\code{weighted}}{A boolean value, whether to compute weighted or unweighted dissimilarities,
-see \href{#method-distance}{\code{distance()}} (default: \code{TRUE}).}
+see \href{#method-distance}{\verb{$distance()}} (default: \code{TRUE}).}
       \item{\code{normalize}}{A boolean value, wether to normalize weighted UniFrac distances to be between 0 and 1,
 see \link{unifrac} (default: \code{TRUE}).}
       \item{\code{threads}}{A wholenumber, indicating the number of threads to use (default: \code{1}).}
@@ -1313,12 +1308,12 @@ pcoa_plots
 \subsection{\code{omics$foldchange()}}{
   Differential feature expression for both paired and non-paired data.
 
-The function performs feature agglomeration via \href{#method-feature_merge}{\code{feature_merge()}} (which can be disabled via \code{feature_merge=FALSE}),
-subsetting to remove NAs in \code{condition.group} via \href{#method-removeNAs}{\code{removeNAs()}} and finding samplepairs when \code{paired = TRUE} is supplied
-via \href{#method-subset_samplepairs}{\code{subset_samplepairs()}}.
+The function performs feature agglomeration via \href{#method-feature_merge}{\verb{$feature_merge()}} (which can be disabled via \code{feature_merge=FALSE}),
+subsetting to remove NAs in \code{condition.group} via \href{#method-removeNAs}{\verb{$removeNAs()}} and finding samplepairs when \code{paired = TRUE} is supplied
+via \href{#method-subset_samplepairs}{\verb{$subset_samplepairs()}}.
 
 The fold-changes can be computed differently based on the \code{method} and \code{aggregate_method} options.
-Transformations of the data should be done beforehand via \href{#method-scale}{\code{scale()}}.
+Transformations of the data should be done beforehand via \href{#method-scale}{\verb{$scale()}}.
 Finally, homogeneity of variance is computed based on the selected \code{aggregate_method} option. If \code{aggregate_method = "mean"} then the \link[matrixTests]{row_levene} is applied,
 and if \code{aggregate_method = "median"} is used then the \link[matrixTests]{row_brownforsythe} is applied. Any filtering of the results is left to the end-user,
 volcano plots are automatically added to the list name \code{volcano_plot} via \link{volcano_plot}.
@@ -1373,10 +1368,10 @@ No aggreation is applied, the whole matrix is used as it is.
 }}
       \item{\code{group_by}}{\ifelse{html}{\href{https://lifecycle.r-lib.org/articles/stages.html#deprecated}{\figure{lifecycle-deprecated.svg}{options: alt='[Deprecated]'}}}{\strong{[Deprecated]}} This argument has been renamed to \code{split_by} for more clarity.}
       \item{\code{split_by}}{A character variable of an existing column in \code{metaData} to split the table in chunks prior to fold-change computation (default: \code{NULL}). When disabled then column names will end with \verb{_in_all}.}
-      \item{\code{feature_merge}}{A boolean value wether to call \href{#method-feature_merge}{\code{feature_merge()}} (default: \code{FALSE}).}
+      \item{\code{feature_merge}}{A boolean value wether to call \href{#method-feature_merge}{\verb{$feature_merge()}} (default: \code{FALSE}).}
       \item{\code{feature_rank}}{A column in the \code{featureData} to use as the feature scope (default: \code{"FEATURE_ID"}).}
-      \item{\code{feature_filter}}{A character or vector of characters to remove features via regex substring pattern matching via \href{#method-feature_merge}{\code{feature_merge()}} (default: \code{NULL}).}
-      \item{\code{paired}}{A boolean value, the paired is only applicable when a \code{SAMPLEPAIR_ID} column exists within the \code{metaData} (default: \code{FALSE}), see \href{#method-samplepair_subset}{\code{samplepair_subset()}}.}
+      \item{\code{feature_filter}}{A character or vector of characters to remove features via regex substring pattern matching via \href{#method-feature_merge}{\verb{$feature_merge()}} (default: \code{NULL}).}
+      \item{\code{paired}}{A boolean value, the paired is only applicable when a \code{SAMPLEPAIR_ID} column exists within the \code{metaData} (default: \code{FALSE}), see \href{#method-samplepair_subset}{\verb{$samplepair_subset()}}.}
       \item{\code{pvalue.threshold}}{A numeric value used as a p-value threshold to label and color significant features (default: \code{0.05}), see \link{volcano_plot}.}
       \item{\code{logfold.threshold}}{A numeric value used as a fold-change threshold to label and color significantly expressed features (default: \code{0.06}), see \link{volcano_plot}.}
       \item{\code{abundance.threshold}}{A numeric value used as an abundance threshold to size the scatter dots based on their mean abundance (default: \code{0}), see \link{volcano_plot}.}
@@ -1440,22 +1435,23 @@ dfe <- obj$foldchange(
 \subsection{\code{omics$autoFlow()}}{
   Automated Omics Analysis only works if there are column names in the \code{metaData} with the prefix \code{"CONTRAST_"},
 which is detected via sub-string pattern matching. The transformation of the data is left to the user via the
-\href{#method-scale}{\code{scale()}} method. The \code{$autoFlow()} incorporates the following functions: \describe{
+\href{#method-scale}{\verb{$scale()}} method. The \code{$autoFlow()} incorporates the following functions: \describe{
 \item{\code{$rankstat()}}{
 This function is only applied when \code{feature_ranks} is specified, useful in \link{metagenomics},
-see \href{#method-rankstat}{\code{rankstat()}} for more information.
+see \href{#method-rankstat}{\verb{$rankstat()}} for more information.
 }
 \item{\code{$alpha_diversity()}}{
 This function only works with the \code{metagenomics} class, uses \code{"shannon"}
 metric, and works for both paired and non-paired data, applied on each \code{"CONTRAST_"} column,
-see \href{#method-alpha_diversity}{\code{alpha_diversity()}} for more information.
+see \href{#method-alpha_diversity}{\verb{$alpha_diversity()}} for more information.
 }
 \item{\code{$ordination()}}{
 This function is applied on all classes, multiple \code{distance_metrics} can be supplied,
 and only the Principal Component method (\code{$ordination(method = "pcoa")}) is used.
 Additional arguments can be controlled with \code{distance_metrics}, \code{distmat},
-\code{weighted}, \code{perm}, \code{threads}, see \href{#method-ordination}{\code{ordination()}}
-for more information. \strong{NOTE}: \code{perm_design} is not supported in \href{#method-autoFlow}{\code{autoFlow()}}.
+\code{weighted}, \code{perm}, \code{threads}, see \href{#method-ordination}{\verb{$ordination()}}
+for more information.
+\strong{NOTE}: \code{perm_design} is not supported in \href{#method-autoFlow}{\verb{$autoFlow()}}.
 }
 \item{\code{$composition()}}{
 This function is applied on the significant contrasts that are obtained from either
@@ -1463,7 +1459,7 @@ This function is applied on the significant contrasts that are obtained from eit
 supplied, by default it only uses the \code{feature_contrasts = "FEATURE_ID"}. The
 composition plots are created by default via the \code{composition_plot(group_by)} with
 \code{feature_top = 15}. Additional arguments can be controlled with \code{feature_filter},
-see \href{#method-composition}{\code{composition()}} for more information.
+see \href{#method-composition}{\verb{$composition()}} for more information.
 }
 \item{\code{$foldchange()}}{
 This function is applied on the significant contrasts that are obtained from either
@@ -1471,7 +1467,7 @@ This function is applied on the significant contrasts that are obtained from eit
 supplied, by default it only uses the \code{feature_contrasts = "FEATURE_ID"}. Additional arguments
 can be controlled with \code{fc_method}, \code{aggregate_method}, \code{pvalue.threshold},
 \code{logfold.threshold}, \code{abundance.threshold},
-see \href{#method-foldchange}{\code{foldchange()}} for more information.
+see \href{#method-foldchange}{\verb{$foldchange()}} for more information.
 }
 }
 The above functions are called in order, only significant contrasts are further used to create
@@ -1505,27 +1501,27 @@ the output filename can be specified.
   \subsection{Arguments}{
     \if{html}{\out{<div class="arguments">}}
     \describe{
-      \item{\code{feature_contrast}}{A character vector of feature columns in the \code{featureData} to aggregate via \href{#method-feature_merge}{\code{feature_merge()}} (default: \code{"FEATURE_ID"}).}
-      \item{\code{feature_filter}}{A character vector to filter unwanted features, see \href{#method-feature_merge}{\code{feature_merge()}} (default: \code{NULL}).}
-      \item{\code{feature_ranks}}{A character vector as input to \href{#method-rankstat}{\code{rankstat()}} (default: \code{NULL}).}
+      \item{\code{feature_contrast}}{A character vector of feature columns in the \code{featureData} to aggregate via \href{#method-feature_merge}{\verb{$feature_merge()}} (default: \code{"FEATURE_ID"}).}
+      \item{\code{feature_filter}}{A character vector to filter unwanted features, see \href{#method-feature_merge}{\verb{$feature_merge()}} (default: \code{NULL}).}
+      \item{\code{feature_ranks}}{A character vector as input to \href{#method-rankstat}{\verb{$rankstat()}} (default: \code{NULL}).}
       \item{\code{distance_metrics}}{A character vector specifying what (dis)similarity metrics to use in \href{#method-ordination}{\code{ordination()}} (default: \code{c("bray")}).
 When you are working with log-transformed data it is advised to use the \code{"euclidean"}.}
-      \item{\code{distmat}}{A path to an existing file or a dense/sparse \link[Matrix]{Matrix} format to be used in \href{#method-ordination}{\code{ordination()}} (default: \code{NULL}).}
-      \item{\code{weighted}}{A boolean value, whether to compute weighted or unweighted dissimilarities in \href{#method-ordination}{\code{ordination()}} (default: \code{TRUE}).}
-      \item{\code{fc_method}}{A character to choose the method in \href{#method-foldchange}{\code{foldchange()}} (default: \code{"identity"}).
+      \item{\code{distmat}}{A path to an existing file or a dense/sparse \link[Matrix]{Matrix} format to be used in \href{#method-ordination}{\verb{$ordination()}} (default: \code{NULL}).}
+      \item{\code{weighted}}{A boolean value, whether to compute weighted or unweighted dissimilarities in \href{#method-ordination}{\verb{$ordination()}} (default: \code{TRUE}).}
+      \item{\code{fc_method}}{A character to choose the method in \href{#method-foldchange}{\verb{$foldchange()}} (default: \code{"identity"}).
 \describe{
 \item{\code{"identity"}}{Computes fold-change via \code{log2(condition_A) - log2(condition_B)}, and will handle zero's to prevent \code{Inf} values.
 Proportional data is also supported and will be automatically detected.}
 \item{\code{"log"}}{Computes fold-change via \code{condition_A - condition_B}.}
 }}
-      \item{\code{aggregate_method}}{A function to aggregate the matrix values in \href{#method-foldchange}{\code{foldchange()}} by taking e.g.
+      \item{\code{aggregate_method}}{A function to aggregate the matrix values in \href{#method-foldchange}{\verb{$foldchange()}} by taking e.g.
 the \code{median} of \code{condition_A} and \code{condition_B} prior to substraction, or in the case of \code{method = "identity"}
 to take the median of the fold-change \code{log2(median(A)) - log2(median(B))} (default: \code{median}).}
-      \item{\code{pvalue.threshold}}{A numeric value used as a p-value threshold to label and color significant features in \href{#method-foldchange}{\code{foldchange()}} (default: \code{0.05}).}
-      \item{\code{logfold.threshold}}{A numeric value used as a fold-change threshold to label and color significantly expressed features in \href{#method-foldchange}{\code{foldchange()}} (default: \code{0.06}).}
-      \item{\code{abundance.threshold}}{A numeric value used as an abundance threshold to size the scatter dots based on their mean abundance in \href{#method-foldchange}{\code{foldchange()}} (default: \code{0}).}
-      \item{\code{perm}}{A wholenumber, number of permutations to compare against the null hypothesis of \link[vegan]{adonis2} or \link[vegan]{anosim} in \href{#method-ordination}{\code{ordination()}} (default: \code{999}).}
-      \item{\code{threads}}{Number of threads to use, only used in \href{#method-distance}{\code{distance()}} when distmat is not supplied (default: \code{1}).}
+      \item{\code{pvalue.threshold}}{A numeric value used as a p-value threshold to label and color significant features in \href{#method-foldchange}{\verb{$foldchange()}} (default: \code{0.05}).}
+      \item{\code{logfold.threshold}}{A numeric value used as a fold-change threshold to label and color significantly expressed features in \href{#method-foldchange}{\verb{$foldchange()}} (default: \code{0.06}).}
+      \item{\code{abundance.threshold}}{A numeric value used as an abundance threshold to size the scatter dots based on their mean abundance in \href{#method-foldchange}{\verb{$foldchange()}} (default: \code{0}).}
+      \item{\code{perm}}{A wholenumber, number of permutations to compare against the null hypothesis of \link[vegan]{adonis2} or \link[vegan]{anosim} in \href{#method-ordination}{\verb{$ordination()}} (default: \code{999}).}
+      \item{\code{threads}}{Number of threads to use, only used in \href{#method-distance}{\verb{$distance()}} when distmat is not supplied (default: \code{1}).}
       \item{\code{report}}{A boolean value to create a HTML markdown report (default: \code{FALSE}). If \code{FALSE} a nested list of the plots and data is returned.}
       \item{\code{filename}}{A character to name the HTML report to be saved in the current working directory (default: \code{paste0(getwd(), "/report.html")}). The \code{getwd()} is required for rmarkdown to save it in the right path.}
     }
