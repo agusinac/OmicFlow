@@ -13,7 +13,7 @@
 ## Citation
 
 Source:
-[`DESCRIPTION`](https://github.com/agusinac/OmicFlow/blob/main/DESCRIPTION)
+[`DESCRIPTION`](https://github.com/agusinac/OmicFlow/blob/v1.7.0/DESCRIPTION)
 
 Gusinac A, Ederveen T, Boleij A (2026). *OmicFlow: Fast and Efficient
 (Automated) Analysis of Sparse Omics Data*. R package version 1.7.0,
