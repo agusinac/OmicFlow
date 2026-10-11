@@ -1292,7 +1292,7 @@ plots are automatically added to the list name `volcano_plot` via
   `"geomean"`
 
   :   It computes the geometric mean of the positive counts, similar to
-      the estimateSizeFactors(), when `type = "poscount"`. The only
+      the estimateSizeFactors, when `type = "poscount"`. The only
       difference, is that the code is adapted to handle a
       [sparseMatrix](https://rdrr.io/pkg/Matrix/man/sparseMatrix.html).
 

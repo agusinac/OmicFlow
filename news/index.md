@@ -1,6 +1,6 @@
 # Changelog
 
-## OmicFlow 1.7.0
+## OmicFlow 1.7.0 (2026-10-11)
 
 ### Added
 
