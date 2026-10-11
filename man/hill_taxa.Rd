@@ -9,11 +9,11 @@ hill_taxa(x, q = 0, normalize = TRUE, base = exp(1))
 \arguments{
 \item{x}{A \link[base]{matrix}, \link[Matrix]{sparseMatrix} or \link[Matrix]{Matrix}.}
 
-\item{q}{A wholenumber for 0, 1 or 2, default is 0.}
+\item{q}{A wholenumber to specify what hill numbers to use (default: \code{0})}
 
-\item{normalize}{A boolean variable for sample normalization by column sums.}
+\item{normalize}{A boolean variable to normalise the each value by their column sum (default: \code{TRUE}).}
 
-\item{base}{Input for \link[base]{log} to use natural logarithmic scale, log2, log10 or other.}
+\item{base}{A numeric variable in \link[base]{log} to use natural logarithmic scale, log2, log10 or other in \code{"shannon"} (default: \code{exp(1)}).}
 }
 \value{
 A numeric vector with type double.
@@ -24,8 +24,6 @@ Code is adapted from \link[hillR]{hill_taxa} and uses \link[Matrix]{sparseMatrix
 The code is much faster and memory efficient, while still being mathematical correct.
 }
 \examples{
-library("Matrix")
-
 n_row <- 1000
 n_col <- 100
 density <- 0.2
@@ -38,7 +36,7 @@ row_idx <- ((positions - 1) \%\% n_row) + 1
 col_idx <- ((positions - 1) \%/\% n_row) + 1
 
 values <- runif(num_nonzero, min = 0, max = 1)
-sparse_mat <- sparseMatrix(
+sparse_mat <- Matrix::sparseMatrix(
   i = row_idx,
   j = col_idx,
   x = values,

@@ -6,34 +6,35 @@
 \usage{
 ordination_plot(
   data,
-  col_name,
+  col_name = lifecycle::deprecated(),
+  groups = lifecycle::deprecated(),
   pair,
   dist_explained = NULL,
   dist_metric = NULL
 )
 }
 \arguments{
-\item{data}{A \link[base]{data.frame} or \link[data.table]{data.table} of Principal Components as columns and rows as loading scores.}
+\item{data}{A \link[base]{data.frame} or \link[data.table]{data.table} with Principal Components as columns and rows as loading scores.}
 
-\item{col_name}{A categorical variable to color the contrasts (e.g. "groups").}
+\item{col_name}{\ifelse{html}{\href{https://lifecycle.r-lib.org/articles/stages.html#deprecated}{\figure{lifecycle-deprecated.svg}{options: alt='[Deprecated]'}}}{\strong{[Deprecated]}} This argument has been renamed to \code{groups} for more clarity.}
 
-\item{pair}{A vector of character variables indicating what dimension names (e.g. PC1, NMDS2).}
+\item{groups}{A categorical variable in \code{data} to color the groups (e.g. \code{"treatment"}).}
 
-\item{dist_explained}{A vector of numeric values of the percentage dissimilarity explained for the dimension pairs, default is NULL.}
+\item{pair}{A vector of character variables indicating what dimension names (e.g. \code{c("PC1", "PC2")} or \code{c("NMDS1", "NMDS2")}) in \code{data}.}
 
-\item{dist_metric}{A character variable indicating what metric is used (e.g. unifrac, bray-curtis), default is NULL.}
+\item{dist_explained}{A vector of numeric values of the percentage dissimilarity explained for the dimension pairs (default: \code{NULL}).}
+
+\item{dist_metric}{A character variable indicating what metric is used (e.g. \code{"bray-curtis"}) (default: \code{NULL}).}
 }
 \value{
 A \link[ggplot2]{ggplot2} object to be further modified
 }
 \description{
-Creates an ordination plot pre-computed principal components from \link[vegan]{wcmdscale}.
+Creates an ordination plot from pre-computed principal components.
 This function is built into the class \link{omics} with method \code{ordination()} and inherited by other omics classes, such as;
 \link{metagenomics} and \link{proteomics}.
 }
 \examples{
-library(ggplot2)
-
 # Mock principal component scores
 set.seed(123)
 mock_data <- data.frame(
@@ -46,14 +47,14 @@ mock_data <- data.frame(
 # Basic usage
 ordination_plot(
   data = mock_data,
-  col_name = "groups",
+  groups = "groups",
   pair = c("PC1", "PC2")
 )
 
 # Adding variance/dissimilarity explained.
 ordination_plot(
   data = mock_data,
-  col_name = "groups",
+  groups = "groups",
   pair = c("PC1", "PC2"),
   dist_explained = c(45, 22),
   dist_metric = "bray-curtis"

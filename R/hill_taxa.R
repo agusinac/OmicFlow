@@ -4,18 +4,12 @@
 #' Code is adapted from \link[hillR]{hill_taxa} and uses \link[Matrix]{sparseMatrix} in triplet format over the dense matrix.
 #' The code is much faster and memory efficient, while still being mathematical correct.
 #'
-#' @param x A \link[base]{matrix}, \link[Matrix]{sparseMatrix} or \link[Matrix]{Matrix}.
-#' @param q A wholenumber for 0, 1 or 2, default is 0.
-#' @param normalize A boolean variable for sample normalization by column sums.
-#' @param base Input for \link[base]{log} to use natural logarithmic scale, log2, log10 or other.
+#' @inheritParams diversity
+#' @param q A wholenumber to specify what hill numbers to use (default: \code{0})
 #' @return A numeric vector with type double.
 #' @seealso \link[hillR]{hill_taxa}
 #' 
-#' @importFrom methods as
-#' 
 #' @examples 
-#' library("Matrix")
-#' 
 #' n_row <- 1000
 #' n_col <- 100
 #' density <- 0.2
@@ -28,7 +22,7 @@
 #' col_idx <- ((positions - 1) %/% n_row) + 1
 #'
 #' values <- runif(num_nonzero, min = 0, max = 1)
-#' sparse_mat <- sparseMatrix(
+#' sparse_mat <- Matrix::sparseMatrix(
 #'   i = row_idx,
 #'   j = col_idx,
 #'   x = values,
@@ -41,28 +35,38 @@
 #' )
 #' @export
 
-hill_taxa <- function (x,
-                       q = 0,
-                       normalize = TRUE, 
-                       base = exp(1)) {
+hill_taxa <- function (
+  x,
+  q = 0,
+  normalize = TRUE, 
+  base = exp(1)
+  ) {
 
   ## Error handling
   #--------------------------------------------------------------------#
+  if (is.vector(x))
+    cli::cli_abort("{.val x} must be a {.cls matrix}, {.cls denseMatrix} or {.cls sparseMatrix}, not a {.cls vector}.")
+
   if (inherits(x, "denseMatrix") || inherits(x, "matrix") || inherits(x, "sparseMatrix")) {
-    x <- as(x, "CsparseMatrix")
-  } else cli::cli_abort("Input isn't a {.cls matrix}, {.cls denseMatrix} or {.cls sparseMatrix}.")
-
-  if (!is.numeric(x@x))
-    cli::cli_abort("input data must be numeric")
-
-  if (!is.wholenumber(q)) {
-    cli::cli_abort("{.val {q}} needs to be an integer.")
-  } else if (!c(q %in% c(0, 1, 2))) {
-    cli::cli_abort("{.val {q}} needs to be a whole number of either {.val 0}, {.val 1} or {.val 2}.")
-  }
+    x <- methods::as(x, "CsparseMatrix")
+  } else cli::cli_abort("{.val x} isn't a {.cls matrix}, {.cls denseMatrix} or {.cls sparseMatrix}.")
 
   if (any(x@x < 0, na.rm = TRUE))
-    cli::cli_abort("input data must be non-negative")
+    cli::cli_abort("{.val x} must be non-negative.")
+
+  if (length(q) != 1) {
+    cli::cli_abort("{.val q} needs to be a single whole number.")
+  } else if (!is.wholenumber(q)) {
+    cli::cli_abort("{.val q} is not a whole number.")
+  } else if (!c(q %in% c(0, 1, 2))) {
+    cli::cli_abort("{.val q} needs to be a whole number of either {.val 0}, {.val 1} or {.val 2}.")
+  }
+
+  if (!is.logical(normalize))
+    cli::cli_abort("{.val normalize} needs to be either `TRUE` or `FALSE`.")
+
+  if (!is.numeric(base) || length(base) != 1)
+    cli::cli_abort("{.val base} needs to be a {.cls numeric} type with length of 1.")
 
   ## MAIN
   #--------------------------------------------------------------------#

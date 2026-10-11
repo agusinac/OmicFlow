@@ -1,3 +1,37 @@
+# OmicFlow 1.7.0
+
+## Added
+- Added additional parameters via `...` to be passed to `pairwise_adonis` and `pairwise_anosim` (.e.g. `parallel = 10` can be called now).
+- Added `tryCatch` and better error handling in `omics$sample_subset`, `omics$feature_subset` and `omics$samplepair_subset`.
+- Added `R/dependencies.R` file as placeholder to prevent NAMESPACE declaration issue by R6 class (reducing namespace imports).
+- Added `is.color` internal util function to check for valid color input.
+- Added a `pairwise_test` as an util that uses `matrixTests` functions, and implements `t.test`, `t.equalvar` and `wilcox` with paired option.
+
+## Changed
+- Re-factoring and improved `roxygen2` code, documentation style and error handling.
+- Replaced `jsonlite` by `yyjsonr` functionality, much faster and cleaner code.
+- Replaced `tests/testthat/input/metagenomics/biom_with_taxonomy_json.biom` with one from BIOM v2 example.
+- [#43](https://github.com/agusinac/OmicFlow/issues/43) Re-combined `foldchange` into `omics` and option to use different fold-change computations via argument `method` and `aggregate_method`.
+- replaced `ggpubr` by `ggplot2` functions in `diversity_plot`.
+- [#42](https://github.com/agusinac/OmicFlow/issues/42) replaced `rstatix` by inbuilt `pairwise_wilcox_test`, added also tests for the util.
+- Added colorblind coloring and replaced `"groups"` to actual `col_name` in `omics$ordination`
+- [#41](https://github.com/agusinac/OmicFlow/issues/41) Extended `countData` to handle `data.tables` with both `feature` and `sample` columns.
+- Moved `omics$validate()` from public to private, since it is only used as an internal function in `$new()`
+
+## Fixed
+- `omics$feature_merge` is optional in `omics$foldchange`
+- `omics$removeNAs` uses `stats::complete.cases` instead of `na.omit`
+- Added extra error handling in `metagenomics` when `biomData` is used.
+- `feature_names` in `metagenomics` that do not match supplied taxonomies are automatically removed. `FEATURE_ID` is fixed as first column.
+
+## Deprecated
+- `diversity_plot` is replaced by `stats_boxplot`. The original `diversity_plot` is scheduled for deprecation.
+- Scheduled deprecation of arguments for the future, such as: 
+    * `col_name` to be replaced by `groups` in `composition_plot`, `colormap`, `boxjitter_test`, `omics$alpha_diversity`
+    * `col_name` to be replaced by `add_cols` in `omics$composition`
+    * `group_by` to be replaced by `split_by` in `omics$foldchange`, `omics$alpha_diversity` and `boxjitter_test`.
+    * `method` for labelling is removed in `boxjitter_plot`, instead an argument `test` can be specified to perform a pairwise statistcal tests on the `groups`. 
+
 # OmicFlow 1.6.0 (2026-05-19)
 
 ## Added

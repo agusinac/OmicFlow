@@ -8,8 +8,8 @@ volcano_plot(
   data,
   logfold_col,
   pvalue_col,
-  feature_rank,
   abundance_col,
+  feature_rank,
   pvalue.threshold = 0.05,
   logfold.threshold = 0.6,
   abundance.threshold = 0.01,
@@ -24,15 +24,15 @@ volcano_plot(
 
 \item{pvalue_col}{A column name of a continuous variable.}
 
-\item{feature_rank}{A character variable of the feature column.}
-
 \item{abundance_col}{A column name of a continuous variable.}
 
-\item{pvalue.threshold}{A P-value threshold (default: 0.05).}
+\item{feature_rank}{A character variable of the feature column.}
 
-\item{logfold.threshold}{A Log2(A/B) Fold Change threshold (default: 0.6).}
+\item{pvalue.threshold}{A P-value threshold (default: \code{0.05}).}
 
-\item{abundance.threshold}{An abundance threshold (default: 0.01).}
+\item{logfold.threshold}{A numeric value to set the fold-change threshold (default: \code{0.6}).}
+
+\item{abundance.threshold}{An abundance threshold (default: \code{0.01}).}
 
 \item{label_A}{A character to describe condition A.}
 
@@ -48,11 +48,8 @@ This function is built into the class \link{omics} with method \code{DFE()} and 
 \link{metagenomics} and \link{proteomics}.
 }
 \examples{
-library(data.table)
-library(ggplot2)
-
 # Create mock data frame
-mock_volcano_data <- data.table(
+mock_volcano_data <- data.table::data.table(
 
   # Feature names (feature_rank)
   Feature = paste0("Gene", 1:20),   
@@ -70,7 +67,7 @@ mock_volcano_data <- data.table(
              0.02, 0.8, 0.04, 0.12, 0.03),
   
   # Mean (relative) abundance for point sizing
-  rel_abun = runif(20, 0.01, 0.1)            
+  rel_abun = stats::runif(20, 0.01, 0.1)            
 )
 
 volcano_plot(

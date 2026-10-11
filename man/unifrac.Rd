@@ -4,18 +4,18 @@
 \alias{unifrac}
 \title{Compute UniFrac Dissimilarity from a Dense or Sparse Matrix.}
 \usage{
-unifrac(x, tree, weighted = TRUE, normalized = TRUE, threads = 1)
+unifrac(x, tree, weighted = TRUE, normalize = TRUE, threads = 1)
 }
 \arguments{
-\item{x}{A \link[base]{matrix}, \link[Matrix]{sparseMatrix} or \link[Matrix]{Matrix} of strictly positive counts or presence/absence data.}
+\item{x}{A \link[base]{matrix}, \link[Matrix]{sparseMatrix} or \link[Matrix]{Matrix}.}
 
 \item{tree}{A \code{phylo} class tree.}
 
-\item{weighted}{A boolean value, to use abundances (\code{weighted = TRUE}) or absence/presence (\code{weighted=FALSE}) (default: TRUE).}
+\item{weighted}{A boolean value, to use abundances (\code{weighted = TRUE}) or absence/presence (\code{weighted=FALSE}) (default: \code{TRUE}).}
 
-\item{normalized}{A boolean value, whether to normalize weighted UniFrac distances to be between 0 and 1 (default: TRUE). Unweighted UniFrac is always normalized.}
+\item{normalize}{A boolean value, whether to normalize weighted UniFrac distances to be between 0 and 1 (default: \code{TRUE}). Unweighted UniFrac is always normalized.}
 
-\item{threads}{A wholenumber, the number of threads to use in \link[RcppParallel]{setThreadOptions} (default: 1).}
+\item{threads}{A wholenumber, the number of threads to use in \link[RcppParallel]{setThreadOptions} (default: \code{1}).}
 }
 \value{
 A column x column \link[stats]{dist} object.
@@ -57,10 +57,10 @@ taxa$feature_subset(Kingdom == "Bacteria")
 taxa$scale(method = "tss")
 
 # Weighted UniFrac
-unifrac(x = taxa$countData, tree = taxa$treeData, weighted=TRUE, normalized=FALSE)
+unifrac(x = taxa$countData, tree = taxa$treeData, weighted=TRUE, normalize=FALSE)
 
 # Weighted Normalized UniFrac
-unifrac(x = taxa$countData, tree = taxa$treeData, weighted=TRUE, normalized=TRUE)
+unifrac(x = taxa$countData, tree = taxa$treeData, weighted=TRUE, normalize=TRUE)
 
 # Unweighted UniFrac
 unifrac(x = taxa$countData, tree = taxa$treeData, weighted=FALSE)

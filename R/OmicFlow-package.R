@@ -2,13 +2,15 @@
 "_PACKAGE"
 
 ## usethis namespace: start
-#' @importFrom magrittr %>%
 #' @importFrom data.table := .SD
-#' @importFrom stats na.omit p.adjust
+#' @importFrom ggplot2 .data
+#' @importFrom Matrix sparseMatrix
 #' @useDynLib OmicFlow, .registration = TRUE
 #' @importFrom Rcpp sourceCpp
+#' @importFrom RcppParallel RcppParallelLibs
+#' @importFrom RcppParallel setThreadOptions
 #' @importFrom utils globalVariables
 ## usethis namespace: end
 
-utils::globalVariables(c(".", "group_col"))
+utils::globalVariables(c("."))
 NULL

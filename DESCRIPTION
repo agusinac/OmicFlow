@@ -1,7 +1,7 @@
 Package: OmicFlow
 Title: Fast and Efficient (Automated) Analysis of Sparse Omics Data
-Version: 1.6.0
-Date: 2026-05-19
+Version: 1.6.0.9015
+Date: 2026-10-02
 Authors@R: c(
     person(
         "Alem", "Gusinac",
@@ -22,45 +22,45 @@ Description:
     which serves as a guide to connect all the pieces together by aligning them into a single object that is defined as an 'omics' class. 
     Once this unified structure is established, users can perform manual subsetting, visualisation, and statistical analysis, or leverage the automated 'autoFlow' method to generate a comprehensive report.
 License: MIT + file LICENSE
-URL: https://github.com/agusinac/OmicFlow, https://agusinac.github.io/OmicFlow/
+URL: https://agusinac.github.io/OmicFlow/
 BugReports: https://github.com/agusinac/OmicFlow/issues
 Config/testthat/edition: 3
 Encoding: UTF-8
 Roxygen: list(markdown = TRUE)
 Depends: 
-    R (>= 4.3.0),
-    R6,
-    data.table,
-    Matrix
-Imports: 
+    R (>= 4.3.0)
+Imports:
     ape,
-    ggpubr,
+    cli,
+    data.table,
     ggrepel,
     ggplot2,
-    jsonlite,
+    grDevices,
     jsonvalidate,
-    magrittr,
+    lifecycle,
     methods,
+    Matrix,
+    matrixTests,
+    matrixStats,
     patchwork,
+    R6,
     RColorBrewer,
     rhdf5,
-    rstatix,
     Rcpp (>= 0.12.6),
     RcppParallel (>= 4.3.20),
     stats,
-    tools,
     utils,
     vegan,
-    yyjsonr,
-    cli
+    yyjsonr
 Suggests: 
     DT,
     downloadthis,
     rmarkdown,
+    parallel,
     testthat (>= 3.0.0)
 LinkingTo:
     Rcpp,
     RcppParallel, 
     RcppArmadillo
-Config/roxygen2/version: 8.0.0
+Config/roxygen2/version: 8.1.0
 Config/Needs/website: rmarkdown

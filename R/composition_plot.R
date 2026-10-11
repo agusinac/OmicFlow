@@ -4,17 +4,13 @@
 #' The function is compatible with the class \link{omics} method \code{composition()}.
 #'
 #' @param data A \link[base]{data.frame} or \link[data.table]{data.table}.
-#' @param palette An object with names and hexcode or color names, see \link{colormap}.
-#' @param feature_rank A character variable of the feature column.
-#' @param title_name A character to set the \code{ggtitle} of the \link[ggplot2]{ggplot}, (Default: NULL).
-#' @param group_by A character variable to aggregate the stacked bars by group (Default: NULL).
+#' @param palette An \link[stats]{setNames} class with names and values as hexcode or color names, see \link{colormap}.
+#' @param feature_rank A column name containing the feature names in `data`.
+#' @param title_name A character to set the \code{ggtitle} of the \link[ggplot2]{ggplot}, (default: \code{NULL}).
+#' @param group_by A character variable to aggregate the stacked bars by groups (default: \code{NULL}).
 #' @return A \link[ggplot2]{ggplot2} object to be further modified
-#'
-#' @importFrom ggplot2 ggplot aes .data geom_bar coord_flip theme_bw theme element_text scale_x_discrete scale_fill_manual labs ggtitle
 #' 
 #' @examples
-#' library("ggplot2")
-#' 
 #' # Create mock_data as data.frame (data.table is also supported)
 #' mock_data <- data.frame(
 #'   SAMPLE_ID = rep(paste0("Sample", 1:10), each = 5),
@@ -78,81 +74,96 @@ composition_plot <- function(data,
   #--------------------------------------------------------------------#
 
   if (!inherits(data, "data.frame") && !inherits(data, "data.table"))
-    cli::cli_abort("Data must be a {.cls data.frame} or {.cls data.table}.")
+    cli::cli_abort("{.val data} must be a {.cls data.frame} or {.cls data.table}.")
 
-  if (!is.character(palette))
-    cli::cli_abort("{.val {palette}} needs to contain characters.")
-
-  if (!is.character(feature_rank) && length(feature_rank) != 1) {
-    cli::cli_abort("{.val {feature_rank}} needs to contain characters with length of 1.")
-  } else if (!column_exists(feature_rank, data)) {
-    cli::cli_abort("The {.val {feature_rank}} column does not exist in the provided {.arg data}.")
+  if (!is.character(palette)) {
+    cli::cli_abort("{.val palette} needs to contain characters.")
+  } else if (!is.color(palette)) {
+    cli::cli_abort("{.val palette} contains invalid colors.")
   }
 
-  if (!is.null(title_name) && !is.character(title_name))
-    cli::cli_abort("{.val {title_name}} needs to be of type character.")
+  if (!is.character(feature_rank) || length(feature_rank) != 1) {
+    cli::cli_abort("{.val feature_rank} needs to contain characters with length of 1.")
+  } else if (!column_exists(feature_rank, data)) {
+    cli::cli_abort("The {.val {feature_rank}} column does not exist in the provided {.val data}.")
+  }
+
+  if (!is.null(title_name)) {
+    if (!is.character(title_name) || length(title_name) != 1) {
+      cli::cli_abort("{.val title_name} must be a character and of length 1")
+    }
+  }
 
   if (!is.null(group_by)) {
-    if (!is.character(group_by) && length(group_by) != 1) {
-      cli::cli_abort("{.val {group_by}} must be a character and of length 1")
+    if (!is.character(group_by) || length(group_by) != 1) {
+      cli::cli_abort("{.val group_by} must be a character and of length 1")
     } else if (!column_exists(group_by, data)) {
-      cli::cli_abort("The specified {.val {group_by}} does not exist in the provided {.arg data}.")
+      cli::cli_abort("The specified {.val {group_by}} does not exist in the provided {.val data}.")
     }
   }
 
   if (!column_exists("SAMPLE_ID", data))
-    cli::cli_abort("{.arg SAMPLE_ID} needs to exist within the provided {.arg data}.")
+    cli::cli_abort("{.arg SAMPLE_ID} needs to exist within the provided {.val data}.")
 
   ## MAIN
   #--------------------------------------------------------------------#
 
   # Generates a stacked barplot as base with custome palette
   if (!is.null(group_by)) {
-    plt <- data %>%
-      ggplot(mapping = aes(y = .data[["value"]],
-                           x = as.factor(.data[[ group_by ]]),
-                           fill = .data[[ feature_rank ]]))
+    plt <- ggplot2::ggplot(
+      data = data,
+      mapping = ggplot2::aes(
+        y = .data[["value"]],
+        x = as.factor(.data[[ group_by ]]),
+        fill = .data[[ feature_rank ]]
+      )
+    )
   } else {
-    plt <- data %>%
-      ggplot(mapping = aes(y = .data[["value"]],
-                           x = .data[["SAMPLE_ID"]],
-                           fill = base::get(feature_rank, data)))
+    plt <- ggplot2::ggplot(
+      data = data, 
+      mapping = ggplot2::aes(
+        y = .data[["value"]],
+        x = .data[["SAMPLE_ID"]],
+        fill = base::get(feature_rank, data)
+      )
+    )
   }
   # Required for stacked barplot
   plt <- plt +
-    geom_bar(
+    ggplot2::geom_bar(
       position = "fill",
       stat = "identity"
     )
 
   if (is.null(group_by)) {
     plt <- plt +
-      coord_flip()
+      ggplot2::coord_flip()
   }
   plt <- plt +
-    theme_bw() +
-    theme(
-      plot.title = element_text(size = 14, face = "bold"),
-      plot.subtitle = element_text(size = 13),
-      axis.text.x = element_text(angle = 90, size = 12,
-                                 vjust = 0.5, hjust=1,
-                                 colour = "black"),
-      axis.title.y = element_text(size = 12),
-      axis.title.x = element_text(size = 12, vjust=0.5),
-      legend.title = element_text(size = 14, face = "bold"),
-      legend.text = element_text(size = 12, colour = "black"),
-      axis.text.y = element_text(colour = "black", size = 12)
+    ggplot2::theme_bw() +
+    ggplot2::theme(
+      plot.title = ggplot2::element_text(size = 14, face = "bold"),
+      plot.subtitle = ggplot2::element_text(size = 13),
+      axis.text.x = ggplot2::element_text(
+        angle = 90, size = 12,
+        vjust = 0.5, hjust=1,
+        colour = "black"
+      ),
+      axis.title.y = ggplot2::element_text(size = 12),
+      axis.title.x = ggplot2::element_text(size = 12, vjust=0.5),
+      legend.title = ggplot2::element_text(size = 14, face = "bold"),
+      legend.text = ggplot2::element_text(size = 12, colour = "black"),
+      axis.text.y = ggplot2::element_text(colour = "black", size = 12)
     )
 
   if (is.null(group_by)) {
     plt <- plt +
-      scale_x_discrete(limits = rev(levels(as.factor(data[["SAMPLE_ID"]]))))
+      ggplot2::scale_x_discrete(limits = rev(levels(as.factor(data[["SAMPLE_ID"]]))))
   }
   plt <- plt +
-    scale_fill_manual(values = palette, name = feature_rank) +
-    labs(y = "Rel. Abun.",
-         x = NULL) +
-    ggtitle(title_name)
+    ggplot2::scale_fill_manual(values = palette, name = feature_rank) +
+    ggplot2::labs(y = "Rel. Abun.", x = NULL) +
+    ggplot2::ggtitle(title_name)
 
   return(plt)
 }

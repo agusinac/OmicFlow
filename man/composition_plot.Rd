@@ -15,13 +15,13 @@ composition_plot(
 \arguments{
 \item{data}{A \link[base]{data.frame} or \link[data.table]{data.table}.}
 
-\item{palette}{An object with names and hexcode or color names, see \link{colormap}.}
+\item{palette}{An \link[stats]{setNames} class with names and values as hexcode or color names, see \link{colormap}.}
 
-\item{feature_rank}{A character variable of the feature column.}
+\item{feature_rank}{A column name containing the feature names in \code{data}.}
 
-\item{title_name}{A character to set the \code{ggtitle} of the \link[ggplot2]{ggplot}, (Default: NULL).}
+\item{title_name}{A character to set the \code{ggtitle} of the \link[ggplot2]{ggplot}, (default: \code{NULL}).}
 
-\item{group_by}{A character variable to aggregate the stacked bars by group (Default: NULL).}
+\item{group_by}{A character variable to aggregate the stacked bars by groups (default: \code{NULL}).}
 }
 \value{
 A \link[ggplot2]{ggplot2} object to be further modified
@@ -31,8 +31,6 @@ Creates a stacked barchart of features. It is possible to both show barcharts fo
 The function is compatible with the class \link{omics} method \code{composition()}.
 }
 \examples{
-library("ggplot2")
-
 # Create mock_data as data.frame (data.table is also supported)
 mock_data <- data.frame(
   SAMPLE_ID = rep(paste0("Sample", 1:10), each = 5),

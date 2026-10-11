@@ -1,16 +1,44 @@
-#' Sub-class metagenomics
-#'
-#' @description This is a sub-class that is compatible to data obtained from either 16S rRNA marker-gene sequencing or shot-gun metagenomics sequencing.
-#' It inherits all methods from the abstract class \link{omics} and only adapts the \code{initialize} function.
-#' It supports BIOM format data (v2.1.0 from \url{http://biom-format.org/}) in both HDF5 and JSON format, also pre-existing data structures can be used or text files.
-#' When omics data is very large, data loading becomes very expensive. It is therefore recommended to use the [`reset()`](#method-reset) method to reset your changes.
-#' Every omics class creates an internal memory efficient back-up of the data, the resetting of changes is an instant process.
-#' @seealso \link{omics}
-#' @import R6 rhdf5 Matrix
-#' @importFrom ape read.tree
-#' @importFrom tools file_ext
-#' @importFrom yyjsonr validate_json_file
-#' @importFrom jsonlite read_json
+#' @title Sub-class metagenomics
+#' @docType class
+#' @description 
+#' OmicFlow is constructed around the main superclass \link{omics} that in turn is 
+#' inherited by \link{metagenomics} and \link{proteomics}, that offer additional 
+#' fields or methods. The superclass \link{omics} contains both public and private 
+#' methods, only the public componenents are documented, whereas the private 
+#' methods can be accessed via `metagenomics$private_methods`, which is not supported.
+#' 
+#' The \link{omics} class components use \link[Matrix]{Matrix} and \link[data.table]{data.table} in the 
+#' background for fast loading and data wrangling, these data structures return 
+#' the data by reference, so does the R6 class, therefore classes in OmicFlow do 
+#' not create copies of the object unless called via \code{$copy()}.
+#' 
+#' All classes needs to be first initialised via the \code{$new()} method and 
+#' require the `metaData` and `countData` (or `biomData` in case of \code{metagenomics}) 
+#' field components. Alternatively, you can also initialise with only the `metaData` 
+#' and later add the other fields via the active binding, but this will not create 
+#' a back-up and is not advised!
+#' For more hands-on examples see [Getting Started with OmicFlow](https://agusinac.github.io/OmicFlow/articles/getting-started.html).
+#' 
+#' \subsection{Additional arguments in \code{metagenomics$new()}}{
+#' The \code{metagenomics} class also offers the loading of a phylogenetic tree as
+#' a `phylo` class (see \link[ape]{as.phylo}) that can be supplied to `treeData`. 
+#' When a `treeData` is supplied than every class field is arranged according to 
+#' the tree tip labels.
+#' 
+#' The `biomData` argument expects a [BIOM v2.1.0.](http://biom-format.org/) in either
+#' HDF5 or JSON format. The `biomData` must be supplied via a filepath and required
+#' contents are checked upfront, such as the existence of \code{
+#' "/observation/matrix/data",
+#' "/observation/matrix/indptr",
+#' "/observation/matrix/indices",
+#' "/observation/metadata/taxonomy",
+#' "/observation/ids",
+#' "/sample/ids"
+#' }. 
+#' }
+#' 
+#' @inheritSection omics Input requirements
+#' @inheritSection omics Metadata validation
 #' @export
 
 metagenomics <- R6::R6Class(
@@ -47,35 +75,60 @@ metagenomics <- R6::R6Class(
         success <- TRUE
         invisible(self)
       } else {
-        cli::cli_abort("Data input must be {.cls phylo} like {.field treeData}.")
+        cli::cli_abort("Input must be {.cls phylo} like {.field treeData}.")
       }
     }
   ),
   public = list(
-    #' @description
-    #' Initializes the metagenomics class object with \code{metagenomics$new()}
-    #' @param countData A path to an existing file or a dense/sparse \link[Matrix]{Matrix} format.
-    #' @param featureData A path to an existing file, \link[data.table]{data.table} or data.frame.
-    #' @param metaData A path to an existing file, \link[data.table]{data.table} or data.frame.
-    #' @param treeData A path to an existing newick file or class "phylo", see \link[ape]{read.tree}.
-    #' @param biomData A path to an existing biom file, version 2.1.0 (http://biom-format.org/), see \link[rhdf5]{h5read}.
-    #' @param feature_names A character vector to name the feature names that fit the supplied `featureData`.
-    #' @return A new `metagenomics` object.
-    initialize = function(countData = NULL,
-                          metaData = NULL,
-                          featureData = NULL,
-                          treeData = NULL,
-                          biomData = NULL,
-                          feature_names = c("Kingdom", "Phylum", "Class", "Order", "Family", "Genus", "Species")) {
+    #' @param treeData A path to an existing newick file or class "phylo", see \link[ape]{read.tree} (default: \code{NULL}).
+    #' @param biomData A path to an existing biom file, [version 2.1.0](http://biom-format.org/) (see \link[rhdf5]{h5read}) or JSON format (see \link[yyjsonr]{validate_json_file}) (default: \code{NULL}).
+    #' @param feature_names A character vector to name the feature names that fit the supplied `featureData` (default: \code{c("Kingdom", "Phylum", "Class", "Order", "Family", "Genus", "Species")}).
+    #' @examples
+    #' library("OmicFlow")
+    #' 
+    #' ## Method 1: Load from filepath
+    #' metadata_file <- system.file("extdata", "metadata.tsv", package = "OmicFlow")
+    #' counts_file <- system.file("extdata", "counts.tsv", package = "OmicFlow")
+    #' features_file <- system.file("extdata", "features.tsv", package = "OmicFlow")
+    #' tree_file <- system.file("extdata", "tree.newick", package = "OmicFlow")
+    #' 
+    #' taxa <- metagenomics$new(
+    #'  metaData = metadata_file,
+    #'  countData = counts_file,
+    #'  featureData = features_file,  # optional
+    #'  treeData = tree_file          # optional
+    #' )
+    #' 
+    #' ## Method 2: Load from a biom file
+    #' biom_file <- system.file("extdata", "biomv2.biom", package = "OmicFlow")
+    #' 
+    #' taxa <- metagenomics$new(
+    #'  metaData = metadata_file,
+    #'  biomData = biom_file
+    #' )
+    #' @return A new \link{metagenomics} object.
+    initialize = function(
+      countData = NULL,
+      metaData = NULL,
+      featureData = NULL,
+      treeData = NULL,
+      biomData = NULL,
+      feature_names = c(
+        "Kingdom", "Phylum", "Class", "Order", "Family", "Genus", "Species"
+      )
+    ) {
 
-      super$initialize(countData = countData,
-                       featureData = featureData,
-                       metaData = metaData)
+      # tries to load data via super class
+      super$initialize(
+        countData = countData,
+        featureData = featureData,
+        metaData = metaData
+      )
 
       if (!is.null(biomData)) {
 
-        if (tools::file_ext(biomData) == "biom") {
-          
+        if (file.exists(biomData)) {
+      
           #---------------------#
           ###  biomData HDF5  ###
           #---------------------#
@@ -89,25 +142,34 @@ metagenomics <- R6::R6Class(
               "/observation/matrix/data",
               "/observation/matrix/indptr",
               "/observation/matrix/indices",
+              "/observation/metadata/taxonomy",
               "/observation/ids",
-              "/sample/ids")
+              "/sample/ids"
+            )
 
             missing <- base::setdiff(expected_content, hdf5_contents$content)
 
             if (length(missing) > 0 ) {
-              cli::cli_abort(
-                "Expected content is missing",
-                "i" = "\n{ paste(missing, collapse = ',')}"
-              )
+              cli::cli_abort(c(
+                "Error in {.field biomData}:",
+                "x" = cli::format_inline("The HDF5 {.field biomData} is missing the following required content: {.val {missing}}")
+              ))
             }
 
             # Checks if data contains any dimensions
-            list_of_dimensions <- hdf5_contents$dim[grepl(paste(expected_content, collapse="|"), hdf5_contents$content)]
-            if (!all(as.numeric(list_of_dimensions) > 0)) {
-              cli::cli_abort(
-                "Expected content does not contain any dimensions",
-                "i" = "\n{ paste(expected_content, collapse = ',')}"
-              )
+            list_of_dimensions <- hdf5_contents[grepl(paste(expected_content, collapse="|"), hdf5_contents$content), ]
+            for (i in seq_along(list_of_dimensions$dim)) {
+              elem <- list_of_dimensions$dim[i]
+              
+              if (grepl("x", elem)) {
+                elem <- unlist(base::strsplit(elem, " x "))
+              }
+              if (!all(as.numeric(elem) > 0)) {
+                cli::cli_abort(c(
+                  "Error in {.field biomData}:",
+                  "x" = cli::format_inline("The HDF5 content {.val {list_of_dimensions$content[i]}} contains no dimensions {.val {elem}}")
+                ))
+              }
             }
 
             # Loads data in memory
@@ -121,7 +183,7 @@ metagenomics <- R6::R6Class(
 
           } else if (yyjsonr::validate_json_file(biomData)) {
             
-            private$.biomData <- jsonlite::read_json(biomData)
+            private$.biomData <- yyjsonr::read_json_file(biomData)
             private$construct_json_featureData(feature_names)
             private$construct_json_countData()
 
@@ -135,18 +197,19 @@ metagenomics <- R6::R6Class(
             private$.featureData <- data.table::data.table()
             private$.featureData <- private$.featureData[, (private$.feature_id) := FEATURE_ID]
             rownames(private$.countData) <- private$.featureData[[ private$.feature_id ]]
-            cli::cli_alert_warning("Created placeholder {.field featureData}.")
+            cli::cli_alert_info("Created placeholder {.field featureData}.")
           }
           rownames(private$.countData) <- private$.featureData[[ private$.feature_id ]]
           data.table::setcolorder(
             x = private$.featureData,
             neworder = c(private$.feature_id, base::setdiff(colnames(private$.featureData), private$.feature_id))
           )
-          private$.featureData <- private$.featureData[, 
-            lapply(.SD, function(x) ifelse(x == "", NA, x)),
-            .SDcols = colnames(private$.featureData)]
-        }
+        } else cli::cli_abort("{.field biomData} doesn't exist, please provide an existing {.val filepath}")
       }
+
+      # check if `countData` is not empty
+      if (is.null(private$.countData))
+        cli::cli_abort("{.field countData} cannot be empty.. did you forgot to specify the {.field countData} or {.field biomData} in {.fun metagenomics$new} ?")
 
       #-------------------#
       ###   treeData    ###
@@ -164,7 +227,14 @@ metagenomics <- R6::R6Class(
         }
 
         # Aligning featureData and countData rows by tree tips
-        private$.featureData <- private$.featureData[order(match(private$.featureData[[ private$.feature_id ]], private$.treeData$tip.label))]
+        private$.featureData <- private$.featureData[
+          base::order(
+            base::match(
+              x = private$.featureData[[ private$.feature_id ]], 
+              table = private$.treeData$tip.label
+            )
+          )
+        ]
         private$.countData <- private$.countData[private$.featureData[[ private$.feature_id ]], ]
       }
 
@@ -175,12 +245,28 @@ metagenomics <- R6::R6Class(
       cli::cli_alert_info("Final steps .. cleaning & creating back-up")
 
       # Removing prefix of taxonomic features
-      private$.featureData <- private$.featureData[, lapply(.SD, function(x) gsub("^[dpcofgs]_{2}", "", x)),
-                                           .SDcols = colnames(private$.featureData)]
-      # Rename last column names by feature_names
-      n_feature_names <- length(feature_names)
-      n_cols_featureData <- ncol(private$.featureData)
-      colnames(private$.featureData)[n_cols_featureData:(n_cols_featureData - n_feature_names + 1)] <- base::rev(feature_names)
+      private$.featureData <- private$.featureData[, 
+        lapply(.SD, function(x) gsub("^[kdpcofgs]_{2}", "", x)),
+        .SDcols = colnames(private$.featureData)
+      ]
+
+      # Replace empty strings by <NA>
+      private$.featureData <- private$.featureData[, 
+            lapply(.SD, function(x) ifelse(x == "", NA, x)),
+            .SDcols = colnames(private$.featureData)
+          ]
+
+      # Add feature_names after `FEATURE_ID` column (always at first position)
+      n_cols_featureData <- ncol(private$.featureData) - 1
+      if (n_cols_featureData > length(feature_names)) {
+        cli::cli_alert_warning("The number of columns in {.field featureData} is greater than {.val feature_names}. \nPlease check and rename the {.field featureData} columns by yourself!")
+      } else {
+        data.table::setnames(
+          x = private$.featureData, 
+          old = colnames(private$.featureData), 
+          new = c(private$.feature_id, feature_names[1:n_cols_featureData])
+        )
+      }
 
       # Subsetting countData by metadata
       private$sync()
@@ -195,8 +281,9 @@ metagenomics <- R6::R6Class(
       )
     },
     #' @description
-    #' Creates a BIOM file in HDF5 format of the loaded items via ['new()'](#method-new), which is compatible to the python biom-format version 2.1, see http://biom-format.org.
-    #' @param filename A character variable of either the full path of filename of the biom file (e.g. `output.biom`)
+    #' Creates a BIOM file in HDF5 format, which is compatible to the [python biom-format v2.1.0.](http://biom-format.org)
+    #' It only saves the `featureData` and `countData` to the biom format, no `treeData` is supported thus far.
+    #' @param filename A character variable of a non-existing file path (e.g. \code{"output.biom"} or \code{"my/path/output.biom"})
     #' @examples
     #' library("OmicFlow")
     #'
@@ -217,12 +304,18 @@ metagenomics <- R6::R6Class(
     #'
     write_biom = function (filename) {
 
+      if (!is.character(filename) || length(filename) != 1) {
+        cli::cli_abort("{.filename filename} Needs to contain characters and be length of 1.")
+      } else if (file.exists(filename)) {
+        cli::cli_abort("{.filename filename} Already exists!")
+      }        
+
       res <- try(
         rhdf5::h5createFile(filename),
         silent = TRUE
       )
       if (!res) {
-        cli::cli_abort("Can't create file {.filename {filename}}: {res}")
+        cli::cli_abort("Can't create file {.filename filename}: {res}")
       }
 
       groups <- c(
@@ -338,263 +431,6 @@ metagenomics <- R6::R6Class(
 
       # Close hdf5 file connection
       rhdf5::H5Fclose(h5)
-    },
-    #' @description
-    #' Differential feature expression (DFE) Total Sample Sum (TSS) transformed values for both paired and non-paired test.
-    #' 
-    #' The function performs feature agglomeration, subsetting to remove NAs in `condition.group`, finding samplepairs and finally feature scaling prior to fold-change computation. 
-    #' Based on the `transform` method, fold-changes will be computed either via subtraction or division.
-    #' 
-    #' @param feature_rank A character or vector of characters in the `featureData` to aggregate via [`feature_merge()`](#method-feature_merge) (default: \code{"FEATURE_ID"}).
-    #' @param feature_filter A character or vector of characters to remove features via regex pattern (default: \code{NULL}).
-    #' @param paired A boolean value, the paired is only applicable when a `SAMPLEPAIR_ID` column exists within the `metaData`. See \link[stats]{wilcox.test} and [`samplepair_subset()`](#method-samplepair_subset).
-    #' @param condition.group A character variable of an existing column name in `metaData`, wherein the conditions A and B are located.
-    #' @param group_by A character variable of an existing column in `metaData` to split the table in chunks prior to fold-change computation (default: NULL).
-    #' @param condition_A A character value or vector of characters.
-    #' @param condition_B A character value or vector of characters.
-    #' @param normalize A boolean value wether to normalize via Total Sample Sums (TSS) or not (default: \code{FALSE}).
-    #' @param pvalue.threshold A numeric value used as a p-value threshold to label and color significant features (default: 0.05).
-    #' @param logfold.threshold A numeric value used as a fold-change threshold to label and color significantly expressed features (default: 0.06).
-    #' @param abundance.threshold A numeric value used as an abundance threshold to size the scatter dots based on their mean abundance (default: 0.01).
-    #' @examples
-    #' library("ggplot2")
-    #' library("OmicFlow")
-    #'
-    #' metadata_file <- system.file("extdata", "metadata.tsv", package = "OmicFlow")
-    #' counts_file <- system.file("extdata", "counts.tsv", package = "OmicFlow")
-    #' features_file <- system.file("extdata", "features.tsv", package = "OmicFlow")
-    #'
-    #' obj <- metagenomics$new(
-    #'  metaData = metadata_file,
-    #'  countData = counts_file,
-    #'  featureData = features_file
-    #' )
-    #'
-    #' dfe <- obj$foldchange(feature_rank = "Genus",
-    #'                       paired = FALSE,
-    #'                       condition.group = "treatment",
-    #'                       condition_A = c("healthy"),
-    #'                       condition_B = c("tumor"))
-    #'
-    #' @returns
-    #'  * `data` A long \link[data.table]{data.table} table.
-    #'  * `volcano_plot` A \link[ggplot2]{ggplot} object.
-    #'  * `A` A \link[data.table]{data.table} table for (each) condition A.
-    #'  * `B` A \link[data.table]{data.table} table for (each) condition B.
-    #'
-    #' @seealso \link{volcano_plot}
-    foldchange = function(
-      condition.group,
-      condition_A,
-      condition_B,
-      group_by = NULL,
-      feature_rank = "FEATURE_ID",
-      feature_filter = NULL,
-      paired = FALSE,
-      normalize = FALSE,
-      pvalue.threshold = 0.05,
-      logfold.threshold = 0.06,
-      abundance.threshold = 0
-      ) {
-
-      ## Error handling
-      #--------------------------------------------------------------------#
-
-      if (!is.character(feature_rank) && length(feature_rank) != 1) {
-        cli::cli_abort("{.val {feature_rank}} needs to be a character with a length of 1")
-      } else if (!column_exists(feature_rank, private$.featureData)) {
-        cli::cli_abort("The {.val {feature_rank}} column does not exist in the {.field featureData}.")
-      }
-
-      if (!is.character(condition.group) && length(condition.group) != 1) {
-        cli::cli_abort("{.val {condition.group}} needs to be a character with a length of 1")
-      } else if (!column_exists(condition.group, private$.metaData)) {
-        cli::cli_abort("{.val {condition.group}} does not exist in the {.field metaData} or is empty.")
-      }
-      if (!is.character(condition_A))
-        cli::cli_abort("{.val {condition_A}} needs to be a character.")
-
-      if (!is.character(condition_B))
-        cli::cli_abort("{.val {condition_B}} needs to be a character.")
-
-      if (!is.numeric(pvalue.threshold))
-        cli::cli_abort("{.val {pvalue.threshold}} need to be numeric.")
-
-      if (!is.numeric(logfold.threshold))
-        cli::cli_abort("{.val {logfold.threshold}} need to be numeric.")
-
-      if (paired && is.null(private$.samplepair_id)) {
-        cli::cli_alert_warning("Paired is set to {.val {paired}} but {.arg SAMPLEPAIR_ID} does not exist in the {.field metaData}.\n Differential feature analysis will continue now with paired set to {.val FALSE}!")
-        paired <- FALSE
-      }
-
-      if (!is.null(group_by)) {
-        if (!is.character(group_by) && length(group_by) != 1) {
-          cli::cli_abort("{.val {group_by}} needs to contain characters with length of 1.")
-        } else if (!column_exists(group_by, private$.metaData)) {
-          cli::cli_abort("The {.val {group_by}} column does not exist in the {.field metaData}.")
-        }
-      }
-
-      ## MAIN
-      #--------------------------------------------------------------------#
-
-      # Final output
-      output <- list()
-
-      # Copies object to prevent modification of omics class components
-      .countData <- private$.countData
-      .featureData <- private$.featureData
-      .metaData <- private$.metaData
-      .treeData <- private$.treeData
-
-      # restore on error
-      on.exit({
-        private$.countData <- .countData
-        private$.featureData <- .featureData
-        private$.metaData <- .metaData
-        private$.treeData <- .treeData
-      }, add = TRUE)
-
-      # normalization if applicable
-      if (normalize)
-        self$scale(method = "tss")
-
-      # Subset by missing values
-      self$removeNAs(condition.group)
-
-      # Subset by samplepair completion
-      if (paired && !is.null(private$.samplepair_id))
-        self$samplepair_subset()
-      
-      # Agglomerate taxa by feature rank and filter unwanted taxa
-      self$feature_merge(feature_rank = feature_rank,
-                         feature_filter = feature_filter)
-      
-      # Extract mean abundance
-      abun <- as.matrix(Matrix::rowMeans(private$.countData))
-      rownames(abun) <- private$.featureData[[ feature_rank ]]
-
-      # Get data.table format abundances
-      dt <- matrix_to_dtable(private$.countData)[, (feature_rank) := private$.featureData[[feature_rank]]]
-
-      # Compute 2-fold expression based on (un)paired samples
-      # Supports multiple inputs for A and B.
-      tmp_dt <- data.table::copy(dt)
-
-      # Apply `group_by`
-      if (!is.null(group_by)) {
-        chunks <- base::split(private$.metaData, by = group_by)
-      } else {
-        chunks <- list(all = private$.metaData)
-      }
-      group_names <- names(chunks)
-
-      # subset feature labels before removing them
-      feature_labels <- tmp_dt[[ feature_rank ]]
-      tmp_dt <- tmp_dt[, .SD, .SDcols = !c(feature_rank)]
-
-      # Create data.tables for results
-      foldchange_dt <- data.table::data.table(feature_rank = feature_labels)
-      colnames(foldchange_dt) <- feature_rank
-
-      for (group_name in group_names) {
-        condition_labels <- chunks[[group_name]][[condition.group]]
-
-        for (i in seq_along(condition_A)) {
-          # Subset by condition_A value
-          dt_A <- tmp_dt[, .SD, .SDcols = colnames(tmp_dt)[condition_labels %in% condition_A[i]]]
-          dt_B <- tmp_dt[, .SD, .SDcols = colnames(tmp_dt)[condition_labels %in% condition_B[i]]]
-
-          # save intermediate condition tables
-          output[[paste0(group_name, "_", condition_A[i])]] <- dt_A
-          output[[paste0(group_name, "_", condition_B[i])]] <- dt_B
-
-          # Convert to dense matrix
-          mat_A <- as.matrix(dt_A)
-          mat_B <- as.matrix(dt_B)
-
-          # Feature means per condition
-          row_means_A <- Matrix::rowMeans(mat_A)
-          row_means_B <- Matrix::rowMeans(mat_B)
-
-          # Empty vector
-          result <- numeric(length(row_means_A))
-          max_val <- base::max(mat_A)
-
-          # Find zero's to prevent Inf
-          both_zero <- row_means_A == 0 & row_means_B == 0
-          row_means_A_zero <- row_means_A == 0 & row_means_B != 0
-          row_means_B_zero <- row_means_A != 0 & row_means_B == 0
-          both_non_zero <- row_means_A != 0 & row_means_B != 0
-
-          # Compute log2 fold change
-          result[both_zero] <- 0
-          result[row_means_A_zero] <- row_means_A[row_means_A_zero] - log2(row_means_B[row_means_A_zero])
-          result[row_means_B_zero] <- log2(row_means_A[row_means_B_zero]) - row_means_B[row_means_B_zero]
-          result[both_non_zero] <- log2(row_means_A[both_non_zero]) - log2(row_means_B[both_non_zero])
-
-          # Reverse flipped values with zero's based on max_val
-          if (max_val < 1.0) {
-            result[row_means_A_zero] <- result[row_means_A_zero] * -1
-            result[row_means_B_zero] <- result[row_means_B_zero] * -1
-          }
-
-          # Combines to final foldchange data table
-          foldchange_dt <- cbind(foldchange_dt, result)
-          result_col_title <- paste0(condition_A[i], "_vs_", condition_B[i], "_in_", group_name)
-          colnames(foldchange_dt)[grepl("result", colnames(foldchange_dt))] <- paste0("Log2FC_", result_col_title)
-
-          for (k in seq_along(feature_labels)) {
-            # save p-values in data.table
-            suppressWarnings(
-              foldchange_dt[
-                k, (paste0("pvalue_", result_col_title)) := stats::wilcox.test(
-                  mat_A[k, ], mat_B[k, ],
-                  correct = TRUE,
-                  paired = paired
-                  )$p.value
-                ]
-            )
-          }
-        }
-      }
-
-      # Add abundance, and save data as output list
-      dfe <- foldchange_dt[, "abun" := abun]
-      output$data <- dfe
-
-      #----------------------#
-      # Visualization        #
-      #----------------------#
-
-      # Create & save volcano plot
-      colnames_dfe <- colnames(dfe)
-      diff_columns <- colnames_dfe[grepl("Log2FC", colnames_dfe)]
-      pvalue_columns <- colnames_dfe[grepl("pvalue", colnames_dfe)]
-      n_diff_columns <- length(diff_columns)
-
-      output$volcano_plot <- lapply(1:n_diff_columns, function(i) {
-        volcano_plot(
-          data = dfe,
-          logfold_col = diff_columns[i],
-          pvalue_col = pvalue_columns[i],
-          feature_rank = feature_rank,
-          abundance_col = "abun",
-          pvalue.threshold = pvalue.threshold,
-          logfold.threshold = logfold.threshold,
-          abundance.threshold = abundance.threshold,
-          label_A = condition_A,
-          label_B = condition_B
-        ) + labs(
-            subtitle = paste0(
-              "Attribute: ", condition.group,
-              ", test: ", ifelse(paired, "Wilcox signed rank test", "Mann-Whitney U test")
-              )
-          )
-      })
-
-      return(output)
     }
   ),
   private = list(
@@ -612,74 +448,72 @@ metagenomics <- R6::R6Class(
     construct_hdf5_featureData = function() {
       if (!is.null(private$.biomData$observation$metadata$taxonomy)) {
         private$.featureData <- data.table::data.table(t(private$.biomData$observation$metadata$taxonomy))
-      }
+      } else cli::cli_abort("Supplied biom in {.field biomData} does not contain `observation$metadata$taxonomy`!")
       
-      if (any(grepl(private$.feature_id, colnames(private$.metaData))) && !all(is.na(private$.metaData[[ private$.feature_id ]]))) {
-        FEATURE_ID <- private$.metaData[[private$.feature_id]]
-      } else if (!is.null(private$.biomData$observation$ids)) {
+      if (!is.null(private$.biomData$observation$ids)) {
         FEATURE_ID <- private$.biomData$observation$ids
-      } else {
-        FEATURE_ID <- NULL
-      }
-
-      # Adds feature id as first column
-      if (!is.null(FEATURE_ID) && !is.null(private$.featureData)) {
         private$.featureData[[ private$.feature_id ]] <- FEATURE_ID
-      }
+        private$add_FEATURE_ID()
+      } else if (!is.null(private$.featureData)) {
+        private$add_FEATURE_ID()
+      } else cli::cli_abort("Supplied biom in {.field biomData} does not contain `observation ids`!")
 
       cli::cli_alert_success("{.field featureData} is loaded.")
     },
     construct_hdf5_countData = function() {
+      sample_ids <- private$.biomData$sample$ids
+      feature_ids <- private$.featureData[[ private$.feature_id ]]
+      data <- private$.biomData$observation$matrix$data
+      indices <- private$.biomData$observation$matrix$indices
       indptr <- as.numeric(private$.biomData$observation$matrix$indptr)
 
+      if (is.null(sample_ids)) cli::cli_abort("Supplied biom in {.field biomData} does not contain sample `ids`!")
+      if (is.null(data)) cli::cli_abort("Supplied biom in {.field biomData} does not contain `data` points!")
+      if (is.null(indices)) cli::cli_abort("Supplied biom in {.field biomData} does not contain `indices`!")
+      if (is.null(indptr)) cli::cli_abort("Supplied biom in {.field biomData} does not contain `indptr`!")
+
+      ## Extract positive values from triplet format
       private$.countData <- Matrix::sparseMatrix(
-        i        = unlist(sapply(1:(length(indptr)-1), function (i) rep(i, diff(indptr[c(i,i+1)])))),
-        j        = as.numeric(private$.biomData$observation$matrix$indices) + 1,
-        x        = as.numeric(private$.biomData$observation$matrix$data),
-        dims     = c(length(private$.biomData$observation$ids), length(private$.biomData$sample$ids)),
+        i = unlist(sapply(1:(length(indptr)-1), function (i) rep(i, diff(indptr[c(i,i+1)])))),
+        j = as.numeric(indices) + 1,
+        x = as.numeric(data),
+        dims = c(length(feature_ids), length(sample_ids)),
         dimnames = list(
-          as.character(private$.biomData$observation$ids),
-          as.character(private$.biomData$sample$ids)
+          as.character(feature_ids),
+          as.character(sample_ids)
         ))
 
       cli::cli_alert_success("{.field countData} is loaded.")
     },
     construct_json_featureData = function(feature_names) {
       # Create empty featureData
-      private$.featureData <- data.table::data.table(matrix(NA_character_,
-                                                     nrow = length(private$.biomData$rows),
-                                                     ncol = length(c(private$.feature_id, feature_names))
-                                                     ))
-      setNames(private$.featureData, c(private$.feature_id, feature_names))
+      private$.featureData <- data.table::data.table(FEATURE_ID = private$.biomData$rows$id)
 
-      # Fill first column with $id values
-      private$.featureData[[ private$.feature_id ]] <- vapply(private$.biomData$rows, function(x) as.character(x$id), character(1))
+      # Extract features into matrix and transpose
+      mtx <- base::t(sapply(private$.biomData$rows$metadata, function(x) x$taxonomy))
+      features <- data.table::data.table(mtx)
 
-      for (i in seq_along(private$.biomData$rows)) {
-        taxonomy <- private$.biomData$rows[[i]]$metadata$taxonomy
-
-        # Skip if taxonomy is missing or NULL
-        if (is.null(taxonomy)) next
-
-        # Get taxonomy index and values
-        tax_indices <- seq_along(taxonomy)
-        tax_values <- as.character(taxonomy)
-
-        # Fill featureData with tax values by index
-        col_positions <- tax_indices + 1
-        private$.featureData[i, (col_positions) := as.list(tax_values)]
-      }
+      private$.featureData <- base::cbind(private$.featureData, features)
+      
+      # TODO: add a tryCatch
+      data.table::setnames(
+        x = private$.featureData,
+        old = colnames(private$.featureData),
+        new = c(private$.feature_id, feature_names)
+      )
       cli::cli_alert_success("{.field featureData} is loaded.")
     },
     construct_json_countData = function() {
-      feature_ids <- sapply(private$.biomData$rows, function(x) unlist(x$id))
-      sample_ids <- sapply(private$.biomData$columns, function(x) unlist(x$id))
+      sample_ids <- private$.biomData$columns$id
+      feature_ids <- private$.biomData$rows$id
+      dimensions <- private$.biomData$shape
 
+      ## json data is already in triplet format
       private$.countData <- Matrix::sparseMatrix(
-        i        = sapply(private$.biomData$data, function(x) x[[1]]) + 1,
-        j        = sapply(private$.biomData$data, function(x) x[[2]]) + 1,
-        x        = sapply(private$.biomData$data, function(x) x[[3]]),
-        dims     = c( length(feature_ids), length(sample_ids) ),
+        i = private$.biomData$data[, 1] + 1,
+        j = private$.biomData$data[, 2] + 1,
+        x = private$.biomData$data[, 3],
+        dims = dimensions,
         dimnames = list(
           as.character(feature_ids),
           as.character(sample_ids)

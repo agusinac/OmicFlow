@@ -7,9 +7,33 @@
 #' \link{metagenomics} and \link{proteomics}.
 #'
 #' @param x A \link[base]{matrix}, \link[Matrix]{sparseMatrix} or \link[Matrix]{Matrix}.
-#' @param metric A character variable for metric; shannon, simpson or invsimpson.
-#' @param normalize A boolean variable for sample normalization by column sums.
-#' @param base Input for \link[base]{log} to use natural logarithmic scale, log2, log10 or other (default: \code{exp(1)}).
+#' @param metric A character to specify what metric to use, options: \code{"shannon"}, \code{"simpson"}, \code{"invsimpson"} (default: \code{"shannon"}).
+#' \describe{
+#'  \item{\code{"shannon"}}{
+#'    Shannon Diversity Index,
+#'    \eqn{H = -\sum_i p_i \log_{\code{base}}(p_i)}, where \eqn{p_i} is the
+#'    abundance or relative abundance of feature \eqn{i}. When
+#'    \code{normalize = TRUE}, counts are converted to within-sample relative
+#'    abundances before calculation. The logarithm base is controlled by
+#'    \code{base}; the natural logarithm is commonly used.
+#'  }
+#'  \item{\code{"simpson"}}{
+#'    Simpson Diversity Index,
+#'    \eqn{1 - \sum_i p_i^2}. Higher values indicate greater diversity, with
+#'    values near zero indicating domination by one feature. When
+#'    \code{normalize = TRUE}, \eqn{p_i} denotes within-sample relative
+#'    abundance.
+#'  }
+#'  \item{\code{"invsimpson"}}{
+#'    Inverse Simpson Index,
+#'    \eqn{1 / \sum_i p_i^2}. When calculated from relative abundances, this
+#'    is the effective number of equally abundant features that would yield
+#'    the observed concentration. Values increase with richness and
+#'    evenness.
+#'  }
+#' }
+#' @param normalize A boolean variable to normalise the each value by their column sum (default: \code{TRUE}).
+#' @param base A numeric variable in \link[base]{log} to use natural logarithmic scale, log2, log10 or other in \code{"shannon"} (default: \code{exp(1)}).
 #' @return A numeric vector with type double.
 #' @seealso \link[vegan]{diversity}
 #' @examples 
@@ -25,7 +49,7 @@
 #' col_idx <- ((positions - 1) %/% n_row) + 1
 #'
 #' values <- runif(num_nonzero, min = 0, max = 1)
-#' sparse_mat <- sparseMatrix(
+#' sparse_mat <- Matrix::sparseMatrix(
 #'   i = row_idx,
 #'   j = col_idx,
 #'   x = values,
@@ -33,7 +57,7 @@
 #' )
 #'
 #' # Alpha diversity is computed on column level
-#' ## Transpose the sparseMatrix if required with t() from Matrix R package.
+#' ## Transpose the sparseMatrix if required with `t()` from Matrix R package.
 #' result <- OmicFlow::diversity(
 #'   x = sparse_mat,
 #'   metric = "shannon"
@@ -41,31 +65,33 @@
 #' @export
 
 diversity <- function(x,
-                      metric = c("shannon", "simpson", "invsimpson"),
+                      metric = "shannon",
                       normalize = TRUE,
                       base = exp(1)) {
 
   ## Error handling
   #--------------------------------------------------------------------#
-
+  if (is.vector(x))
+      cli::cli_abort("{.val x} must be a {.cls matrix}, {.cls denseMatrix} or {.cls sparseMatrix}, not a {.cls vector}.")
+  
   if (inherits(x, "denseMatrix") || inherits(x, "matrix") || inherits(x, "sparseMatrix")) {
-    x <- as(x, "CsparseMatrix")
-  } else cli::cli_abort("Input isn't a {.cls matrix}, {.cls denseMatrix} or {.cls sparseMatrix}.")
-
-  if (!is.numeric(x@x))
-    cli::cli_abort("Input data must be {.cls numeric} type")
+    x <- methods::as(x, "CsparseMatrix")
+  } else cli::cli_abort("{.val x} isn't a {.cls matrix}, {.cls denseMatrix} or {.cls sparseMatrix}.")
 
   if (any(x@x < 0, na.rm = TRUE))
-    cli::cli_abort("Input data must be non-negative")
+    cli::cli_abort("{.val x} must be non-negative.")
   
-  if (!is.numeric(base))
-    cli::cli_abort("{.val {base}} needs to be a {.cls numeric} type.")
+  if (!is.logical(normalize))
+    cli::cli_abort("{.val normalize} needs to be either `TRUE` or `FALSE`.")
+
+  if (!is.numeric(base) || length(base) != 1)
+    cli::cli_abort("{.val base} needs to be a {.cls numeric} type with length of 1.")
 
   OPTIONS <- c("shannon", "simpson", "invsimpson")
-  if (!is.character(metric) && length(metric) != 1) {
-    cli::cli_abort("{.val {metric}} needs to contain characters with length of 1.")
+  if (!is.character(metric) || length(metric) != 1) {
+    cli::cli_abort("{.val metric} needs to contain characters with length of 1.")
   } else if (!metric %in% OPTIONS) {
-    cli::cli_abort("{.val {metric}} is not a valid metric. Valid options: <{.val {OPTIONS}}>")
+    cli::cli_abort("{.val {metric}} is not a valid {.arg metric}.\nValid options: <{.val {OPTIONS}}>")
   }
 
   ## MAIN

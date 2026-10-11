@@ -9,9 +9,9 @@ bray(x, weighted = TRUE, threads = 1)
 \arguments{
 \item{x}{A \link[base]{matrix}, \link[Matrix]{sparseMatrix} or \link[Matrix]{Matrix}.}
 
-\item{weighted}{A boolean value, to use abundances (\code{weighted = TRUE}) or absence/presence (\code{weighted=FALSE}) (default: TRUE).}
+\item{weighted}{A boolean value, to use abundances (\code{weighted = TRUE}) or absence/presence (\code{weighted=FALSE}) (default: \code{TRUE}).}
 
-\item{threads}{A wholenumber, the number of threads to use in \link[RcppParallel]{setThreadOptions} (default: 1).}
+\item{threads}{A wholenumber, the number of threads to use in \link[RcppParallel]{setThreadOptions} (default: \code{1}).}
 }
 \value{
 A column x column \link[stats]{dist} object.

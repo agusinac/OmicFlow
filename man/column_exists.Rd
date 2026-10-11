@@ -2,12 +2,12 @@
 % Please edit documentation in R/utils.R
 \name{column_exists}
 \alias{column_exists}
-\title{Checks if column exists in table}
+\title{Checks if given column name exists in provide table}
 \usage{
 column_exists(column, table)
 }
 \arguments{
-\item{column}{A character of length 1.}
+\item{column}{A column name in \code{table}.}
 
 \item{table}{A \link[data.table]{data.table} or \link[base]{data.frame}.}
 }
@@ -15,5 +15,5 @@ column_exists(column, table)
 A boolean value.
 }
 \description{
-Mainly used within \link{omics} and other functions to check if given column name does exist in the table and is not completely empty (containing NAs).
+Mainly used within \link{omics} and other functions to check if given column name(s) exist in the table and is not completely empty (containing NAs).
 }

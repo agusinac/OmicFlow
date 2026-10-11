@@ -13,7 +13,6 @@ A generalised data structure for fast and efficient loading and data munching of
 \seealso{
 Useful links:
 \itemize{
-  \item \url{https://github.com/agusinac/OmicFlow}
   \item \url{https://agusinac.github.io/OmicFlow/}
   \item Report bugs at \url{https://github.com/agusinac/OmicFlow/issues}
 }

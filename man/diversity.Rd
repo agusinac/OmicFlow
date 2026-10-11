@@ -4,21 +4,40 @@
 \alias{diversity}
 \title{Sparse implementation of Alpha Diversity Metrics}
 \usage{
-diversity(
-  x,
-  metric = c("shannon", "simpson", "invsimpson"),
-  normalize = TRUE,
-  base = exp(1)
-)
+diversity(x, metric = "shannon", normalize = TRUE, base = exp(1))
 }
 \arguments{
 \item{x}{A \link[base]{matrix}, \link[Matrix]{sparseMatrix} or \link[Matrix]{Matrix}.}
 
-\item{metric}{A character variable for metric; shannon, simpson or invsimpson.}
+\item{metric}{A character to specify what metric to use, options: \code{"shannon"}, \code{"simpson"}, \code{"invsimpson"} (default: \code{"shannon"}).
+\describe{
+\item{\code{"shannon"}}{
+Shannon Diversity Index,
+\eqn{H = -\sum_i p_i \log_{\code{base}}(p_i)}, where \eqn{p_i} is the
+abundance or relative abundance of feature \eqn{i}. When
+\code{normalize = TRUE}, counts are converted to within-sample relative
+abundances before calculation. The logarithm base is controlled by
+\code{base}; the natural logarithm is commonly used.
+}
+\item{\code{"simpson"}}{
+Simpson Diversity Index,
+\eqn{1 - \sum_i p_i^2}. Higher values indicate greater diversity, with
+values near zero indicating domination by one feature. When
+\code{normalize = TRUE}, \eqn{p_i} denotes within-sample relative
+abundance.
+}
+\item{\code{"invsimpson"}}{
+Inverse Simpson Index,
+\eqn{1 / \sum_i p_i^2}. When calculated from relative abundances, this
+is the effective number of equally abundant features that would yield
+the observed concentration. Values increase with richness and
+evenness.
+}
+}}
 
-\item{normalize}{A boolean variable for sample normalization by column sums.}
+\item{normalize}{A boolean variable to normalise the each value by their column sum (default: \code{TRUE}).}
 
-\item{base}{Input for \link[base]{log} to use natural logarithmic scale, log2, log10 or other (default: \code{exp(1)}).}
+\item{base}{A numeric variable in \link[base]{log} to use natural logarithmic scale, log2, log10 or other in \code{"shannon"} (default: \code{exp(1)}).}
 }
 \value{
 A numeric vector with type double.
@@ -43,7 +62,7 @@ row_idx <- ((positions - 1) \%\% n_row) + 1
 col_idx <- ((positions - 1) \%/\% n_row) + 1
 
 values <- runif(num_nonzero, min = 0, max = 1)
-sparse_mat <- sparseMatrix(
+sparse_mat <- Matrix::sparseMatrix(
   i = row_idx,
   j = col_idx,
   x = values,
@@ -51,7 +70,7 @@ sparse_mat <- sparseMatrix(
 )
 
 # Alpha diversity is computed on column level
-## Transpose the sparseMatrix if required with t() from Matrix R package.
+## Transpose the sparseMatrix if required with `t()` from Matrix R package.
 result <- OmicFlow::diversity(
   x = sparse_mat,
   metric = "shannon"

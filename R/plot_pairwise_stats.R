@@ -1,20 +1,17 @@
-#' Create pairwise stats plot
+#' Creates barplot from `pairwise_adonis` or `pairwise_anosim`
 #'
-#' @description Creates a pairwise stats plot from \link{pairwise_adonis} or \link{pairwise_anosim} results. 
+#' @description Creates a pairwise barplot of stats and F-test statistics plot from \link{pairwise_adonis} or \link{pairwise_anosim} results. 
 #' This function is built into the class \link{omics} with method \code{ordination()} and inherited by other omics classes, such as;
 #' \link{metagenomics} and \link{proteomics}.
 #'
 #' @param data A \link[base]{data.frame} or \link[data.table]{data.table}.
-#' @param stats_col A column name of a continuous variable.
-#' @param group_col A column name of a categorical variable.
-#' @param label_col A column name of a categorical variable to label the bars.
-#' @param y_axis_title A character variable to name the Y - axis title (default: NULL).
-#' @param plot_title A character variable to name the plot title (default: NULL).
-#' @return A \link[ggplot2]{ggplot2} object to be further modified
-#' @importFrom ggplot2 ggplot aes geom_bar geom_label theme_bw theme element_text labs
+#' @param stats_col A column name of a continuous variable in `data`.
+#' @param group_col A column name of a categorical variable in `data`.
+#' @param label_col A column name of a categorical variable to label the bars in `data`.
+#' @param y_axis_title A character variable to name the Y - axis title (default: \code{NULL}).
+#' @param plot_title A character variable to name the plot title (default: \code{NULL}).
+#' @return A \link[ggplot2]{ggplot2} object to be further modified.
 #' @examples 
-#' library("ggplot2")
-#' 
 #' # Create random data
 #' set.seed(42)
 #' mock_data <- matrix(rnorm(15 * 10), nrow = 15, ncol = 10)
@@ -53,61 +50,74 @@
 #'                     plot_title = "ANOSIM")
 #' @export
 
-plot_pairwise_stats <- function(data,
-                                stats_col,
-                                group_col,
-                                label_col,
-                                y_axis_title=NULL,
-                                plot_title=NULL) {
+plot_pairwise_stats <- function(
+  data,
+  stats_col,
+  group_col,
+  label_col,
+  y_axis_title=NULL,
+  plot_title=NULL
+  ) {
 
   ## Error handling
   #--------------------------------------------------------------------#
 
   if (!inherits(data, "data.frame") && !inherits(data, "data.table"))
-    cli::cli_abort("Data must be a {.cls data.frame} or {.cls data.table}.")
+    cli::cli_abort("{.val data} must be a {.cls data.frame} or {.cls data.table}.")
 
-  if (!is.character(stats_col) && length(stats_col) != 1) {
-    cli::cli_abort("{.val {stats_col}} needs to contain characters with length of 1.")
+  if (!is.character(stats_col) || length(stats_col) != 1) {
+    cli::cli_abort("{.val stats_col} needs to contain characters with length of 1.")
   } else if (!column_exists(stats_col, data)) {
-    cli::cli_abort("The {.val {stats_col}} column does not exist in the provided {.arg data}.")
+    cli::cli_abort("The {.val stats_col} column does not exist in the provided {.arg data}.")
   }
 
-  if (!is.character(group_col) && length(group_col) != 1) {
-    cli::cli_abort("{.val {group_col}} needs to contain characters with length of 1.")
+  if (!is.character(group_col) || length(group_col) != 1) {
+    cli::cli_abort("{.val group_col} needs to contain characters with length of 1.")
   } else if (!column_exists(group_col, data)) {
-    cli::cli_abort("The {.val {group_col}} column does not exist in the provided {.arg data}.")
+    cli::cli_abort("The {.val group_col} column does not exist in the provided {.arg data}.")
   }
 
-  if (!is.character(label_col) && length(group_col) != 1) {
-    cli::cli_abort("{.val {label_col}} needs to contain characters with length of 1.")
+  if (!is.character(label_col) || length(group_col) != 1) {
+    cli::cli_abort("{.val label_col} needs to contain characters with length of 1.")
   } else if (!column_exists(label_col, data)) {
-    cli::cli_abort("The {.val {label_col}} column does not exist in the provided {.arg data}.")
+    cli::cli_abort("The {.val label_col} column does not exist in the provided {.arg data}.")
   }
 
   if (!is.null(y_axis_title) && !is.character(y_axis_title))
-    cli::cli_abort("{.val {y_axis_title}} needs to contain characters.")
+    cli::cli_abort("{.val y_axis_title} needs to contain characters.")
 
   if (!is.null(plot_title) && !is.character(plot_title))
-    cli::cli_abort("{.val {plot_title}} needs to contain characters.")
+    cli::cli_abort("{.val plot_title} needs to contain characters.")
 
   ## MAIN
   #--------------------------------------------------------------------#
 
   return(
-    data %>%
-      ggplot(mapping=aes(x = base::get(group_col, data),
-                         y = base::get(stats_col, data),
-                         label = base::get(label_col, data))) +
-      geom_bar(stat = "identity",
-               fill = "blue") +
-      geom_label(nudge_y = 0) +
-      labs(title = plot_title,
-           subtitle = paste0("Above each bar: ", label_col, " values"),
-           x = "groups",
-           y = y_axis_title) +
-      theme_bw() +
-      theme(axis.text = element_text(angle = 45,
-                                     vjust = 1,
-                                     hjust = 1))
+    ggplot2::ggplot(
+      data = data,
+      mapping = ggplot2::aes(
+        x = .data[[ group_col ]],
+        y = .data[[ stats_col ]],
+        label = .data[[ label_col ]]
+        )
+      ) +
+      ggplot2::geom_bar(
+        stat = "identity",
+        fill = "blue"
+      ) +
+      ggplot2::geom_label(nudge_y = 0) +
+      ggplot2::labs(
+        title = plot_title,
+        subtitle = paste0("Above each bar: ", label_col, " values"),
+        x = "groups",
+        y = y_axis_title
+      ) +
+      ggplot2::theme_bw() +
+      ggplot2::theme(axis.text = ggplot2::element_text(
+        angle = 45,
+        vjust = 1,
+        hjust = 1
+      )
+    )
   )
 }
