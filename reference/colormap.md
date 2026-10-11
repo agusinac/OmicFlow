@@ -1,8 +1,9 @@
 # Color map of a variable
 
-Creates an object of hexcode colors with names given a vector of
-characters. This function is built into the `ordination` method from the
-abstract class
+Creates a color map of [setNames](https://rdrr.io/r/stats/setNames.html)
+class with names as unique group labels given a column name and values
+as hexcode colors. This function is built into the `composition` method
+from the abstract class
 [omics](https://agusinac.github.io/OmicFlow/reference/omics.md) and
 inherited by other omics classes, such as;
 [metagenomics](https://agusinac.github.io/OmicFlow/reference/metagenomics.md)
@@ -12,7 +13,12 @@ and
 ## Usage
 
 ``` r
-colormap(data, col_name, Brewer.palID = "Set2")
+colormap(
+  data,
+  col_name = lifecycle::deprecated(),
+  groups,
+  Brewer.palID = "Set2"
+)
 ```
 
 ## Arguments
@@ -24,7 +30,12 @@ colormap(data, col_name, Brewer.palID = "Set2")
 
 - col_name:
 
-  A column name of a categorical variable.
+  **\[deprecated\]** This argument has been renamed to `groups` for more
+  clarity.
+
+- groups:
+
+  A column name of a categorical variable in `data`.
 
 - Brewer.palID:
 
@@ -40,11 +51,16 @@ A [setNames](https://rdrr.io/r/stats/setNames.html).
 
 ``` r
 library("data.table")
+#> 
+#> Attaching package: ‘data.table’
+#> The following object is masked from ‘package:base’:
+#> 
+#>     %notin%
 dt <- data.table(
   "SAMPLE_ID" = c("sample_1", "sample_2", "sample_3"),
   "treatment" = c("healthy", "tumor", NA)
 )
 
 colors <- colormap(data = dt,
-                   col_name = "treatment")
+                   groups = "treatment")
 ```

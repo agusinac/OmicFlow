@@ -6,7 +6,7 @@ phylogenetic branch lengths and abundance or presence/absence data.
 ## Usage
 
 ``` r
-unifrac(x, tree, weighted = TRUE, normalized = TRUE, threads = 1)
+unifrac(x, tree, weighted = TRUE, normalize = TRUE, threads = 1)
 ```
 
 ## Arguments
@@ -15,8 +15,7 @@ unifrac(x, tree, weighted = TRUE, normalized = TRUE, threads = 1)
 
   A [matrix](https://rdrr.io/r/base/matrix.html),
   [sparseMatrix](https://rdrr.io/pkg/Matrix/man/sparseMatrix.html) or
-  [Matrix](https://rdrr.io/pkg/Matrix/man/Matrix.html) of strictly
-  positive counts or presence/absence data.
+  [Matrix](https://rdrr.io/pkg/Matrix/man/Matrix.html).
 
 - tree:
 
@@ -25,19 +24,19 @@ unifrac(x, tree, weighted = TRUE, normalized = TRUE, threads = 1)
 - weighted:
 
   A boolean value, to use abundances (`weighted = TRUE`) or
-  absence/presence (`weighted=FALSE`) (default: TRUE).
+  absence/presence (`weighted=FALSE`) (default: `TRUE`).
 
-- normalized:
+- normalize:
 
   A boolean value, whether to normalize weighted UniFrac distances to be
-  between 0 and 1 (default: TRUE). Unweighted UniFrac is always
+  between 0 and 1 (default: `TRUE`). Unweighted UniFrac is always
   normalized.
 
 - threads:
 
   A wholenumber, the number of threads to use in
   [setThreadOptions](https://rdrr.io/pkg/RcppParallel/man/setThreadOptions.html)
-  (default: 1).
+  (default: `1`).
 
 ## Value
 
@@ -112,14 +111,14 @@ taxa$feature_subset(Kingdom == "Bacteria")
 taxa$scale(method = "tss")
 
 # Weighted UniFrac
-unifrac(x = taxa$countData, tree = taxa$treeData, weighted=TRUE, normalized=FALSE)
+unifrac(x = taxa$countData, tree = taxa$treeData, weighted=TRUE, normalize=FALSE)
 #>            S100       S103       S115
 #> S103 0.38658597                      
 #> S115 0.08090148 0.37767607           
 #> S120 0.34751952 0.12478228 0.33777195
 
 # Weighted Normalized UniFrac
-unifrac(x = taxa$countData, tree = taxa$treeData, weighted=TRUE, normalized=TRUE)
+unifrac(x = taxa$countData, tree = taxa$treeData, weighted=TRUE, normalize=TRUE)
 #>           S100      S103      S115
 #> S103 0.6314552                    
 #> S115 0.1244192 0.6167280          

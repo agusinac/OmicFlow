@@ -1,28 +1,29 @@
 # Visualisations & Statistics
 
-Here we give some examples in how to use the `metagenomics` class from
-loading your data to visualization and some statistical testing. In the
-study of microbial communities we often look at the alpha-
+Here we give some examples in how to use some generic methods in the
+data analysis via the `metagenomics` class as an example. Please do
+notice, these functions are generic and can be applied to any `omics`
+class.
+
+In the study of microbial communities we often look at the alpha-
 (i.e. `alpha_diversity` function), beta- (i.e. `ordination` function)
 diversities, and compositions and or fold-change differences.
 
 The following functions do not change the object itself and always
 output the results.
 
-- `rankstat`
-- `alpha_diversity`
-- `ordination`
-- `composition`
-- `foldchange`
+- [`rankstat`](https://agusinac.github.io/OmicFlow/reference/omics.html#omics-rankstat-)
+- [`alpha_diversity`](https://agusinac.github.io/OmicFlow/reference/omics.html#omics-alpha_diversity-)
+- [`ordination`](https://agusinac.github.io/OmicFlow/reference/omics.html#omics-ordination-)
+- [`composition`](https://agusinac.github.io/OmicFlow/reference/omics.html#omics-composition-)
+- [`foldchange`](https://agusinac.github.io/OmicFlow/reference/omics.html#omics-foldchange-)
 
 Other similar functions that are not discussed:
 
-- `distance` -
-  [docs](https://agusinac.github.io/OmicFlow/reference/omics.html#omics-distance-)
-- `autoFlow` -
-  [docs](https://agusinac.github.io/OmicFlow/reference/omics.html#omics-autoflow-)
+- [`distance`](https://agusinac.github.io/OmicFlow/reference/omics.html#omics-distance-)
+- [`autoFlow`](https://agusinac.github.io/OmicFlow/reference/omics.html#omics-autoflow-)
 
-### Loading and data-wrangling
+## Loading and data-wrangling
 
 Below an example is shown for creating a `metagenomics` class from text
 files. The same procedure is also possible via `biomData` see the
@@ -34,14 +35,6 @@ and the loaded files from text or BIOM can also be written out as a
 ``` r
 
 library("OmicFlow")
-#> Loading required package: R6
-#> Loading required package: data.table
-#> 
-#> Attaching package: 'data.table'
-#> The following object is masked from 'package:base':
-#> 
-#>     %notin%
-#> Loading required package: Matrix
 library("ggplot2")
 
 ## Loading example set
@@ -80,7 +73,7 @@ taxa$feature_subset(Kingdom == "Bacteria")
 taxa$scale(method = "tss")
 ```
 
-### Number of classified ASVs
+## Number of classified ASVs
 
 ``` r
 
@@ -94,14 +87,14 @@ Please visit
 [rankstat](https://agusinac.github.io/OmicFlow/reference/omics.html#omics-rankstat-)
 for more information.
 
-### Alpha- and Beta-diversity
+## Alpha- and Beta-diversity
 
-#### Alpha diversity
+### Alpha diversity
 
 ``` r
 
 alpha_res <- taxa$alpha_diversity(
-  col_name = "treatment",
+  groups = "treatment",
   metric = "shannon",
   paired = FALSE # If TRUE it performs wilcox signed rank test
 )
@@ -114,7 +107,7 @@ Please visit [alpha-diversity
 docs](https://agusinac.github.io/OmicFlow/reference/omics.html#omics-alpha-diversity-)
 for more information.
 
-#### Beta diversity
+### Beta diversity
 
 By default PERMANOVA is applied pairwise against each group within the
 specified contrast, via `group_by` that is used in `pairwise_adonis`.
@@ -149,12 +142,8 @@ beta_div <- taxa$ordination(
 patchwork::wrap_plots(
     beta_div[c("scree_plot", "anova_plot", "scores_plot")],
     nrow = 1)
-#> Warning: Removed 7 rows containing missing values or values outside the scale range
-#> (`geom_col()`).
 #> Too few points to calculate an ellipse
 #> Too few points to calculate an ellipse
-#> Warning: Removed 2 rows containing missing values or values outside the scale range
-#> (`geom_path()`).
 ```
 
 ![](visualisation_files/figure-html/unnamed-chunk-5-1.png)
@@ -180,8 +169,8 @@ beta_div <- taxa$ordination(
 ```
 
 Beta-diversity with a permutation design, you can also run
-`pairwise_adonis` outside of the classes, check the
-[docs](https://agusinac.github.io/OmicFlow/reference/pairwise_adonis.html).
+[`pairwise_adonis`](https://agusinac.github.io/OmicFlow/reference/pairwise_adonis.html)
+outside of the classes.
 
 ``` r
 
@@ -207,11 +196,7 @@ beta_div <- taxa$ordination(
 )
 ```
 
-Please visit [beta-diversity
-docs](https://agusinac.github.io/OmicFlow/reference/omics.html#omics-ordination-)
-for more information
-
-### Compositions of bacteria
+## Compositions of bacteria
 
 Compositional plots can be made from stacks or over all samples, the
 `feature_rank` uses
@@ -230,8 +215,8 @@ phylum <- taxa$composition(
   # The maximum is 15 for visualisation purposes.
   feature_top = 15,
   
-  # This can be a vector of multiple keywords
-  col_name = "CONTRAST_sex"
+  # This can be a vector of multiple columns to be added to `phylum$data`
+  add_cols = "CONTRAST_sex"
 )
 #> 
 #> ── <metagenomics> object
@@ -262,7 +247,7 @@ genera <- taxa$composition(
   feature_rank = "Genus",
   feature_filter = c("uncultured"),
   feature_top = 15,
-  col_name = "CONTRAST_sex"
+  add_cols = "CONTRAST_sex"
 )
 #> 
 #> ── <metagenomics> object 
@@ -292,39 +277,40 @@ composition_plot(
 
 ![](visualisation_files/figure-html/unnamed-chunk-8-3.png)
 
-### Fold-change
+## Fold-change
 
-The `foldchange` of the `metagenomics` class differs from those in
-`omics` and `proteomics`. Namely, it expects the data to be
-proportional, and it cannot handle log-transformed data. **This will
-soon change!**
+The current method is compatible for all kind of data that is
+transformed before-hand with the `$scale()` method. Below two examples,
+where we either apply the `$scale(method = "tss")` or
+`$scale(method = "clr")`, the aggregation of the conditions can now be
+controlled with the `$foldchange(aggregate_method)` that offers
+`"median"`, `"mean"`, `"geomean"` and `"none"`
 
 ``` r
 
-taxa$foldchange(
+taxa$reset()
+taxa$scale(method = "tss")
+
+dfe <- obj$foldchange(
   feature_rank = "Genus",
-  paired = FALSE,
+  feature_merge = TRUE,
+  method = "identity",
+  aggregate_method = "median",
   condition.group = "treatment",
-  
-  # Able to split your data into male/female
-  group_by = "CONTRAST_sex",
-  condition_A = c("healthy"),
-  condition_B = c("tumor")
+  condition_A = "tumor",
+  condition_B = "healthy"
+)
+
+taxa$reset()
+taxa$scale(method = "clr")
+
+dfe <- obj$foldchange(
+  feature_rank = "Genus",
+  feature_merge = TRUE,
+  method = "log",
+  aggregate_method = "median",
+  condition.group = "treatment",
+  condition_A = "tumor",
+  condition_B = "healthy"
 )
 ```
-
-Please visit
-[foldchange](https://agusinac.github.io/OmicFlow/reference/metagenomics.html#metagenomics-foldchange-)
-for more information.
-
-## Proteomics
-
-In the case of `proteomics` or other `omics` classes, not all functions
-discussed here can be applied. For example in the context of proteomics,
-data is often log-transformed and methods such as unifrac or
-alpha-diversity metrics cannot be applied on data with negative values.
-On top of that, visualising compositions or `rankstat` isn’t always
-informative. Therefore, other omics data often follow the
-log-transformed route, where `ordination` with the `euclidean` distance
-can be applied to investigate differences in communities, followed by
-fold-change differences.

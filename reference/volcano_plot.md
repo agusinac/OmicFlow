@@ -18,8 +18,8 @@ volcano_plot(
   data,
   logfold_col,
   pvalue_col,
-  feature_rank,
   abundance_col,
+  feature_rank,
   pvalue.threshold = 0.05,
   logfold.threshold = 0.6,
   abundance.threshold = 0.01,
@@ -42,25 +42,25 @@ volcano_plot(
 
   A column name of a continuous variable.
 
-- feature_rank:
-
-  A character variable of the feature column.
-
 - abundance_col:
 
   A column name of a continuous variable.
 
+- feature_rank:
+
+  A character variable of the feature column.
+
 - pvalue.threshold:
 
-  A P-value threshold (default: 0.05).
+  A P-value threshold (default: `0.05`).
 
 - logfold.threshold:
 
-  A Log2(A/B) Fold Change threshold (default: 0.6).
+  A numeric value to set the fold-change threshold (default: `0.6`).
 
 - abundance.threshold:
 
-  An abundance threshold (default: 0.01).
+  An abundance threshold (default: `0.01`).
 
 - label_A:
 
@@ -79,11 +79,8 @@ object to be further modified.
 ## Examples
 
 ``` r
-library(data.table)
-library(ggplot2)
-
 # Create mock data frame
-mock_volcano_data <- data.table(
+mock_volcano_data <- data.table::data.table(
 
   # Feature names (feature_rank)
   Feature = paste0("Gene", 1:20),   
@@ -101,7 +98,7 @@ mock_volcano_data <- data.table(
              0.02, 0.8, 0.04, 0.12, 0.03),
   
   # Mean (relative) abundance for point sizing
-  rel_abun = runif(20, 0.01, 0.1)            
+  rel_abun = stats::runif(20, 0.01, 0.1)            
 )
 
 volcano_plot(

@@ -22,16 +22,18 @@ hill_taxa(x, q = 0, normalize = TRUE, base = exp(1))
 
 - q:
 
-  A wholenumber for 0, 1 or 2, default is 0.
+  A wholenumber to specify what hill numbers to use (default: `0`)
 
 - normalize:
 
-  A boolean variable for sample normalization by column sums.
+  A boolean variable to normalise the each value by their column sum
+  (default: `TRUE`).
 
 - base:
 
-  Input for [log](https://rdrr.io/r/base/Log.html) to use natural
-  logarithmic scale, log2, log10 or other.
+  A numeric variable in [log](https://rdrr.io/r/base/Log.html) to use
+  natural logarithmic scale, log2, log10 or other in `"shannon"`
+  (default: `exp(1)`).
 
 ## Value
 
@@ -44,8 +46,6 @@ hill_taxa
 ## Examples
 
 ``` r
-library("Matrix")
-
 n_row <- 1000
 n_col <- 100
 density <- 0.2
@@ -58,7 +58,7 @@ row_idx <- ((positions - 1) %% n_row) + 1
 col_idx <- ((positions - 1) %/% n_row) + 1
 
 values <- runif(num_nonzero, min = 0, max = 1)
-sparse_mat <- sparseMatrix(
+sparse_mat <- Matrix::sparseMatrix(
   i = row_idx,
   j = col_idx,
   x = values,

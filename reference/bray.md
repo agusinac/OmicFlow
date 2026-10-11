@@ -20,13 +20,13 @@ bray(x, weighted = TRUE, threads = 1)
 - weighted:
 
   A boolean value, to use abundances (`weighted = TRUE`) or
-  absence/presence (`weighted=FALSE`) (default: TRUE).
+  absence/presence (`weighted=FALSE`) (default: `TRUE`).
 
 - threads:
 
   A wholenumber, the number of threads to use in
   [setThreadOptions](https://rdrr.io/pkg/RcppParallel/man/setThreadOptions.html)
-  (default: 1).
+  (default: `1`).
 
 ## Value
 

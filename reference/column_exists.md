@@ -1,9 +1,9 @@
-# Checks if column exists in table
+# Checks if given column name exists in provide table
 
 Mainly used within
 [omics](https://agusinac.github.io/OmicFlow/reference/omics.md) and
-other functions to check if given column name does exist in the table
-and is not completely empty (containing NAs).
+other functions to check if given column name(s) exist in the table and
+is not completely empty (containing NAs).
 
 ## Usage
 
@@ -15,7 +15,7 @@ column_exists(column, table)
 
 - column:
 
-  A character of length 1.
+  A column name in `table`.
 
 - table:
 

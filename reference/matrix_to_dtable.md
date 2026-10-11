@@ -1,6 +1,7 @@
 # Converting a Matrix to data.table
 
-Wrapper function that converts a sparseMatrix to data.table
+Wrapper function that converts a sparseMatrix or `countData` field from
+omics classes to a `data.table`
 
 ## Usage
 

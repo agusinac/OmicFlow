@@ -27,23 +27,24 @@ composition_plot(
 
 - palette:
 
-  An object with names and hexcode or color names, see
+  An [setNames](https://rdrr.io/r/stats/setNames.html) class with names
+  and values as hexcode or color names, see
   [colormap](https://agusinac.github.io/OmicFlow/reference/colormap.md).
 
 - feature_rank:
 
-  A character variable of the feature column.
+  A column name containing the feature names in `data`.
 
 - title_name:
 
   A character to set the `ggtitle` of the
   [ggplot](https://ggplot2.tidyverse.org/reference/ggplot.html),
-  (Default: NULL).
+  (default: `NULL`).
 
 - group_by:
 
-  A character variable to aggregate the stacked bars by group (Default:
-  NULL).
+  A character variable to aggregate the stacked bars by groups (default:
+  `NULL`).
 
 ## Value
 
@@ -54,8 +55,6 @@ object to be further modified
 ## Examples
 
 ``` r
-library("ggplot2")
-
 # Create mock_data as data.frame (data.table is also supported)
 mock_data <- data.frame(
   SAMPLE_ID = rep(paste0("Sample", 1:10), each = 5),

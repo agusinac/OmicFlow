@@ -1,6 +1,6 @@
-# Create pairwise stats plot
+# Creates barplot from `pairwise_adonis` or `pairwise_anosim`
 
-Creates a pairwise stats plot from
+Creates a pairwise barplot of stats and F-test statistics plot from
 [pairwise_adonis](https://agusinac.github.io/OmicFlow/reference/pairwise_adonis.md)
 or
 [pairwise_anosim](https://agusinac.github.io/OmicFlow/reference/pairwise_anosim.md)
@@ -33,35 +33,33 @@ plot_pairwise_stats(
 
 - stats_col:
 
-  A column name of a continuous variable.
+  A column name of a continuous variable in `data`.
 
 - group_col:
 
-  A column name of a categorical variable.
+  A column name of a categorical variable in `data`.
 
 - label_col:
 
-  A column name of a categorical variable to label the bars.
+  A column name of a categorical variable to label the bars in `data`.
 
 - y_axis_title:
 
-  A character variable to name the Y - axis title (default: NULL).
+  A character variable to name the Y - axis title (default: `NULL`).
 
 - plot_title:
 
-  A character variable to name the plot title (default: NULL).
+  A character variable to name the plot title (default: `NULL`).
 
 ## Value
 
 A
 [ggplot2](https://ggplot2.tidyverse.org/reference/ggplot2-package.html)
-object to be further modified
+object to be further modified.
 
 ## Examples
 
 ``` r
-library("ggplot2")
-
 # Create random data
 set.seed(42)
 mock_data <- matrix(rnorm(15 * 10), nrow = 15, ncol = 10)

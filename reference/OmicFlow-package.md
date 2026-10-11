@@ -13,8 +13,6 @@ generate a comprehensive report.
 
 Useful links:
 
-- <https://github.com/agusinac/OmicFlow>
-
 - <https://agusinac.github.io/OmicFlow/>
 
 - Report bugs at <https://github.com/agusinac/OmicFlow/issues>

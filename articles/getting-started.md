@@ -20,24 +20,19 @@ limited.
 
 ``` r
 
-## Automatically loads `Matrix` and `data.table` R packages
 library("OmicFlow")
-#> Loading required package: R6
-#> Loading required package: data.table
-#> 
-#> Attaching package: 'data.table'
-#> The following object is masked from 'package:base':
-#> 
-#>     %notin%
-#> Loading required package: Matrix
 ```
 
 ## Classes
 
-`OmicFlow` consists out of three classes, namely `omics`, `metagenomics`
-and `proteomics`. The main abstract class `omics` contains most methods
-that are inherited by the other sub-classes (i.e. `metagenomics` and
-`proteomics`) and it can be used to load other types of omics data.
+`OmicFlow` consists out of three classes, namely
+[`omics`](https://agusinac.github.io/OmicFlow/reference/omics.html),
+[`metagenomics`](https://agusinac.github.io/OmicFlow/reference/metagenomics.html)
+and
+[`proteomics`](https://agusinac.github.io/OmicFlow/reference/proteomics.html).
+The super-class `omics` contains most methods that are inherited by the
+other sub-classes (i.e. `metagenomics` and `proteomics`) and it can be
+used to load other types of omics data.
 
 The `omics` class has only one mandatory requirement for a successful
 initialization, which is the `metaData` field that should match the
@@ -48,10 +43,12 @@ fields, the `featureData` is constructed automatically when only the
 `countData` is specified. The `featureData` first column is always the
 `FEATURE_ID`, which may contain the auto-generated feature ids if the
 `countData` has no `rownames` or the user feature ids if those are
-present either as rownames in the `countData` original file or as loaded
-`Matrix` object.
+present either as rownames in the `countData` original file. The
+`countData` can also be supplied with other non-SAMPLE_ID columns, or
+with a `FEATURE_ID` column, in this case all non-SAMPLE_IDs columns will
+be transferred to the `featureData`.
 
-class initialization is achieved via the `$new()` operator as follows:
+Class initialization is achieved via the `$new()` operator as follows:
 
 ``` r
 
@@ -59,25 +56,8 @@ class initialization is achieved via the `$new()` operator as follows:
 metadata_file <- system.file("extdata", "metadata.tsv", package = "OmicFlow")
 counts_file <- system.file("extdata", "counts.tsv", package = "OmicFlow")
 
-## Loading only metaData
-test <- omics$new(metaData = metadata_file)
-#> ✔ metaData template passed the JSON validation.
-#> ℹ Checking for duplicated identifiers ..
-
-## Adding countData (should be loaded before-hand)
-counts <- data.table::fread(counts_file)
-
-# field should always be of `Matrix` class
-# Notice the automatic creation of `featureData`
-test$countData <- as(counts, "denseMatrix")
-#> ! Placeholder featureData created.
-#> 
-#> ── <omics> object
-#> metaData: 9 variables × 4 samples
-#> countData: 4 samples × 242 features
-#> featureData: 0 attributes × 242 features
-
-## Loading with all files in one go
+## Recommended usage:
+### Generates a back-up of the data
 test <- omics$new(
   metaData = metadata_file,
   countData = counts_file
@@ -85,10 +65,10 @@ test <- omics$new(
 #> ✔ metaData template passed the JSON validation.
 #> ℹ Checking for duplicated identifiers ..
 #> ✔ countData is loaded.
-#> ! Created placeholder featureData.
+#> ℹ Created placeholder featureData.
 ```
 
-### `metagenomics`
+### [`metagenomics`](https://agusinac.github.io/OmicFlow/reference/metagenomics.html)
 
 The sub-class `metagenomics` contains the same fields as the `omics`
 class, such as `metaData`, `countData` and `featureData`, but also
@@ -98,14 +78,12 @@ extends it to the `biomData`, `treeData` and the ability to specify the
 ``` r
 
 metadata_file <- system.file("extdata", "metadata.tsv", package = "OmicFlow")
-counts_file <- system.file("extdata", "counts.tsv", package = "OmicFlow")
-features_file <- system.file("extdata", "features.tsv", package = "OmicFlow")
+biom_file <- system.file("extdata", "biomv2.biom", package = "OmicFlow")
 tree_file <- system.file("extdata", "tree.newick", package = "OmicFlow")
 
 test <- metagenomics$new(
   metaData = metadata_file,
-  countData = counts_file,
-  featureData = features_file,
+  biomData = biom_file,
   treeData = tree_file
 )
 #> ✔ metaData template passed the JSON validation.
@@ -120,15 +98,9 @@ test <- metagenomics$new(
 #> countData: 4 samples × 242 features
 #> featureData: 7 attributes × 242 features
 #> treeData: 242 tips × 241 nodes
-
-## BIOM example, where `featureData` and `countData` are extracted from `biomData`
-# test <- metagenomics$new(
-#   metaData = "metadata.csv",
-#   biomData = "test.biom"
-# )
 ```
 
-### `proteomics`
+### [`proteomics`](https://agusinac.github.io/OmicFlow/reference/proteomics.html)
 
 The sub-class `proteomics` is very similar to the main `omics` class
 with the addition of the `treeData` field. In all sub-classes that
@@ -137,12 +109,11 @@ to make it compatible with the `unifrac` dissimilarity functions.
 
 ## Data fields
 
-The abstract `omics` class and their sub-classes follow the same
-subsetting and active-binding fields. The active-bindings are the data
-fields, such as `metaData`, `countData`, `featureData` and (optionally)
-`treeData`, these can be used for both inspecting the data directly or
-performing direct modifications that indirectly affects the other data
-fields.
+The Super-class `omics` and their sub-classes follow the same subsetting
+and active-binding fields. The active-bindings are the data fields, such
+as `metaData`, `countData`, `featureData` and (optionally) `treeData`,
+these can be used for both inspecting the data directly or performing
+direct modifications that indirectly affects the other data fields.
 
 Below an example given a pre-initialised `metagenomics` class called
 `test`.
@@ -188,11 +159,11 @@ test$featureData
 #> 242: GTGCCAGCAGCCGCGGTAATACGGAGGTGGCAAGCGTTGTTCGGATTTATTGGGTGTAAAGGGCATGTAGGTGGCCTTGCCCCGAAAGGGGTTCTTAGCGCAAGCTAAGAGTAAGTCAGATGTGAAATCCTCCCGCTCAACGGGAGAACGGCATTTGAAACTGCAAGGCTTGAGTACGGGAGAGGAGAGGGGAATTCCCGGTGTAAGAGTGAAATCTGTAGATATCGGGAGGAACACCAGTGGCGAAGGCGCCTCTCTGGCCCAGTTCTGACACTGAAATGCGAAAGCTAGGGGAGCAAACAGGATTAGAAACCCTGGTAGTCC
 #>         Kingdom            Phylum       Class         Order         Family
 #>          <char>            <char>      <char>        <char>         <char>
-#>   1: Unassigned                                                           
-#>   2: Unassigned                                                           
-#>   3: Unassigned                                                           
-#>   4: Unassigned                                                           
-#>   5: Unassigned                                                           
+#>   1: Unassigned              <NA>        <NA>          <NA>           <NA>
+#>   2: Unassigned              <NA>        <NA>          <NA>           <NA>
+#>   3: Unassigned              <NA>        <NA>          <NA>           <NA>
+#>   4: Unassigned              <NA>        <NA>          <NA>           <NA>
+#>   5: Unassigned              <NA>        <NA>          <NA>           <NA>
 #>  ---                                                                      
 #> 238:   Bacteria Verrucomicrobiota Omnitrophia Omnitrophales Omnitrophaceae
 #> 239:   Bacteria Verrucomicrobiota Omnitrophia Omnitrophales Omnitrophaceae
@@ -201,15 +172,15 @@ test$featureData
 #> 242:   Bacteria Verrucomicrobiota Omnitrophia Omnitrophales Omnitrophaceae
 #>                       Genus                Species
 #>                      <char>                 <char>
-#>   1:                                              
-#>   2:                                              
-#>   3:                                              
-#>   4:                                              
-#>   5:                                              
+#>   1:                   <NA>                   <NA>
+#>   2:                   <NA>                   <NA>
+#>   3:                   <NA>                   <NA>
+#>   4:                   <NA>                   <NA>
+#>   5:                   <NA>                   <NA>
 #>  ---                                              
 #> 238: Candidatus_Omnitrophus   uncultured_bacterium
-#> 239: Candidatus_Omnitrophus                       
-#> 240: Candidatus_Omnitrophus                       
+#> 239: Candidatus_Omnitrophus                   <NA>
+#> 240: Candidatus_Omnitrophus                   <NA>
 #> 241: Candidatus_Omnitrophus Candidatus_Omnitrophus
 #> 242: Candidatus_Omnitrophus   uncultured_bacterium
 
@@ -226,14 +197,17 @@ You have probably noticed by now that classes in `OmicFlow` do not
 return a new object. This is done on purpose to prevent the additional
 clutter of objects, and the higher memory footprint that arises.
 Therefore, all modifications are done in place when it comes to
-modifying the class object. Upon the first initialization of the class,
-a backup of the data is created, and the user can revert back to that
-point via the `reset` function.
+modifying the class object. Upon the first initialization of the class
+via the `$new()` function, a backup of the data is created, and the user
+can revert back to that point via the `reset` function.
 
-The backup is modified when a `copy` of the data is created, then the
-backup point is set at the time when the copy has been made. Often when
-you are not happy with the flow of your subsetting/scaling strategy, the
-`reset` can be used to revert back or create multiple copies.
+The backup is modified when a
+[`copy`](https://agusinac.github.io/OmicFlow/reference/omics.html#omics-copy-)
+of the data is created, then the backup point is set at the time when
+the copy has been made. Often when you are not happy with the flow of
+your subsetting/scaling strategy, the
+[`reset`](https://agusinac.github.io/OmicFlow/reference/omics.html#omics-reset-)
+can be used to revert back or call it in a `for-loop`.
 
 ``` r
 
@@ -258,7 +232,9 @@ test
 
 Data modifications can be achieved by changing a single data field via
 the active-binding or you can use in-built subsetting functions, such as
-`feature_subset`, `sample_subset`, `samplepair_subset`.
+[`feature_subset`](https://agusinac.github.io/OmicFlow/reference/omics.html#omics-feature_subset-),
+[`sample_subset`](https://agusinac.github.io/OmicFlow/reference/omics.html#omics-sample_subset-),
+[`samplepair_subset`](https://agusinac.github.io/OmicFlow/reference/omics.html#omics-samplepair_subset-).
 
 ``` r
 
@@ -279,55 +255,31 @@ test$feature_subset(Genus == "Acinetobacter")
 ### scaling
 
 The transformation or standardisation of the `countData` can be achieved
-via the `scale` function, which performs normalisation methods or
-transformations together or independently.
+via the
+[`scale`](https://agusinac.github.io/OmicFlow/reference/omics.html#omics-scale-)
+method, which performs normalisation methods or transformations together
+or independently.
 
 ``` r
 
-## Original data
-hist(test$countData@x)
-```
-
-![](getting-started_files/figure-html/unnamed-chunk-7-1.png)
-
-``` r
-
-
-# Normalisation
+# Total-sum scaling
 test$scale(method = "tss")
-hist(test$countData@x)
-```
-
-![](getting-started_files/figure-html/unnamed-chunk-7-2.png)
-
-``` r
-
 
 # Standardisation
 test$reset()
 ## CLR skips zero's if pseudocount is not added
 test$scale(method = "clr")
-hist(test$countData@x)
-```
 
-![](getting-started_files/figure-html/unnamed-chunk-7-3.png)
-
-``` r
-
-
-# Transformation
+# Log2 transformation
 test$reset()
 test$scale(method = "none", transform = log2)
-hist(test$countData@x)
 ```
-
-![](getting-started_files/figure-html/unnamed-chunk-7-4.png)
 
 ## Visualisations
 
 Different visualisation strategies can be used depending on the data and
-normalisation approach. Some functions work differently in different
-classes. Examples of visualisations can be further explored here:
+normalisation approach, example applied to `metagenomics` class, but
+these functions are generic to every `omics` sub-class.
 
 - [Visualisations &
   Statistics](https://agusinac.github.io/OmicFlow/articles/visualisation.md)

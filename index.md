@@ -3,11 +3,11 @@
 ## Overview
 
 OmicFlow is a generalised data structure for fast and efficient loading
-of various sparse omics data. It can handle metataxonomics/metagenomics
-data in text or
+of various sparse `omics` data. The main `omics` class extends to
+`metagenomics` data in text or
 [BIOM](https://biom-format.org/documentation/format_versions/biom-2.0.html)
-and extends to `proteomics` and other `omics` types. It also supports
-non-sparse data, but it’s performance peaks in sparsity.
+and to `proteomics`. It also supports non-sparse data, but it’s
+performance peaks in sparsity.
 
 ## Installation
 
@@ -34,16 +34,27 @@ pre-loaded object.
 ``` r
 library("OmicFlow")
 
+## Load example data
 metadata_file <- system.file("extdata", "metadata.tsv", package = "OmicFlow")
 counts_file <- system.file("extdata", "counts.tsv", package = "OmicFlow")
 features_file <- system.file("extdata", "features.tsv", package = "OmicFlow")
 tree_file <- system.file("extdata", "tree.newick", package = "OmicFlow")
+biom_file <- system.file("extdata", "biomv2.biom", package = "OmicFlow")
 
+## Initialise metagenomics from biom_file
 taxa <- metagenomics$new(
     metaData = metadata_file,
+    biomData = biom_file,
+    treeData = tree_file            # optional
+)
+
+## Initialise omics class
+taxa2 <- omics$new(
+    metaData = metadata_file,
+    ## counts_file is allowed to have non-sample ids
     countData = counts_file,
-    featureData = features_file,
-    treeData = tree_file
+    featureData = features_file,    # optional
+    treeData = tree_file            # optional
 )
 
 taxa$feature_subset(Kingdom == "Bacteria")

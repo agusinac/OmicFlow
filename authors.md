@@ -16,13 +16,13 @@ Source:
 [`DESCRIPTION`](https://github.com/agusinac/OmicFlow/blob/main/DESCRIPTION)
 
 Gusinac A, Ederveen T, Boleij A (2026). *OmicFlow: Fast and Efficient
-(Automated) Analysis of Sparse Omics Data*. R package version 1.6.0,
-<https://github.com/agusinac/OmicFlow>.
+(Automated) Analysis of Sparse Omics Data*. R package version 1.7.0,
+<https://agusinac.github.io/OmicFlow/>.
 
     @Manual{,
       title = {OmicFlow: Fast and Efficient (Automated) Analysis of Sparse Omics Data},
       author = {Alem Gusinac and Thomas Ederveen and Annemarie Boleij},
       year = {2026},
-      note = {R package version 1.6.0},
-      url = {https://github.com/agusinac/OmicFlow},
+      note = {R package version 1.7.0},
+      url = {https://agusinac.github.io/OmicFlow/},
     }

@@ -18,12 +18,7 @@ and
 ## Usage
 
 ``` r
-diversity(
-  x,
-  metric = c("shannon", "simpson", "invsimpson"),
-  normalize = TRUE,
-  base = exp(1)
-)
+diversity(x, metric = "shannon", normalize = TRUE, base = exp(1))
 ```
 
 ## Arguments
@@ -36,16 +31,42 @@ diversity(
 
 - metric:
 
-  A character variable for metric; shannon, simpson or invsimpson.
+  A character to specify what metric to use, options: `"shannon"`,
+  `"simpson"`, `"invsimpson"` (default: `"shannon"`).
+
+  `"shannon"`
+
+  :   Shannon Diversity Index, \\H = -\sum_i p_i
+      \log\_{\code{base}}(p_i)\\, where \\p_i\\ is the abundance or
+      relative abundance of feature \\i\\. When `normalize = TRUE`,
+      counts are converted to within-sample relative abundances before
+      calculation. The logarithm base is controlled by `base`; the
+      natural logarithm is commonly used.
+
+  `"simpson"`
+
+  :   Simpson Diversity Index, \\1 - \sum_i p_i^2\\. Higher values
+      indicate greater diversity, with values near zero indicating
+      domination by one feature. When `normalize = TRUE`, \\p_i\\
+      denotes within-sample relative abundance.
+
+  `"invsimpson"`
+
+  :   Inverse Simpson Index, \\1 / \sum_i p_i^2\\. When calculated from
+      relative abundances, this is the effective number of equally
+      abundant features that would yield the observed concentration.
+      Values increase with richness and evenness.
 
 - normalize:
 
-  A boolean variable for sample normalization by column sums.
+  A boolean variable to normalise the each value by their column sum
+  (default: `TRUE`).
 
 - base:
 
-  Input for [log](https://rdrr.io/r/base/Log.html) to use natural
-  logarithmic scale, log2, log10 or other (default: `exp(1)`).
+  A numeric variable in [log](https://rdrr.io/r/base/Log.html) to use
+  natural logarithmic scale, log2, log10 or other in `"shannon"`
+  (default: `exp(1)`).
 
 ## Value
 
@@ -70,7 +91,7 @@ row_idx <- ((positions - 1) %% n_row) + 1
 col_idx <- ((positions - 1) %/% n_row) + 1
 
 values <- runif(num_nonzero, min = 0, max = 1)
-sparse_mat <- sparseMatrix(
+sparse_mat <- Matrix::sparseMatrix(
   i = row_idx,
   j = col_idx,
   x = values,
@@ -78,7 +99,7 @@ sparse_mat <- sparseMatrix(
 )
 
 # Alpha diversity is computed on column level
-## Transpose the sparseMatrix if required with t() from Matrix R package.
+## Transpose the sparseMatrix if required with `t()` from Matrix R package.
 result <- OmicFlow::diversity(
   x = sparse_mat,
   metric = "shannon"

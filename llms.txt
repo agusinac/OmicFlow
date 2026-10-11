@@ -3,11 +3,11 @@
 ## Overview
 
 OmicFlow is a generalised data structure for fast and efficient loading
-of various sparse omics data. It can handle metataxonomics/metagenomics
-data in text or
+of various sparse `omics` data. The main `omics` class extends to
+`metagenomics` data in text or
 [BIOM](https://biom-format.org/documentation/format_versions/biom-2.0.html)
-and extends to `proteomics` and other `omics` types. It also supports
-non-sparse data, but it’s performance peaks in sparsity.
+and to `proteomics`. It also supports non-sparse data, but it’s
+performance peaks in sparsity.
 
 ## Installation
 
@@ -34,16 +34,27 @@ pre-loaded object.
 ``` r
 library("OmicFlow")
 
+## Load example data
 metadata_file <- system.file("extdata", "metadata.tsv", package = "OmicFlow")
 counts_file <- system.file("extdata", "counts.tsv", package = "OmicFlow")
 features_file <- system.file("extdata", "features.tsv", package = "OmicFlow")
 tree_file <- system.file("extdata", "tree.newick", package = "OmicFlow")
+biom_file <- system.file("extdata", "biomv2.biom", package = "OmicFlow")
 
+## Initialise metagenomics from biom_file
 taxa <- metagenomics$new(
     metaData = metadata_file,
+    biomData = biom_file,
+    treeData = tree_file            # optional
+)
+
+## Initialise omics class
+taxa2 <- omics$new(
+    metaData = metadata_file,
+    ## counts_file is allowed to have non-sample ids
     countData = counts_file,
-    featureData = features_file,
-    treeData = tree_file
+    featureData = features_file,    # optional
+    treeData = tree_file            # optional
 )
 
 taxa$feature_subset(Kingdom == "Bacteria")
@@ -98,51 +109,75 @@ ticket](https://github.com/agusinac/OmicFlow/issues)
 
 ## All functions
 
+- [`boxjitter_test()`](https://agusinac.github.io/OmicFlow/reference/boxjitter_test.md)
+  : Create a boxplot with jittered points and statistical tests
+
 - [`bray()`](https://agusinac.github.io/OmicFlow/reference/bray.md) :
   Compute Bray-Curtis Dissimilarity from a Dense or Sparse Matrix.
+
 - [`canberra()`](https://agusinac.github.io/OmicFlow/reference/canberra.md)
   : Compute Canberra Dissimilarity from a from a Dense or Sparse Matrix.
+
 - [`colormap()`](https://agusinac.github.io/OmicFlow/reference/colormap.md)
   : Color map of a variable
+
 - [`column_exists()`](https://agusinac.github.io/OmicFlow/reference/column_exists.md)
-  : Checks if column exists in table
+  : Checks if given column name exists in provide table
+
 - [`composition_plot()`](https://agusinac.github.io/OmicFlow/reference/composition_plot.md)
   : Compositional plot
+
 - [`cosine()`](https://agusinac.github.io/OmicFlow/reference/cosine.md)
   : Compute Cosine Dissimilarity from a Dense or Sparse Matrix.
+
 - [`diversity()`](https://agusinac.github.io/OmicFlow/reference/diversity.md)
   : Sparse implementation of Alpha Diversity Metrics
-- [`diversity_plot()`](https://agusinac.github.io/OmicFlow/reference/diversity_plot.md)
-  : Diversity plot
+
 - [`euclidean()`](https://agusinac.github.io/OmicFlow/reference/euclidean.md)
   : Compute Euclidean Dissimilarity from a from a Dense or Sparse
   Matrix.
+
 - [`hill_taxa()`](https://agusinac.github.io/OmicFlow/reference/hill_taxa.md)
   : Sparse implementation of Hill numbers
+
 - [`jaccard()`](https://agusinac.github.io/OmicFlow/reference/jaccard.md)
   : Compute Jaccard Dissimilarity from a Dense or Sparse Matrix.
+
 - [`jsd()`](https://agusinac.github.io/OmicFlow/reference/jsd.md) :
   Compute Jensen-Shannon Divergence from a Dense or Sparse Matrix.
+
 - [`manhattan()`](https://agusinac.github.io/OmicFlow/reference/manhattan.md)
   : Compute Manhattan Dissimilarity from a Dense or Sparse Matrix.
+
 - [`matrix_to_dtable()`](https://agusinac.github.io/OmicFlow/reference/matrix_to_dtable.md)
   : Converting a Matrix to data.table
+
 - [`metagenomics`](https://agusinac.github.io/OmicFlow/reference/metagenomics.md)
   : Sub-class metagenomics
+
 - [`omics`](https://agusinac.github.io/OmicFlow/reference/omics.md) :
-  Abstract omics class
+  Superclass omics
+
 - [`ordination_plot()`](https://agusinac.github.io/OmicFlow/reference/ordination_plot.md)
   : Ordination plot
+
 - [`pairwise_adonis()`](https://agusinac.github.io/OmicFlow/reference/pairwise_adonis.md)
-  : Pairwise adonis2 (PERMANOVA) computation
+  : Pairwise adonis2 (PERMANOVA)
+
 - [`pairwise_anosim()`](https://agusinac.github.io/OmicFlow/reference/pairwise_anosim.md)
-  : Pairwise anosim (ANOSIM) computation
+  : Pairwise ANOSIM
+
 - [`plot_pairwise_stats()`](https://agusinac.github.io/OmicFlow/reference/plot_pairwise_stats.md)
-  : Create pairwise stats plot
+  :
+
+  Creates barplot from `pairwise_adonis` or `pairwise_anosim`
+
 - [`proteomics`](https://agusinac.github.io/OmicFlow/reference/proteomics.md)
   : Sub-class proteomics
+
 - [`unifrac()`](https://agusinac.github.io/OmicFlow/reference/unifrac.md)
   : Compute UniFrac Dissimilarity from a Dense or Sparse Matrix.
+
 - [`volcano_plot()`](https://agusinac.github.io/OmicFlow/reference/volcano_plot.md)
   : Volcano plot
 

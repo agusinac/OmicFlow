@@ -1,4 +1,4 @@
-# Pairwise adonis2 (PERMANOVA) computation
+# Pairwise adonis2 (PERMANOVA)
 
 Computes pairwise
 [adonis2](https://vegandevs.github.io/vegan/reference/adonis.html),
@@ -19,7 +19,8 @@ pairwise_adonis(
   metadata = NULL,
   perm_design = NULL,
   p.adjust.method = "bonferroni",
-  perm = 999
+  perm = 999,
+  ...
 )
 ```
 
@@ -34,44 +35,69 @@ pairwise_adonis(
 
 - groups:
 
-  A character vector (column from a table) of labels.
+  A character vector with equal length as the distance matrix.
 
 - metadata:
 
-  A data.table or data.frame of extra metadata for `perm_design`
-  (default: NULL).
+  A [data.table](https://rdrr.io/pkg/data.table/man/data.table.html) or
+  [data.frame](https://rdrr.io/r/base/data.frame.html) as input to the
+  function `perm_design` (default: `NULL`).
 
 - perm_design:
 
-  A function that takes a data.frame and constructs a permutation design
-  with [how](https://rdrr.io/pkg/permute/man/how.html) (default: NULL).
+  A function that takes the `metadata` and returns a permutation design
+  with [how](https://rdrr.io/pkg/permute/man/how.html) (default:
+  `NULL`).
 
 - p.adjust.method:
 
-  P adjust method see [p.adjust](https://rdrr.io/r/stats/p.adjust.html).
+  A character variable to adjust the p-values, see
+  [p.adjust](https://rdrr.io/r/stats/p.adjust.html) (default:
+  `"bonferroni"`).
 
 - perm:
 
-  Number of permutations to compare against the null hypothesis of
-  adonis2 (default: `perm=999`).
+  A whole number to define the number of permutations in
+  [adonis2](https://vegandevs.github.io/vegan/reference/adonis.html)
+  (default: `999`).
+
+- ...:
+
+  Additional arguments passed to
+  [adonis2](https://vegandevs.github.io/vegan/reference/adonis.html).
 
 ## Value
 
-A [data.frame](https://rdrr.io/r/base/data.frame.html) of
+A [data.frame](https://rdrr.io/r/base/data.frame.html) containing:
 
-- pairs that are used
+- pairs:
 
-- Degrees of freedom (Df)
+  combinations of group comparisons
 
-- Sums of Squares of H_0
+- Df:
 
-- F.Model of H_0
+  Degrees of Freedom
 
-- R2 of H_0
+- SumsOfSqs:
 
-- p value of F^p \> F
+  The sums of squares (centroid) of the null hypothesis \\H_0\\
 
-- p adjusted
+- F.Model:
+
+  The F-test of the null hypothesis \\H_0\\
+
+- R2:
+
+  The R squared of the null hypothesis \\H_0\\
+
+- p.value:
+
+  The number of \\F^p\\ higher than the null hypothesis divided by the
+  total number of permutations.
+
+- p.adj:
+
+  The adjusted P-value based on the used `p.adjust.method`
 
 ## See also
 

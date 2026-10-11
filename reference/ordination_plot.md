@@ -1,8 +1,7 @@
 # Ordination plot
 
-Creates an ordination plot pre-computed principal components from
-[wcmdscale](https://vegandevs.github.io/vegan/reference/wcmdscale.html).
-This function is built into the class
+Creates an ordination plot from pre-computed principal components. This
+function is built into the class
 [omics](https://agusinac.github.io/OmicFlow/reference/omics.md) with
 method `ordination()` and inherited by other omics classes, such as;
 [metagenomics](https://agusinac.github.io/OmicFlow/reference/metagenomics.md)
@@ -14,7 +13,8 @@ and
 ``` r
 ordination_plot(
   data,
-  col_name,
+  col_name = lifecycle::deprecated(),
+  groups = lifecycle::deprecated(),
   pair,
   dist_explained = NULL,
   dist_metric = NULL
@@ -26,27 +26,33 @@ ordination_plot(
 - data:
 
   A [data.frame](https://rdrr.io/r/base/data.frame.html) or
-  [data.table](https://rdrr.io/pkg/data.table/man/data.table.html) of
+  [data.table](https://rdrr.io/pkg/data.table/man/data.table.html) with
   Principal Components as columns and rows as loading scores.
 
 - col_name:
 
-  A categorical variable to color the contrasts (e.g. "groups").
+  **\[deprecated\]** This argument has been renamed to `groups` for more
+  clarity.
+
+- groups:
+
+  A categorical variable in `data` to color the groups (e.g.
+  `"treatment"`).
 
 - pair:
 
   A vector of character variables indicating what dimension names (e.g.
-  PC1, NMDS2).
+  `c("PC1", "PC2")` or `c("NMDS1", "NMDS2")`) in `data`.
 
 - dist_explained:
 
   A vector of numeric values of the percentage dissimilarity explained
-  for the dimension pairs, default is NULL.
+  for the dimension pairs (default: `NULL`).
 
 - dist_metric:
 
-  A character variable indicating what metric is used (e.g. unifrac,
-  bray-curtis), default is NULL.
+  A character variable indicating what metric is used (e.g.
+  `"bray-curtis"`) (default: `NULL`).
 
 ## Value
 
@@ -57,8 +63,6 @@ object to be further modified
 ## Examples
 
 ``` r
-library(ggplot2)
-
 # Mock principal component scores
 set.seed(123)
 mock_data <- data.frame(
@@ -71,7 +75,7 @@ mock_data <- data.frame(
 # Basic usage
 ordination_plot(
   data = mock_data,
-  col_name = "groups",
+  groups = "groups",
   pair = c("PC1", "PC2")
 )
 
@@ -79,7 +83,7 @@ ordination_plot(
 # Adding variance/dissimilarity explained.
 ordination_plot(
   data = mock_data,
-  col_name = "groups",
+  groups = "groups",
   pair = c("PC1", "PC2"),
   dist_explained = c(45, 22),
   dist_metric = "bray-curtis"
