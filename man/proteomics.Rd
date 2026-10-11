@@ -153,7 +153,12 @@ obj <- proteomics$new(
 
 ## Method 3: you have features and counts in a single data.frame
 metadata <- data.frame(SAMPLE_ID = c("S1", "S2", "S3"))
-counts <- data.frame(S1 = c(2,3,0), S2 = c(2,"",1), S3 = c(2,1,NA), proteins = c("ZEB1", "ZEB2", "MAPK"))
+counts <- data.frame(
+ S1 = c(2,3,0), 
+ S2 = c(2,"",1), 
+ S3 = c(2,1,NA), 
+ proteins = c("ZEB1", "ZEB2", "MAPK")
+)
 
 obj <- proteomics$new(
  metaData = metadata,
@@ -254,7 +259,12 @@ obj <- proteomics$new(
 
 ## Method 3: you have features and counts in a single data.frame
 metadata <- data.frame(SAMPLE_ID = c("S1", "S2", "S3"))
-counts <- data.frame(S1 = c(2,3,0), S2 = c(2,"",1), S3 = c(2,1,NA), proteins = c("ZEB1", "ZEB2", "MAPK"))
+counts <- data.frame(
+ S1 = c(2,3,0), 
+ S2 = c(2,"",1), 
+ S3 = c(2,1,NA), 
+ proteins = c("ZEB1", "ZEB2", "MAPK")
+)
 
 obj <- proteomics$new(
  metaData = metadata,

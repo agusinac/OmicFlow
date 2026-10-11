@@ -46,7 +46,7 @@ biom_file <- system.file("extdata", "biomv2.biom", package = "OmicFlow")
 taxa <- metagenomics$new(
     metaData = metadata_file,
     biomData = biom_file,
-    treeData = tree_file
+    treeData = tree_file            # optional
 )
 
 ## Initialise omics class
@@ -54,9 +54,8 @@ taxa2 <- omics$new(
     metaData = metadata_file,
     ## counts_file is allowed to have non-sample ids
     countData = counts_file,
-    ## featureData is optional
-    featureData = features_file,
-    treeData = tree_file
+    featureData = features_file,    # optional
+    treeData = tree_file            # optional
 )
 
 taxa$feature_subset(Kingdom == "Bacteria")
