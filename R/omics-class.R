@@ -1665,7 +1665,7 @@ omics <- R6::R6Class(
     #'    It takes the median for each feature, separately for `condition_A` and `condition_B`.
     #'  }
     #'  \item{\code{"geomean"}}{
-    #'    It computes the geometric mean of the positive counts, similar to the \link[DESeq2]{estimateSizeFactors()}, when \code{type = "poscount"}.
+    #'    It computes the geometric mean of the positive counts, similar to the \link[DESeq2]{estimateSizeFactors}, when \code{type = "poscount"}.
     #'    The only difference, is that the code is adapted to handle a \link[Matrix]{sparseMatrix}.
     #'  }
     #'  \item{\code{"none"}}{

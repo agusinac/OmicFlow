@@ -1369,7 +1369,7 @@ It takes the arithmetic mean for each feature, separately for \code{condition_A}
 It takes the median for each feature, separately for \code{condition_A} and \code{condition_B}.
 }
 \item{\code{"geomean"}}{
-It computes the geometric mean of the positive counts, similar to the \link[DESeq2]{estimateSizeFactors()}, when \code{type = "poscount"}.
+It computes the geometric mean of the positive counts, similar to the \link[DESeq2]{estimateSizeFactors}, when \code{type = "poscount"}.
 The only difference, is that the code is adapted to handle a \link[Matrix]{sparseMatrix}.
 }
 \item{\code{"none"}}{
