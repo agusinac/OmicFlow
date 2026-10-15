@@ -79,6 +79,9 @@ OmicFlow](https://agusinac.github.io/OmicFlow/articles/getting-started.html).
 
 ## Docker
 
+> \[!NOTE\] `agusinac/autoflow:latest` will be superseded by
+> `agusinac/omicflow:latest` from v1.7.0
+
 Example: **Outputs a `report.html` file in current work directory**
 
 ``` bash
