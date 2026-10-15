@@ -6,7 +6,7 @@
 [![Codecov](https://codecov.io/gh/agusinac/OmicFlow/graph/badge.svg)](https://app.codecov.io/gh/agusinac/OmicFlow)
 [![R-CMD-check](https://github.com/agusinac/OmicFlow/actions/workflows/R-CMD-check.yaml/badge.svg)](https://github.com/agusinac/OmicFlow/actions/workflows/R-CMD-check.yaml)
 [![run with conda](https://anaconda.org/agusinac/r-omicflow/badges/version.svg)](https://anaconda.org/agusinac/r-omicflow)
-[![run with docker](https://img.shields.io/badge/run%20with-docker-0db7ed?labelColor=000000&logo=docker)](https://hub.docker.com/r/agusinac/autoflow)
+[![run with docker](https://img.shields.io/badge/run%20with-docker-0db7ed?labelColor=000000&logo=docker)](https://hub.docker.com/r/agusinac/omicflow)
 
 <!-- badges: end -->
 
@@ -77,6 +77,9 @@ taxa$
 If you are new to `OmicFlow`, the best place to start is the [Introduction to OmicFlow](https://agusinac.github.io/OmicFlow/articles/getting-started.html).
 
 ## Docker
+
+> [!NOTE]
+> `agusinac/autoflow:latest` will be superseded by `agusinac/omicflow:latest` from v1.7.0
 
 Example: **Outputs a `report.html` file in current work directory**
 ```bash

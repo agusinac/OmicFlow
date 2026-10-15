@@ -1,12 +1,12 @@
 #------------------------------------------------------------------------------------#
 #
-#   Created by Alem Gusinac, last modified at 24-10-2025
+#   Created by Alem Gusinac, last modified at 15-10-2026
 #
 #   It builds on top of a slim ubuntu (70MB) base
 #
 #------------------------------------------------------------------------------------#
 
-FROM ubuntu:20.04
+FROM ubuntu:22.04
 
 # set environment without graphical interface
 ENV DEBIAN_FRONTEND=noninteractive
@@ -16,7 +16,11 @@ ENV DEBIAN_FRONTEND=noninteractive
 #------------------------------------------------------------------------------------#
 
 # Install dependencies
-RUN apt-get update && apt-get install -y \
+RUN apt-get update && apt-get install -y --no-install-recommends \
+    build-essential \
+    ca-certificates \
+    gnupg \
+    gfortran \
     make \
     cmake \
     git \
@@ -24,9 +28,14 @@ RUN apt-get update && apt-get install -y \
     pandoc \
     rustc \
     cargo \
-    pgp \
     pkg-config \
-    autoconf automake \
+    autoconf \
+    automake \
+    libnode-dev \
+    libblas-dev \
+    liblapack-dev \
+    libbz2-dev \
+    libuv1-dev \
     libx11-dev \
     libcurl4-openssl-dev \
     libssl-dev \
@@ -46,20 +55,21 @@ RUN apt-get update && apt-get install -y \
 # 2. R-base:latest setup
 #------------------------------------------------------------------------------------#
 # Setting up R-base:latest, includes public key setup and addition of r-base version to apt depository
-RUN wget -qO- https://cloud.r-project.org/bin/linux/ubuntu/marutter_pubkey.asc | tee -a /etc/apt/trusted.gpg.d/cran_ubuntu_key.asc
-RUN echo "deb https://cloud.r-project.org/bin/linux/ubuntu focal-cran40/" >> /etc/apt/sources.list
-# apt update, upgrade and clean after above set-up is required!
-# Otherwise it gives an error of broken pipes.
-RUN apt-get update && apt-get upgrade -y && apt-get clean
-RUN apt-get update && apt-get install -y r-base
+RUN install -d -m 0755 /etc/apt/keyrings && \
+    wget -qO- https://cloud.r-project.org/bin/linux/ubuntu/marutter_pubkey.asc \
+      | gpg --dearmor -o /etc/apt/keyrings/cran-archive-keyring.gpg && \
+    echo "deb [signed-by=/etc/apt/keyrings/cran-archive-keyring.gpg] https://cloud.r-project.org/bin/linux/ubuntu jammy-cran40/" \
+      > /etc/apt/sources.list.d/cran-r.list && \
+    apt-get update && \
+    apt-get install -y --no-install-recommends r-base && \
+    rm -rf /var/lib/apt/lists/*
 
 # Install ggplot2 3.5.2 explicitly before other packages
 RUN R -e "install.packages('remotes', repos='https://cloud.r-project.org')"
-RUN R -e "remotes::install_version('ggplot2', version='3.5.2', repos='https://cloud.r-project.org')"
 
 # Copy requirements
-COPY install2.r .
-COPY installBioc.r .
+COPY ./docker/install2.r .
+COPY ./docker/installBioc.r .
 
 # Required package for install2.r
 RUN R -e "install.packages('docopt', dependencies=TRUE)"
