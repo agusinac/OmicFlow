@@ -36,6 +36,9 @@ test_that("`metagenomics` -- Behavioral checks", {
       biomData = biom_hdf5
     )
   )
+  # Ensuring cloneability is enabled
+  expect_no_error(test$copy())
+
   expect_equal(all(rownames(test$countData) == test$featureData$FEATURE_ID), TRUE)
   expect_equal(all(colnames(test$countData) == test$metaData$SAMPLE_ID), TRUE)
   expect_s4_class(test$countData, "sparseMatrix")

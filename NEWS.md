@@ -1,3 +1,8 @@
+# OmicFlow 1.7.0.9001 (2026-10-28)
+
+## Changed
+- Accidentally removed cloneability of `proteomics` class, added extra test to enforce this requirement.
+
 # OmicFlow 1.7.0 (2026-10-11)
 
 ## Added

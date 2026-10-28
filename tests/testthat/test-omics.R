@@ -16,7 +16,7 @@ test_that("`omics` -- Argument checks", {
   expect_snapshot(omics$new(metaData = metadata_file, countData = matrix(0)), error = TRUE)
 })
 
-test_that("`omics` -- Behavioral checks", { 
+test_that("`omics` -- Behavioral checks", {
   # Loading only metaData
   expect_snapshot(
     omics$new(
@@ -39,6 +39,9 @@ test_that("`omics` -- Behavioral checks", {
       countData = counts_sparse_file
     )
   )
+  # Ensuring cloneability is enabled
+  expect_no_error(test$copy())
+
   expect_equal(rownames(test$countData)[1], "feature_1")
   expect_equal(rownames(test$countData), test$featureData$FEATURE_ID)
   expect_equal(colnames(test$countData), test$metaData$SAMPLE_ID)

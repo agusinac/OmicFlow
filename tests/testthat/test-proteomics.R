@@ -32,6 +32,9 @@ test_that("`proteomics` -- Behavioral checks", {
       countData = counts_with_rownames_file
     )
   )
+  # Ensuring cloneability is enabled
+  expect_no_error(test$copy())
+  
   expect_equal(all(rownames(test$countData) == test$featureData$FEATURE_ID), TRUE)
   expect_equal(all(colnames(test$countData) == test$metaData$SAMPLE_ID), TRUE)
   expect_s4_class(test$countData, "sparseMatrix")

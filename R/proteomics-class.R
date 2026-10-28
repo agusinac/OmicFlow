@@ -31,7 +31,7 @@
 
 proteomics <- R6::R6Class(
   classname = "proteomics",
-  cloneable = FALSE,
+  cloneable = TRUE,
   inherit = omics,
   active = list(
     #' @field treeData A "phylo" class, see \link[ape]{as.phylo}.
